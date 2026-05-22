@@ -1,0 +1,795 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organization {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  legalName       String?  @map("legal_name")
+  taxId           String?  @map("tax_id")
+  phone           String?
+  email           String?
+  defaultLanguage String   @default("uz") @map("default_language")
+  timezone        String   @default("Asia/Tashkent")
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  branches  Branch[]
+  centers   Center[]
+  userRoles UserRole[]
+  auditLogs AuditLog[]
+
+  @@map("organizations")
+}
+
+model Center {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  centerCode     String   @unique @map("center_code")
+  phone          String?
+  address        String?
+  region         String?
+  district       String?
+  status         String   @default("active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization        Organization         @relation(fields: [organizationId], references: [id])
+  albumPosts          AlbumPost[]
+  attendanceRecords   AttendanceRecord[]
+  auditLogs           AuditLog[]
+  branches            Branch[]
+  centerJoinRequests  CenterJoinRequest[]
+  childEnrollments    ChildEnrollment[]
+  classes             Class[]
+  conversationThreads ConversationThread[]
+  dailyReports        DailyReport[]
+  invoices            Invoice[]
+  mealPlans           MealPlan[]
+  mediaAssets         MediaAsset[]
+  medicationRequests  MedicationRequest[]
+  notices             Notice[]
+  returnHomeRequests  ReturnHomeRequest[]
+  schedules           Schedule[]
+  userRoles           UserRole[]
+
+  @@index([organizationId])
+  @@index([name])
+  @@map("centers")
+}
+
+model Branch {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  centerId       String   @map("center_id") @db.Uuid
+  name           String
+  address        String?
+  phone          String?
+  status         String   @default("active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  center       Center       @relation(fields: [centerId], references: [id])
+  classes      Class[]
+  userRoles    UserRole[]
+
+  @@index([organizationId])
+  @@index([centerId])
+  @@map("branches")
+}
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  username          String?   @unique
+  phone             String?   @unique
+  email             String?   @unique
+  fullName          String    @map("full_name")
+  avatarUrl         String?   @map("avatar_url")
+  preferredLanguage String    @default("uz") @map("preferred_language")
+  status            String    @default("active")
+  lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  albumPosts                  AlbumPost[]
+  auditLogs                   AuditLog[]                @relation("AuditActor")
+  centerJoinRequests          CenterJoinRequest[]       @relation("JoinRequestParent")
+  checkedInAttendanceRecords  AttendanceRecord[]        @relation("AttendanceCheckInBy")
+  checkedOutAttendanceRecords AttendanceRecord[]        @relation("AttendanceCheckOutBy")
+  childGuardians              ChildGuardian[]
+  createdMealPlans            MealPlan[]
+  createdSchedules            Schedule[]
+  dailyReports                DailyReport[]
+  deviceTokens                DeviceToken[]
+  invoices                    Invoice[]
+  medicationAdministered      MedicationRequest[]       @relation("MedicationAdministeredBy")
+  medicationRequests          MedicationRequest[]       @relation("MedicationParent")
+  medicationReviewed          MedicationRequest[]       @relation("MedicationReviewedBy")
+  messages                    Message[]
+  noticeRecipients            NoticeRecipient[]
+  notices                     Notice[]
+  parentProfile               ParentProfile?
+  returnHomeConfirmed         ReturnHomeRequest[]       @relation("ReturnHomeConfirmedBy")
+  returnHomeRequests          ReturnHomeRequest[]       @relation("ReturnHomeParent")
+  reviewedJoinRequests        CenterJoinRequest[]       @relation("JoinRequestReviewer")
+  teacherClassAssignments     TeacherClassAssignment[]
+  teacherProfile              TeacherProfile?
+  threadParticipants          ConversationParticipant[]
+  uploadedMediaAssets         MediaAsset[]
+  userConsents                UserConsent[]
+  userNotificationSettings    UserNotificationSettings?
+  userRoles                   UserRole[]
+  notifications               Notification[]
+
+  @@map("users")
+}
+
+model Role {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @unique
+
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  centerId       String?  @map("center_id") @db.Uuid
+  branchId       String?  @map("branch_id") @db.Uuid
+  roleId         String   @map("role_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  branch       Branch?       @relation(fields: [branchId], references: [id])
+  center       Center?       @relation(fields: [centerId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  role         Role          @relation(fields: [roleId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([centerId])
+  @@index([branchId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model ParentProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("parent_profiles")
+}
+
+model TeacherProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  employeeNumber String?  @map("employee_number")
+  bio            String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("teacher_profiles")
+}
+
+model UserConsent {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  consentType String    @map("consent_type")
+  consented   Boolean
+  channel     String?
+  consentedAt DateTime? @map("consented_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("user_consents")
+}
+
+model UserNotificationSettings {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  pushEnabled     Boolean   @default(true) @map("push_enabled")
+  smsEnabled      Boolean   @default(false) @map("sms_enabled")
+  quietHoursStart DateTime? @map("quiet_hours_start") @db.Time(6)
+  quietHoursEnd   DateTime? @map("quiet_hours_end") @db.Time(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_notification_settings")
+}
+
+model Class {
+  id           String   @id @default(uuid()) @db.Uuid
+  centerId     String   @map("center_id") @db.Uuid
+  branchId     String?  @map("branch_id") @db.Uuid
+  name         String
+  ageGroup     String?  @map("age_group")
+  academicYear String?  @map("academic_year")
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  branch                  Branch?                  @relation(fields: [branchId], references: [id])
+  center                  Center                   @relation(fields: [centerId], references: [id])
+  albumPosts              AlbumPost[]
+  attendanceRecords       AttendanceRecord[]
+  centerJoinRequests      CenterJoinRequest[]
+  childEnrollments        ChildEnrollment[]
+  conversationThreads     ConversationThread[]
+  dailyReports            DailyReport[]
+  mealPlans               MealPlan[]
+  medicationRequests      MedicationRequest[]
+  notices                 Notice[]
+  returnHomeRequests      ReturnHomeRequest[]
+  schedules               Schedule[]
+  teacherClassAssignments TeacherClassAssignment[]
+
+  @@index([centerId])
+  @@index([branchId])
+  @@map("classes")
+}
+
+model TeacherClassAssignment {
+  id             String    @id @default(uuid()) @db.Uuid
+  teacherUserId  String    @map("teacher_user_id") @db.Uuid
+  classId        String    @map("class_id") @db.Uuid
+  assignmentRole String    @default("teacher") @map("assignment_role")
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Date
+  endedAt        DateTime? @map("ended_at") @db.Date
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  class       Class @relation(fields: [classId], references: [id])
+  teacherUser User  @relation(fields: [teacherUserId], references: [id])
+
+  @@index([teacherUserId])
+  @@index([classId])
+  @@map("teacher_class_assignments")
+}
+
+model Child {
+  id           String   @id @default(uuid()) @db.Uuid
+  firstName    String   @map("first_name")
+  lastName     String?  @map("last_name")
+  dob          DateTime @db.Date
+  gender       String?
+  photoUrl     String?  @map("photo_url")
+  allergies    String?
+  medicalNotes String?  @map("medical_notes")
+  status       String   @default("active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  albumPostChildren   AlbumPostChild[]
+  attendanceRecords   AttendanceRecord[]
+  centerJoinRequests  CenterJoinRequest[]
+  childEnrollments    ChildEnrollment[]
+  childGuardians      ChildGuardian[]
+  conversationThreads ConversationThread[]
+  dailyReports        DailyReport[]
+  invoices            Invoice[]
+  medicationRequests  MedicationRequest[]
+  noticeRecipients    NoticeRecipient[]
+  returnHomeRequests  ReturnHomeRequest[]
+
+  @@map("children")
+}
+
+model ChildGuardian {
+  id               String   @id @default(uuid()) @db.Uuid
+  childId          String   @map("child_id") @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  relationship     String
+  nicknameForChild String?  @map("nickname_for_child")
+  isPrimary        Boolean  @default(false) @map("is_primary")
+  canPickup        Boolean  @default(false) @map("can_pickup")
+  canMessage       Boolean  @default(true) @map("can_message")
+  accessLevel      String   @default("full") @map("access_level")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  child Child @relation(fields: [childId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([childId, userId])
+  @@index([userId])
+  @@map("child_guardians")
+}
+
+model ChildEnrollment {
+  id               String    @id @default(uuid()) @db.Uuid
+  childId          String    @map("child_id") @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  classId          String?   @map("class_id") @db.Uuid
+  enrollmentStatus String    @default("active") @map("enrollment_status")
+  startedAt        DateTime  @map("started_at") @db.Date
+  endedAt          DateTime? @map("ended_at") @db.Date
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center Center @relation(fields: [centerId], references: [id])
+  child  Child  @relation(fields: [childId], references: [id])
+  class  Class? @relation(fields: [classId], references: [id])
+
+  @@index([childId])
+  @@index([centerId])
+  @@index([classId])
+  @@map("child_enrollments")
+}
+
+model CenterJoinRequest {
+  id               String    @id @default(uuid()) @db.Uuid
+  parentUserId     String    @map("parent_user_id") @db.Uuid
+  childId          String?   @map("child_id") @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  requestedClassId String?   @map("requested_class_id") @db.Uuid
+  childName        String    @map("child_name")
+  childDob         DateTime? @map("child_dob") @db.Date
+  childGender      String?   @map("child_gender")
+  message          String?
+  status           String    @default("pending")
+  reviewedByUserId String?   @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt       DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center         Center @relation(fields: [centerId], references: [id])
+  child          Child? @relation(fields: [childId], references: [id])
+  parentUser     User   @relation("JoinRequestParent", fields: [parentUserId], references: [id])
+  requestedClass Class? @relation(fields: [requestedClassId], references: [id])
+  reviewedByUser User?  @relation("JoinRequestReviewer", fields: [reviewedByUserId], references: [id])
+
+  @@index([parentUserId])
+  @@index([centerId])
+  @@index([requestedClassId])
+  @@map("center_join_requests")
+}
+
+model DailyReport {
+  id           String    @id @default(uuid()) @db.Uuid
+  centerId     String    @map("center_id") @db.Uuid
+  classId      String    @map("class_id") @db.Uuid
+  childId      String    @map("child_id") @db.Uuid
+  authorUserId String    @map("author_user_id") @db.Uuid
+  reportDate   DateTime  @map("report_date") @db.Date
+  mood         String?
+  healthNote   String?   @map("health_note")
+  teacherNote  String?   @map("teacher_note")
+  status       String    @default("draft")
+  scheduledAt  DateTime? @map("scheduled_at") @db.Timestamptz(6)
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  authorUser User              @relation(fields: [authorUserId], references: [id])
+  center     Center            @relation(fields: [centerId], references: [id])
+  child      Child             @relation(fields: [childId], references: [id])
+  class      Class             @relation(fields: [classId], references: [id])
+  items      DailyReportItem[]
+
+  @@unique([childId, reportDate])
+  @@index([centerId])
+  @@index([classId])
+  @@map("daily_reports")
+}
+
+model DailyReportItem {
+  id            String    @id @default(uuid()) @db.Uuid
+  dailyReportId String    @map("daily_report_id") @db.Uuid
+  itemType      String    @map("item_type")
+  title         String?
+  value         String?
+  note          String?
+  recordedAt    DateTime? @map("recorded_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+
+  @@index([dailyReportId])
+  @@map("daily_report_items")
+}
+
+model Notice {
+  id           String    @id @default(uuid()) @db.Uuid
+  centerId     String    @map("center_id") @db.Uuid
+  classId      String?   @map("class_id") @db.Uuid
+  authorUserId String    @map("author_user_id") @db.Uuid
+  title        String
+  body         String
+  targetType   String    @map("target_type")
+  status       String    @default("draft")
+  scheduledAt  DateTime? @map("scheduled_at") @db.Timestamptz(6)
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  authorUser User              @relation(fields: [authorUserId], references: [id])
+  center     Center            @relation(fields: [centerId], references: [id])
+  class      Class?            @relation(fields: [classId], references: [id])
+  recipients NoticeRecipient[]
+
+  @@index([centerId, publishedAt])
+  @@index([classId])
+  @@map("notices")
+}
+
+model NoticeRecipient {
+  id          String    @id @default(uuid()) @db.Uuid
+  noticeId    String    @map("notice_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  childId     String?   @map("child_id") @db.Uuid
+  readAt      DateTime? @map("read_at") @db.Timestamptz(6)
+  confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  child  Child? @relation(fields: [childId], references: [id])
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([noticeId, userId, childId])
+  @@index([userId, readAt])
+  @@map("notice_recipients")
+}
+
+model MediaAsset {
+  id              String   @id @default(uuid()) @db.Uuid
+  centerId        String   @map("center_id") @db.Uuid
+  uploaderUserId  String   @map("uploader_user_id") @db.Uuid
+  fileUrl         String   @map("file_url")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  mediaType       String   @map("media_type")
+  mimeType        String?  @map("mime_type")
+  sizeBytes       BigInt?  @map("size_bytes")
+  width           Int?
+  height          Int?
+  durationSeconds Int?     @map("duration_seconds")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center       Center      @relation(fields: [centerId], references: [id])
+  uploaderUser User        @relation(fields: [uploaderUserId], references: [id])
+  mediaLinks   MediaLink[]
+
+  @@index([centerId])
+  @@map("media_assets")
+}
+
+model AlbumPost {
+  id           String    @id @default(uuid()) @db.Uuid
+  centerId     String    @map("center_id") @db.Uuid
+  classId      String?   @map("class_id") @db.Uuid
+  authorUserId String    @map("author_user_id") @db.Uuid
+  title        String?
+  body         String?
+  targetType   String    @default("class") @map("target_type")
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  authorUser User             @relation(fields: [authorUserId], references: [id])
+  center     Center           @relation(fields: [centerId], references: [id])
+  class      Class?           @relation(fields: [classId], references: [id])
+  children   AlbumPostChild[]
+
+  @@index([classId, publishedAt])
+  @@map("album_posts")
+}
+
+model MediaLink {
+  id           String   @id @default(uuid()) @db.Uuid
+  mediaAssetId String   @map("media_asset_id") @db.Uuid
+  entityType   String   @map("entity_type")
+  entityId     String   @map("entity_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@map("media_links")
+}
+
+model AlbumPostChild {
+  id          String   @id @default(uuid()) @db.Uuid
+  albumPostId String   @map("album_post_id") @db.Uuid
+  childId     String   @map("child_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  albumPost AlbumPost @relation(fields: [albumPostId], references: [id], onDelete: Cascade)
+  child     Child     @relation(fields: [childId], references: [id])
+
+  @@unique([albumPostId, childId])
+  @@map("album_post_children")
+}
+
+model Schedule {
+  id              String    @id @default(uuid()) @db.Uuid
+  centerId        String    @map("center_id") @db.Uuid
+  classId         String?   @map("class_id") @db.Uuid
+  title           String
+  description     String?
+  startsAt        DateTime  @map("starts_at") @db.Timestamptz(6)
+  endsAt          DateTime? @map("ends_at") @db.Timestamptz(6)
+  location        String?
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  center        Center @relation(fields: [centerId], references: [id])
+  class         Class? @relation(fields: [classId], references: [id])
+  createdByUser User   @relation(fields: [createdByUserId], references: [id])
+
+  @@index([centerId])
+  @@index([classId])
+  @@map("schedules")
+}
+
+model MealPlan {
+  id              String   @id @default(uuid()) @db.Uuid
+  centerId        String   @map("center_id") @db.Uuid
+  classId         String?  @map("class_id") @db.Uuid
+  mealDate        DateTime @map("meal_date") @db.Date
+  mealType        String   @map("meal_type")
+  menuText        String   @map("menu_text")
+  calories        Int?
+  allergens       String?
+  createdByUserId String   @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  center        Center @relation(fields: [centerId], references: [id])
+  class         Class? @relation(fields: [classId], references: [id])
+  createdByUser User   @relation(fields: [createdByUserId], references: [id])
+
+  @@index([centerId])
+  @@index([classId])
+  @@map("meal_plans")
+}
+
+model MedicationRequest {
+  id                   String    @id @default(uuid()) @db.Uuid
+  centerId             String    @map("center_id") @db.Uuid
+  classId              String?   @map("class_id") @db.Uuid
+  childId              String    @map("child_id") @db.Uuid
+  parentUserId         String    @map("parent_user_id") @db.Uuid
+  medicineName         String    @map("medicine_name")
+  dosage               String
+  instructions         String?
+  requestedForDate     DateTime  @map("requested_for_date") @db.Date
+  status               String    @default("pending")
+  reviewedByUserId     String?   @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt           DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  administeredByUserId String?   @map("administered_by_user_id") @db.Uuid
+  administeredAt       DateTime? @map("administered_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  administeredByUser User?  @relation("MedicationAdministeredBy", fields: [administeredByUserId], references: [id])
+  center             Center @relation(fields: [centerId], references: [id])
+  child              Child  @relation(fields: [childId], references: [id])
+  class              Class? @relation(fields: [classId], references: [id])
+  parentUser         User   @relation("MedicationParent", fields: [parentUserId], references: [id])
+  reviewedByUser     User?  @relation("MedicationReviewedBy", fields: [reviewedByUserId], references: [id])
+
+  @@index([centerId])
+  @@index([classId])
+  @@index([childId])
+  @@map("medication_requests")
+}
+
+model ReturnHomeRequest {
+  id                String    @id @default(uuid()) @db.Uuid
+  centerId          String    @map("center_id") @db.Uuid
+  classId           String?   @map("class_id") @db.Uuid
+  childId           String    @map("child_id") @db.Uuid
+  parentUserId      String    @map("parent_user_id") @db.Uuid
+  returnDate        DateTime  @map("return_date") @db.Date
+  pickupMethod      String    @map("pickup_method")
+  pickupPersonName  String?   @map("pickup_person_name")
+  pickupPersonPhone String?   @map("pickup_person_phone")
+  note              String?
+  status            String    @default("submitted")
+  confirmedByUserId String?   @map("confirmed_by_user_id") @db.Uuid
+  confirmedAt       DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center          Center @relation(fields: [centerId], references: [id])
+  child           Child  @relation(fields: [childId], references: [id])
+  class           Class? @relation(fields: [classId], references: [id])
+  confirmedByUser User?  @relation("ReturnHomeConfirmedBy", fields: [confirmedByUserId], references: [id])
+  parentUser      User   @relation("ReturnHomeParent", fields: [parentUserId], references: [id])
+
+  @@index([centerId])
+  @@index([classId])
+  @@index([childId])
+  @@map("return_home_requests")
+}
+
+model AttendanceRecord {
+  id               String    @id @default(uuid()) @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  classId          String    @map("class_id") @db.Uuid
+  childId          String    @map("child_id") @db.Uuid
+  attendanceDate   DateTime  @map("attendance_date") @db.Date
+  status           String
+  checkInAt        DateTime? @map("check_in_at") @db.Timestamptz(6)
+  checkOutAt       DateTime? @map("check_out_at") @db.Timestamptz(6)
+  checkInByUserId  String?   @map("check_in_by_user_id") @db.Uuid
+  checkOutByUserId String?   @map("check_out_by_user_id") @db.Uuid
+  note             String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  center         Center @relation(fields: [centerId], references: [id])
+  checkInByUser  User?  @relation("AttendanceCheckInBy", fields: [checkInByUserId], references: [id])
+  checkOutByUser User?  @relation("AttendanceCheckOutBy", fields: [checkOutByUserId], references: [id])
+  child          Child  @relation(fields: [childId], references: [id])
+  class          Class  @relation(fields: [classId], references: [id])
+
+  @@unique([childId, attendanceDate])
+  @@index([centerId])
+  @@index([classId])
+  @@map("attendance_records")
+}
+
+model ConversationThread {
+  id         String   @id @default(uuid()) @db.Uuid
+  centerId   String   @map("center_id") @db.Uuid
+  classId    String?  @map("class_id") @db.Uuid
+  childId    String?  @map("child_id") @db.Uuid
+  threadType String   @map("thread_type")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center       Center                    @relation(fields: [centerId], references: [id])
+  child        Child?                    @relation(fields: [childId], references: [id])
+  class        Class?                    @relation(fields: [classId], references: [id])
+  messages     Message[]
+  participants ConversationParticipant[]
+
+  @@index([centerId])
+  @@index([classId])
+  @@index([childId])
+  @@map("conversation_threads")
+}
+
+model ConversationParticipant {
+  id         String    @id @default(uuid()) @db.Uuid
+  threadId   String    @map("thread_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  lastReadAt DateTime? @map("last_read_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  thread ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User               @relation(fields: [userId], references: [id])
+
+  @@unique([threadId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id           String    @id @default(uuid()) @db.Uuid
+  threadId     String    @map("thread_id") @db.Uuid
+  senderUserId String    @map("sender_user_id") @db.Uuid
+  body         String?
+  messageType  String    @default("text") @map("message_type")
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  senderUser User               @relation(fields: [senderUserId], references: [id])
+  thread     ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([senderUserId])
+  @@map("messages")
+}
+
+model Invoice {
+  id           String    @id @default(uuid()) @db.Uuid
+  centerId     String    @map("center_id") @db.Uuid
+  childId      String    @map("child_id") @db.Uuid
+  parentUserId String    @map("parent_user_id") @db.Uuid
+  amount       Decimal   @db.Decimal(14, 2)
+  currency     String    @default("UZS")
+  periodStart  DateTime? @map("period_start") @db.Date
+  periodEnd    DateTime? @map("period_end") @db.Date
+  dueDate      DateTime? @map("due_date") @db.Date
+  status       String    @default("issued")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  center     Center    @relation(fields: [centerId], references: [id])
+  child      Child     @relation(fields: [childId], references: [id])
+  parentUser User      @relation(fields: [parentUserId], references: [id])
+  payments   Payment[]
+
+  @@index([centerId])
+  @@index([childId])
+  @@map("invoices")
+}
+
+model Payment {
+  id                    String    @id @default(uuid()) @db.Uuid
+  invoiceId             String    @map("invoice_id") @db.Uuid
+  provider              String
+  providerTransactionId String?   @map("provider_transaction_id")
+  amount                Decimal   @db.Decimal(14, 2)
+  currency              String    @default("UZS")
+  status                String    @default("pending")
+  paidAt                DateTime? @map("paid_at") @db.Timestamptz(6)
+  rawPayload            Json?     @map("raw_payload") @db.JsonB
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@map("payments")
+}
+
+model Notification {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  notificationType String    @map("notification_type")
+  title            String
+  body             String?
+  entityType       String?   @map("entity_type")
+  entityId         String?   @map("entity_id") @db.Uuid
+  channel          String
+  status           String    @default("pending")
+  sentAt           DateTime? @map("sent_at") @db.Timestamptz(6)
+  readAt           DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, status, createdAt])
+  @@map("notifications")
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  platform  String
+  token     String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([platform, token])
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  centerId       String?  @map("center_id") @db.Uuid
+  actorUserId    String?  @map("actor_user_id") @db.Uuid
+  action         String
+  entityType     String   @map("entity_type")
+  entityId       String?  @map("entity_id") @db.Uuid
+  ipAddress      String?  @map("ip_address")
+  userAgent      String?  @map("user_agent")
+  metadata       Json?    @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actorUser    User?         @relation("AuditActor", fields: [actorUserId], references: [id])
+  center       Center?       @relation(fields: [centerId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([actorUserId, createdAt])
+  @@index([centerId])
+  @@map("audit_logs")
+}

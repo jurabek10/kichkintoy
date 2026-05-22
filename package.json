@@ -4,13 +4,21 @@
   "private": true,
   "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=22.19.0"
+    "node": "22.19.0"
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @kichkintoy/api dev",
     "dev:web": "pnpm --filter @kichkintoy/web dev",
     "dev:mobile": "pnpm --filter @kichkintoy/mobile dev",
+    "stop:api": "node scripts/kill-port.mjs 4000",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:reset": "pnpm --filter @kichkintoy/api db:reset",
+    "db:migrate": "pnpm --filter @kichkintoy/api db:migrate",
+    "db:generate": "pnpm --filter @kichkintoy/api db:generate",
+    "db:studio": "pnpm --filter @kichkintoy/api db:studio",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",

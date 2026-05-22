@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",
+    "dev": "node scripts/dev.mjs",
     "start": "node dist/main.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio",
     "lint": "pnpm typecheck",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -15,8 +19,11 @@
     "@nestjs/core": "^11.1.23",
     "@nestjs/platform-express": "^11.1.23",
     "@orpc/server": "^1.14.3",
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.1.0",
     "better-auth": "^1.6.11",
+    "dotenv": "^17.2.3",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^4.1.13"

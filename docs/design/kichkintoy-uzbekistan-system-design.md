@@ -282,6 +282,9 @@ packages/
 ### Database
 
 - PostgreSQL
+- Local development uses Docker Compose with PostgreSQL 18
+- Host port is `5433` to avoid conflicts with any existing local PostgreSQL on `5432`
+- Prisma manages schema, migrations, and generated client access
 
 ### Storage
 
@@ -311,6 +314,27 @@ Uzbekistan integrations:
 ## 7. Database Design
 
 The schema below is designed for PostgreSQL.
+
+Local development database:
+
+```text
+Container: kichkintoy-postgres
+Image: postgres:18
+Database: kichkintoy
+User: kichkintoy
+Host URL: localhost:5433
+Prisma schema: packages/api/prisma/schema.prisma
+```
+
+Useful commands:
+
+```text
+pnpm db:up
+pnpm db:migrate
+pnpm db:generate
+pnpm db:studio
+pnpm db:down
+```
 
 ## 7.1 Organizations, Centers, Branches
 
