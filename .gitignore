@@ -1,0 +1,25 @@
+node_modules
+.pnpm-store
+.env
+.env.*
+!.env.example
+
+# build output
+dist
+.next
+out
+coverage
+
+# mobile / native
+.expo
+.expo-shared
+android
+ios
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# system
+.DS_Store

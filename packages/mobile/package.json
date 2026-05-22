@@ -1,0 +1,27 @@
+{
+  "name": "@kichkintoy/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "expo export",
+    "lint": "pnpm typecheck",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@kichkintoy/shared": "workspace:*",
+    "expo": "^56.0.3",
+    "expo-status-bar": "^56.0.4",
+    "react": "^19.2.6",
+    "react-native": "^0.85.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "typescript": "^6.0.3"
+  }
+}

@@ -241,6 +241,25 @@ Infrastructure
 
 ## 6. Final Tech Stack
 
+### Repository
+
+- pnpm workspace monorepo
+- Shared TypeScript packages for schemas, API contracts, and reusable types
+
+Recommended structure:
+
+```text
+docs/
+  design/   Architecture and system design documents
+  spec/     Product and API specs
+
+packages/
+  api/      NestJS backend
+  web/      Next.js dashboard
+  mobile/   React Native app
+  shared/   Shared Zod schemas, constants, and TypeScript types
+```
+
 ### Mobile
 
 - React Native
