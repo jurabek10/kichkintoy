@@ -47,7 +47,7 @@ Main responsibilities:
 - Check attendance
 - Manage child profile
 - Add child by searching center name or center number
-- Manage personal info, phone, email, password, marketing consent
+- Manage personal info, phone, email, marketing consent
 
 ### Teacher
 
@@ -153,7 +153,6 @@ Username
 Name
 Email
 Mobile number
-Reset password
 Log Out
 Delete account
 Marketing Consent
@@ -163,7 +162,6 @@ Uzbekistan-specific additions:
 
 ```text
 Preferred language: Uzbek or Russian
-Telegram notification link
 SMS notification consent
 ```
 
@@ -241,65 +239,45 @@ Infrastructure
 - Payment providers
 ```
 
-## 6. Recommended Tech Stack
+## 6. Final Tech Stack
 
 ### Mobile
 
-Use one of:
-
-- Flutter
 - React Native
-
-Recommendation: Flutter if you want one stable mobile codebase and good performance.
+- TypeScript
 
 ### Web Dashboard
 
-Use:
-
 - Next.js
-- React
 - TypeScript
 
 ### Backend
 
-Use one of:
-
-- NestJS + TypeScript
-- Laravel
-- Django
-
-Recommendation: NestJS + PostgreSQL if you want strong API structure and TypeScript across frontend/backend.
+- NestJS
+- TypeScript
+- oRPC
+- Zod
+- Better Auth
+- Prisma
 
 ### Database
-
-Use:
 
 - PostgreSQL
 
 ### Storage
 
-Use:
-
-- S3-compatible storage
 - Cloudflare R2
-- AWS S3
-- MinIO for local development
 
 ### Queue / Cache
 
-Use:
-
 - Redis
-- BullMQ if backend is NestJS
+- BullMQ
 
 ### Notifications
 
-Use:
-
 - Firebase Cloud Messaging for Android
 - APNs for iOS
-- SMS provider for Uzbekistan
-- Telegram bot integration later
+- Eskiz.uz for Uzbekistan-first SMS
 
 ### Payments
 
@@ -366,7 +344,6 @@ CREATE TABLE users (
   username TEXT UNIQUE,
   phone TEXT UNIQUE,
   email TEXT UNIQUE,
-  password_hash TEXT,
   full_name TEXT NOT NULL,
   avatar_url TEXT,
   preferred_language TEXT NOT NULL DEFAULT 'uz',
@@ -440,8 +417,6 @@ CREATE TABLE user_notification_settings (
   user_id UUID UNIQUE NOT NULL REFERENCES users(id),
   push_enabled BOOLEAN NOT NULL DEFAULT true,
   sms_enabled BOOLEAN NOT NULL DEFAULT false,
-  telegram_enabled BOOLEAN NOT NULL DEFAULT false,
-  email_enabled BOOLEAN NOT NULL DEFAULT false,
   quiet_hours_start TIME,
   quiet_hours_end TIME,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -929,8 +904,6 @@ Channels:
 ```text
 push
 sms
-telegram
-email
 in_app
 ```
 
@@ -1023,7 +996,7 @@ Sensitive data access should always create audit logs.
 
 ## 9. API Design
 
-Example REST API structure:
+Example app API routes exposed through oRPC/OpenAPI:
 
 ```text
 POST   /auth/login
@@ -1033,7 +1006,6 @@ POST   /auth/logout
 
 GET    /me
 PATCH  /me
-PATCH  /me/password
 DELETE /me
 
 GET    /parent/children
@@ -1117,8 +1089,8 @@ Support:
 Prefer:
 
 - Phone number login
-- SMS OTP
-- Password as optional fallback
+- Better Auth for identity/session management
+- Phone OTP sent through Eskiz.uz
 
 ### Payments
 
@@ -1136,7 +1108,6 @@ Support:
 
 - Push notifications
 - SMS
-- Telegram bot later
 
 ### Local Role Labels
 
@@ -1329,7 +1300,7 @@ Then add:
 - Payments
 - Messaging
 
-This gives Kichkintoy a strong local advantage through phone-first login, Uzbek/Russian localization, Telegram/SMS support, and local payment integrations.
+This gives Kichkintoy a strong local advantage through phone-first login, Uzbek/Russian localization, SMS support, and local payment integrations.
 
 ## 18. Final Technology Choices
 
@@ -1342,7 +1313,10 @@ Backend:
 - Prisma ORM
 - PostgreSQL
 - Redis
-- REST API with OpenAPI
+- oRPC
+- Zod schemas
+- OpenAPI generation
+- Better Auth with Prisma adapter
 
 Web:
 - Next.js
@@ -1353,8 +1327,7 @@ Mobile:
 - TypeScript
 
 Storage:
-- Cloudflare R2 at the beginning
-- S3-compatible storage abstraction in backend
+- Cloudflare R2
 
 App Push Notifications:
 - Firebase Cloud Messaging
@@ -1362,45 +1335,53 @@ App Push Notifications:
 
 SMS Notifications:
 - Eskiz.uz for Uzbekistan-first SMS
-- Twilio only as international fallback later
 ```
 
 ## 19. API Strategy
 
-Use REST first, with OpenAPI documentation and generated clients.
+Use oRPC first for the main app API, with Zod schemas and OpenAPI generation.
 
-Do not start with tRPC as the main public API. tRPC is excellent for TypeScript-only internal products, but this platform may later need integrations with ad partners, payment providers, government systems, school CRMs, or non-TypeScript partners. REST is easier for contracts and external integrations.
-
-Do not start with GraphQL as the main API unless the frontend becomes very complex. GraphQL is powerful, but it adds resolver complexity, authorization complexity, caching complexity, and query-performance risk. It can be added later as a read-only gateway if needed.
+oRPC keeps TypeScript end-to-end developer experience while still allowing OpenAPI contracts. That matters if Kichkintoy later integrates with ads, payment providers, schools, partners, or external systems.
 
 Recommended API structure:
 
 ```text
 Primary API:
-- REST
+- oRPC
 - JSON
+- Zod
 - OpenAPI
 - Versioned paths: /api/v1
+
+External partner API:
+- Stable REST/OpenAPI endpoints
+- Webhooks
+- API keys
 
 Internal async work:
 - Redis queues
 - Background workers
-
-Real-time features:
-- WebSocket or Server-Sent Events later
-
-External partner integrations:
-- Dedicated REST endpoints
-- Webhooks
-- API keys
-- OAuth2 later if needed
 ```
 
-This avoids forced migration if the product succeeds. REST can support mobile apps, web apps, external contracts, ads, payment callbacks, and partner integrations for many years.
+This avoids forced migration if the product succeeds. oRPC gives type safety for the Next.js and React Native apps, while OpenAPI and REST-style partner endpoints keep the door open for external contracts, ads, payment callbacks, government integrations, and webhooks.
+
+Recommended route groups:
+
+```text
+/api/v1/auth
+/api/v1/children
+/api/v1/centers
+/api/v1/reports
+/api/v1/notices
+/api/v1/albums
+/api/v1/attendance
+/api/v1/payments
+/api/v1/notifications
+```
 
 ## 20. Storage Strategy
 
-Use Cloudflare R2 first.
+Use Cloudflare R2.
 
 Reasons:
 
@@ -1408,7 +1389,6 @@ Reasons:
 - S3-compatible API
 - No egress fees
 - Good security controls
-- Easy migration path because the app can use an S3-compatible storage interface
 
 Important backend rule:
 
@@ -1436,7 +1416,7 @@ Layer 1: In-app notification record
 Layer 2: Delivery channel
 ```
 
-Every important event should first create a row in the `notifications` table. Then a worker sends it through push, SMS, Telegram, or email.
+Every important event should first create a row in the `notifications` table. Then a worker sends it through push or SMS.
 
 Recommended delivery priority:
 
@@ -1513,15 +1493,15 @@ Do not hide business logic inside Prisma middleware. Keep business rules in Nest
 
 ### API Choice
 
-Use oRPC if the team wants end-to-end TypeScript type safety while still keeping OpenAPI compatibility.
+Use oRPC for the main app API.
 
 Recommended API strategy:
 
 ```text
-Internal product API:
+Main app API:
 - oRPC
-- Zod schemas
-- OpenAPI generation
+- Zod
+- OpenAPI
 
 External partner API:
 - Stable REST-style OpenAPI endpoints
@@ -1532,44 +1512,32 @@ External partner API:
 
 This gives the developer experience of RPC without losing the business value of OpenAPI contracts.
 
-Avoid pure tRPC as the main API because it is too TypeScript-specific for future partners.
-
-Avoid GraphQL as the first API unless the product later needs complex cross-resource querying.
-
 ### Auth Choice
 
-Use Better Auth only if the team is comfortable owning auth inside the backend and testing the NestJS integration carefully.
+Use Better Auth for the MVP.
 
-Good reasons to use Better Auth:
-
-- TypeScript-first
-- Prisma adapter
-- Phone number plugin
-- OTP support
-- Session management
-- Social login support later
-
-Risk:
-
-- NestJS integration is less standard than building auth directly with Nest guards/passport or using a managed auth provider.
-
-Recommended practical approach:
+Recommended auth setup:
 
 ```text
-MVP:
-- Better Auth with Prisma
-- Phone OTP plugin
-- Eskiz SMS integration
+Auth:
+- Better Auth
+- Prisma adapter
+- Phone number plugin
+- Phone OTP
+- Eskiz.uz SMS delivery
 - Session/JWT strategy tested on web and React Native
-
-Fallback if integration becomes painful:
-- Custom NestJS auth module
-- Passport/JWT
-- Redis OTP storage
-- Prisma user/session tables
 ```
 
-Do not connect authorization directly to Better Auth roles only. Keep product permissions in your own tables:
+Better Auth should only own login, session, and user identity. It should not become the whole product permission system.
+
+Simple rule:
+
+```text
+Better Auth = who is logged in?
+Kichkintoy database permissions = what can they access?
+```
+
+Keep product permissions in your own tables:
 
 ```text
 user_roles
@@ -1578,6 +1546,4 @@ teacher_class_assignments
 child_enrollments
 ```
 
-Auth answers "who is this user?"
-
-Your app permissions answer "what can this user do for this child, class, or center?"
+Authorization should be implemented with custom NestJS guards and service-level permission checks using those tables.
