@@ -30,6 +30,9 @@ function run(command, args, options = {}) {
 
 await run("docker", ["compose", "up", "-d", "postgres"], { cwd: repoRoot });
 await run("node", ["scripts/kill-port.mjs", "4000"], { cwd: repoRoot });
+await run("pnpm", ["--filter", "@kichkintoy/shared", "build"], {
+  cwd: repoRoot
+});
 
 const nest = spawn("nest", ["start", "--watch"], {
   cwd: apiDir,

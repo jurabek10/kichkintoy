@@ -5,6 +5,9 @@
     "moduleResolution": "Node",
     "outDir": "dist",
     "rootDir": "src",
+    "paths": {
+      "@kichkintoy/shared": ["packages/shared/dist/index.d.ts"]
+    },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "types": ["node"],
