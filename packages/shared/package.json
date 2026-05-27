@@ -7,6 +7,34 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./app": {
+      "types": "./dist/app/index.d.ts",
+      "default": "./dist/app/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
+    },
+    "./child": {
+      "types": "./dist/child/index.d.ts",
+      "default": "./dist/child/index.js"
+    },
+    "./centers": {
+      "types": "./dist/centers/index.d.ts",
+      "default": "./dist/centers/index.js"
+    },
+    "./geo": {
+      "types": "./dist/geo/index.d.ts",
+      "default": "./dist/geo/index.js"
+    },
+    "./membership": {
+      "types": "./dist/membership/index.d.ts",
+      "default": "./dist/membership/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "default": "./dist/api/index.js"
     }
   },
   "scripts": {

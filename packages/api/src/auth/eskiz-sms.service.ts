@@ -14,6 +14,10 @@ export class EskizSmsService {
   private token?: string;
 
   async sendVerificationCode(phoneNumber: string, code: string) {
+    return this.sendMessage(phoneNumber, createVerificationMessage(code));
+  }
+
+  async sendMessage(phoneNumber: string, message: string) {
     if (!this.hasCredentials()) {
       if (process.env.NODE_ENV === "production") {
         throw new InternalServerErrorException(
@@ -27,7 +31,6 @@ export class EskizSmsService {
       };
     }
 
-    const message = createVerificationMessage(code);
     await this.sendSms(phoneNumber, message);
 
     return {

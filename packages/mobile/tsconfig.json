@@ -5,7 +5,8 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@kichkintoy/shared": ["../shared/src/index.ts"]
+      "@kichkintoy/shared": ["../shared/src/index.ts"],
+      "@kichkintoy/shared/*": ["../shared/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

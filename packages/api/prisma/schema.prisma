@@ -32,8 +32,11 @@ model Center {
   organizationId String   @map("organization_id") @db.Uuid
   name           String
   centerCode     String   @unique @map("center_code")
+  facilityType   String   @default("kindergarten") @map("facility_type")
   phone          String?
   address        String?
+  regionId       String?  @map("region_id") @db.Uuid
+  districtId     String?  @map("district_id") @db.Uuid
   region         String?
   district       String?
   status         String   @default("active")
@@ -41,10 +44,13 @@ model Center {
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   organization        Organization         @relation(fields: [organizationId], references: [id])
+  regionRef           Region?              @relation(fields: [regionId], references: [id])
+  districtRef         District?            @relation(fields: [districtId], references: [id])
   albumPosts          AlbumPost[]
   attendanceRecords   AttendanceRecord[]
   auditLogs           AuditLog[]
   branches            Branch[]
+  centerInvitations   CenterInvitation[]
   centerJoinRequests  CenterJoinRequest[]
   childEnrollments    ChildEnrollment[]
   classes             Class[]
@@ -61,7 +67,39 @@ model Center {
 
   @@index([organizationId])
   @@index([name])
+  @@index([regionId, districtId])
+  @@index([facilityType])
   @@map("centers")
+}
+
+model Region {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @unique
+  slug         String   @unique
+  countryCode  String   @default("UZ") @map("country_code")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  centers   Center[]
+  districts District[]
+
+  @@map("regions")
+}
+
+model District {
+  id           String   @id @default(uuid()) @db.Uuid
+  regionId     String   @map("region_id") @db.Uuid
+  name         String
+  slug         String
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  region  Region   @relation(fields: [regionId], references: [id])
+  centers Center[]
+
+  @@unique([regionId, slug])
+  @@index([regionId])
+  @@map("districts")
 }
 
 model Branch {
@@ -101,6 +139,8 @@ model User {
   authSessions                AuthSession[]
   albumPosts                  AlbumPost[]
   auditLogs                   AuditLog[]                @relation("AuditActor")
+  centerInvitationsAccepted   CenterInvitation[]        @relation("CenterInvitationAcceptor")
+  centerInvitationsCreated    CenterInvitation[]        @relation("CenterInvitationCreator")
   centerJoinRequests          CenterJoinRequest[]       @relation("JoinRequestParent")
   checkedInAttendanceRecords  AttendanceRecord[]        @relation("AttendanceCheckInBy")
   checkedOutAttendanceRecords AttendanceRecord[]        @relation("AttendanceCheckOutBy")
@@ -183,13 +223,14 @@ model Role {
 }
 
 model UserRole {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
-  organizationId String?  @map("organization_id") @db.Uuid
-  centerId       String?  @map("center_id") @db.Uuid
-  branchId       String?  @map("branch_id") @db.Uuid
-  roleId         String   @map("role_id") @db.Uuid
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  organizationId     String?  @map("organization_id") @db.Uuid
+  centerId           String?  @map("center_id") @db.Uuid
+  branchId           String?  @map("branch_id") @db.Uuid
+  roleId             String   @map("role_id") @db.Uuid
+  canApproveMembers  Boolean  @default(false) @map("can_approve_members")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   branch       Branch?       @relation(fields: [branchId], references: [id])
   center       Center?       @relation(fields: [centerId], references: [id])
@@ -275,6 +316,7 @@ model Class {
   center                  Center                   @relation(fields: [centerId], references: [id])
   albumPosts              AlbumPost[]
   attendanceRecords       AttendanceRecord[]
+  centerInvitations       CenterInvitation[]
   centerJoinRequests      CenterJoinRequest[]
   childEnrollments        ChildEnrollment[]
   conversationThreads     ConversationThread[]
@@ -378,19 +420,25 @@ model ChildEnrollment {
 }
 
 model CenterJoinRequest {
-  id               String    @id @default(uuid()) @db.Uuid
-  parentUserId     String    @map("parent_user_id") @db.Uuid
-  childId          String?   @map("child_id") @db.Uuid
-  centerId         String    @map("center_id") @db.Uuid
-  requestedClassId String?   @map("requested_class_id") @db.Uuid
-  childName        String    @map("child_name")
-  childDob         DateTime? @map("child_dob") @db.Date
-  childGender      String?   @map("child_gender")
-  message          String?
-  status           String    @default("pending")
-  reviewedByUserId String?   @map("reviewed_by_user_id") @db.Uuid
-  reviewedAt       DateTime? @map("reviewed_at") @db.Timestamptz(6)
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                      String    @id @default(uuid()) @db.Uuid
+  parentUserId            String    @map("parent_user_id") @db.Uuid
+  childId                 String?   @map("child_id") @db.Uuid
+  centerId                String    @map("center_id") @db.Uuid
+  requestedClassId        String?   @map("requested_class_id") @db.Uuid
+  kind                    String    @default("parent")
+  childName               String?   @map("child_name")
+  childDob                DateTime? @map("child_dob") @db.Date
+  childGender             String?   @map("child_gender")
+  childPhotoUrl           String?   @map("child_photo_url")
+  parentRelationship      String?   @map("parent_relationship")
+  customRelationshipLabel String?   @map("custom_relationship_label")
+  message                 String?
+  status                  String    @default("pending")
+  reviewedByUserId        String?   @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt              DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  reviewerMessage         String?   @map("reviewer_message")
+  cancelledAt             DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   center         Center @relation(fields: [centerId], references: [id])
   child          Child? @relation(fields: [childId], references: [id])
@@ -401,7 +449,35 @@ model CenterJoinRequest {
   @@index([parentUserId])
   @@index([centerId])
   @@index([requestedClassId])
+  @@index([centerId, status, createdAt(sort: Desc)])
   @@map("center_join_requests")
+}
+
+model CenterInvitation {
+  id                  String    @id @default(uuid()) @db.Uuid
+  centerId            String    @map("center_id") @db.Uuid
+  invitedByUserId     String    @map("invited_by_user_id") @db.Uuid
+  kind                String
+  classId             String?   @map("class_id") @db.Uuid
+  phone               String
+  childNameHint       String?   @map("child_name_hint")
+  code                String    @unique
+  expiresAt           DateTime  @map("expires_at") @db.Timestamptz(6)
+  sentAt              DateTime? @map("sent_at") @db.Timestamptz(6)
+  acceptedAt          DateTime? @map("accepted_at") @db.Timestamptz(6)
+  acceptedByUserId    String?   @map("accepted_by_user_id") @db.Uuid
+  declinedAt          DateTime? @map("declined_at") @db.Timestamptz(6)
+  revokedAt           DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center         Center @relation(fields: [centerId], references: [id])
+  class          Class? @relation(fields: [classId], references: [id])
+  invitedByUser  User   @relation("CenterInvitationCreator", fields: [invitedByUserId], references: [id])
+  acceptedByUser User?  @relation("CenterInvitationAcceptor", fields: [acceptedByUserId], references: [id])
+
+  @@index([centerId, createdAt(sort: Desc)])
+  @@index([phone])
+  @@map("center_invitations")
 }
 
 model DailyReport {

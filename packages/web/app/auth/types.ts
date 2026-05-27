@@ -1,5 +1,6 @@
 import type {
-  ChildGender as SharedChildGender,
+  AuthResponse,
+  ChildGender,
   RelationshipType,
   UserRole,
 } from "@kichkintoy/shared";
@@ -12,8 +13,8 @@ export type SignupStep =
   | "role"
   | "child"
   | "relationship";
-export type { RelationshipType, UserRole };
-export type Gender = SharedChildGender;
+export type { AuthResponse, RelationshipType, UserRole };
+export type Gender = ChildGender;
 export type CodeStatus = "idle" | "sending" | "sent" | "verified";
 
 export type SignupForm = {
@@ -44,14 +45,3 @@ export type UpdateSignupField = <K extends keyof SignupForm>(
 
 export type SubmitHandler = (event: FormEvent<HTMLFormElement>) => void;
 export type ImageChangeHandler = (event: ChangeEvent<HTMLInputElement>) => void;
-
-export type AuthResponse = {
-  session: {
-    token: string;
-    expiresAt: string;
-  };
-  user: {
-    fullName: string;
-    role: UserRole;
-  };
-};

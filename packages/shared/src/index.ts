@@ -1,44 +1,24 @@
-import { z } from "zod";
+/** App-level config and health check types. */
+export * from "./app";
 
-export const appConfigSchema = z.object({
-  name: z.literal("Kichkintoy"),
-  defaultLanguage: z.enum(["uz", "ru"]),
-});
+/** Auth roles, session, and membership summary types. */
+export * from "./auth";
 
-export type AppConfig = z.infer<typeof appConfigSchema>;
+/** Child profile enums and registration payload shapes. */
+export * from "./child";
 
-export const appConfig: AppConfig = {
-  name: "Kichkintoy",
-  defaultLanguage: "uz",
-};
+/** Center search, facility type, and class picker types. */
+export * from "./centers";
 
-export const healthResponseSchema = z.object({
-  status: z.literal("ok"),
-  service: z.string(),
-  timestamp: z.string().datetime(),
-});
+/** Geography reference data (regions and districts). */
+export * from "./geo";
 
-export type HealthResponse = z.infer<typeof healthResponseSchema>;
+/** Join requests, invitations, and director setup types. */
+export * from "./membership";
 
-export const userRoleValues = ["director", "parent", "teacher"] as const;
-export const userRoleSchema = z.enum(userRoleValues);
-export type UserRole = z.infer<typeof userRoleSchema>;
+/** HTTP API request/response contracts shared by web, mobile, and backend. */
+export * from "./api";
 
-export const childGenderValues = ["boy", "girl", "prefer_not_to_say"] as const;
-export const childGenderSchema = z.enum(childGenderValues);
-export type ChildGender = z.infer<typeof childGenderSchema>;
-
-export const relationshipTypeValues = [
-  "mom",
-  "dad",
-  "grandmother",
-  "grandfather",
-  "uncle",
-  "aunt",
-  "brother",
-  "sister",
-  "guardian",
-  "other",
-] as const;
-export const relationshipTypeSchema = z.enum(relationshipTypeValues);
-export type RelationshipType = z.infer<typeof relationshipTypeSchema>;
+/** Shared Zod validators and language enum. */
+export * from "./lib/validators";
+export * from "./lib/language";

@@ -12,7 +12,8 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@kichkintoy/shared": ["packages/shared/src/index.ts"]
+      "@kichkintoy/shared": ["packages/shared/src/index.ts"],
+      "@kichkintoy/shared/*": ["packages/shared/src/*"]
     }
   }
 }
