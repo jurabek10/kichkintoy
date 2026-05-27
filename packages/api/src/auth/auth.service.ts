@@ -771,6 +771,49 @@ export class AuthService {
 
     await this.cancelExistingPendingRequests(tx, args.userId);
 
+    if (!(await this.centerHasAssignedDirector(tx, center))) {
+      const hasOrgOwner = await tx.userRole.findFirst({
+        where: {
+          organizationId: center.organizationId,
+          centerId: null,
+          role: { name: ROLE_ORGANIZATION_OWNER },
+        },
+      });
+
+      if (!hasOrgOwner) {
+        await this.memberships.ensureRole(tx, {
+          userId: args.userId,
+          roleName: ROLE_ORGANIZATION_OWNER,
+          organizationId: center.organizationId,
+          centerId: null,
+        });
+      }
+
+      await this.memberships.activateDirector(tx, {
+        userId: args.userId,
+        centerId: center.id,
+      });
+
+      await this.audit.log(
+        {
+          organizationId: center.organizationId,
+          centerId: center.id,
+          actorUserId: args.userId,
+          action: "director.claimed_unassigned_center",
+          entityType: "center",
+          entityId: center.id,
+        },
+        tx,
+      );
+
+      return {
+        status: "active",
+        joinRequestId: null,
+        centerId: center.id,
+        centerName: center.name,
+      };
+    }
+
     const request = await tx.centerJoinRequest.create({
       data: {
         parentUserId: args.userId,
@@ -810,6 +853,30 @@ export class AuthService {
       centerId: center.id,
       centerName: center.name,
     };
+  }
+
+  private async centerHasAssignedDirector(
+    tx: Tx,
+    center: { id: string; organizationId: string },
+  ) {
+    const approver = await tx.userRole.findFirst({
+      where: {
+        OR: [
+          {
+            centerId: center.id,
+            role: { name: { in: APPROVER_ROLE_NAMES } },
+          },
+          {
+            organizationId: center.organizationId,
+            centerId: null,
+            role: { name: ROLE_ORGANIZATION_OWNER },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    return approver !== null;
   }
 
   private async requireSelectableCenter(tx: Tx, centerId: string) {
@@ -1098,29 +1165,46 @@ export class AuthService {
   private async resolveMembership(
     userId: string,
   ): Promise<MembershipPayload> {
-    const roles = await this.prisma.userRole.findFirst({
+    const centerRole = await this.prisma.userRole.findFirst({
       where: {
         userId,
-        OR: [{ centerId: { not: null } }, { organizationId: { not: null } }],
+        centerId: { not: null },
       },
       include: { center: true },
+      orderBy: { createdAt: "desc" },
     });
 
-    if (roles?.center) {
+    if (centerRole?.center) {
       return {
         status: "active",
         joinRequestId: null,
-        centerId: roles.centerId,
-        centerName: roles.center.name,
+        centerId: centerRole.centerId,
+        centerName: centerRole.center.name,
       };
     }
 
-    if (roles?.organizationId) {
+    const orgRole = await this.prisma.userRole.findFirst({
+      where: {
+        userId,
+        organizationId: { not: null },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (orgRole?.organizationId) {
+      const orgCenter = await this.prisma.center.findFirst({
+        where: {
+          organizationId: orgRole.organizationId,
+          status: "active",
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
       return {
         status: "active",
         joinRequestId: null,
-        centerId: null,
-        centerName: null,
+        centerId: orgCenter?.id ?? null,
+        centerName: orgCenter?.name ?? null,
       };
     }
 
