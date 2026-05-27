@@ -1,24 +1,24 @@
 /** App-level config and health check types. */
-export * from "./app";
+export * from "./app/index.js";
 
 /** Auth roles, session, and membership summary types. */
-export * from "./auth";
+export * from "./auth/index.js";
 
 /** Child profile enums and registration payload shapes. */
-export * from "./child";
+export * from "./child/index.js";
 
 /** Center search, facility type, and class picker types. */
-export * from "./centers";
+export * from "./centers/index.js";
 
 /** Geography reference data (regions and districts). */
-export * from "./geo";
+export * from "./geo/index.js";
 
 /** Join requests, invitations, and director setup types. */
-export * from "./membership";
+export * from "./membership/index.js";
 
 /** HTTP API request/response contracts shared by web, mobile, and backend. */
-export * from "./api";
+export * from "./api/index.js";
 
 /** Shared Zod validators and language enum. */
-export * from "./lib/validators";
-export * from "./lib/language";
+export * from "./lib/validators.js";
+export * from "./lib/language.js";

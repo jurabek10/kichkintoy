@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { authSessionSchema, authUserSchema, membershipSchema } from "../auth/session";
-import { childRegistrationPayloadSchema } from "../child/registration";
+import { authSessionSchema, authUserSchema, membershipSchema } from "../auth/session.js";
+import { childRegistrationPayloadSchema } from "../child/registration.js";
 import {
   centerClassSummarySchema,
   centerSelectionPayloadSchema,
-} from "../centers/models";
-import { directorSetupPayloadSchema } from "../membership/director-setup";
-import { invitationKindSchema } from "../membership/invitation";
-import { userRoleSchema } from "../auth/roles";
-import { isoDateTimeSchema, phoneNumberSchema, uuidSchema } from "../lib/validators";
+} from "../centers/models.js";
+import { directorSetupPayloadSchema } from "../membership/director-setup.js";
+import { invitationKindSchema } from "../membership/invitation.js";
+import { userRoleSchema } from "../auth/roles.js";
+import { isoDateTimeSchema, phoneNumberSchema, uuidSchema } from "../lib/validators.js";
 
 // --- OTP ---
 

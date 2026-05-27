@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { appLanguageSchema } from "../lib/language";
+import { appLanguageSchema } from "../lib/language.js";
 
 export const appConfigSchema = z.object({
   name: z.literal("Kichkintoy"),

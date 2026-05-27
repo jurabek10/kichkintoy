@@ -1,3 +1,3 @@
-export * from "./gender";
-export * from "./relationship";
-export * from "./registration";
+export * from "./gender.js";
+export * from "./relationship.js";
+export * from "./registration.js";

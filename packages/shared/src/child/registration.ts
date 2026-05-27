@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { childGenderSchema } from "./gender";
-import { relationshipTypeSchema } from "./relationship";
-import { isoDateSchema } from "../lib/validators";
+import { childGenderSchema } from "./gender.js";
+import { relationshipTypeSchema } from "./relationship.js";
+import { isoDateSchema } from "../lib/validators.js";
 
 /** Child payload sent during parent signup or invitation acceptance. */
 export const childRegistrationPayloadSchema = z.object({

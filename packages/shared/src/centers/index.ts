@@ -1,3 +1,3 @@
-export * from "./facility-type";
-export * from "./status";
-export * from "./models";
+export * from "./facility-type.js";
+export * from "./status.js";
+export * from "./models.js";

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { centerSelectionPayloadSchema } from "../centers/models";
-import { childRegistrationPayloadSchema } from "../child/registration";
-import { directorSetupPayloadSchema } from "../membership/director-setup";
-import { membershipSchema } from "../auth/session";
+import { centerSelectionPayloadSchema } from "../centers/models.js";
+import { childRegistrationPayloadSchema } from "../child/registration.js";
+import { directorSetupPayloadSchema } from "../membership/director-setup.js";
+import { membershipSchema } from "../auth/session.js";
 
 export const submitJoinRequestSchema = z.object({
   centerSelection: centerSelectionPayloadSchema.optional(),

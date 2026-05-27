@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { facilityTypeSchema } from "./facility-type";
-import { centerStatusSchema } from "./status";
-import { uuidSchema } from "../lib/validators";
+import { facilityTypeSchema } from "./facility-type.js";
+import { centerStatusSchema } from "./status.js";
+import { uuidSchema } from "../lib/validators.js";
 
 export const centerSearchResultSchema = z.object({
   id: uuidSchema,

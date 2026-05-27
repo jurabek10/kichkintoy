@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { membershipStatusSchema } from "../membership/status";
-import { userRoleSchema } from "./roles";
-import { isoDateTimeSchema, uuidSchema } from "../lib/validators";
+import { membershipStatusSchema } from "../membership/status.js";
+import { userRoleSchema } from "./roles.js";
+import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 
 export const authSessionSchema = z.object({
   token: z.string(),

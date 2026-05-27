@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { appLanguageSchema } from "../lib/language";
-import { facilityTypeSchema } from "../centers/facility-type";
-import { uuidSchema } from "../lib/validators";
+import { appLanguageSchema } from "../lib/language.js";
+import { facilityTypeSchema } from "../centers/facility-type.js";
+import { uuidSchema } from "../lib/validators.js";
 
 export const directorSetupModeValues = [
   "claim_existing",

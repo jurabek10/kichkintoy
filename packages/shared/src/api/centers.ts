@@ -2,9 +2,9 @@ import { z } from "zod";
 import {
   centerClassSummarySchema,
   centerSearchResultSchema,
-} from "../centers/models";
-import { facilityTypeSchema } from "../centers/facility-type";
-import { uuidSchema } from "../lib/validators";
+} from "../centers/models.js";
+import { facilityTypeSchema } from "../centers/facility-type.js";
+import { uuidSchema } from "../lib/validators.js";
 
 export const centerSearchQuerySchema = z.object({
   regionId: uuidSchema.optional(),

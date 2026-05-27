@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isoDateTimeSchema } from "../lib/validators";
+import { isoDateTimeSchema } from "../lib/validators.js";
 
 export const healthResponseSchema = z.object({
   status: z.literal("ok"),
