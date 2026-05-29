@@ -16,6 +16,17 @@ export function invitationKindLabel(value: InvitationKind): string {
   return value === "parent" ? "Parent" : "Teacher";
 }
 
+export function assignmentRoleLabel(value: string): string {
+  return value === "assistant_teacher" ? "Assistant" : "Teacher";
+}
+
+export function genderLabel(value: string | null | undefined): string {
+  if (value === "boy") return "Boy";
+  if (value === "girl") return "Girl";
+  if (value === "prefer_not_to_say") return "Prefer not to say";
+  return "—";
+}
+
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;

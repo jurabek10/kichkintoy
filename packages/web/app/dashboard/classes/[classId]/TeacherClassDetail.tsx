@@ -1,0 +1,96 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import type { ClassRosterChild } from "@kichkintoy/shared";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ApiError, apiRequest } from "@/lib/api";
+import { formatDate, genderLabel } from "@/lib/format";
+
+export function TeacherClassDetail({ classId }: { classId: string }) {
+  const [children, setChildren] = useState<ClassRosterChild[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    apiRequest<ClassRosterChild[]>(`/teacher/classes/${classId}/children`, {
+      auth: true,
+    })
+      .then(setChildren)
+      .catch((err) =>
+        setError(
+          err instanceof ApiError ? err.message : "Could not load roster.",
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, [classId]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Link
+        href="/dashboard/classes"
+        className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        My classes
+      </Link>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Children ({children.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : loading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : children.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No children in this class yet.
+            </p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {children.map((child) => (
+                <li
+                  key={child.childId}
+                  className="flex items-center gap-3 rounded-xl border p-3"
+                >
+                  <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
+                    {child.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={child.photoUrl}
+                        alt={child.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      child.name.slice(0, 1).toUpperCase()
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{child.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {genderLabel(child.gender)} · {formatDate(child.dateOfBirth)}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
