@@ -148,6 +148,8 @@ model User {
   createdMealPlans            MealPlan[]
   createdSchedules            Schedule[]
   dailyReports                DailyReport[]
+  dailyReportReads            DailyReportRead[]
+  dailyReportComments         DailyReportComment[]
   deviceTokens                DeviceToken[]
   invoices                    Invoice[]
   medicationAdministered      MedicationRequest[]       @relation("MedicationAdministeredBy")
@@ -501,6 +503,8 @@ model DailyReport {
   child      Child             @relation(fields: [childId], references: [id])
   class      Class             @relation(fields: [classId], references: [id])
   items      DailyReportItem[]
+  reads      DailyReportRead[]
+  comments   DailyReportComment[]
 
   @@unique([childId, reportDate])
   @@index([centerId])
@@ -522,6 +526,40 @@ model DailyReportItem {
 
   @@index([dailyReportId])
   @@map("daily_report_items")
+}
+
+model DailyReportRead {
+  id             String    @id @default(uuid()) @db.Uuid
+  dailyReportId  String    @map("daily_report_id") @db.Uuid
+  guardianUserId String    @map("guardian_user_id") @db.Uuid
+  readAt         DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  guardianUser User       @relation(fields: [guardianUserId], references: [id])
+
+  @@unique([dailyReportId, guardianUserId])
+  @@index([dailyReportId])
+  @@map("daily_report_reads")
+}
+
+model DailyReportComment {
+  id              String    @id @default(uuid()) @db.Uuid
+  dailyReportId   String    @map("daily_report_id") @db.Uuid
+  authorUserId    String    @map("author_user_id") @db.Uuid
+  parentCommentId String?   @map("parent_comment_id") @db.Uuid
+  body            String
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  dailyReport   DailyReport          @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  authorUser    User                 @relation(fields: [authorUserId], references: [id])
+  parentComment DailyReportComment?  @relation("DailyReportCommentThread", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       DailyReportComment[] @relation("DailyReportCommentThread")
+
+  @@index([dailyReportId, createdAt])
+  @@map("daily_report_comments")
 }
 
 model Notice {

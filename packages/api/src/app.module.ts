@@ -9,6 +9,7 @@ import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { ReportsModule } from "./reports/reports.module";
 import { TeacherModule } from "./teacher/teacher.module";
 
 @Module({
@@ -22,6 +23,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     GeoModule,
     DirectorModule,
     TeacherModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
