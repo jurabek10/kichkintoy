@@ -20,6 +20,24 @@ export function assignmentRoleLabel(value: string): string {
   return value === "assistant_teacher" ? "Assistant" : "Teacher";
 }
 
+export function reportStatusLabel(value: string): string {
+  if (value === "published") return "Published";
+  if (value === "scheduled") return "Scheduled";
+  return "Draft";
+}
+
+export function reportItemTypeLabel(value: string): string {
+  if (value === "meal") return "Meal";
+  if (value === "sleep") return "Sleep";
+  if (value === "toilet") return "Toilet";
+  if (value === "mood") return "Mood";
+  if (value === "activity") return "Activity";
+  if (value === "temperature") return "Temperature";
+  if (value === "medication") return "Medication";
+  if (value === "health") return "Health";
+  return "Custom";
+}
+
 export function genderLabel(value: string | null | undefined): string {
   if (value === "boy") return "Boy";
   if (value === "girl") return "Girl";

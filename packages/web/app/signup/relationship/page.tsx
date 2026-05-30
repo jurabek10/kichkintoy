@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { AuthResponse, RelationshipType } from "@kichkintoy/shared";
 import { FieldError } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
@@ -31,20 +32,13 @@ export default function RelationshipStep() {
   const router = useRouter();
   const { draft, setDraft, reset } = useSignup();
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-
   function pick(value: RelationshipType) {
     setDraft((current) => ({ ...current, relationshipType: value }));
     setErrors({});
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!draft.relationshipType)
-      return setErrors({ relationshipType: "Choose your relationship." });
-
-    setSubmitting(true);
-    try {
+  const registerMutation = useMutation({
+    mutationFn: () => {
       const childPayload = {
         name: draft.childName,
         image: draft.childImageUrl?.startsWith("http")
@@ -84,23 +78,32 @@ export default function RelationshipStep() {
             child: childPayload,
           };
 
-      const response = await apiRequest<AuthResponse>("/auth/register", {
+      return apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
         body,
       });
+    },
+    onSuccess: (response) => {
       persistSession(response);
       reset();
       router.replace(
         routeForMembership(response.user.role, response.membership),
       );
-    } catch (error) {
+    },
+    onError: (error) =>
       setErrors({
         form:
           error instanceof ApiError ? error.message : "Registration failed.",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+      }),
+  });
+
+  const submitting = registerMutation.isPending;
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!draft.relationshipType)
+      return setErrors({ relationshipType: "Choose your relationship." });
+    registerMutation.mutate();
   }
 
   return (

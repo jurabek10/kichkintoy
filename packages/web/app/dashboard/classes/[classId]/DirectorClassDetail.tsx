@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import type { CenterTeacher, ClassDetail } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,64 +43,68 @@ export function DirectorClassDetail({
   centerId: string | null;
   classId: string;
 }) {
-  const [detail, setDetail] = useState<ClassDetail | null>(null);
-  const [teachers, setTeachers] = useState<CenterTeacher[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [academicYear, setAcademicYear] = useState("");
-  const [savingEdit, setSavingEdit] = useState(false);
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [teacherToAssign, setTeacherToAssign] = useState("");
   const [assignRole, setAssignRole] = useState("teacher");
-  const [assigning, setAssigning] = useState(false);
-
-  const [working, setWorking] = useState(false);
 
   const base = centerId
     ? `/director/centers/${centerId}/classes/${classId}`
     : null;
+  const detailKey = queryKeys.director.classDetail(centerId ?? "", classId);
+  const teachersKey = queryKeys.director.teachers(centerId ?? "");
+  const classesKey = queryKeys.director.classes(centerId ?? "");
 
-  const load = useCallback(async () => {
-    if (!centerId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [classDetail, teacherList] = await Promise.all([
-        apiRequest<ClassDetail>(
-          `/director/centers/${centerId}/classes/${classId}`,
-          { auth: true },
-        ),
-        apiRequest<CenterTeacher[]>(`/director/centers/${centerId}/teachers`, {
-          auth: true,
-        }),
-      ]);
-      setDetail(classDetail);
-      setTeachers(teacherList);
-      setName(classDetail.name);
-      setAgeGroup(classDetail.ageGroup ?? "");
-      setAcademicYear(classDetail.academicYear ?? "");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load class.");
-    } finally {
-      setLoading(false);
+  const {
+    data: detail = null,
+    isPending: loading,
+    error: detailError,
+  } = useQuery({
+    queryKey: detailKey,
+    queryFn: () =>
+      apiRequest<ClassDetail>(
+        `/director/centers/${centerId}/classes/${classId}`,
+        { auth: true },
+      ),
+    enabled: !!centerId,
+  });
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: teachersKey,
+    queryFn: () =>
+      apiRequest<CenterTeacher[]>(`/director/centers/${centerId}/teachers`, {
+        auth: true,
+      }),
+    enabled: !!centerId,
+  });
+
+  const invalidateAll = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: detailKey }),
+      queryClient.invalidateQueries({ queryKey: teachersKey }),
+      queryClient.invalidateQueries({ queryKey: classesKey }),
+    ]);
+
+  function openEdit() {
+    if (detail) {
+      setName(detail.name);
+      setAgeGroup(detail.ageGroup ?? "");
+      setAcademicYear(detail.academicYear ?? "");
     }
-  }, [centerId, classId]);
+    setActionError(null);
+    setEditOpen(true);
+  }
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function saveEdit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!base) return;
-    setSavingEdit(true);
-    try {
-      await apiRequest(base, {
+  const editMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(base!, {
         method: "PATCH",
         auth: true,
         body: {
@@ -106,79 +112,107 @@ export function DirectorClassDetail({
           ageGroup: ageGroup.trim() || null,
           academicYear: academicYear.trim() || null,
         },
-      });
+      }),
+    onSuccess: async () => {
       toast.success("Class updated.");
       setEditOpen(false);
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not update class.");
-    } finally {
-      setSavingEdit(false);
-    }
-  }
+      await invalidateAll();
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError ? err.message : "Could not update class.",
+      ),
+  });
 
-  async function assign(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!base) return;
-    if (!teacherToAssign) {
-      setError("Pick a teacher to assign.");
-      return;
-    }
-    setAssigning(true);
-    try {
-      await apiRequest(`${base}/teachers`, {
+  const assignMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`${base}/teachers`, {
         method: "POST",
         auth: true,
         body: { teacherUserId: teacherToAssign, assignmentRole: assignRole },
-      });
+      }),
+    onSuccess: async () => {
       toast.success("Teacher assigned.");
       setAssignOpen(false);
       setTeacherToAssign("");
       setAssignRole("teacher");
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not assign teacher.");
-    } finally {
-      setAssigning(false);
-    }
-  }
+      await invalidateAll();
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError ? err.message : "Could not assign teacher.",
+      ),
+  });
 
-  async function unassign(teacherUserId: string) {
-    if (!base) return;
-    setWorking(true);
-    try {
-      await apiRequest(`${base}/teachers/${teacherUserId}`, {
+  const unassignMutation = useMutation({
+    mutationFn: (teacherUserId: string) =>
+      apiRequest(`${base}/teachers/${teacherUserId}`, {
         method: "DELETE",
         auth: true,
-      });
+      }),
+    onSuccess: async () => {
       toast("Teacher unassigned.");
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not unassign.");
-    } finally {
-      setWorking(false);
-    }
+      await invalidateAll();
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError ? err.message : "Could not unassign.",
+      ),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: (status: string) =>
+      apiRequest(`${base}/${status === "archived" ? "restore" : "archive"}`, {
+        method: "POST",
+        auth: true,
+      }),
+    onSuccess: async (_data, status) => {
+      toast.success(status === "archived" ? "Class restored." : "Class archived.");
+      await invalidateAll();
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError
+          ? err.message
+          : "Could not change class status.",
+      ),
+  });
+
+  const savingEdit = editMutation.isPending;
+  const assigning = assignMutation.isPending;
+  const working = unassignMutation.isPending || archiveMutation.isPending;
+  const error =
+    actionError ??
+    (detailError
+      ? detailError instanceof ApiError
+        ? detailError.message
+        : "Could not load class."
+      : null);
+
+  function saveEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!base) return;
+    editMutation.mutate();
   }
 
-  async function toggleArchive() {
-    if (!base || !detail) return;
-    setWorking(true);
-    try {
-      await apiRequest(
-        `${base}/${detail.status === "archived" ? "restore" : "archive"}`,
-        { method: "POST", auth: true },
-      );
-      toast.success(
-        detail.status === "archived" ? "Class restored." : "Class archived.",
-      );
-      await load();
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Could not change class status.",
-      );
-    } finally {
-      setWorking(false);
+  function assign(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!base) return;
+    if (!teacherToAssign) {
+      setActionError("Pick a teacher to assign.");
+      return;
     }
+    assignMutation.mutate();
+  }
+
+  function unassign(teacherUserId: string) {
+    if (!base) return;
+    unassignMutation.mutate(teacherUserId);
+  }
+
+  function toggleArchive() {
+    if (!base || !detail) return;
+    archiveMutation.mutate(detail.status);
   }
 
   if (!centerId) {
@@ -237,7 +271,7 @@ export function DirectorClassDetail({
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" size="sm" onClick={openEdit}>
               <Pencil className="h-4 w-4" />
               Edit
             </Button>

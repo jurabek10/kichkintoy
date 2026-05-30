@@ -5,13 +5,15 @@ import {
   Delete,
   Get,
   Headers,
+  Ip,
   Param,
   ParseUUIDPipe,
   Post,
   UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { ZodError, type ZodSchema } from "zod";
-import { AuthService } from "./auth.service";
+import { AuthService, type RequestContext } from "./auth.service";
 import {
   acceptInvitationSchema,
   loginSchema,
@@ -31,30 +33,48 @@ export class AuthController {
 
   @Post("send-code")
   @Post("otp/request")
-  sendCode(@Body() body: unknown) {
-    return this.authService.sendCode(parseInput(sendCodeSchema, body));
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  sendCode(@Body() body: unknown, @Ip() ip: string, @Headers("user-agent") ua?: string) {
+    return this.authService.sendCode(
+      parseInput(sendCodeSchema, body),
+      requestContext(ip, ua),
+    );
   }
 
   @Post("verify-code")
   @Post("otp/verify")
-  verifyCode(@Body() body: unknown) {
-    return this.authService.verifyCode(parseInput(verifyCodeSchema, body));
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  verifyCode(@Body() body: unknown, @Ip() ip: string, @Headers("user-agent") ua?: string) {
+    return this.authService.verifyCode(
+      parseInput(verifyCodeSchema, body),
+      requestContext(ip, ua),
+    );
   }
 
   @Post("register")
-  register(@Body() body: unknown) {
-    return this.authService.register(parseInput(registerSchema, body));
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  register(@Body() body: unknown, @Ip() ip: string, @Headers("user-agent") ua?: string) {
+    return this.authService.register(
+      parseInput(registerSchema, body),
+      requestContext(ip, ua),
+    );
   }
 
   @Post("login")
-  login(@Body() body: unknown) {
-    return this.authService.login(parseInput(loginSchema, body));
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  login(@Body() body: unknown, @Ip() ip: string, @Headers("user-agent") ua?: string) {
+    return this.authService.login(
+      parseInput(loginSchema, body),
+      requestContext(ip, ua),
+    );
   }
 
   @Post("logout")
   logout(
     @Body() body: unknown,
+    @Ip() ip: string,
     @Headers("authorization") authorization?: string,
+    @Headers("user-agent") ua?: string,
   ) {
     const parsedBody = parseInput(logoutSchema, body ?? {});
     const bearerToken = authorization?.startsWith("Bearer ")
@@ -66,7 +86,7 @@ export class AuthController {
       throw new BadRequestException("Session token is required.");
     }
 
-    return this.authService.logout(token);
+    return this.authService.logout(token, requestContext(ip, ua));
   }
 
   @Post("invitations/lookup")
@@ -133,6 +153,13 @@ export class AuthController {
   ) {
     return this.authService.cancelJoinRequest(user.id, requestId);
   }
+}
+
+function requestContext(ip?: string, userAgent?: string): RequestContext {
+  return {
+    ipAddress: ip ?? null,
+    userAgent: userAgent ? userAgent.slice(0, 512) : null,
+  };
 }
 
 function parseInput<T>(schema: ZodSchema<T>, value: unknown): T {

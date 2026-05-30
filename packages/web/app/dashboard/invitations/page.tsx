@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import type {
@@ -8,6 +9,7 @@ import type {
   InvitationKind,
   InvitationStatus,
 } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,59 +64,40 @@ const statusVariant: Record<
 export default function InvitationsPage() {
   const { session } = useSession();
   const centerId = session?.membership.centerId ?? null;
-  const [rows, setRows] = useState<InvitationRow[]>([]);
-  const [classes, setClasses] = useState<CenterClassSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [kind, setKind] = useState<InvitationKind>("parent");
   const [phone, setPhone] = useState("");
   const [classId, setClassId] = useState("");
   const [childNameHint, setChildNameHint] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!centerId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiRequest<InvitationRow[]>(
+  const invitationsKey = queryKeys.director.invitations(centerId ?? "");
+
+  const {
+    data: rows = [],
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: invitationsKey,
+    queryFn: () =>
+      apiRequest<InvitationRow[]>(
         `/director/centers/${centerId}/invitations`,
         { auth: true },
-      );
-      setRows(data);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Could not load invitations.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [centerId]);
+      ),
+    enabled: !!centerId,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data: classes = [] } = useQuery({
+    queryKey: queryKeys.centers.classes(centerId ?? ""),
+    queryFn: () =>
+      apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`),
+    enabled: !!centerId,
+  });
 
-  useEffect(() => {
-    if (!centerId) return;
-    apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`)
-      .then(setClasses)
-      .catch(() => setClasses([]));
-  }, [centerId]);
-
-  async function send(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!centerId) return;
-    setError(null);
-    if (!phone.trim()) return setError("Phone number is required.");
-    if (kind === "parent" && !classId)
-      return setError("Pick a class for parent invitations.");
-
-    setSubmitting(true);
-    try {
-      await apiRequest(`/director/centers/${centerId}/invitations`, {
+  const sendMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`/director/centers/${centerId}/invitations`, {
         method: "POST",
         auth: true,
         body: {
@@ -126,53 +109,83 @@ export default function InvitationsPage() {
               ? childNameHint.trim()
               : undefined,
         },
-      });
+      }),
+    onSuccess: async () => {
       toast.success(`Invitation SMS sent to ${phone.trim()}.`);
       setPhone("");
       setChildNameHint("");
       setClassId("");
-      await load();
-    } catch (err) {
-      setError(
+      await queryClient.invalidateQueries({ queryKey: invitationsKey });
+    },
+    onError: (err) =>
+      setFormError(
         err instanceof ApiError ? err.message : "Could not send invitation.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }
+      ),
+  });
 
-  async function resend(row: InvitationRow) {
-    if (!centerId) return;
-    setBusyId(row.id);
-    try {
-      await apiRequest(
+  const resendMutation = useMutation({
+    mutationFn: (row: InvitationRow) =>
+      apiRequest(
         `/director/centers/${centerId}/invitations/${row.id}/resend`,
         { method: "POST", auth: true },
-      );
+      ),
+    onSuccess: async (_data, row) => {
       toast.success(`Resent invitation to ${row.phone}.`);
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not resend.");
-    } finally {
-      setBusyId(null);
+      await queryClient.invalidateQueries({ queryKey: invitationsKey });
+    },
+    onError: (err) =>
+      setFormError(err instanceof ApiError ? err.message : "Could not resend."),
+  });
+
+  const revokeMutation = useMutation({
+    mutationFn: (row: InvitationRow) =>
+      apiRequest(`/director/centers/${centerId}/invitations/${row.id}`, {
+        method: "DELETE",
+        auth: true,
+      }),
+    onSuccess: async (_data, row) => {
+      toast(`Revoked invitation to ${row.phone}.`);
+      await queryClient.invalidateQueries({ queryKey: invitationsKey });
+    },
+    onError: (err) =>
+      setFormError(err instanceof ApiError ? err.message : "Could not revoke."),
+  });
+
+  const submitting = sendMutation.isPending;
+  const error =
+    formError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load invitations."
+      : null);
+  const rowBusy = (id: string) =>
+    (resendMutation.isPending && resendMutation.variables?.id === id) ||
+    (revokeMutation.isPending && revokeMutation.variables?.id === id);
+
+  function send(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!centerId) return;
+    setFormError(null);
+    if (!phone.trim()) {
+      setFormError("Phone number is required.");
+      return;
     }
+    if (kind === "parent" && !classId) {
+      setFormError("Pick a class for parent invitations.");
+      return;
+    }
+    sendMutation.mutate();
   }
 
-  async function revoke(row: InvitationRow) {
+  function resend(row: InvitationRow) {
     if (!centerId) return;
-    setBusyId(row.id);
-    try {
-      await apiRequest(
-        `/director/centers/${centerId}/invitations/${row.id}`,
-        { method: "DELETE", auth: true },
-      );
-      toast(`Revoked invitation to ${row.phone}.`);
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not revoke.");
-    } finally {
-      setBusyId(null);
-    }
+    resendMutation.mutate(row);
+  }
+
+  function revoke(row: InvitationRow) {
+    if (!centerId) return;
+    revokeMutation.mutate(row);
   }
 
   if (!centerId) {
@@ -358,7 +371,7 @@ export default function InvitationsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => resend(row)}
-                              disabled={busyId === row.id}
+                              disabled={rowBusy(row.id)}
                             >
                               Resend
                             </Button>
@@ -368,7 +381,7 @@ export default function InvitationsPage() {
                               size="sm"
                               className="text-destructive hover:text-destructive"
                               onClick={() => revoke(row)}
-                              disabled={busyId === row.id}
+                              disabled={rowBusy(row.id)}
                             >
                               Revoke
                             </Button>

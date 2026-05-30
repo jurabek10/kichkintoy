@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, School, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { ClassListItem } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,65 +33,75 @@ export function DirectorClasses({
 }: {
   centerId: string | null;
 }) {
-  const [classes, setClasses] = useState<ClassListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [academicYear, setAcademicYear] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!centerId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await apiRequest<ClassListItem[]>(
-        `/director/centers/${centerId}/classes`,
-        { auth: true },
-      );
-      setClasses(rows);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load classes.");
-    } finally {
-      setLoading(false);
-    }
-  }, [centerId]);
+  const {
+    data: classes = [],
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: queryKeys.director.classes(centerId ?? ""),
+    queryFn: () =>
+      apiRequest<ClassListItem[]>(`/director/centers/${centerId}/classes`, {
+        auth: true,
+      }),
+    enabled: !!centerId,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function create(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!centerId) return;
-    if (!name.trim()) {
-      setError("Class name is required.");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await apiRequest(`/director/centers/${centerId}/classes`, {
+  const createMutation = useMutation({
+    mutationFn: (body: {
+      name: string;
+      ageGroup?: string;
+      academicYear?: string;
+    }) =>
+      apiRequest(`/director/centers/${centerId}/classes`, {
         method: "POST",
         auth: true,
-        body: {
-          name: name.trim(),
-          ageGroup: ageGroup.trim() || undefined,
-          academicYear: academicYear.trim() || undefined,
-        },
-      });
+        body,
+      }),
+    onSuccess: async () => {
       toast.success(`Class "${name.trim()}" created.`);
       setOpen(false);
       setName("");
       setAgeGroup("");
       setAcademicYear("");
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not create class.");
-    } finally {
-      setSubmitting(false);
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.director.classes(centerId ?? ""),
+      });
+    },
+    onError: (err) =>
+      setFormError(
+        err instanceof ApiError ? err.message : "Could not create class.",
+      ),
+  });
+
+  const submitting = createMutation.isPending;
+  const error =
+    formError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load classes."
+      : null);
+
+  function create(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!centerId) return;
+    if (!name.trim()) {
+      setFormError("Class name is required.");
+      return;
     }
+    setFormError(null);
+    createMutation.mutate({
+      name: name.trim(),
+      ageGroup: ageGroup.trim() || undefined,
+      academicYear: academicYear.trim() || undefined,
+    });
   }
 
   if (!centerId) {

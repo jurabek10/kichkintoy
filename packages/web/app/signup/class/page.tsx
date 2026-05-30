@@ -2,32 +2,33 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { HelpCircle } from "lucide-react";
 import type { CenterClassSummary } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
 
 export default function ClassStep() {
   const router = useRouter();
   const { draft, setDraft } = useSignup();
-  const [classes, setClasses] = useState<CenterClassSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const [skip, setSkip] = useState(draft.classId === null);
+
+  const { data: classes = [], isPending: loading } = useQuery({
+    queryKey: queryKeys.centers.classes(draft.centerId ?? ""),
+    queryFn: () =>
+      apiRequest<CenterClassSummary[]>(`/centers/${draft.centerId}/classes`),
+    enabled: !!draft.centerId,
+  });
 
   useEffect(() => {
     if (!draft.centerId) {
       router.replace("/signup/center");
-      return;
     }
-    setLoading(true);
-    apiRequest<CenterClassSummary[]>(`/centers/${draft.centerId}/classes`)
-      .then(setClasses)
-      .catch(() => setClasses([]))
-      .finally(() => setLoading(false));
   }, [draft.centerId, router]);
 
   function pick(klass: CenterClassSummary) {

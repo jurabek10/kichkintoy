@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import type { ClassRosterChild } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,26 +12,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ApiError, apiRequest } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import { formatDate, genderLabel } from "@/lib/format";
 
 export function TeacherClassDetail({ classId }: { classId: string }) {
-  const [children, setChildren] = useState<ClassRosterChild[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: children = [],
+    isPending: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: queryKeys.teacher.classChildren(classId),
+    queryFn: () =>
+      apiRequest<ClassRosterChild[]>(`/teacher/classes/${classId}/children`, {
+        auth: true,
+      }),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    apiRequest<ClassRosterChild[]>(`/teacher/classes/${classId}/children`, {
-      auth: true,
-    })
-      .then(setChildren)
-      .catch((err) =>
-        setError(
-          err instanceof ApiError ? err.message : "Could not load roster.",
-        ),
-      )
-      .finally(() => setLoading(false));
-  }, [classId]);
+  const error = queryError
+    ? queryError instanceof ApiError
+      ? queryError.message
+      : "Could not load roster."
+    : null;
 
   return (
     <div className="flex flex-col gap-4">

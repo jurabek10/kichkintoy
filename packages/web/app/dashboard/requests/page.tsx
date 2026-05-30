@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { CenterClassSummary } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,102 +73,109 @@ const statusVariant: Record<Filter, "default" | "success" | "destructive" | "sec
 
 export default function RequestsPage() {
   const { session } = useSession();
-  const [requests, setRequests] = useState<JoinRequestRow[]>([]);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<Filter>("pending");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [classes, setClasses] = useState<CenterClassSummary[]>([]);
-  const [acting, setActing] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [selected, setSelected] = useState<JoinRequestRow | null>(null);
   const [pickedClassId, setPickedClassId] = useState<string>("");
   const [rejectReason, setRejectReason] = useState("");
 
   const centerId = session?.membership.centerId ?? null;
 
-  const load = useCallback(async () => {
-    if (!centerId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await apiRequest<JoinRequestRow[]>(
+  const {
+    data: requests = [],
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: queryKeys.director.joinRequests(centerId ?? "", filter),
+    queryFn: () =>
+      apiRequest<JoinRequestRow[]>(
         `/director/centers/${centerId}/join-requests`,
         { query: { status: filter }, auth: true },
-      );
-      setRequests(rows);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Could not load requests.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [centerId, filter]);
+      ),
+    enabled: !!centerId,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data: classes = [] } = useQuery({
+    queryKey: queryKeys.centers.classes(centerId ?? ""),
+    queryFn: () =>
+      apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`),
+    enabled: !!centerId,
+  });
 
-  useEffect(() => {
-    if (!centerId) return;
-    apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`)
-      .then(setClasses)
-      .catch(() => setClasses([]));
-  }, [centerId]);
+  // Invalidate every status list for this center (a request changes status).
+  const invalidateRequests = () =>
+    queryClient.invalidateQueries({
+      queryKey: ["director", centerId ?? "", "join-requests"],
+    });
 
-  async function approve(row: JoinRequestRow) {
-    if (!centerId) return;
-    const needsClass =
-      row.kind === "parent" && !row.child?.requestedClass && !pickedClassId;
-    if (needsClass) {
-      setError("Pick a class for this parent before approving.");
-      return;
-    }
-    setActing(row.id);
-    try {
-      await apiRequest(
+  const approveMutation = useMutation({
+    mutationFn: (row: JoinRequestRow) =>
+      apiRequest(
         `/director/centers/${centerId}/join-requests/${row.id}/approve`,
         {
           method: "POST",
           auth: true,
           body: pickedClassId ? { classId: pickedClassId } : {},
         },
-      );
+      ),
+    onSuccess: async (_data, row) => {
       toast.success(`Approved ${row.requester.fullName}.`);
       setSelected(null);
       setPickedClassId("");
-      await load();
-    } catch (err) {
-      setError(
+      await invalidateRequests();
+    },
+    onError: (err) =>
+      setActionError(
         err instanceof ApiError ? err.message : "Could not approve the request.",
-      );
-    } finally {
-      setActing(null);
-    }
-  }
+      ),
+  });
 
-  async function reject(row: JoinRequestRow) {
-    if (!centerId) return;
-    setActing(row.id);
-    try {
-      await apiRequest(
+  const rejectMutation = useMutation({
+    mutationFn: (row: JoinRequestRow) =>
+      apiRequest(
         `/director/centers/${centerId}/join-requests/${row.id}/reject`,
         {
           method: "POST",
           auth: true,
           body: rejectReason.trim() ? { reason: rejectReason.trim() } : {},
         },
-      );
+      ),
+    onSuccess: async (_data, row) => {
       toast(`Rejected ${row.requester.fullName}.`);
       setSelected(null);
       setRejectReason("");
-      await load();
-    } catch (err) {
-      setError(
+      await invalidateRequests();
+    },
+    onError: (err) =>
+      setActionError(
         err instanceof ApiError ? err.message : "Could not reject the request.",
-      );
-    } finally {
-      setActing(null);
+      ),
+  });
+
+  const acting = approveMutation.isPending || rejectMutation.isPending;
+  const error =
+    actionError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load requests."
+      : null);
+
+  function approve(row: JoinRequestRow) {
+    if (!centerId) return;
+    const needsClass =
+      row.kind === "parent" && !row.child?.requestedClass && !pickedClassId;
+    if (needsClass) {
+      setActionError("Pick a class for this parent before approving.");
+      return;
     }
+    approveMutation.mutate(row);
+  }
+
+  function reject(row: JoinRequestRow) {
+    if (!centerId) return;
+    rejectMutation.mutate(row);
   }
 
   if (!centerId) {
@@ -263,7 +272,7 @@ export default function RequestsPage() {
                           setSelected(row);
                           setPickedClassId("");
                           setRejectReason("");
-                          setError(null);
+                          setActionError(null);
                         }}
                       >
                         Review
@@ -369,16 +378,16 @@ export default function RequestsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => reject(selected)}
-                  disabled={acting === selected.id}
+                  disabled={acting}
                 >
-                  {acting === selected.id ? "Working…" : "Reject"}
+                  {acting ? "Working…" : "Reject"}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => approve(selected)}
-                  disabled={acting === selected.id}
+                  disabled={acting}
                 >
-                  {acting === selected.id ? "Working…" : "Approve"}
+                  {acting ? "Working…" : "Approve"}
                 </Button>
               </DialogFooter>
             ) : (

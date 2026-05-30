@@ -2,12 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import type {
-  CenterSearchResult,
-  District,
-  Region,
-} from "@kichkintoy/shared";
+import type { CenterSearchResult } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { FieldError } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiError, apiRequest } from "@/lib/api";
+import { orpc } from "@/lib/orpc";
 import { facilityTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -30,13 +28,10 @@ import { useSignup } from "../SignupContext";
 export default function CenterStep() {
   const router = useRouter();
   const { draft, setDraft } = useSignup();
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
   const [regionId, setRegionId] = useState<string>("");
   const [districtId, setDistrictId] = useState<string>("");
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<CenterSearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -48,43 +43,49 @@ export default function CenterStep() {
     if (!draft.role || draft.role === "director") router.replace("/signup/role");
   }, [draft.phoneVerificationToken, draft.role, router]);
 
-  useEffect(() => {
-    apiRequest<Region[]>("/geo/regions")
-      .then(setRegions)
-      .catch(() => setRegions([]));
-  }, []);
+  // Static reference data — cached across signup steps and the director flow.
+  const { data: regions = [] } = useQuery({
+    queryKey: queryKeys.geo.regions(),
+    queryFn: () => orpc.geo.regions({}),
+  });
 
-  useEffect(() => {
-    if (!regionId) {
-      setDistricts([]);
-      setDistrictId("");
-      return;
-    }
-    apiRequest<District[]>(`/geo/regions/${regionId}/districts`)
-      .then(setDistricts)
-      .catch(() => setDistricts([]));
-  }, [regionId]);
+  const { data: districts = [] } = useQuery({
+    queryKey: queryKeys.geo.districts(regionId),
+    queryFn: () =>
+      orpc.geo.districts({ regionId }),
+    enabled: !!regionId,
+  });
 
-  async function runSearch() {
+  function onRegionChange(value: string) {
+    setRegionId(value);
+    setDistrictId("");
+  }
+
+  const searchMutation = useMutation({
+    mutationFn: () =>
+      orpc.centers.search({
+        regionId,
+        districtId,
+        q: query.trim(),
+      }),
+    onSuccess: (rows) => setResults(rows),
+    onError: (err) => {
+      setResults([]);
+      setError(err instanceof Error ? err.message : "Could not load centers.");
+    },
+  });
+
+  const searching = searchMutation.isPending;
+
+  function runSearch() {
     setError(null);
     if (!regionId) return setError("Choose a region first.");
     if (!districtId) return setError("Choose a district first.");
     if (query.trim().length < 2)
       return setError("Enter at least 2 characters of the kindergarten name.");
 
-    setSearching(true);
     setSearched(true);
-    try {
-      const rows = await apiRequest<CenterSearchResult[]>("/centers/search", {
-        query: { regionId, districtId, q: query.trim() },
-      });
-      setResults(rows);
-    } catch (err) {
-      setResults([]);
-      setError(err instanceof ApiError ? err.message : "Could not load centers.");
-    } finally {
-      setSearching(false);
-    }
+    searchMutation.mutate();
   }
 
   function pick(center: CenterSearchResult) {
@@ -99,13 +100,10 @@ export default function CenterStep() {
     }));
   }
 
-  async function lookupByCode() {
-    setCodeError(null);
-    if (!code.trim()) return setCodeError("Enter the center code.");
-    try {
-      const center = await apiRequest<CenterSearchResult>("/centers/by-code", {
-        query: { code: code.trim() },
-      });
+  const codeMutation = useMutation({
+    mutationFn: () =>
+      orpc.centers.byCode({ code: code.trim() }),
+    onSuccess: (center) => {
       setDraft((current) => ({
         ...current,
         centerId: center.id,
@@ -116,11 +114,17 @@ export default function CenterStep() {
       }));
       setResults([center]);
       setSearched(true);
-    } catch (err) {
+    },
+    onError: (err) =>
       setCodeError(
-        err instanceof ApiError ? err.message : "Center code not found.",
-      );
-    }
+        err instanceof Error ? err.message : "Center code not found.",
+      ),
+  });
+
+  function lookupByCode() {
+    setCodeError(null);
+    if (!code.trim()) return setCodeError("Enter the center code.");
+    codeMutation.mutate();
   }
 
   function next() {
@@ -143,7 +147,7 @@ export default function CenterStep() {
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="signup-region">Region</Label>
-          <Select value={regionId} onValueChange={setRegionId}>
+          <Select value={regionId} onValueChange={onRegionChange}>
             <SelectTrigger id="signup-region">
               <SelectValue placeholder="Select region" />
             </SelectTrigger>

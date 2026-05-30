@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { AuthResponse } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,18 +14,15 @@ import { useSignup } from "../SignupContext";
 export default function ReviewStep() {
   const router = useRouter();
   const { draft, reset } = useSignup();
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (draft.role !== "teacher") router.replace("/signup/role");
   }, [draft.role, router]);
 
-  async function submit() {
-    setSubmitting(true);
-    setError(null);
-    try {
-      const response = await apiRequest<AuthResponse>("/auth/register", {
+  const registerMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
         body: {
           fullName: draft.fullName,
@@ -39,17 +37,23 @@ export default function ReviewStep() {
               ? { centerSelection: { centerId: draft.centerId } }
               : {}),
         },
-      });
+      }),
+    onSuccess: (response) => {
       persistSession(response);
       reset();
       router.replace(
         routeForMembership(response.user.role, response.membership),
       );
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Registration failed.");
-    } finally {
-      setSubmitting(false);
-    }
+    },
+    onError: (err) =>
+      setError(err instanceof ApiError ? err.message : "Registration failed."),
+  });
+
+  const submitting = registerMutation.isPending;
+
+  function submit() {
+    setError(null);
+    registerMutation.mutate();
   }
 
   return (

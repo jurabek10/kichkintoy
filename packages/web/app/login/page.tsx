@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { AuthResponse } from "@kichkintoy/shared";
 import { AuthShell } from "@/components/auth-shell";
 import { FieldError } from "@/components/field-error";
@@ -29,9 +30,30 @@ export default function LoginPage() {
     password?: string;
     form?: string;
   }>({});
-  const [submitting, setSubmitting] = useState(false);
+  const loginMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<AuthResponse>("/auth/login", {
+        method: "POST",
+        body: { username, password },
+      }),
+    onSuccess: (response) => {
+      persistSession(response);
+      router.replace(
+        routeForMembership(response.user.role, response.membership),
+      );
+    },
+    onError: (error) =>
+      setErrors({
+        form:
+          error instanceof ApiError
+            ? error.message
+            : "Username or password is incorrect.",
+      }),
+  });
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  const submitting = loginMutation.isPending;
+
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const next: typeof errors = {};
@@ -40,26 +62,7 @@ export default function LoginPage() {
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
-    setSubmitting(true);
-    try {
-      const response = await apiRequest<AuthResponse>("/auth/login", {
-        method: "POST",
-        body: { username, password },
-      });
-      persistSession(response);
-      router.replace(
-        routeForMembership(response.user.role, response.membership),
-      );
-    } catch (error) {
-      setErrors({
-        form:
-          error instanceof ApiError
-            ? error.message
-            : "Username or password is incorrect.",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    loginMutation.mutate();
   }
 
   return (
