@@ -191,6 +191,7 @@ model PhoneVerification {
   phone             String
   codeHash          String    @map("code_hash")
   verificationToken String?   @unique @map("verification_token")
+  attempts          Int       @default(0)
   expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
   verifiedAt        DateTime? @map("verified_at") @db.Timestamptz(6)
   consumedAt        DateTime? @map("consumed_at") @db.Timestamptz(6)

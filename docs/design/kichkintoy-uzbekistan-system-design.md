@@ -274,9 +274,9 @@ packages/
 
 - NestJS
 - TypeScript
-- oRPC
+- REST controllers + Zod contracts in `@kichkintoy/shared` (the originally-planned oRPC layer is **not** wired; `@orpc/server` is installed but unused — see §24)
 - Zod
-- Better Auth
+- Custom phone-OTP + username/password auth (the originally-planned Better Auth is **not** wired; `better-auth` is installed but unused — see §7.2 and §24)
 - Prisma
 
 ### Database
@@ -312,6 +312,14 @@ Uzbekistan integrations:
 - Cash tracking
 
 ## 7. Database Design
+
+> **Canonical source & reconciliation (updated 2026-05-30).** The authoritative schema is the live Prisma schema at [`packages/api/prisma/schema.prisma`](../../packages/api/prisma/schema.prisma). The SQL below has been reconciled with the as-built schema. Deltas applied since the original design:
+> - **Geo:** new `regions` / `districts` tables; `centers` gains `facility_type`, `region_id`, `district_id` (§7.1).
+> - **Auth (built custom, not Better Auth):** new `auth_credentials`, `phone_verifications`, `auth_sessions` tables (§7.2). See the auth-decision reconciliation in §24.
+> - **Roles:** `user_roles.can_approve_members` flag (§7.2).
+> - **Onboarding/approval:** `children.signup_class_name`; `center_join_requests` gains `kind`, `child_photo_url`, `parent_relationship`, `custom_relationship_label`, `reviewer_message`, `cancelled_at`; new `center_invitations` table (§7.5). Defined by [`signup-center-selection-and-approval-spec.md`](../spec/signup-center-selection-and-approval-spec.md).
+> - **Daily reports (알림장):** new `daily_report_reads`, `daily_report_comments` tables; `scheduled` status (§7.6). Defined by [`daily-reports-spec.md`](../spec/daily-reports-spec.md).
+> - **Notices (공지사항):** planned extensions (survey/confirmation/targeting columns + `notice_targets`, `notice_survey_options`, `notice_survey_responses`, `notice_comments`) are specced but **not yet in the schema** — see §7.7 and [`notices-spec.md`](../spec/notices-spec.md).
 
 The schema below is designed for PostgreSQL.
 
@@ -358,10 +366,13 @@ CREATE TABLE centers (
   organization_id UUID NOT NULL REFERENCES organizations(id),
   name TEXT NOT NULL,
   center_code TEXT UNIQUE NOT NULL,
+  facility_type TEXT NOT NULL DEFAULT 'kindergarten', -- kindergarten | daycare | academy
   phone TEXT,
   address TEXT,
-  region TEXT,
-  district TEXT,
+  region_id UUID REFERENCES regions(id),    -- structured region (preferred)
+  district_id UUID REFERENCES districts(id),-- structured district (preferred)
+  region TEXT,                              -- legacy free-text, kept for display
+  district TEXT,                            -- legacy free-text, kept for display
   status TEXT NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -376,6 +387,31 @@ CREATE TABLE branches (
   phone TEXT,
   status TEXT NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### Geography (Regions, Districts)
+
+Added to power the Region → District → Name center-search cascade (signup spec §5). Seeded reference data for Uzbekistan.
+
+```sql
+CREATE TABLE regions (
+  id UUID PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  country_code TEXT NOT NULL DEFAULT 'UZ',
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE districts (
+  id UUID PRIMARY KEY,
+  region_id UUID NOT NULL REFERENCES regions(id),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (region_id, slug)
 );
 ```
 
@@ -408,6 +444,7 @@ CREATE TABLE user_roles (
   center_id UUID REFERENCES centers(id),
   branch_id UUID REFERENCES branches(id),
   role_id UUID NOT NULL REFERENCES roles(id),
+  can_approve_members BOOLEAN NOT NULL DEFAULT false, -- lets a teacher approve join requests
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -424,6 +461,40 @@ CREATE TABLE teacher_profiles (
   user_id UUID UNIQUE NOT NULL REFERENCES users(id),
   employee_number TEXT,
   bio TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### Authentication Tables (As-Built — Custom, Not Better Auth)
+
+The original design (§24) chose Better Auth. The implementation instead uses a **custom phone-OTP + username/password** auth built on these tables (the `better-auth` package is installed but not wired). Identity still lives on `users`; these tables hold credentials, OTP verification, and sessions.
+
+```sql
+CREATE TABLE auth_credentials (
+  id UUID PRIMARY KEY,
+  user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE phone_verifications (
+  id UUID PRIMARY KEY,
+  phone TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  verification_token TEXT UNIQUE,            -- issued once the OTP is verified; consumed at register
+  expires_at TIMESTAMPTZ NOT NULL,
+  verified_at TIMESTAMPTZ,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE auth_sessions (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
@@ -503,6 +574,7 @@ CREATE TABLE children (
   dob DATE NOT NULL,
   gender TEXT,
   photo_url TEXT,
+  signup_class_name TEXT,   -- class name the parent typed at signup, before enrollment to a real class
   allergies TEXT,
   medical_notes TEXT,
   status TEXT NOT NULL DEFAULT 'active',
@@ -541,13 +613,43 @@ CREATE TABLE center_join_requests (
   child_id UUID REFERENCES children(id),
   center_id UUID NOT NULL REFERENCES centers(id),
   requested_class_id UUID REFERENCES classes(id),
-  child_name TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'parent',         -- parent | teacher | director
+  child_name TEXT,                             -- nullable: only parent requests carry a child
   child_dob DATE,
   child_gender TEXT,
+  child_photo_url TEXT,
+  parent_relationship TEXT,                    -- mom | dad | grandmother | ... | other
+  custom_relationship_label TEXT,              -- free text when relationship = other
   message TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
+  status TEXT NOT NULL DEFAULT 'pending',       -- pending | approved | rejected | cancelled
   reviewed_by_user_id UUID REFERENCES users(id),
   reviewed_at TIMESTAMPTZ,
+  reviewer_message TEXT,                        -- optional reason on reject
+  cancelled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### Center Invitations
+
+A director (or an approver teacher) invites a parent/teacher by phone; the invitee accepts at signup and skips the approval handshake (signup spec §8).
+
+```sql
+CREATE TABLE center_invitations (
+  id UUID PRIMARY KEY,
+  center_id UUID NOT NULL REFERENCES centers(id),
+  invited_by_user_id UUID NOT NULL REFERENCES users(id),
+  kind TEXT NOT NULL,                          -- parent | teacher
+  class_id UUID REFERENCES classes(id),        -- required when kind = parent
+  phone TEXT NOT NULL,
+  child_name_hint TEXT,
+  code TEXT UNIQUE NOT NULL,                    -- opaque token in the SMS link
+  expires_at TIMESTAMPTZ NOT NULL,
+  sent_at TIMESTAMPTZ,
+  accepted_at TIMESTAMPTZ,
+  accepted_by_user_id UUID REFERENCES users(id),
+  declined_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
@@ -601,6 +703,30 @@ health
 custom
 ```
 
+The `daily_reports.status` enum is `draft | scheduled | published` (the `scheduled` value plus a BullMQ worker that auto-publishes were added with the daily-reports feature). Read receipts and comments live in two added tables:
+
+```sql
+CREATE TABLE daily_report_reads (
+  id UUID PRIMARY KEY,
+  daily_report_id UUID NOT NULL REFERENCES daily_reports(id) ON DELETE CASCADE,
+  guardian_user_id UUID NOT NULL REFERENCES users(id),
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (daily_report_id, guardian_user_id)
+);
+
+CREATE TABLE daily_report_comments (
+  id UUID PRIMARY KEY,
+  daily_report_id UUID NOT NULL REFERENCES daily_reports(id) ON DELETE CASCADE,
+  author_user_id UUID NOT NULL REFERENCES users(id),
+  parent_comment_id UUID REFERENCES daily_report_comments(id) ON DELETE CASCADE,
+  body TEXT NOT NULL,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
 ## 7.7 Notices
 
 ```sql
@@ -639,6 +765,8 @@ class
 child
 selected_users
 ```
+
+> **Planned (not yet in schema).** [`notices-spec.md`](../spec/notices-spec.md) defines Kidsnote-parity extensions to this module: columns on `notices` (`kind`, `requires_confirmation`, `allow_comments`, `is_pinned`, `is_important`, `survey_question`, `survey_multi_select`, `survey_anonymous`, `survey_deadline`, `last_nudged_at`) and four new tables — `notice_targets` (multi-class/child targeting), `notice_survey_options`, `notice_survey_responses`, and `notice_comments` (mirrors `daily_report_comments`). These land when notices is implemented.
 
 ## 7.8 Albums and Media
 
@@ -1132,7 +1260,7 @@ Support:
 Prefer:
 
 - Phone number login
-- Better Auth for identity/session management
+- Custom session management (`auth_sessions`, §7.2) — Better Auth was evaluated but not adopted
 - Phone OTP sent through Eskiz.uz
 
 ### Payments
@@ -1356,10 +1484,10 @@ Backend:
 - Prisma ORM
 - PostgreSQL
 - Redis
-- oRPC
+- REST controllers + Zod contracts (oRPC planned but not wired — §24)
 - Zod schemas
 - OpenAPI generation
-- Better Auth with Prisma adapter
+- Custom phone-OTP + username/password auth (Better Auth planned but not wired — §7.2, §24)
 
 Web:
 - Next.js
@@ -1381,6 +1509,8 @@ SMS Notifications:
 ```
 
 ## 19. API Strategy
+
+> **As-built:** implemented as NestJS REST controllers with shared Zod contracts, not oRPC (see the §24 reconciliation note). The strategy below is the original plan.
 
 Use oRPC first for the main app API, with Zod schemas and OpenAPI generation.
 
@@ -1533,6 +1663,8 @@ Important rule:
 Do not hide business logic inside Prisma middleware. Keep business rules in NestJS services where they are easier to test.
 
 ## 24. oRPC and Auth Decision
+
+> **As-built reconciliation (2026-05-30).** Both decisions below were the original plan; the implementation diverged. **API:** the backend exposes plain **NestJS REST controllers** with **Zod contracts** shared via `@kichkintoy/shared` — `@orpc/server` is a dependency but is not imported anywhere in `src`. **Auth:** a **custom** phone-OTP + username/password implementation (`auth_credentials`, `phone_verifications`, `auth_sessions`; see §7.2) — `better-auth` is a dependency but is not wired. The product-permission model below (own tables: `user_roles`, `child_guardians`, `teacher_class_assignments`, `child_enrollments`, enforced by NestJS guards) **was** followed and remains correct. The rest of this section records the original rationale; revisit oRPC/Better Auth only if a concrete need arises.
 
 ### API Choice
 

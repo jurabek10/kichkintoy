@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -31,7 +33,10 @@ import type {
 } from "./auth.schemas";
 
 const scrypt = promisify(scryptCallback);
-const otpTtlMs = 10 * 60 * 1000;
+const otpTtlMs = 5 * 60 * 1000;
+const otpResendCooldownMs = 30 * 1000;
+const otpMaxSendsPerHour = 5;
+const otpMaxAttempts = 5;
 const sessionTtlMs = 30 * 24 * 60 * 60 * 1000;
 
 const ROLE_PARENT = "parent" as const;
@@ -41,6 +46,10 @@ const ROLE_ORGANIZATION_OWNER = "organization_owner" as const;
 const APPROVER_ROLE_NAMES = [ROLE_DIRECTOR, ROLE_ORGANIZATION_OWNER];
 
 type Tx = Prisma.TransactionClient;
+export type RequestContext = {
+  ipAddress?: string | null;
+  userAgent?: string | null;
+};
 type MembershipPayload = {
   status: "active" | "pending";
   joinRequestId: string | null;
@@ -58,8 +67,10 @@ export class AuthService {
     private readonly memberships: MembershipsService,
   ) {}
 
-  async sendCode(input: SendCodeInput) {
+  async sendCode(input: SendCodeInput, _ctx: RequestContext = {}) {
     const phoneNumber = normalizePhoneNumber(input.phoneNumber);
+    await this.enforceOtpSendLimits(phoneNumber);
+
     const code = createOtpCode();
     const delivery = await this.eskizSms.sendVerificationCode(
       phoneNumber,
@@ -83,7 +94,7 @@ export class AuthService {
     };
   }
 
-  async verifyCode(input: VerifyCodeInput) {
+  async verifyCode(input: VerifyCodeInput, _ctx: RequestContext = {}) {
     const phoneNumber = normalizePhoneNumber(input.phoneNumber);
     const verification = await this.prisma.phoneVerification.findFirst({
       where: {
@@ -94,10 +105,25 @@ export class AuthService {
       orderBy: { createdAt: "desc" },
     });
 
-    if (
-      !verification ||
-      verification.codeHash !== hashOpaqueValue(input.code)
-    ) {
+    if (!verification) {
+      throw new BadRequestException(
+        "Verification code is incorrect or expired.",
+      );
+    }
+
+    // Lock the code after too many wrong guesses; the user must request a new one.
+    if (verification.attempts >= otpMaxAttempts) {
+      throw new HttpException(
+        "Too many incorrect attempts. Please request a new code.",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    if (!safeEqualHex(verification.codeHash, hashOpaqueValue(input.code))) {
+      await this.prisma.phoneVerification.update({
+        where: { id: verification.id },
+        data: { attempts: { increment: 1 } },
+      });
       throw new BadRequestException(
         "Verification code is incorrect or expired.",
       );
@@ -117,6 +143,29 @@ export class AuthService {
       phoneNumber,
       verificationToken,
     };
+  }
+
+  private async enforceOtpSendLimits(phone: string) {
+    const now = Date.now();
+    const recent = await this.prisma.phoneVerification.findMany({
+      where: { phone, createdAt: { gt: new Date(now - 60 * 60 * 1000) } },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+
+    if (recent.length >= otpMaxSendsPerHour) {
+      throw new HttpException(
+        "Too many verification codes requested. Please try again later.",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    if (recent[0] && now - recent[0].createdAt.getTime() < otpResendCooldownMs) {
+      throw new HttpException(
+        "Please wait a moment before requesting another code.",
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
   }
 
   async lookupInvitationsByVerification(verificationToken: string) {
@@ -258,7 +307,7 @@ export class AuthService {
     });
   }
 
-  async register(input: RegisterInput) {
+  async register(input: RegisterInput, ctx: RequestContext = {}) {
     const phoneNumber = normalizePhoneNumber(input.phoneNumber);
     const normalizedUsername = input.username.trim().toLowerCase();
     const verification = await this.prisma.phoneVerification.findUnique({
@@ -278,7 +327,7 @@ export class AuthService {
     await this.ensureUniqueAccount(normalizedUsername, phoneNumber);
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
             username: normalizedUsername,
@@ -361,10 +410,22 @@ export class AuthService {
           membership,
         };
       });
+
+      await this.audit.log({
+        actorUserId: result.user.id,
+        action: "auth.register",
+        entityType: "user",
+        entityId: result.user.id,
+        ipAddress: ctx.ipAddress ?? null,
+        userAgent: ctx.userAgent ?? null,
+        metadata: { role: input.role },
+      });
+
+      return result;
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         throw new ConflictException(
-          "Username, phone number, or center code is already taken.",
+          "That username or phone number is already in use.",
         );
       }
       throw error;
@@ -484,7 +545,7 @@ export class AuthService {
     return { success: true };
   }
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, ctx: RequestContext = {}) {
     const normalizedUsername = input.username.trim().toLowerCase();
     const user = await this.prisma.user.findUnique({
       where: { username: normalizedUsername },
@@ -495,6 +556,7 @@ export class AuthService {
     });
 
     if (!user?.authCredential) {
+      await this.auditLoginFailure(normalizedUsername, ctx);
       throw new UnauthorizedException("Username or password is incorrect.");
     }
 
@@ -504,6 +566,7 @@ export class AuthService {
     );
 
     if (!isValidPassword) {
+      await this.auditLoginFailure(normalizedUsername, ctx);
       throw new UnauthorizedException("Username or password is incorrect.");
     }
 
@@ -516,6 +579,15 @@ export class AuthService {
       return createdSession;
     });
 
+    await this.audit.log({
+      actorUserId: user.id,
+      action: "auth.login.succeeded",
+      entityType: "user",
+      entityId: user.id,
+      ipAddress: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+    });
+
     const membership = await this.resolveMembership(user.id);
 
     return {
@@ -525,27 +597,54 @@ export class AuthService {
     };
   }
 
-  async logout(token: string) {
+  async logout(token: string, ctx: RequestContext = {}) {
+    const tokenHash = hashOpaqueValue(token);
+    const session = await this.prisma.authSession.findUnique({
+      where: { tokenHash },
+      select: { userId: true },
+    });
+
     await this.prisma.authSession.updateMany({
-      where: { tokenHash: hashOpaqueValue(token), revokedAt: null },
+      where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+
+    if (session) {
+      await this.audit.log({
+        actorUserId: session.userId,
+        action: "auth.logout",
+        entityType: "user",
+        entityId: session.userId,
+        ipAddress: ctx.ipAddress ?? null,
+        userAgent: ctx.userAgent ?? null,
+      });
+    }
 
     return { success: true };
   }
 
+  private async auditLoginFailure(username: string, ctx: RequestContext) {
+    await this.audit.log({
+      action: "auth.login.failed",
+      entityType: "user",
+      ipAddress: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+      metadata: { username },
+    });
+  }
+
   private async ensureUniqueAccount(username: string, phoneNumber: string) {
+    // Neutral message: do not reveal which of username/phone already exists
+    // (prevents account enumeration).
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ username }, { phone: phoneNumber }] },
-      select: { username: true, phone: true },
+      select: { id: true },
     });
 
-    if (existingUser?.username === username) {
-      throw new ConflictException("Username is already taken.");
-    }
-
-    if (existingUser?.phone === phoneNumber) {
-      throw new ConflictException("Phone number is already registered.");
+    if (existingUser) {
+      throw new ConflictException(
+        "That username or phone number is already in use.",
+      );
     }
   }
 
@@ -1238,20 +1337,26 @@ function normalizePhoneNumber(phoneNumber: string) {
   return `${prefix}${trimmed.replace(/\D/g, "")}`;
 }
 
-function createOtpCode() {
-  if (process.env.NODE_ENV !== "production" && process.env.AUTH_DEMO_CODE) {
-    return process.env.AUTH_DEMO_CODE;
-  }
+// Demo/bypass codes are opt-in and can NEVER activate in production. They only
+// apply when NODE_ENV is non-production AND the explicit flag is set — failing
+// closed if the environment is misconfigured.
+function allowDemoCode() {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.AUTH_ALLOW_DEMO_CODE === "true"
+  );
+}
 
-  if (process.env.NODE_ENV !== "production") {
-    return "123456";
+function createOtpCode() {
+  if (allowDemoCode() && process.env.AUTH_DEMO_CODE) {
+    return process.env.AUTH_DEMO_CODE;
   }
 
   return String(randomInt(100000, 999999));
 }
 
 function shouldReturnDebugCode() {
-  return process.env.NODE_ENV !== "production";
+  return allowDemoCode();
 }
 
 function randomToken() {
@@ -1260,6 +1365,16 @@ function randomToken() {
 
 function hashOpaqueValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+// Constant-time comparison of two hex-encoded digests to avoid timing leaks.
+function safeEqualHex(a: string, b: string) {
+  const bufferA = Buffer.from(a, "hex");
+  const bufferB = Buffer.from(b, "hex");
+  if (bufferA.length === 0 || bufferA.length !== bufferB.length) {
+    return false;
+  }
+  return timingSafeEqual(bufferA, bufferB);
 }
 
 async function hashPassword(password: string) {
