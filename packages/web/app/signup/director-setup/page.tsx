@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import type {
   AuthResponse,
@@ -10,6 +11,7 @@ import type {
   FacilityType,
   Region,
 } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -33,37 +35,29 @@ const facilityOptions: FacilityType[] = ["kindergarten", "daycare", "academy"];
 export default function DirectorSetupStep() {
   const router = useRouter();
   const { draft, setDraft, reset } = useSignup();
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CenterSearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!draft.phoneVerificationToken) router.replace("/signup");
     if (draft.role !== "director") router.replace("/signup/role");
   }, [draft.phoneVerificationToken, draft.role, router]);
 
-  useEffect(() => {
-    apiRequest<Region[]>("/geo/regions")
-      .then(setRegions)
-      .catch(() => setRegions([]));
-  }, []);
+  const { data: regions = [] } = useQuery({
+    queryKey: queryKeys.geo.regions(),
+    queryFn: () => apiRequest<Region[]>("/geo/regions"),
+  });
 
-  useEffect(() => {
-    if (!draft.director.regionId) {
-      setDistricts([]);
-      return;
-    }
-    apiRequest<District[]>(
-      `/geo/regions/${draft.director.regionId}/districts`,
-    )
-      .then(setDistricts)
-      .catch(() => setDistricts([]));
-  }, [draft.director.regionId]);
+  const { data: districts = [] } = useQuery({
+    queryKey: queryKeys.geo.districts(draft.director.regionId),
+    queryFn: () =>
+      apiRequest<District[]>(
+        `/geo/regions/${draft.director.regionId}/districts`,
+      ),
+    enabled: !!draft.director.regionId,
+  });
 
   function updateDirector<K extends keyof typeof draft.director>(
     key: K,
@@ -75,31 +69,33 @@ export default function DirectorSetupStep() {
     }));
   }
 
-  async function runSearch() {
-    setError(null);
-    if (!draft.director.regionId || !draft.director.districtId)
-      return setError("Choose a region and district first.");
-    if (query.trim().length < 2)
-      return setError("Enter at least 2 characters.");
-
-    setSearching(true);
-    setSearched(true);
-    try {
-      const rows = await apiRequest<CenterSearchResult[]>("/centers/search", {
+  const searchMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<CenterSearchResult[]>("/centers/search", {
         query: {
           regionId: draft.director.regionId,
           districtId: draft.director.districtId,
           q: query.trim(),
           facilityType: draft.director.facilityType,
         },
-      });
-      setResults(rows);
-    } catch (err) {
+      }),
+    onSuccess: (rows) => setResults(rows),
+    onError: (err) => {
       setResults([]);
       setError(err instanceof ApiError ? err.message : "Search failed.");
-    } finally {
-      setSearching(false);
-    }
+    },
+  });
+
+  const searching = searchMutation.isPending;
+
+  function runSearch() {
+    setError(null);
+    if (!draft.director.regionId || !draft.director.districtId)
+      return setError("Choose a region and district first.");
+    if (query.trim().length < 2)
+      return setError("Enter at least 2 characters.");
+    setSearched(true);
+    searchMutation.mutate();
   }
 
   function chooseClaim(center: CenterSearchResult) {
@@ -117,22 +113,8 @@ export default function DirectorSetupStep() {
       updateDirector("centerName", query.trim());
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-
-    if (!draft.director.mode)
-      return setError("Pick an existing kindergarten or create a new one.");
-
-    if (draft.director.mode === "create_new") {
-      if (draft.director.organizationName.trim().length < 2)
-        return setError("Organization name is required.");
-      if (draft.director.centerName.trim().length < 2)
-        return setError("Kindergarten name is required.");
-    }
-
-    setSubmitting(true);
-    try {
+  const registerMutation = useMutation({
+    mutationFn: () => {
       const body = {
         fullName: draft.fullName,
         phoneNumber: draft.phoneNumber,
@@ -161,20 +143,39 @@ export default function DirectorSetupStep() {
               },
       };
 
-      const response = await apiRequest<AuthResponse>("/auth/register", {
+      return apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
         body,
       });
+    },
+    onSuccess: (response) => {
       persistSession(response);
       reset();
       router.replace(
         routeForMembership(response.user.role, response.membership),
       );
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not register.");
-    } finally {
-      setSubmitting(false);
+    },
+    onError: (err) =>
+      setError(err instanceof ApiError ? err.message : "Could not register."),
+  });
+
+  const submitting = registerMutation.isPending;
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+
+    if (!draft.director.mode)
+      return setError("Pick an existing kindergarten or create a new one.");
+
+    if (draft.director.mode === "create_new") {
+      if (draft.director.organizationName.trim().length < 2)
+        return setError("Organization name is required.");
+      if (draft.director.centerName.trim().length < 2)
+        return setError("Kindergarten name is required.");
     }
+
+    registerMutation.mutate();
   }
 
   return (

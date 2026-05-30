@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, FileText, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
 import type { DailyReportClassChildStatus } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,62 +28,74 @@ export function ClassReports({
   classId: string;
   initialDate: string;
 }) {
+  const queryClient = useQueryClient();
   const [date, setDate] = useState(initialDate);
-  const [rows, setRows] = useState<DailyReportClassChildStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [working, setWorking] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiRequest<DailyReportClassChildStatus[]>(
+  const rowsKey = queryKeys.teacher.classReportStatuses(classId, date);
+
+  const {
+    data: rows = [],
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: rowsKey,
+    queryFn: () =>
+      apiRequest<DailyReportClassChildStatus[]>(
         `/teacher/classes/${classId}/reports`,
         { auth: true, query: { reportDate: date } },
-      );
-      setRows(data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load reports.");
-    } finally {
-      setLoading(false);
-    }
-  }, [classId, date]);
+      ),
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function bulkCreate() {
-    setWorking(true);
-    try {
-      const result = await apiRequest<{ created: number; skipped: number }>(
+  const bulkMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<{ created: number; skipped: number }>(
         `/teacher/classes/${classId}/reports/bulk`,
         { method: "POST", auth: true, body: { reportDate: date } },
-      );
+      ),
+    onSuccess: async (result) => {
       toast.success(`Created ${result.created} drafts.`);
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not create drafts.");
-    } finally {
-      setWorking(false);
-    }
-  }
+      await queryClient.invalidateQueries({ queryKey: rowsKey });
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError ? err.message : "Could not create drafts.",
+      ),
+  });
 
-  async function publishDrafts() {
-    setWorking(true);
-    try {
-      const result = await apiRequest<{ published: number; skipped: number }>(
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<{ published: number; skipped: number }>(
         `/teacher/classes/${classId}/reports/publish-drafts`,
         { method: "POST", auth: true, body: { reportDate: date } },
-      );
+      ),
+    onSuccess: async (result) => {
       toast.success(`Published ${result.published} reports.`);
-      await load();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not publish drafts.");
-    } finally {
-      setWorking(false);
-    }
+      await queryClient.invalidateQueries({ queryKey: rowsKey });
+    },
+    onError: (err) =>
+      setActionError(
+        err instanceof ApiError ? err.message : "Could not publish drafts.",
+      ),
+  });
+
+  const working = bulkMutation.isPending || publishMutation.isPending;
+  const error =
+    actionError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load reports."
+      : null);
+
+  function bulkCreate() {
+    setActionError(null);
+    bulkMutation.mutate();
+  }
+
+  function publishDrafts() {
+    setActionError(null);
+    publishMutation.mutate();
   }
 
   return (

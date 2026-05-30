@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, Save, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type {
@@ -51,6 +52,7 @@ export function ReportComposer({
   initialReportDate?: string | null;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [reportDate, setReportDate] = useState(initialReportDate ?? todayIsoDate());
   const [mood, setMood] = useState("");
   const [healthNote, setHealthNote] = useState("");
@@ -62,17 +64,10 @@ export function ReportComposer({
     { itemType: "activity", title: "Activity", value: "", note: "" },
   ]);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  async function submit(mode: "draft" | "publish" | "schedule") {
-    if (!childId) {
-      setError("Child id is missing.");
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    try {
-      const created = await apiRequest<DailyReportDetail>("/teacher/reports", {
+  const createMutation = useMutation({
+    mutationFn: (mode: "draft" | "publish" | "schedule") =>
+      apiRequest<DailyReportDetail>("/teacher/reports", {
         method: "POST",
         auth: true,
         body: {
@@ -88,14 +83,26 @@ export function ReportComposer({
               ? new Date(scheduledAt).toISOString()
               : undefined,
         },
-      });
+      }),
+    onSuccess: async (created, mode) => {
       toast.success(successMessage(mode));
+      // Refresh teacher report lists/statuses before navigating to the new report.
+      await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push(`/dashboard/reports/${created.id}`);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not save report.");
-    } finally {
-      setSubmitting(false);
+    },
+    onError: (err) =>
+      setError(err instanceof ApiError ? err.message : "Could not save report."),
+  });
+
+  const submitting = createMutation.isPending;
+
+  function submit(mode: "draft" | "publish" | "schedule") {
+    if (!childId) {
+      setError("Child id is missing.");
+      return;
     }
+    setError(null);
+    createMutation.mutate(mode);
   }
 
   function updateItem(index: number, patch: Partial<DailyReportItemInput>) {

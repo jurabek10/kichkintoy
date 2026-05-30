@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
   SendCodeResponse,
@@ -26,35 +27,65 @@ export default function PhoneStep() {
     draft.phoneVerificationToken ? "verified" : "idle",
   );
 
-  async function sendCode() {
-    setErrors({});
-    if (!draft.phoneNumber.trim()) {
-      setErrors({ phoneNumber: "Phone number is required." });
-      return;
-    }
-
-    setStatus("sending");
-    try {
-      const response = await apiRequest<SendCodeResponse>("/auth/send-code", {
+  const sendCodeMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<SendCodeResponse>("/auth/send-code", {
         method: "POST",
         body: { phoneNumber: draft.phoneNumber },
-      });
+      }),
+    onSuccess: (response) => {
       setStatus("sent");
       toast.success(
         response.debugCode
           ? `Demo code: ${response.debugCode}`
           : "Verification code sent. Check your SMS.",
       );
-    } catch (error) {
+    },
+    onError: (error) => {
       setStatus("idle");
       setErrors({
         phoneNumber:
           error instanceof ApiError ? error.message : "Could not send code.",
       });
+    },
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: () =>
+      apiRequest<VerifyCodeResponse>("/auth/verify-code", {
+        method: "POST",
+        body: { phoneNumber: draft.phoneNumber, code: draft.verificationCode },
+      }),
+    onSuccess: (response) => {
+      setDraft((current) => ({
+        ...current,
+        phoneVerificationToken: response.verificationToken,
+      }));
+      setStatus("verified");
+      router.push("/signup/credentials");
+    },
+    onError: (error) => {
+      setStatus("sent");
+      setErrors({
+        verificationCode:
+          error instanceof ApiError
+            ? error.message
+            : "Verification code is incorrect.",
+      });
+    },
+  });
+
+  function sendCode() {
+    setErrors({});
+    if (!draft.phoneNumber.trim()) {
+      setErrors({ phoneNumber: "Phone number is required." });
+      return;
     }
+    setStatus("sending");
+    sendCodeMutation.mutate();
   }
 
-  async function verifyAndContinue() {
+  function verifyAndContinue() {
     setErrors({});
     const next: Record<string, string> = {};
     if (!draft.fullName.trim()) next.fullName = "Full name is required.";
@@ -66,32 +97,7 @@ export default function PhoneStep() {
     if (Object.keys(next).length > 0) return;
 
     setStatus("verifying");
-    try {
-      const response = await apiRequest<VerifyCodeResponse>(
-        "/auth/verify-code",
-        {
-          method: "POST",
-          body: {
-            phoneNumber: draft.phoneNumber,
-            code: draft.verificationCode,
-          },
-        },
-      );
-      setDraft((current) => ({
-        ...current,
-        phoneVerificationToken: response.verificationToken,
-      }));
-      setStatus("verified");
-      router.push("/signup/credentials");
-    } catch (error) {
-      setStatus("sent");
-      setErrors({
-        verificationCode:
-          error instanceof ApiError
-            ? error.message
-            : "Verification code is incorrect.",
-      });
-    }
+    verifyMutation.mutate();
   }
 
   return (

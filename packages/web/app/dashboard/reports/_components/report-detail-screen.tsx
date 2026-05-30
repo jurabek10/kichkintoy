@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, MessageSquare, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { DailyReportDetail } from "@kichkintoy/shared";
@@ -35,114 +36,153 @@ export function ReportDetailScreen({
   reportId: string;
 }) {
   const router = useRouter();
-  const [report, setReport] = useState<DailyReportDetail | null>(null);
+  const queryClient = useQueryClient();
   const [edit, setEdit] = useState({ mood: "", teacherNote: "", healthNote: "" });
   const [comment, setComment] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [working, setWorking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiRequest<DailyReportDetail>(
-        isParent ? `/parent/reports/${reportId}` : `/teacher/reports/${reportId}`,
+  const reportKey = ["report", reportId, { isParent }] as const;
+
+  const {
+    data: report = null,
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: reportKey,
+    queryFn: () =>
+      apiRequest<DailyReportDetail>(
+        isParent
+          ? `/parent/reports/${reportId}`
+          : `/teacher/reports/${reportId}`,
         { auth: true },
-      );
-      setReport(data);
-      setEdit({
-        mood: data.mood ?? "",
-        teacherNote: data.teacherNote ?? "",
-        healthNote: data.healthNote ?? "",
-      });
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load report.");
-    } finally {
-      setLoading(false);
-    }
-  }, [isParent, reportId]);
+      ),
+  });
 
+  // Keep the edit form in sync with the loaded report.
   useEffect(() => {
-    load();
-  }, [load]);
+    if (report) {
+      setEdit({
+        mood: report.mood ?? "",
+        teacherNote: report.teacherNote ?? "",
+        healthNote: report.healthNote ?? "",
+      });
+    }
+  }, [report]);
 
-  async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await runAction("Could not update report.", async () => {
-      await apiRequest(`/teacher/reports/${reportId}`, {
+  const invalidateReport = () =>
+    queryClient.invalidateQueries({ queryKey: reportKey });
+  const onActionError = (message: string) => (err: unknown) =>
+    setActionError(err instanceof ApiError ? err.message : message);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`/teacher/reports/${reportId}`, {
         method: "PATCH",
         auth: true,
         body: edit,
-      });
+      }),
+    onSuccess: async () => {
       toast.success("Report updated.");
-      await load();
-    });
-  }
+      await invalidateReport();
+    },
+    onError: onActionError("Could not update report."),
+  });
 
-  async function publish() {
-    await runAction("Could not publish report.", async () => {
-      await apiRequest(`/teacher/reports/${reportId}/publish`, {
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`/teacher/reports/${reportId}/publish`, {
         method: "POST",
         auth: true,
         body: {},
-      });
+      }),
+    onSuccess: async () => {
       toast.success("Report published.");
-      await load();
-    });
-  }
+      await invalidateReport();
+    },
+    onError: onActionError("Could not publish report."),
+  });
 
-  async function unpublish() {
-    await runAction("Could not unpublish report.", async () => {
-      await apiRequest(`/teacher/reports/${reportId}/unpublish`, {
+  const unpublishMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`/teacher/reports/${reportId}/unpublish`, {
         method: "POST",
         auth: true,
-      });
+      }),
+    onSuccess: async () => {
       toast("Report moved back to draft.");
-      await load();
-    });
-  }
+      await invalidateReport();
+    },
+    onError: onActionError("Could not unpublish report."),
+  });
 
-  async function removeReport() {
-    await runAction("Could not delete report.", async () => {
-      await apiRequest(`/teacher/reports/${reportId}`, {
+  const deleteMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(`/teacher/reports/${reportId}`, {
         method: "DELETE",
         auth: true,
-      });
+      }),
+    onSuccess: () => {
       toast("Report deleted.");
       router.push("/dashboard/reports");
-    });
-  }
+    },
+    onError: onActionError("Could not delete report."),
+  });
 
-  async function addComment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!comment.trim()) return;
-    await runAction("Could not add comment.", async () => {
-      await apiRequest(
+  const commentMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(
         isParent
           ? `/parent/reports/${reportId}/comments`
           : `/teacher/reports/${reportId}/comments`,
-        {
-          method: "POST",
-          auth: true,
-          body: { body: comment.trim() },
-        },
-      );
+        { method: "POST", auth: true, body: { body: comment.trim() } },
+      ),
+    onSuccess: async () => {
       setComment("");
-      await load();
-    });
+      await invalidateReport();
+    },
+    onError: onActionError("Could not add comment."),
+  });
+
+  const working =
+    saveMutation.isPending ||
+    publishMutation.isPending ||
+    unpublishMutation.isPending ||
+    deleteMutation.isPending ||
+    commentMutation.isPending;
+  const error =
+    actionError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load report."
+      : null);
+
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setActionError(null);
+    saveMutation.mutate();
   }
 
-  async function runAction(message: string, action: () => Promise<void>) {
-    setWorking(true);
-    setError(null);
-    try {
-      await action();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : message);
-    } finally {
-      setWorking(false);
-    }
+  function publish() {
+    setActionError(null);
+    publishMutation.mutate();
+  }
+
+  function unpublish() {
+    setActionError(null);
+    unpublishMutation.mutate();
+  }
+
+  function removeReport() {
+    setActionError(null);
+    deleteMutation.mutate();
+  }
+
+  function addComment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!comment.trim()) return;
+    setActionError(null);
+    commentMutation.mutate();
   }
 
   if (loading) return <LoadingCard />;

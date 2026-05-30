@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import type {
   DailyReportListResponse,
   ParentChildSummary,
 } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,40 +23,43 @@ import { formatDate } from "@/lib/format";
 import { reportItemSummary } from "./report-utils";
 
 export function ParentReports() {
-  const [children, setChildren] = useState<ParentChildSummary[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [reports, setReports] = useState<DailyReportListResponse>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setLoading(true);
-    apiRequest<ParentChildSummary[]>("/parent/children", { auth: true })
-      .then((rows) => {
-        setChildren(rows);
-        setSelectedChildId((current) => current ?? rows[0]?.id ?? null);
-      })
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Could not load children."),
-      )
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: children = [],
+    isPending: childrenLoading,
+    error: childrenError,
+  } = useQuery({
+    queryKey: queryKeys.parent.children(),
+    queryFn: () =>
+      apiRequest<ParentChildSummary[]>("/parent/children", { auth: true }),
+  });
 
-  useEffect(() => {
-    if (!selectedChildId) return;
-    setLoading(true);
-    apiRequest<DailyReportListResponse>(
-      `/parent/children/${selectedChildId}/reports`,
-      { auth: true },
-    )
-      .then(setReports)
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Could not load reports."),
-      )
-      .finally(() => setLoading(false));
-  }, [selectedChildId]);
+  const effectiveChildId = selectedChildId ?? children[0]?.id ?? null;
 
-  const selected = children.find((child) => child.id === selectedChildId);
+  const {
+    data: reports = [],
+    isPending: reportsLoading,
+    error: reportsError,
+  } = useQuery({
+    queryKey: queryKeys.parent.childReports(effectiveChildId ?? ""),
+    queryFn: () =>
+      apiRequest<DailyReportListResponse>(
+        `/parent/children/${effectiveChildId}/reports`,
+        { auth: true },
+      ),
+    enabled: !!effectiveChildId,
+  });
+
+  const loading = childrenLoading || (!!effectiveChildId && reportsLoading);
+  const queryError = childrenError ?? reportsError;
+  const error = queryError
+    ? queryError instanceof ApiError
+      ? queryError.message
+      : "Could not load reports."
+    : null;
+
+  const selected = children.find((child) => child.id === effectiveChildId);
 
   return (
     <div className="flex flex-col gap-4">
@@ -77,7 +82,7 @@ export function ParentReports() {
         <ChildPicker
           children={children}
           loading={loading}
-          selectedChildId={selectedChildId}
+          selectedChildId={effectiveChildId}
           onSelect={setSelectedChildId}
         />
         <ParentReportList

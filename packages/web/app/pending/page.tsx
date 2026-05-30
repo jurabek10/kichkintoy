@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Clock } from "lucide-react";
 import { toast } from "sonner";
 import { AuthShell } from "@/components/auth-shell";
@@ -27,7 +28,26 @@ export default function PendingPage() {
   const router = useRouter();
   const { session, loading } = useSession();
   const [error, setError] = useState<string | null>(null);
-  const [working, setWorking] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const cancelMutation = useMutation({
+    mutationFn: () =>
+      apiRequest(
+        `/auth/me/join-requests/${session?.membership.joinRequestId}`,
+        { method: "DELETE", auth: true },
+      ),
+    onSuccess: () => {
+      toast.success("Request cancelled.");
+      clearSession();
+      router.replace("/login");
+    },
+    onError: (err) =>
+      setError(
+        err instanceof ApiError ? err.message : "Could not cancel the request.",
+      ),
+  });
+
+  const working = cancelMutation.isPending || signingOut;
 
   useEffect(() => {
     if (loading) return;
@@ -55,28 +75,14 @@ export default function PendingPage() {
   const requestId = session.membership.joinRequestId;
   const centerName = session.membership.centerName ?? "your kindergarten";
 
-  async function cancel() {
+  function cancel() {
     if (!requestId) return;
-    setWorking(true);
     setError(null);
-    try {
-      await apiRequest(`/auth/me/join-requests/${requestId}`, {
-        method: "DELETE",
-        auth: true,
-      });
-      toast.success("Request cancelled.");
-      clearSession();
-      router.replace("/login");
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Could not cancel the request.",
-      );
-      setWorking(false);
-    }
+    cancelMutation.mutate();
   }
 
   async function signOut() {
-    setWorking(true);
+    setSigningOut(true);
     const stored = readSession();
     await logoutAndClear(stored?.token ?? null);
     router.replace("/login");

@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import type { CenterTeacher } from "@kichkintoy/shared";
+import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,68 +23,73 @@ import { useSession } from "@/lib/session";
 export default function TeachersPage() {
   const { session } = useSession();
   const centerId = session?.membership.centerId ?? null;
-  const [teachers, setTeachers] = useState<CenterTeacher[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!centerId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await apiRequest<CenterTeacher[]>(
-        `/director/centers/${centerId}/teachers`,
-        { auth: true },
-      );
-      setTeachers(rows);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load teachers.");
-    } finally {
-      setLoading(false);
-    }
-  }, [centerId]);
+  const teachersKey = queryKeys.director.teachers(centerId ?? "");
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const {
+    data: teachers = [],
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: teachersKey,
+    queryFn: () =>
+      apiRequest<CenterTeacher[]>(`/director/centers/${centerId}/teachers`, {
+        auth: true,
+      }),
+    enabled: !!centerId,
+  });
 
-  async function togglePermission(teacher: CenterTeacher, next: boolean) {
-    if (!centerId) return;
-    setBusyId(teacher.userId);
-    // optimistic update
-    setTeachers((current) =>
-      current.map((t) =>
-        t.userId === teacher.userId ? { ...t, canApproveMembers: next } : t,
-      ),
-    );
-    try {
-      await apiRequest(
+  const toggleMutation = useMutation({
+    mutationFn: ({ teacher, next }: { teacher: CenterTeacher; next: boolean }) =>
+      apiRequest(
         `/director/centers/${centerId}/teachers/${teacher.userId}`,
-        {
-          method: "PATCH",
-          auth: true,
-          body: { canApproveMembers: next },
-        },
+        { method: "PATCH", auth: true, body: { canApproveMembers: next } },
+      ),
+    // Optimistic update against the cache, with rollback on failure.
+    onMutate: async ({ teacher, next }) => {
+      setMutationError(null);
+      await queryClient.cancelQueries({ queryKey: teachersKey });
+      const previous = queryClient.getQueryData<CenterTeacher[]>(teachersKey);
+      queryClient.setQueryData<CenterTeacher[]>(teachersKey, (current) =>
+        (current ?? []).map((t) =>
+          t.userId === teacher.userId ? { ...t, canApproveMembers: next } : t,
+        ),
       );
+      return { previous };
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(teachersKey, context.previous);
+      }
+      setMutationError(
+        err instanceof ApiError ? err.message : "Could not update.",
+      );
+    },
+    onSuccess: (_data, { teacher, next }) => {
       toast.success(
         next
           ? `${teacher.fullName} can now approve requests.`
           : `${teacher.fullName} can no longer approve requests.`,
       );
-    } catch (err) {
-      // revert
-      setTeachers((current) =>
-        current.map((t) =>
-          t.userId === teacher.userId
-            ? { ...t, canApproveMembers: !next }
-            : t,
-        ),
-      );
-      setError(err instanceof ApiError ? err.message : "Could not update.");
-    } finally {
-      setBusyId(null);
-    }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: teachersKey });
+    },
+  });
+
+  const error =
+    mutationError ??
+    (loadError
+      ? loadError instanceof ApiError
+        ? loadError.message
+        : "Could not load teachers."
+      : null);
+
+  function togglePermission(teacher: CenterTeacher, next: boolean) {
+    if (!centerId) return;
+    toggleMutation.mutate({ teacher, next });
   }
 
   if (!centerId) {
@@ -173,7 +180,11 @@ export default function TeachersPage() {
                       onCheckedChange={(value: boolean) =>
                         togglePermission(teacher, value)
                       }
-                      disabled={busyId === teacher.userId}
+                      disabled={
+                        toggleMutation.isPending &&
+                        toggleMutation.variables?.teacher.userId ===
+                          teacher.userId
+                      }
                       aria-label={`Toggle approval permission for ${teacher.fullName}`}
                     />
                   </label>

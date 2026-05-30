@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { GraduationCap, Heart, ShieldCheck } from "lucide-react";
 import type { PendingInvitation, UserRole } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ApiError, apiRequest } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import { facilityTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -42,34 +44,22 @@ const options: Array<{
 export default function RoleStep() {
   const router = useRouter();
   const { draft, setDraft, acceptInvitation, declineInvitation } = useSignup();
-  const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
-  const [loadingInvites, setLoadingInvites] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: invitations = [], isPending: loadingInvites } = useQuery({
+    queryKey: queryKeys.auth.invitations(draft.phoneVerificationToken ?? ""),
+    queryFn: () =>
+      apiRequest<PendingInvitation[]>("/auth/invitations/lookup", {
+        method: "POST",
+        body: { phoneVerificationToken: draft.phoneVerificationToken },
+      }),
+    enabled: !!draft.phoneVerificationToken,
+  });
 
   useEffect(() => {
     if (!draft.phoneVerificationToken) {
       router.replace("/signup");
-      return;
     }
-
-    let cancelled = false;
-    setLoadingInvites(true);
-    apiRequest<PendingInvitation[]>("/auth/invitations/lookup", {
-      method: "POST",
-      body: { phoneVerificationToken: draft.phoneVerificationToken },
-    })
-      .then((rows) => {
-        if (!cancelled) setInvitations(rows);
-      })
-      .catch(() => {
-        if (!cancelled) setInvitations([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingInvites(false);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, [draft.phoneVerificationToken, router]);
 
   function chooseRole(role: UserRole) {

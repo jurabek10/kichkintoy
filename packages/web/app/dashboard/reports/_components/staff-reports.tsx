@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Users } from "lucide-react";
 import type {
   ClassListItem,
@@ -29,47 +30,48 @@ export function StaffReports({
   centerId: string | null;
   director: boolean;
 }) {
-  const [classes, setClasses] = useState<Array<TeacherClass | ClassListItem>>([]);
-  const [reports, setReports] = useState<DailyReportListResponse>([]);
   const [date, setDate] = useState(todayIsoDate());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  const {
+    data,
+    isPending: loading,
+    error: loadError,
+  } = useQuery({
+    queryKey: ["staff-reports", { director, centerId, date }],
+    queryFn: async () => {
       const [classRows, reportRows] = await Promise.all([
         director
           ? centerId
-            ? apiRequest<ClassListItem[]>(`/director/centers/${centerId}/classes`, {
-                auth: true,
-              })
-            : Promise.resolve([])
+            ? apiRequest<ClassListItem[]>(
+                `/director/centers/${centerId}/classes`,
+                { auth: true },
+              )
+            : Promise.resolve<ClassListItem[]>([])
           : apiRequest<TeacherClass[]>("/teacher/classes", { auth: true }),
         apiRequest<DailyReportListResponse>("/teacher/reports", {
           auth: true,
           query: { reportDate: date },
         }),
       ]);
-      setClasses(
-        director
-          ? (classRows as ClassListItem[]).filter(
-              (klass) => klass.status !== "archived",
-            )
-          : classRows,
-      );
-      setReports(reportRows);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load reports.");
-    } finally {
-      setLoading(false);
-    }
-  }, [centerId, date, director]);
+      const classes = director
+        ? (classRows as ClassListItem[]).filter(
+            (klass) => klass.status !== "archived",
+          )
+        : classRows;
+      return {
+        classes: classes as Array<TeacherClass | ClassListItem>,
+        reports: reportRows,
+      };
+    },
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const classes = data?.classes ?? [];
+  const reports = data?.reports ?? [];
+  const error = loadError
+    ? loadError instanceof ApiError
+      ? loadError.message
+      : "Could not load reports."
+    : null;
 
   return (
     <div className="flex flex-col gap-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { School, Users } from "lucide-react";
 import type { TeacherClass } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,22 +14,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ApiError, apiRequest } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import { assignmentRoleLabel } from "@/lib/format";
 
 export function TeacherClasses() {
-  const [classes, setClasses] = useState<TeacherClass[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: classes = [],
+    isPending: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: queryKeys.teacher.classes(),
+    queryFn: () =>
+      apiRequest<TeacherClass[]>("/teacher/classes", { auth: true }),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    apiRequest<TeacherClass[]>("/teacher/classes", { auth: true })
-      .then(setClasses)
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Could not load classes."),
-      )
-      .finally(() => setLoading(false));
-  }, []);
+  const error = queryError
+    ? queryError instanceof ApiError
+      ? queryError.message
+      : "Could not load classes."
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
