@@ -16,8 +16,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { ApiError, apiRequest } from "@/lib/api";
 import { assignmentRoleLabel } from "@/lib/format";
+import { orpc } from "@/lib/orpc";
 import { useSession } from "@/lib/session";
 
 export default function TeachersPage() {
@@ -35,18 +35,17 @@ export default function TeachersPage() {
   } = useQuery({
     queryKey: teachersKey,
     queryFn: () =>
-      apiRequest<CenterTeacher[]>(`/director/centers/${centerId}/teachers`, {
-        auth: true,
-      }),
+      orpc.director.teachers({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
   const toggleMutation = useMutation({
     mutationFn: ({ teacher, next }: { teacher: CenterTeacher; next: boolean }) =>
-      apiRequest(
-        `/director/centers/${centerId}/teachers/${teacher.userId}`,
-        { method: "PATCH", auth: true, body: { canApproveMembers: next } },
-      ),
+      orpc.director.updateTeacher({
+        centerId: centerId!,
+        userId: teacher.userId,
+        body: { canApproveMembers: next },
+      }),
     // Optimistic update against the cache, with rollback on failure.
     onMutate: async ({ teacher, next }) => {
       setMutationError(null);
@@ -64,7 +63,7 @@ export default function TeachersPage() {
         queryClient.setQueryData(teachersKey, context.previous);
       }
       setMutationError(
-        err instanceof ApiError ? err.message : "Could not update.",
+        err instanceof Error ? err.message : "Could not update.",
       );
     },
     onSuccess: (_data, { teacher, next }) => {
@@ -82,7 +81,7 @@ export default function TeachersPage() {
   const error =
     mutationError ??
     (loadError
-      ? loadError instanceof ApiError
+      ? loadError instanceof Error
         ? loadError.message
         : "Could not load teachers."
       : null);

@@ -4,11 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import type {
-  CenterSearchResult,
-  District,
-  Region,
-} from "@kichkintoy/shared";
+import type { CenterSearchResult } from "@kichkintoy/shared";
 import { queryKeys } from "@/lib/query-keys";
 import { FieldError } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
@@ -24,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiError, apiRequest } from "@/lib/api";
+import { orpc } from "@/lib/orpc";
 import { facilityTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -50,12 +46,13 @@ export default function CenterStep() {
   // Static reference data — cached across signup steps and the director flow.
   const { data: regions = [] } = useQuery({
     queryKey: queryKeys.geo.regions(),
-    queryFn: () => apiRequest<Region[]>("/geo/regions"),
+    queryFn: () => orpc.geo.regions({}),
   });
 
   const { data: districts = [] } = useQuery({
     queryKey: queryKeys.geo.districts(regionId),
-    queryFn: () => apiRequest<District[]>(`/geo/regions/${regionId}/districts`),
+    queryFn: () =>
+      orpc.geo.districts({ regionId }),
     enabled: !!regionId,
   });
 
@@ -66,13 +63,15 @@ export default function CenterStep() {
 
   const searchMutation = useMutation({
     mutationFn: () =>
-      apiRequest<CenterSearchResult[]>("/centers/search", {
-        query: { regionId, districtId, q: query.trim() },
+      orpc.centers.search({
+        regionId,
+        districtId,
+        q: query.trim(),
       }),
     onSuccess: (rows) => setResults(rows),
     onError: (err) => {
       setResults([]);
-      setError(err instanceof ApiError ? err.message : "Could not load centers.");
+      setError(err instanceof Error ? err.message : "Could not load centers.");
     },
   });
 
@@ -103,9 +102,7 @@ export default function CenterStep() {
 
   const codeMutation = useMutation({
     mutationFn: () =>
-      apiRequest<CenterSearchResult>("/centers/by-code", {
-        query: { code: code.trim() },
-      }),
+      orpc.centers.byCode({ code: code.trim() }),
     onSuccess: (center) => {
       setDraft((current) => ({
         ...current,
@@ -120,7 +117,7 @@ export default function CenterStep() {
     },
     onError: (err) =>
       setCodeError(
-        err instanceof ApiError ? err.message : "Center code not found.",
+        err instanceof Error ? err.message : "Center code not found.",
       ),
   });
 

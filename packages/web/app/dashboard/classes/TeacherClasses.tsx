@@ -13,9 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiError, apiRequest } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { assignmentRoleLabel } from "@/lib/format";
+import { orpc } from "@/lib/orpc";
 
 export function TeacherClasses() {
   const {
@@ -24,12 +24,11 @@ export function TeacherClasses() {
     error: queryError,
   } = useQuery({
     queryKey: queryKeys.teacher.classes(),
-    queryFn: () =>
-      apiRequest<TeacherClass[]>("/teacher/classes", { auth: true }),
+    queryFn: () => orpc.teacher.classes({}),
   });
 
   const error = queryError
-    ? queryError instanceof ApiError
+    ? queryError instanceof Error
       ? queryError.message
       : "Could not load classes."
     : null;

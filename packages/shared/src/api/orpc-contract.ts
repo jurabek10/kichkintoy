@@ -31,6 +31,7 @@ import {
   centerSearchQuerySchema,
   centerSearchResponseSchema,
 } from "./centers.js";
+import { centerSearchResultSchema } from "../centers/models.js";
 import {
   assignTeacherRequestSchema,
   centerTeachersResponseSchema,
@@ -236,7 +237,7 @@ export const appContract = {
     verifyCode: oc
       .input(verifyCodeRequestSchema)
       .output(z.unknown()),
-    register: oc.input(registerRequestSchema).output(z.unknown()),
+    register: oc.input(registerRequestSchema).output(authResponseSchema),
     login: oc.input(loginRequestSchema).output(z.unknown()),
     logout: oc.input(logoutInputSchema).output(z.unknown()),
     lookupInvitations: oc
@@ -258,18 +259,18 @@ export const appContract = {
       .output(z.unknown()),
   },
   geo: {
-    regions: oc.input(emptyInputSchema).output(z.unknown()),
+    regions: oc.input(emptyInputSchema).output(regionsResponseSchema),
     districts: oc
       .input(z.object({ regionId: uuidSchema }))
-      .output(z.unknown()),
+      .output(districtsResponseSchema),
   },
   centers: {
-    search: oc.input(centerSearchQuerySchema).output(z.unknown()),
-    byCode: oc.input(centerByCodeQuerySchema).output(z.unknown()),
-    classes: oc.input(centerIdInputSchema).output(z.unknown()),
+    search: oc.input(centerSearchQuerySchema).output(centerSearchResponseSchema),
+    byCode: oc.input(centerByCodeQuerySchema).output(centerSearchResultSchema),
+    classes: oc.input(centerIdInputSchema).output(centerClassesResponseSchema),
   },
   teacher: {
-    classes: oc.input(emptyInputSchema).output(z.unknown()),
+    classes: oc.input(emptyInputSchema).output(teacherClassesResponseSchema),
     classChildren: oc
       .input(z.object({ classId: uuidSchema }))
       .output(z.unknown()),
@@ -306,7 +307,7 @@ export const appContract = {
       .output(z.unknown()),
     archiveClass: oc.input(centerClassInputSchema).output(z.unknown()),
     restoreClass: oc.input(centerClassInputSchema).output(z.unknown()),
-    teachers: oc.input(centerIdInputSchema).output(z.unknown()),
+    teachers: oc.input(centerIdInputSchema).output(centerTeachersResponseSchema),
     assignTeacher: oc
       .input(centerClassInputSchema.extend({ body: assignTeacherRequestSchema }))
       .output(z.unknown()),
@@ -320,7 +321,7 @@ export const appContract = {
           body: updateTeacherPermissionsRequestSchema,
         }),
       )
-      .output(z.unknown()),
+      .output(updateTeacherResponseSchema),
   },
   reports: {
     teacherList: oc.input(listReportsInputSchema).output(z.unknown()),

@@ -5,6 +5,7 @@ import {
   type ORPCImplementer,
 } from "../context";
 import { createInvitationSchema } from "../../director/director.schemas";
+import { centerTeachersResponseSchema } from "@kichkintoy/shared";
 
 export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
   return {
@@ -162,7 +163,8 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
       await requireCenterAccess(deps.prisma, context.req, input.centerId, {
         directorOnly: true,
       });
-      return deps.classService.listTeachers(input.centerId);
+      const rows = await deps.classService.listTeachers(input.centerId);
+      return centerTeachersResponseSchema.parse(rows);
     }),
     assignTeacher: os.director.assignTeacher.handler(
       async ({ input, context }) => {

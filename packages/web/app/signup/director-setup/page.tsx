@@ -5,11 +5,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import type {
-  AuthResponse,
   CenterSearchResult,
-  District,
   FacilityType,
-  Region,
 } from "@kichkintoy/shared";
 import { queryKeys } from "@/lib/query-keys";
 import { FormActions } from "@/components/form-actions";
@@ -24,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiError, apiRequest } from "@/lib/api";
 import { facilityTypeLabel } from "@/lib/format";
+import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -47,15 +44,15 @@ export default function DirectorSetupStep() {
 
   const { data: regions = [] } = useQuery({
     queryKey: queryKeys.geo.regions(),
-    queryFn: () => apiRequest<Region[]>("/geo/regions"),
+    queryFn: () => orpc.geo.regions({}),
   });
 
   const { data: districts = [] } = useQuery({
     queryKey: queryKeys.geo.districts(draft.director.regionId),
     queryFn: () =>
-      apiRequest<District[]>(
-        `/geo/regions/${draft.director.regionId}/districts`,
-      ),
+      orpc.geo.districts({
+        regionId: draft.director.regionId,
+      }),
     enabled: !!draft.director.regionId,
   });
 
@@ -71,18 +68,16 @@ export default function DirectorSetupStep() {
 
   const searchMutation = useMutation({
     mutationFn: () =>
-      apiRequest<CenterSearchResult[]>("/centers/search", {
-        query: {
-          regionId: draft.director.regionId,
-          districtId: draft.director.districtId,
-          q: query.trim(),
-          facilityType: draft.director.facilityType,
-        },
+      orpc.centers.search({
+        regionId: draft.director.regionId,
+        districtId: draft.director.districtId,
+        q: query.trim(),
+        facilityType: draft.director.facilityType,
       }),
     onSuccess: (rows) => setResults(rows),
     onError: (err) => {
       setResults([]);
-      setError(err instanceof ApiError ? err.message : "Search failed.");
+      setError(err instanceof Error ? err.message : "Search failed.");
     },
   });
 
@@ -143,10 +138,7 @@ export default function DirectorSetupStep() {
               },
       };
 
-      return apiRequest<AuthResponse>("/auth/register", {
-        method: "POST",
-        body,
-      });
+      return orpc.auth.register(body);
     },
     onSuccess: (response) => {
       persistSession(response);
@@ -156,7 +148,7 @@ export default function DirectorSetupStep() {
       );
     },
     onError: (err) =>
-      setError(err instanceof ApiError ? err.message : "Could not register."),
+      setError(err instanceof Error ? err.message : "Could not register."),
   });
 
   const submitting = registerMutation.isPending;
