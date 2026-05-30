@@ -19,7 +19,7 @@
     "@nestjs/core": "^11.1.23",
     "@nestjs/platform-express": "^11.1.23",
     "@nestjs/throttler": "^6.5.0",
-    "@orpc/server": "^1.14.3",
+    "@orpc/server": "^1.14.4",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.1.0",
     "better-auth": "^1.6.11",

@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { json, urlencoded } from "express";
 import { AppModule } from "./app.module";
 import { assertNodeVersion } from "./runtime/assert-node-version";
+import { registerORPCRoutes } from "./orpc/router";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -59,6 +60,8 @@ async function bootstrap() {
     allowedHeaders: ["Authorization", "Content-Type"],
     maxAge: 600,
   });
+
+  registerORPCRoutes(app);
 
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);
