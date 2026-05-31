@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type {
-  SendCodeResponse,
-  VerifyCodeResponse,
-} from "@kichkintoy/shared";
 import { FieldError, FieldHelper } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { useSignup } from "./SignupContext";
 
 type CodeStatus = "idle" | "sending" | "sent" | "verifying" | "verified";
@@ -28,11 +25,7 @@ export default function PhoneStep() {
   );
 
   const sendCodeMutation = useMutation({
-    mutationFn: () =>
-      apiRequest<SendCodeResponse>("/auth/send-code", {
-        method: "POST",
-        body: { phoneNumber: draft.phoneNumber },
-      }),
+    mutationFn: () => orpc.auth.sendCode({ phoneNumber: draft.phoneNumber }),
     onSuccess: (response) => {
       setStatus("sent");
       toast.success(
@@ -43,18 +36,15 @@ export default function PhoneStep() {
     },
     onError: (error) => {
       setStatus("idle");
-      setErrors({
-        phoneNumber:
-          error instanceof ApiError ? error.message : "Could not send code.",
-      });
+      setErrors({ phoneNumber: toApiError(error).message });
     },
   });
 
   const verifyMutation = useMutation({
     mutationFn: () =>
-      apiRequest<VerifyCodeResponse>("/auth/verify-code", {
-        method: "POST",
-        body: { phoneNumber: draft.phoneNumber, code: draft.verificationCode },
+      orpc.auth.verifyCode({
+        phoneNumber: draft.phoneNumber,
+        code: draft.verificationCode,
       }),
     onSuccess: (response) => {
       setDraft((current) => ({
@@ -66,12 +56,7 @@ export default function PhoneStep() {
     },
     onError: (error) => {
       setStatus("sent");
-      setErrors({
-        verificationCode:
-          error instanceof ApiError
-            ? error.message
-            : "Verification code is incorrect.",
-      });
+      setErrors({ verificationCode: toApiError(error).message });
     },
   });
 

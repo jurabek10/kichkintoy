@@ -18,7 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDate } from "@/lib/format";
 import { reportItemSummary } from "./report-utils";
 
@@ -31,8 +32,7 @@ export function ParentReports() {
     error: childrenError,
   } = useQuery({
     queryKey: queryKeys.parent.children(),
-    queryFn: () =>
-      apiRequest<ParentChildSummary[]>("/parent/children", { auth: true }),
+    queryFn: () => orpc.reports.parentChildren(),
   });
 
   const effectiveChildId = selectedChildId ?? children[0]?.id ?? null;
@@ -43,21 +43,13 @@ export function ParentReports() {
     error: reportsError,
   } = useQuery({
     queryKey: queryKeys.parent.childReports(effectiveChildId ?? ""),
-    queryFn: () =>
-      apiRequest<DailyReportListResponse>(
-        `/parent/children/${effectiveChildId}/reports`,
-        { auth: true },
-      ),
+    queryFn: () => orpc.reports.parentList({ childId: effectiveChildId! }),
     enabled: !!effectiveChildId,
   });
 
   const loading = childrenLoading || (!!effectiveChildId && reportsLoading);
   const queryError = childrenError ?? reportsError;
-  const error = queryError
-    ? queryError instanceof ApiError
-      ? queryError.message
-      : "Could not load reports."
-    : null;
+  const error = queryError ? toApiError(queryError).message : null;
 
   const selected = children.find((child) => child.id === effectiveChildId);
 

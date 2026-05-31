@@ -9,7 +9,7 @@ import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/api";
+import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { facilityTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -49,9 +49,8 @@ export default function RoleStep() {
   const { data: invitations = [], isPending: loadingInvites } = useQuery({
     queryKey: queryKeys.auth.invitations(draft.phoneVerificationToken ?? ""),
     queryFn: () =>
-      apiRequest<PendingInvitation[]>("/auth/invitations/lookup", {
-        method: "POST",
-        body: { phoneVerificationToken: draft.phoneVerificationToken },
+      orpc.auth.lookupInvitations({
+        phoneVerificationToken: draft.phoneVerificationToken,
       }),
     enabled: !!draft.phoneVerificationToken,
   });

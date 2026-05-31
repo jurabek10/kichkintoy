@@ -32,7 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDate, joinKindLabel } from "@/lib/format";
 
 type JoinRequestRow = {
@@ -85,17 +86,13 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
   } = useQuery({
     queryKey: queryKeys.director.joinRequests(centerId ?? "", filter),
     queryFn: () =>
-      apiRequest<JoinRequestRow[]>(
-        `/director/centers/${centerId}/join-requests`,
-        { query: { status: filter }, auth: true },
-      ),
+      orpc.director.joinRequests({ centerId: centerId!, status: filter }),
     enabled: !!centerId,
   });
 
   const { data: classes = [] } = useQuery({
     queryKey: queryKeys.centers.classes(centerId ?? ""),
-    queryFn: () =>
-      apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`),
+    queryFn: () => orpc.centers.classes({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
@@ -107,56 +104,39 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
 
   const approveMutation = useMutation({
     mutationFn: (row: JoinRequestRow) =>
-      apiRequest(
-        `/director/centers/${centerId}/join-requests/${row.id}/approve`,
-        {
-          method: "POST",
-          auth: true,
-          body: pickedClassId ? { classId: pickedClassId } : {},
-        },
-      ),
+      orpc.director.approveJoinRequest({
+        centerId: centerId!,
+        requestId: row.id,
+        classId: pickedClassId || undefined,
+      }),
     onSuccess: async (_data, row) => {
       toast.success(`Approved ${row.requester.fullName}.`);
       setSelected(null);
       setPickedClassId("");
       await invalidateRequests();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not approve the request.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const rejectMutation = useMutation({
     mutationFn: (row: JoinRequestRow) =>
-      apiRequest(
-        `/director/centers/${centerId}/join-requests/${row.id}/reject`,
-        {
-          method: "POST",
-          auth: true,
-          body: rejectReason.trim() ? { reason: rejectReason.trim() } : {},
-        },
-      ),
+      orpc.director.rejectJoinRequest({
+        centerId: centerId!,
+        requestId: row.id,
+        reason: rejectReason.trim() || undefined,
+      }),
     onSuccess: async (_data, row) => {
       toast(`Rejected ${row.requester.fullName}.`);
       setSelected(null);
       setRejectReason("");
       await invalidateRequests();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not reject the request.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const acting = approveMutation.isPending || rejectMutation.isPending;
   const error =
-    actionError ??
-    (loadError
-      ? loadError instanceof ApiError
-        ? loadError.message
-        : "Could not load requests."
-      : null);
+    actionError ?? (loadError ? toApiError(loadError).message : null);
 
   function approve(row: JoinRequestRow) {
     if (!centerId) return;

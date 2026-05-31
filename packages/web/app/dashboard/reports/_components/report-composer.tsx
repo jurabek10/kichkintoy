@@ -30,7 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { reportItemTypeLabel } from "@/lib/format";
 import { todayIsoDate } from "./report-utils";
 
@@ -67,22 +68,18 @@ export function ReportComposer({
 
   const createMutation = useMutation({
     mutationFn: (mode: "draft" | "publish" | "schedule") =>
-      apiRequest<DailyReportDetail>("/teacher/reports", {
-        method: "POST",
-        auth: true,
-        body: {
-          childId,
-          reportDate,
-          mood: mood || undefined,
-          healthNote: healthNote || undefined,
-          teacherNote: teacherNote || undefined,
-          items: compactItems(items),
-          publish: mode === "publish",
-          scheduledAt:
-            mode === "schedule" && scheduledAt
-              ? new Date(scheduledAt).toISOString()
-              : undefined,
-        },
+      orpc.reports.create({
+        childId,
+        reportDate,
+        mood: mood || undefined,
+        healthNote: healthNote || undefined,
+        teacherNote: teacherNote || undefined,
+        items: compactItems(items),
+        publish: mode === "publish",
+        scheduledAt:
+          mode === "schedule" && scheduledAt
+            ? new Date(scheduledAt).toISOString()
+            : undefined,
       }),
     onSuccess: async (created, mode) => {
       toast.success(successMessage(mode));
@@ -90,8 +87,7 @@ export function ReportComposer({
       await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push(`/dashboard/reports/${created.id}`);
     },
-    onError: (err) =>
-      setError(err instanceof ApiError ? err.message : "Could not save report."),
+    onError: (err) => setError(toApiError(err).message),
   });
 
   const submitting = createMutation.isPending;

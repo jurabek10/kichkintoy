@@ -11,7 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDate, genderLabel } from "@/lib/format";
 
@@ -22,17 +23,10 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
     error: queryError,
   } = useQuery({
     queryKey: queryKeys.teacher.classChildren(classId),
-    queryFn: () =>
-      apiRequest<ClassRosterChild[]>(`/teacher/classes/${classId}/children`, {
-        auth: true,
-      }),
+    queryFn: () => orpc.teacher.classChildren({ classId }),
   });
 
-  const error = queryError
-    ? queryError instanceof ApiError
-      ? queryError.message
-      : "Could not load roster."
-    : null;
+  const error = queryError ? toApiError(queryError).message : null;
 
   return (
     <div className="flex flex-col gap-4">

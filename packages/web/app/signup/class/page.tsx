@@ -8,7 +8,7 @@ import type { CenterClassSummary } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/api";
+import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -20,8 +20,7 @@ export default function ClassStep() {
 
   const { data: classes = [], isPending: loading } = useQuery({
     queryKey: queryKeys.centers.classes(draft.centerId ?? ""),
-    queryFn: () =>
-      apiRequest<CenterClassSummary[]>(`/centers/${draft.centerId}/classes`),
+    queryFn: () => orpc.centers.classes({ centerId: draft.centerId! }),
     enabled: !!draft.centerId,
   });
 

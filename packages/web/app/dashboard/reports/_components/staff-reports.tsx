@@ -19,7 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDate, reportStatusLabel } from "@/lib/format";
 import { reportItemSummary, todayIsoDate } from "./report-utils";
 
@@ -42,16 +43,10 @@ export function StaffReports({
       const [classRows, reportRows] = await Promise.all([
         director
           ? centerId
-            ? apiRequest<ClassListItem[]>(
-                `/director/centers/${centerId}/classes`,
-                { auth: true },
-              )
+            ? orpc.director.classes({ centerId })
             : Promise.resolve<ClassListItem[]>([])
-          : apiRequest<TeacherClass[]>("/teacher/classes", { auth: true }),
-        apiRequest<DailyReportListResponse>("/teacher/reports", {
-          auth: true,
-          query: { reportDate: date },
-        }),
+          : orpc.teacher.classes(),
+        orpc.reports.teacherList({ reportDate: date }),
       ]);
       const classes = director
         ? (classRows as ClassListItem[]).filter(
@@ -67,11 +62,7 @@ export function StaffReports({
 
   const classes = data?.classes ?? [];
   const reports = data?.reports ?? [];
-  const error = loadError
-    ? loadError instanceof ApiError
-      ? loadError.message
-      : "Could not load reports."
-    : null;
+  const error = loadError ? toApiError(loadError).message : null;
 
   return (
     <div className="flex flex-col gap-4">

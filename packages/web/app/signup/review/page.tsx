@@ -7,7 +7,8 @@ import type { AuthResponse } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 import { useSignup } from "../SignupContext";
 
@@ -22,21 +23,18 @@ export default function ReviewStep() {
 
   const registerMutation = useMutation({
     mutationFn: () =>
-      apiRequest<AuthResponse>("/auth/register", {
-        method: "POST",
-        body: {
-          fullName: draft.fullName,
-          phoneNumber: draft.phoneNumber,
-          phoneVerificationToken: draft.phoneVerificationToken,
-          username: draft.username,
-          password: draft.password,
-          role: "teacher",
-          ...(draft.invitationId
-            ? { invitationId: draft.invitationId }
-            : draft.centerId
-              ? { centerSelection: { centerId: draft.centerId } }
-              : {}),
-        },
+      orpc.auth.register({
+        fullName: draft.fullName,
+        phoneNumber: draft.phoneNumber,
+        phoneVerificationToken: draft.phoneVerificationToken,
+        username: draft.username,
+        password: draft.password,
+        role: "teacher",
+        ...(draft.invitationId
+          ? { invitationId: draft.invitationId }
+          : draft.centerId
+            ? { centerSelection: { centerId: draft.centerId } }
+            : {}),
       }),
     onSuccess: (response) => {
       persistSession(response);
@@ -45,8 +43,7 @@ export default function ReviewStep() {
         routeForMembership(response.user.role, response.membership),
       );
     },
-    onError: (err) =>
-      setError(err instanceof ApiError ? err.message : "Registration failed."),
+    onError: (err) => setError(toApiError(err).message),
   });
 
   const submitting = registerMutation.isPending;

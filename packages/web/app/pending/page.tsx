@@ -15,7 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDate } from "@/lib/format";
 import {
   clearSession,
@@ -32,19 +33,15 @@ export default function PendingPage() {
 
   const cancelMutation = useMutation({
     mutationFn: () =>
-      apiRequest(
-        `/auth/me/join-requests/${session?.membership.joinRequestId}`,
-        { method: "DELETE", auth: true },
-      ),
+      orpc.auth.cancelJoinRequest({
+        id: session?.membership.joinRequestId ?? "",
+      }),
     onSuccess: () => {
       toast.success("Request cancelled.");
       clearSession();
       router.replace("/login");
     },
-    onError: (err) =>
-      setError(
-        err instanceof ApiError ? err.message : "Could not cancel the request.",
-      ),
+    onError: (err) => setError(toApiError(err).message),
   });
 
   const working = cancelMutation.isPending || signingOut;

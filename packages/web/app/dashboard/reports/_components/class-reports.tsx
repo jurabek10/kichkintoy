@@ -18,7 +18,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDate, reportStatusLabel } from "@/lib/format";
 
 export function ClassReports({
@@ -41,52 +42,32 @@ export function ClassReports({
   } = useQuery({
     queryKey: rowsKey,
     queryFn: () =>
-      apiRequest<DailyReportClassChildStatus[]>(
-        `/teacher/classes/${classId}/reports`,
-        { auth: true, query: { reportDate: date } },
-      ),
+      orpc.reports.classStatuses({ classId, reportDate: date }),
   });
 
   const bulkMutation = useMutation({
     mutationFn: () =>
-      apiRequest<{ created: number; skipped: number }>(
-        `/teacher/classes/${classId}/reports/bulk`,
-        { method: "POST", auth: true, body: { reportDate: date } },
-      ),
+      orpc.reports.bulkCreateDrafts({ classId, body: { reportDate: date } }),
     onSuccess: async (result) => {
       toast.success(`Created ${result.created} drafts.`);
       await queryClient.invalidateQueries({ queryKey: rowsKey });
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not create drafts.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const publishMutation = useMutation({
     mutationFn: () =>
-      apiRequest<{ published: number; skipped: number }>(
-        `/teacher/classes/${classId}/reports/publish-drafts`,
-        { method: "POST", auth: true, body: { reportDate: date } },
-      ),
+      orpc.reports.publishDrafts({ classId, body: { reportDate: date } }),
     onSuccess: async (result) => {
       toast.success(`Published ${result.published} reports.`);
       await queryClient.invalidateQueries({ queryKey: rowsKey });
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not publish drafts.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const working = bulkMutation.isPending || publishMutation.isPending;
   const error =
-    actionError ??
-    (loadError
-      ? loadError instanceof ApiError
-        ? loadError.message
-        : "Could not load reports."
-      : null);
+    actionError ?? (loadError ? toApiError(loadError).message : null);
 
   function bulkCreate() {
     setActionError(null);

@@ -10,7 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
@@ -46,7 +47,10 @@ export default function RelationshipStep() {
           : undefined,
         dateOfBirth: draft.childDateOfBirth,
         gender: draft.childGender as Exclude<typeof draft.childGender, "">,
-        relationshipType: draft.relationshipType,
+        relationshipType: draft.relationshipType as Exclude<
+          typeof draft.relationshipType,
+          ""
+        >,
         customRelationshipLabel:
           draft.relationshipType === "other"
             ? draft.customRelationshipLabel.trim() || undefined
@@ -78,10 +82,7 @@ export default function RelationshipStep() {
             child: childPayload,
           };
 
-      return apiRequest<AuthResponse>("/auth/register", {
-        method: "POST",
-        body,
-      });
+      return orpc.auth.register(body);
     },
     onSuccess: (response) => {
       persistSession(response);
@@ -90,11 +91,7 @@ export default function RelationshipStep() {
         routeForMembership(response.user.role, response.membership),
       );
     },
-    onError: (error) =>
-      setErrors({
-        form:
-          error instanceof ApiError ? error.message : "Registration failed.",
-      }),
+    onError: (error) => setErrors({ form: toApiError(error).message }),
   });
 
   const submitting = registerMutation.isPending;

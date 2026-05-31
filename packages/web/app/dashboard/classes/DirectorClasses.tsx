@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 
 export function DirectorClasses({
   centerId,
@@ -46,10 +47,7 @@ export function DirectorClasses({
     error: loadError,
   } = useQuery({
     queryKey: queryKeys.director.classes(centerId ?? ""),
-    queryFn: () =>
-      apiRequest<ClassListItem[]>(`/director/centers/${centerId}/classes`, {
-        auth: true,
-      }),
+    queryFn: () => orpc.director.classes({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
@@ -58,12 +56,7 @@ export function DirectorClasses({
       name: string;
       ageGroup?: string;
       academicYear?: string;
-    }) =>
-      apiRequest(`/director/centers/${centerId}/classes`, {
-        method: "POST",
-        auth: true,
-        body,
-      }),
+    }) => orpc.director.createClass({ centerId: centerId!, body }),
     onSuccess: async () => {
       toast.success(`Class "${name.trim()}" created.`);
       setOpen(false);
@@ -74,20 +67,12 @@ export function DirectorClasses({
         queryKey: queryKeys.director.classes(centerId ?? ""),
       });
     },
-    onError: (err) =>
-      setFormError(
-        err instanceof ApiError ? err.message : "Could not create class.",
-      ),
+    onError: (err) => setFormError(toApiError(err).message),
   });
 
   const submitting = createMutation.isPending;
   const error =
-    formError ??
-    (loadError
-      ? loadError instanceof ApiError
-        ? loadError.message
-        : "Could not load classes."
-      : null);
+    formError ?? (loadError ? toApiError(loadError).message : null);
 
   function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { AuthResponse } from "@kichkintoy/shared";
 import { AuthShell } from "@/components/auth-shell";
 import { FieldError } from "@/components/field-error";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,7 +17,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 
 export default function LoginPage() {
@@ -31,24 +31,14 @@ export default function LoginPage() {
     form?: string;
   }>({});
   const loginMutation = useMutation({
-    mutationFn: () =>
-      apiRequest<AuthResponse>("/auth/login", {
-        method: "POST",
-        body: { username, password },
-      }),
+    mutationFn: () => orpc.auth.login({ username, password }),
     onSuccess: (response) => {
       persistSession(response);
       router.replace(
         routeForMembership(response.user.role, response.membership),
       );
     },
-    onError: (error) =>
-      setErrors({
-        form:
-          error instanceof ApiError
-            ? error.message
-            : "Username or password is incorrect.",
-      }),
+    onError: (error) => setErrors({ form: toApiError(error).message }),
   });
 
   const submitting = loginMutation.isPending;

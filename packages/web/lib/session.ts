@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { AuthResponse, Membership } from "@kichkintoy/shared";
-import { apiRequest } from "./api";
+import { orpc } from "./orpc";
 import { authTokenStorageKey } from "./config";
 
 export type StoredSession = {
@@ -69,10 +69,7 @@ export function useSession(): {
 export async function logoutAndClear(token: string | null) {
   if (token) {
     try {
-      await apiRequest("/auth/logout", {
-        method: "POST",
-        body: { token },
-      });
+      await orpc.auth.logout({ token });
     } catch {
       // best-effort logout; clear locally regardless
     }

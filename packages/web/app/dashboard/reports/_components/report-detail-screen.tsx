@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import {
   formatDate,
   formatDateTime,
@@ -50,12 +51,9 @@ export function ReportDetailScreen({
   } = useQuery({
     queryKey: reportKey,
     queryFn: () =>
-      apiRequest<DailyReportDetail>(
-        isParent
-          ? `/parent/reports/${reportId}`
-          : `/teacher/reports/${reportId}`,
-        { auth: true },
-      ),
+      isParent
+        ? orpc.reports.parentDetail({ reportId })
+        : orpc.reports.teacherDetail({ reportId }),
   });
 
   // Keep the edit form in sync with the loaded report.
@@ -71,16 +69,12 @@ export function ReportDetailScreen({
 
   const invalidateReport = () =>
     queryClient.invalidateQueries({ queryKey: reportKey });
-  const onActionError = (message: string) => (err: unknown) =>
-    setActionError(err instanceof ApiError ? err.message : message);
+  const onActionError = (_message: string) => (err: unknown) =>
+    setActionError(toApiError(err).message);
 
   const saveMutation = useMutation({
     mutationFn: () =>
-      apiRequest(`/teacher/reports/${reportId}`, {
-        method: "PATCH",
-        auth: true,
-        body: edit,
-      }),
+      orpc.reports.update({ reportId, body: edit }),
     onSuccess: async () => {
       toast.success("Report updated.");
       await invalidateReport();
@@ -89,12 +83,7 @@ export function ReportDetailScreen({
   });
 
   const publishMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/teacher/reports/${reportId}/publish`, {
-        method: "POST",
-        auth: true,
-        body: {},
-      }),
+    mutationFn: () => orpc.reports.publish({ reportId, body: {} }),
     onSuccess: async () => {
       toast.success("Report published.");
       await invalidateReport();
@@ -103,11 +92,7 @@ export function ReportDetailScreen({
   });
 
   const unpublishMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/teacher/reports/${reportId}/unpublish`, {
-        method: "POST",
-        auth: true,
-      }),
+    mutationFn: () => orpc.reports.unpublish({ reportId }),
     onSuccess: async () => {
       toast("Report moved back to draft.");
       await invalidateReport();
@@ -116,11 +101,7 @@ export function ReportDetailScreen({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/teacher/reports/${reportId}`, {
-        method: "DELETE",
-        auth: true,
-      }),
+    mutationFn: () => orpc.reports.delete({ reportId }),
     onSuccess: () => {
       toast("Report deleted.");
       router.push("/dashboard/reports");
@@ -130,12 +111,15 @@ export function ReportDetailScreen({
 
   const commentMutation = useMutation({
     mutationFn: () =>
-      apiRequest(
-        isParent
-          ? `/parent/reports/${reportId}/comments`
-          : `/teacher/reports/${reportId}/comments`,
-        { method: "POST", auth: true, body: { body: comment.trim() } },
-      ),
+      isParent
+        ? orpc.reports.parentComment({
+            reportId,
+            body: { body: comment.trim() },
+          })
+        : orpc.reports.staffComment({
+            reportId,
+            body: { body: comment.trim() },
+          }),
     onSuccess: async () => {
       setComment("");
       await invalidateReport();
@@ -150,12 +134,7 @@ export function ReportDetailScreen({
     deleteMutation.isPending ||
     commentMutation.isPending;
   const error =
-    actionError ??
-    (loadError
-      ? loadError instanceof ApiError
-        ? loadError.message
-        : "Could not load report."
-      : null);
+    actionError ?? (loadError ? toApiError(loadError).message : null);
 
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

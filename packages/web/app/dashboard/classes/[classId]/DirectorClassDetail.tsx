@@ -33,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { assignmentRoleLabel, formatDate, genderLabel } from "@/lib/format";
 
 export function DirectorClassDetail({
@@ -68,20 +69,13 @@ export function DirectorClassDetail({
     error: detailError,
   } = useQuery({
     queryKey: detailKey,
-    queryFn: () =>
-      apiRequest<ClassDetail>(
-        `/director/centers/${centerId}/classes/${classId}`,
-        { auth: true },
-      ),
+    queryFn: () => orpc.director.class({ centerId: centerId!, classId }),
     enabled: !!centerId,
   });
 
   const { data: teachers = [] } = useQuery({
     queryKey: teachersKey,
-    queryFn: () =>
-      apiRequest<CenterTeacher[]>(`/director/centers/${centerId}/teachers`, {
-        auth: true,
-      }),
+    queryFn: () => orpc.director.teachers({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
@@ -104,9 +98,9 @@ export function DirectorClassDetail({
 
   const editMutation = useMutation({
     mutationFn: () =>
-      apiRequest(base!, {
-        method: "PATCH",
-        auth: true,
+      orpc.director.updateClass({
+        centerId: centerId!,
+        classId,
         body: {
           name: name.trim(),
           ageGroup: ageGroup.trim() || null,
@@ -118,18 +112,18 @@ export function DirectorClassDetail({
       setEditOpen(false);
       await invalidateAll();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not update class.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const assignMutation = useMutation({
     mutationFn: () =>
-      apiRequest(`${base}/teachers`, {
-        method: "POST",
-        auth: true,
-        body: { teacherUserId: teacherToAssign, assignmentRole: assignRole },
+      orpc.director.assignTeacher({
+        centerId: centerId!,
+        classId,
+        body: {
+          teacherUserId: teacherToAssign,
+          assignmentRole: assignRole as "teacher" | "assistant_teacher",
+        },
       }),
     onSuccess: async () => {
       toast.success("Teacher assigned.");
@@ -138,56 +132,40 @@ export function DirectorClassDetail({
       setAssignRole("teacher");
       await invalidateAll();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not assign teacher.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const unassignMutation = useMutation({
     mutationFn: (teacherUserId: string) =>
-      apiRequest(`${base}/teachers/${teacherUserId}`, {
-        method: "DELETE",
-        auth: true,
+      orpc.director.unassignTeacher({
+        centerId: centerId!,
+        classId,
+        teacherUserId,
       }),
     onSuccess: async () => {
       toast("Teacher unassigned.");
       await invalidateAll();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError ? err.message : "Could not unassign.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const archiveMutation = useMutation({
     mutationFn: (status: string) =>
-      apiRequest(`${base}/${status === "archived" ? "restore" : "archive"}`, {
-        method: "POST",
-        auth: true,
-      }),
+      status === "archived"
+        ? orpc.director.restoreClass({ centerId: centerId!, classId })
+        : orpc.director.archiveClass({ centerId: centerId!, classId }),
     onSuccess: async (_data, status) => {
       toast.success(status === "archived" ? "Class restored." : "Class archived.");
       await invalidateAll();
     },
-    onError: (err) =>
-      setActionError(
-        err instanceof ApiError
-          ? err.message
-          : "Could not change class status.",
-      ),
+    onError: (err) => setActionError(toApiError(err).message),
   });
 
   const savingEdit = editMutation.isPending;
   const assigning = assignMutation.isPending;
   const working = unassignMutation.isPending || archiveMutation.isPending;
   const error =
-    actionError ??
-    (detailError
-      ? detailError instanceof ApiError
-        ? detailError.message
-        : "Could not load class."
-      : null);
+    actionError ?? (detailError ? toApiError(detailError).message : null);
 
   function saveEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -29,7 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApiError, apiRequest } from "@/lib/api";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
 import { formatDateTime, invitationKindLabel } from "@/lib/format";
 
 type InvitationRow = {
@@ -77,35 +78,27 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
     error: loadError,
   } = useQuery({
     queryKey: invitationsKey,
-    queryFn: () =>
-      apiRequest<InvitationRow[]>(
-        `/director/centers/${centerId}/invitations`,
-        { auth: true },
-      ),
+    queryFn: () => orpc.director.invitations({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
   const { data: classes = [] } = useQuery({
     queryKey: queryKeys.centers.classes(centerId ?? ""),
-    queryFn: () =>
-      apiRequest<CenterClassSummary[]>(`/centers/${centerId}/classes`),
+    queryFn: () => orpc.centers.classes({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
   const sendMutation = useMutation({
     mutationFn: () =>
-      apiRequest(`/director/centers/${centerId}/invitations`, {
-        method: "POST",
-        auth: true,
-        body: {
-          kind,
-          phone: phone.trim(),
-          classId: classId || undefined,
-          childNameHint:
-            kind === "parent" && childNameHint.trim()
-              ? childNameHint.trim()
-              : undefined,
-        },
+      orpc.director.createInvitation({
+        centerId: centerId!,
+        kind,
+        phone: phone.trim(),
+        classId: classId || undefined,
+        childNameHint:
+          kind === "parent" && childNameHint.trim()
+            ? childNameHint.trim()
+            : undefined,
       }),
     onSuccess: async () => {
       toast.success(`Invitation SMS sent to ${phone.trim()}.`);
@@ -114,48 +107,38 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
       setClassId("");
       await queryClient.invalidateQueries({ queryKey: invitationsKey });
     },
-    onError: (err) =>
-      setFormError(
-        err instanceof ApiError ? err.message : "Could not send invitation.",
-      ),
+    onError: (err) => setFormError(toApiError(err).message),
   });
 
   const resendMutation = useMutation({
     mutationFn: (row: InvitationRow) =>
-      apiRequest(
-        `/director/centers/${centerId}/invitations/${row.id}/resend`,
-        { method: "POST", auth: true },
-      ),
+      orpc.director.resendInvitation({
+        centerId: centerId!,
+        invitationId: row.id,
+      }),
     onSuccess: async (_data, row) => {
       toast.success(`Resent invitation to ${row.phone}.`);
       await queryClient.invalidateQueries({ queryKey: invitationsKey });
     },
-    onError: (err) =>
-      setFormError(err instanceof ApiError ? err.message : "Could not resend."),
+    onError: (err) => setFormError(toApiError(err).message),
   });
 
   const revokeMutation = useMutation({
     mutationFn: (row: InvitationRow) =>
-      apiRequest(`/director/centers/${centerId}/invitations/${row.id}`, {
-        method: "DELETE",
-        auth: true,
+      orpc.director.revokeInvitation({
+        centerId: centerId!,
+        invitationId: row.id,
       }),
     onSuccess: async (_data, row) => {
       toast(`Revoked invitation to ${row.phone}.`);
       await queryClient.invalidateQueries({ queryKey: invitationsKey });
     },
-    onError: (err) =>
-      setFormError(err instanceof ApiError ? err.message : "Could not revoke."),
+    onError: (err) => setFormError(toApiError(err).message),
   });
 
   const submitting = sendMutation.isPending;
   const error =
-    formError ??
-    (loadError
-      ? loadError instanceof ApiError
-        ? loadError.message
-        : "Could not load invitations."
-      : null);
+    formError ?? (loadError ? toApiError(loadError).message : null);
   const rowBusy = (id: string) =>
     (resendMutation.isPending && resendMutation.variables?.id === id) ||
     (revokeMutation.isPending && revokeMutation.variables?.id === id);
