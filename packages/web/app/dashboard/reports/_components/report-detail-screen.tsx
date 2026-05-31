@@ -23,6 +23,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import {
+  REPORT_COMMENT_MUTATION_KEY,
+  type ReportCommentVars,
+} from "@/lib/offline-mutations";
+import {
   formatDate,
   formatDateTime,
   reportItemTypeLabel,
@@ -109,21 +113,11 @@ export function ReportDetailScreen({
     onError: onActionError("Could not delete report."),
   });
 
-  const commentMutation = useMutation({
-    mutationFn: () =>
-      isParent
-        ? orpc.reports.parentComment({
-            reportId,
-            body: { body: comment.trim() },
-          })
-        : orpc.reports.staffComment({
-            reportId,
-            body: { body: comment.trim() },
-          }),
-    onSuccess: async () => {
-      setComment("");
-      await invalidateReport();
-    },
+  // Offline-capable: uses the keyed default registered in providers, so a
+  // comment written offline is queued, persisted, and replayed on reconnect.
+  const commentMutation = useMutation<unknown, Error, ReportCommentVars>({
+    mutationKey: REPORT_COMMENT_MUTATION_KEY,
+    onSuccess: () => invalidateReport(),
     onError: onActionError("Could not add comment."),
   });
 
@@ -159,9 +153,18 @@ export function ReportDetailScreen({
 
   function addComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!comment.trim()) return;
+    const body = comment.trim();
+    if (!body) return;
     setActionError(null);
-    commentMutation.mutate();
+    commentMutation.mutate({
+      reportId,
+      isParent,
+      body,
+      idempotencyKey: crypto.randomUUID(),
+    });
+    // Clear now — the body is captured in the queued mutation, which sends
+    // immediately when online or as soon as connectivity returns.
+    setComment("");
   }
 
   if (loading) return <LoadingCard />;

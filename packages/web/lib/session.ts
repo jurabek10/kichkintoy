@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import type { AuthResponse, Membership } from "@kichkintoy/shared";
 import { orpc } from "./orpc";
+import { getQueryClient } from "./query";
+import { clearPersistedQueryCache } from "./query-persister";
 import { authTokenStorageKey } from "./config";
 
 export type StoredSession = {
@@ -41,6 +43,9 @@ export function clearSession() {
   window.localStorage.removeItem(authTokenStorageKey);
   window.localStorage.removeItem(sessionStorageKey);
   window.dispatchEvent(new Event("kichkintoy:session"));
+  // Drop cached data (may contain children's info) from memory and IndexedDB.
+  getQueryClient().clear();
+  void clearPersistedQueryCache();
 }
 
 export function useSession(): {
