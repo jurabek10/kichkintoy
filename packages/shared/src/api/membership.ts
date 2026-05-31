@@ -21,7 +21,7 @@ export type SubmitJoinRequestResponse = z.infer<
 >;
 
 export const cancelJoinRequestResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
 });
 
 export type CancelJoinRequestResponse = z.infer<

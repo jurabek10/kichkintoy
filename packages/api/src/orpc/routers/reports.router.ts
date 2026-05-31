@@ -1,4 +1,8 @@
 import { requireUser, type ORPCImplementer, type ORPCDeps } from "../context";
+import {
+  dailyReportClassChildStatusSchema,
+  parentChildSummarySchema,
+} from "@kichkintoy/shared";
 
 export function createReportsRouter(os: ORPCImplementer, deps: ORPCDeps) {
   return {
@@ -65,11 +69,15 @@ export function createReportsRouter(os: ORPCImplementer, deps: ORPCDeps) {
     classStatuses: os.reports.classStatuses.handler(
       async ({ input, context }) => {
         const user = await requireUser(deps.prisma, context.req);
-        return deps.reportsService.listClassReportStatuses(
-          user.id,
-          input.classId,
-          input.reportDate,
-        );
+        return dailyReportClassChildStatusSchema
+          .array()
+          .parse(
+            await deps.reportsService.listClassReportStatuses(
+              user.id,
+              input.classId,
+              input.reportDate,
+            ),
+          );
       },
     ),
     reads: os.reports.reads.handler(async ({ input, context }) => {
@@ -89,7 +97,9 @@ export function createReportsRouter(os: ORPCImplementer, deps: ORPCDeps) {
     parentChildren: os.reports.parentChildren.handler(
       async ({ context }) => {
         const user = await requireUser(deps.prisma, context.req);
-        return deps.reportsService.listParentChildren(user.id);
+        return parentChildSummarySchema
+          .array()
+          .parse(await deps.reportsService.listParentChildren(user.id));
       },
     ),
     parentList: os.reports.parentList.handler(

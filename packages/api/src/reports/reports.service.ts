@@ -6,6 +6,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import {
+  dailyReportDetailSchema,
+  dailyReportSummarySchema,
+} from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -924,7 +928,7 @@ export class ReportsService {
   private async toSummary(report: ReportPayload) {
     const photos = await this.photosForReport(report.id);
     const comments = report.comments.filter((comment) => !comment.deletedAt);
-    return {
+    return dailyReportSummarySchema.parse({
       id: report.id,
       child: toChild(report.child),
       class: report.class,
@@ -944,11 +948,11 @@ export class ReportsService {
       commentCount: comments.length,
       readCount: report.reads.filter((read) => read.readAt).length,
       guardianCount: report.reads.length,
-    };
+    });
   }
 
   private async toDetail(report: ReportPayload) {
-    return {
+    return dailyReportDetailSchema.parse({
       ...(await this.toSummary(report)),
       healthNote: report.healthNote,
       items: report.items.map((item) => ({
@@ -971,7 +975,7 @@ export class ReportsService {
         createdAt: comment.createdAt.toISOString(),
         updatedAt: comment.updatedAt.toISOString(),
       })),
-    };
+    });
   }
 
   private toReads(report: ReportPayload) {

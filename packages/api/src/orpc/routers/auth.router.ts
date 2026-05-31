@@ -1,4 +1,6 @@
 import { UnauthorizedException } from "@nestjs/common";
+import { z } from "zod";
+import { pendingInvitationSchema } from "@kichkintoy/shared";
 import {
   bearerToken,
   requestContext,
@@ -11,6 +13,8 @@ import {
   registerSchema,
   submitJoinRequestSchema,
 } from "../../auth/auth.schemas";
+
+const pendingInvitationsSchema = z.array(pendingInvitationSchema);
 
 export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
   return {
@@ -36,9 +40,11 @@ export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
       }
       return deps.authService.logout(token, requestContext(context.req));
     }),
-    lookupInvitations: os.auth.lookupInvitations.handler(({ input }) =>
-      deps.authService.lookupInvitationsByVerification(
-        input.phoneVerificationToken,
+    lookupInvitations: os.auth.lookupInvitations.handler(async ({ input }) =>
+      pendingInvitationsSchema.parse(
+        await deps.authService.lookupInvitationsByVerification(
+          input.phoneVerificationToken,
+        ),
       ),
     ),
     me: os.auth.me.handler(async ({ context }) => {
@@ -47,7 +53,9 @@ export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
     }),
     myInvitations: os.auth.myInvitations.handler(async ({ context }) => {
       const user = await requireUser(deps.prisma, context.req);
-      return deps.authService.listMyInvitations(user.id);
+      return pendingInvitationsSchema.parse(
+        await deps.authService.listMyInvitations(user.id),
+      );
     }),
     acceptInvitation: os.auth.acceptInvitation.handler(
       async ({ input, context }) => {

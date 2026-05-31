@@ -1,6 +1,7 @@
 import { requireUser, type ORPCImplementer, type ORPCDeps } from "../context";
 import {
   centerSearchResponseSchema,
+  classRosterChildSchema,
   teacherClassesResponseSchema,
 } from "@kichkintoy/shared";
 import { centerSearchResultSchema } from "@kichkintoy/shared";
@@ -42,7 +43,11 @@ export function createTeacherRouter(os: ORPCImplementer, deps: ORPCDeps) {
     classChildren: os.teacher.classChildren.handler(
       async ({ input, context }) => {
         const user = await requireUser(deps.prisma, context.req);
-        return deps.teacherService.listClassChildren(user.id, input.classId);
+        return classRosterChildSchema
+          .array()
+          .parse(
+            await deps.teacherService.listClassChildren(user.id, input.classId),
+          );
       },
     ),
   };

@@ -5,16 +5,29 @@ import {
   type ORPCImplementer,
 } from "../context";
 import { createInvitationSchema } from "../../director/director.schemas";
-import { centerTeachersResponseSchema } from "@kichkintoy/shared";
+import {
+  centerTeachersResponseSchema,
+  classListResponseSchema,
+  createInvitationResponseSchema,
+  invitationRowSchema,
+  joinRequestActionResponseSchema,
+  joinRequestRowSchema,
+  resendInvitationResponseSchema,
+  revokeInvitationResponseSchema,
+} from "@kichkintoy/shared";
 
 export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
   return {
     joinRequests: os.director.joinRequests.handler(
       async ({ input, context }) => {
         await requireCenterAccess(deps.prisma, context.req, input.centerId);
-        return deps.directorService.listJoinRequests(input.centerId, {
-          status: input.status,
-        });
+        return joinRequestRowSchema
+          .array()
+          .parse(
+            await deps.directorService.listJoinRequests(input.centerId, {
+              status: input.status,
+            }),
+          );
       },
     ),
     approveJoinRequest: os.director.approveJoinRequest.handler(
@@ -25,13 +38,15 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
           context.req,
           input.centerId,
         );
-        return deps.directorService.approveJoinRequest({
-          centerId: input.centerId,
-          requestId: input.requestId,
-          reviewerUserId: user.id,
-          accessLevel,
-          input: { classId: input.classId },
-        });
+        return joinRequestActionResponseSchema.parse(
+          await deps.directorService.approveJoinRequest({
+            centerId: input.centerId,
+            requestId: input.requestId,
+            reviewerUserId: user.id,
+            accessLevel,
+            input: { classId: input.classId },
+          }),
+        );
       },
     ),
     rejectJoinRequest: os.director.rejectJoinRequest.handler(
@@ -42,13 +57,15 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
           context.req,
           input.centerId,
         );
-        return deps.directorService.rejectJoinRequest({
-          centerId: input.centerId,
-          requestId: input.requestId,
-          reviewerUserId: user.id,
-          accessLevel,
-          input: { reason: input.reason },
-        });
+        return joinRequestActionResponseSchema.parse(
+          await deps.directorService.rejectJoinRequest({
+            centerId: input.centerId,
+            requestId: input.requestId,
+            reviewerUserId: user.id,
+            accessLevel,
+            input: { reason: input.reason },
+          }),
+        );
       },
     ),
     invitations: os.director.invitations.handler(
@@ -56,7 +73,9 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         await requireCenterAccess(deps.prisma, context.req, input.centerId, {
           directorOnly: true,
         });
-        return deps.directorService.listInvitations(input.centerId);
+        return invitationRowSchema
+          .array()
+          .parse(await deps.directorService.listInvitations(input.centerId));
       },
     ),
     createInvitation: os.director.createInvitation.handler(
@@ -65,11 +84,13 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         await requireCenterAccess(deps.prisma, context.req, input.centerId, {
           directorOnly: true,
         });
-        return deps.directorService.createInvitation({
-          centerId: input.centerId,
-          createdByUserId: user.id,
-          input: createInvitationSchema.parse(input),
-        });
+        return createInvitationResponseSchema.parse(
+          await deps.directorService.createInvitation({
+            centerId: input.centerId,
+            createdByUserId: user.id,
+            input: createInvitationSchema.parse(input),
+          }),
+        );
       },
     ),
     resendInvitation: os.director.resendInvitation.handler(
@@ -78,11 +99,13 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         await requireCenterAccess(deps.prisma, context.req, input.centerId, {
           directorOnly: true,
         });
-        return deps.directorService.resendInvitation({
-          centerId: input.centerId,
-          invitationId: input.invitationId,
-          actorUserId: user.id,
-        });
+        return resendInvitationResponseSchema.parse(
+          await deps.directorService.resendInvitation({
+            centerId: input.centerId,
+            invitationId: input.invitationId,
+            actorUserId: user.id,
+          }),
+        );
       },
     ),
     revokeInvitation: os.director.revokeInvitation.handler(
@@ -91,16 +114,20 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         await requireCenterAccess(deps.prisma, context.req, input.centerId, {
           directorOnly: true,
         });
-        return deps.directorService.revokeInvitation({
-          centerId: input.centerId,
-          invitationId: input.invitationId,
-          actorUserId: user.id,
-        });
+        return revokeInvitationResponseSchema.parse(
+          await deps.directorService.revokeInvitation({
+            centerId: input.centerId,
+            invitationId: input.invitationId,
+            actorUserId: user.id,
+          }),
+        );
       },
     ),
     classes: os.director.classes.handler(async ({ input, context }) => {
       await requireCenterAccess(deps.prisma, context.req, input.centerId);
-      return deps.classService.listClasses(input.centerId);
+      return classListResponseSchema.parse(
+        await deps.classService.listClasses(input.centerId),
+      );
     }),
     class: os.director.class.handler(async ({ input, context }) => {
       await requireCenterAccess(deps.prisma, context.req, input.centerId);

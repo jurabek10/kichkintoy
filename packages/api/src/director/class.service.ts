@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { classDetailSchema } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type {
@@ -79,7 +80,7 @@ export class ClassService {
       throw new NotFoundException("Class not found.");
     }
 
-    return {
+    return classDetailSchema.parse({
       ...this.toClassListItem(klass),
       children: klass.childEnrollments.map((enrollment) => ({
         childId: enrollment.child.id,
@@ -90,7 +91,7 @@ export class ClassService {
         dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
         gender: enrollment.child.gender,
       })),
-    };
+    });
   }
 
   async createClass(args: {

@@ -64,7 +64,7 @@ import {
 } from "./membership.js";
 
 const emptyInputSchema = z.object({}).optional();
-const successResponseSchema = z.object({ success: z.literal(true) });
+const successResponseSchema = z.object({ success: z.boolean() });
 const idInputSchema = z.object({ id: uuidSchema });
 const centerIdInputSchema = z.object({ centerId: uuidSchema });
 const centerClassInputSchema = z.object({
@@ -92,7 +92,7 @@ const meResponseSchema = z.object({
     }),
 });
 
-const joinRequestRowSchema = z.object({
+export const joinRequestRowSchema = z.object({
   id: uuidSchema,
   kind: joinRequestKindSchema,
   status: joinRequestStatusSchema,
@@ -120,7 +120,7 @@ const joinRequestRowSchema = z.object({
   reviewedBy: z.object({ id: uuidSchema, fullName: z.string() }).nullable(),
 });
 
-const invitationRowSchema = z.object({
+export const invitationRowSchema = z.object({
   id: uuidSchema,
   kind: invitationKindSchema,
   phone: z.string(),
@@ -151,7 +151,7 @@ const rejectJoinRequestInputSchema = z.object({
   requestId: uuidSchema,
   reason: z.string().trim().max(500).optional(),
 });
-const joinRequestActionResponseSchema = z.object({
+export const joinRequestActionResponseSchema = z.object({
   id: uuidSchema,
   status: joinRequestStatusSchema,
   kind: joinRequestKindSchema,
@@ -170,7 +170,7 @@ const invitationIdInputSchema = z.object({
   centerId: uuidSchema,
   invitationId: uuidSchema,
 });
-const createInvitationResponseSchema = z.object({
+export const createInvitationResponseSchema = z.object({
   id: uuidSchema,
   kind: invitationKindSchema,
   phone: z.string(),
@@ -180,13 +180,13 @@ const createInvitationResponseSchema = z.object({
   smsProvider: z.string(),
   smsDelivered: z.boolean(),
 });
-const resendInvitationResponseSchema = z.object({
+export const resendInvitationResponseSchema = z.object({
   id: uuidSchema,
   expiresAt: isoDateTimeSchema,
   sentAt: isoDateTimeSchema.nullable(),
   smsDelivered: z.boolean(),
 });
-const revokeInvitationResponseSchema = z.object({
+export const revokeInvitationResponseSchema = z.object({
   id: uuidSchema,
   revokedAt: z.union([isoDateTimeSchema, z.date()]).nullable(),
 });
@@ -228,35 +228,41 @@ const updateTeacherResponseSchema = z.object({
   userId: uuidSchema,
   canApproveMembers: z.boolean(),
 });
+const bulkDraftsResultSchema = z.object({
+  created: z.number().int(),
+  skipped: z.number().int(),
+});
+const publishDraftsResultSchema = z.object({
+  published: z.number().int(),
+  skipped: z.number().int(),
+});
 
 export const appContract = {
   auth: {
-    sendCode: oc
-      .input(sendCodeRequestSchema)
-      .output(z.unknown()),
+    sendCode: oc.input(sendCodeRequestSchema).output(sendCodeResponseSchema),
     verifyCode: oc
       .input(verifyCodeRequestSchema)
-      .output(z.unknown()),
+      .output(verifyCodeResponseSchema),
     register: oc.input(registerRequestSchema).output(authResponseSchema),
-    login: oc.input(loginRequestSchema).output(z.unknown()),
-    logout: oc.input(logoutInputSchema).output(z.unknown()),
+    login: oc.input(loginRequestSchema).output(authResponseSchema),
+    logout: oc.input(logoutInputSchema).output(successResponseSchema),
     lookupInvitations: oc
       .input(lookupInvitationsRequestSchema)
-      .output(z.unknown()),
-    me: oc.input(emptyInputSchema).output(z.unknown()),
+      .output(z.array(pendingInvitationSchema)),
+    me: oc.input(emptyInputSchema).output(meResponseSchema),
     myInvitations: oc
       .input(emptyInputSchema)
-      .output(z.unknown()),
+      .output(z.array(pendingInvitationSchema)),
     acceptInvitation: oc
       .input(idInputSchema.extend({ body: acceptInvitationRequestSchema }))
-      .output(z.unknown()),
-    declineInvitation: oc.input(idInputSchema).output(z.unknown()),
+      .output(acceptInvitationResponseSchema),
+    declineInvitation: oc.input(idInputSchema).output(successResponseSchema),
     submitJoinRequest: oc
       .input(submitJoinRequestSchema)
-      .output(z.unknown()),
+      .output(submitJoinRequestResponseSchema),
     cancelJoinRequest: oc
       .input(idInputSchema)
-      .output(z.unknown()),
+      .output(cancelJoinRequestResponseSchema),
   },
   geo: {
     regions: oc.input(emptyInputSchema).output(regionsResponseSchema),
@@ -273,47 +279,47 @@ export const appContract = {
     classes: oc.input(emptyInputSchema).output(teacherClassesResponseSchema),
     classChildren: oc
       .input(z.object({ classId: uuidSchema }))
-      .output(z.unknown()),
+      .output(z.array(classRosterChildSchema)),
   },
   director: {
     joinRequests: oc
       .input(listJoinRequestsInputSchema)
-      .output(z.unknown()),
+      .output(z.array(joinRequestRowSchema)),
     approveJoinRequest: oc
       .input(approveJoinRequestInputSchema)
-      .output(z.unknown()),
+      .output(joinRequestActionResponseSchema),
     rejectJoinRequest: oc
       .input(rejectJoinRequestInputSchema)
-      .output(z.unknown()),
+      .output(joinRequestActionResponseSchema),
     invitations: oc
       .input(centerIdInputSchema)
-      .output(z.unknown()),
+      .output(z.array(invitationRowSchema)),
     createInvitation: oc
       .input(createInvitationInputSchema)
-      .output(z.unknown()),
+      .output(createInvitationResponseSchema),
     resendInvitation: oc
       .input(invitationIdInputSchema)
-      .output(z.unknown()),
+      .output(resendInvitationResponseSchema),
     revokeInvitation: oc
       .input(invitationIdInputSchema)
-      .output(z.unknown()),
-    classes: oc.input(centerIdInputSchema).output(z.unknown()),
-    class: oc.input(centerClassInputSchema).output(z.unknown()),
+      .output(revokeInvitationResponseSchema),
+    classes: oc.input(centerIdInputSchema).output(classListResponseSchema),
+    class: oc.input(centerClassInputSchema).output(classDetailSchema),
     createClass: oc
       .input(centerIdInputSchema.extend({ body: createClassRequestSchema }))
-      .output(z.unknown()),
+      .output(classDetailSchema),
     updateClass: oc
       .input(centerClassInputSchema.extend({ body: updateClassRequestSchema }))
-      .output(z.unknown()),
-    archiveClass: oc.input(centerClassInputSchema).output(z.unknown()),
-    restoreClass: oc.input(centerClassInputSchema).output(z.unknown()),
+      .output(classDetailSchema),
+    archiveClass: oc.input(centerClassInputSchema).output(classDetailSchema),
+    restoreClass: oc.input(centerClassInputSchema).output(classDetailSchema),
     teachers: oc.input(centerIdInputSchema).output(centerTeachersResponseSchema),
     assignTeacher: oc
       .input(centerClassInputSchema.extend({ body: assignTeacherRequestSchema }))
-      .output(z.unknown()),
+      .output(assignTeacherResponseSchema),
     unassignTeacher: oc
       .input(centerClassInputSchema.extend({ teacherUserId: uuidSchema }))
-      .output(z.unknown()),
+      .output(successResponseSchema),
     updateTeacher: oc
       .input(
         centerIdInputSchema.extend({
@@ -324,31 +330,41 @@ export const appContract = {
       .output(updateTeacherResponseSchema),
   },
   reports: {
-    teacherList: oc.input(listReportsInputSchema).output(z.unknown()),
-    create: oc.input(createDailyReportRequestSchema).output(z.unknown()),
-    teacherDetail: oc.input(reportIdInputSchema).output(z.unknown()),
-    update: oc.input(updateReportInputSchema).output(z.unknown()),
-    publish: oc.input(publishReportInputSchema).output(z.unknown()),
-    unpublish: oc.input(reportIdInputSchema).output(z.unknown()),
-    delete: oc.input(reportIdInputSchema).output(z.unknown()),
+    teacherList: oc
+      .input(listReportsInputSchema)
+      .output(dailyReportListResponseSchema),
+    create: oc
+      .input(createDailyReportRequestSchema)
+      .output(dailyReportDetailSchema),
+    teacherDetail: oc.input(reportIdInputSchema).output(dailyReportDetailSchema),
+    update: oc.input(updateReportInputSchema).output(dailyReportDetailSchema),
+    publish: oc.input(publishReportInputSchema).output(dailyReportDetailSchema),
+    unpublish: oc.input(reportIdInputSchema).output(dailyReportDetailSchema),
+    delete: oc.input(reportIdInputSchema).output(successResponseSchema),
     bulkCreateDrafts: oc
       .input(bulkReportsInputSchema)
-      .output(z.unknown()),
+      .output(bulkDraftsResultSchema),
     publishDrafts: oc
       .input(bulkReportsInputSchema)
-      .output(z.unknown()),
+      .output(publishDraftsResultSchema),
     classStatuses: oc
       .input(classReportsInputSchema)
-      .output(z.unknown()),
-    reads: oc.input(reportIdInputSchema).output(z.unknown()),
-    staffComment: oc.input(reportCommentInputSchema).output(z.unknown()),
+      .output(z.array(dailyReportClassChildStatusSchema)),
+    reads: oc.input(reportIdInputSchema).output(z.array(dailyReportReadSchema)),
+    staffComment: oc
+      .input(reportCommentInputSchema)
+      .output(dailyReportCommentSchema),
     parentChildren: oc
       .input(emptyInputSchema)
-      .output(z.unknown()),
-    parentList: oc.input(parentReportsInputSchema).output(z.unknown()),
-    parentDetail: oc.input(reportIdInputSchema).output(z.unknown()),
-    parentComment: oc.input(reportCommentInputSchema).output(z.unknown()),
-    deleteComment: oc.input(deleteCommentInputSchema).output(z.unknown()),
+      .output(z.array(parentChildSummarySchema)),
+    parentList: oc
+      .input(parentReportsInputSchema)
+      .output(dailyReportListResponseSchema),
+    parentDetail: oc.input(reportIdInputSchema).output(dailyReportDetailSchema),
+    parentComment: oc
+      .input(reportCommentInputSchema)
+      .output(dailyReportCommentSchema),
+    deleteComment: oc.input(deleteCommentInputSchema).output(successResponseSchema),
   },
 };
 
