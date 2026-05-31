@@ -1,5 +1,7 @@
 # Daily Reports (알림장) Spec
 
+> **API note (updated 2026-05-31): the app API is oRPC-only.** The REST-style `METHOD /path` endpoints in this spec are conceptual — the live API is typed oRPC procedures in the shared contract ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), consumed on web via the typed `orpc` client + TanStack Query (this feature lives under `orpc.reports.*`). Each maps to `orpc.<domain>.<procedure>`. See [`../adding-a-feature.md`](../adding-a-feature.md).
+
 > Status: **planned (fast follow)**. Build [`class-and-teacher-management-spec.md`](./class-and-teacher-management-spec.md) first — it is the prerequisite and the immediate next deliverable.
 
 ## 1. Scope

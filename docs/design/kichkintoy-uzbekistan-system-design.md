@@ -274,7 +274,7 @@ packages/
 
 - NestJS
 - TypeScript
-- REST controllers + Zod contracts in `@kichkintoy/shared` (the originally-planned oRPC layer is **not** wired; `@orpc/server` is installed but unused — see §24)
+- oRPC (`@orpc/server`) served at `/rpc`, typed by the shared `appContract`; Zod contracts in `@kichkintoy/shared`. The API is **oRPC-only** — the REST controllers were migrated away and deleted (see §24)
 - Zod
 - Custom phone-OTP + username/password auth (the originally-planned Better Auth is **not** wired; `better-auth` is installed but unused — see §7.2 and §24)
 - Prisma
@@ -1167,7 +1167,9 @@ Sensitive data access should always create audit logs.
 
 ## 9. API Design
 
-Example app API routes exposed through oRPC/OpenAPI:
+> **As-built (2026-05-31): the API is oRPC-only.** Procedures are defined once in the shared contract [`packages/shared/src/api/orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts) (`appContract`), served at `/rpc` by `@orpc/server`, and consumed on the web through the typed `orpc` client ([`packages/web/lib/orpc.ts`](../../packages/web/lib/orpc.ts)) wrapped in TanStack Query. There are **no REST endpoints**. The list below is the conceptual operation set; each is now an oRPC procedure `orpc.<domain>.<name>` — e.g. `POST /auth/login` → `orpc.auth.login(input)`, and `GET /director/centers/:id/classes` → `orpc.director.classes({ centerId })`. See [`adding-a-feature.md`](../adding-a-feature.md) for the end-to-end workflow.
+
+Conceptual operations (each maps to an oRPC procedure):
 
 ```text
 POST   /auth/login
@@ -1484,7 +1486,7 @@ Backend:
 - Prisma ORM
 - PostgreSQL
 - Redis
-- REST controllers + Zod contracts (oRPC planned but not wired — §24)
+- oRPC (`@orpc/server`) + Zod contracts in `@kichkintoy/shared` — the API surface, served at `/rpc` (§24)
 - Zod schemas
 - OpenAPI generation
 - Custom phone-OTP + username/password auth (Better Auth planned but not wired — §7.2, §24)
@@ -1510,7 +1512,7 @@ SMS Notifications:
 
 ## 19. API Strategy
 
-> **As-built:** implemented as NestJS REST controllers with shared Zod contracts, not oRPC (see the §24 reconciliation note). The strategy below is the original plan.
+> **As-built (2026-05-31):** the original plan below shipped — the app API is **oRPC-only** (the REST controllers were migrated away and deleted; the web calls the typed `orpc` client directly via TanStack Query). External REST/OpenAPI partner endpoints remain a future option per the strategy below.
 
 Use oRPC first for the main app API, with Zod schemas and OpenAPI generation.
 
@@ -1664,7 +1666,7 @@ Do not hide business logic inside Prisma middleware. Keep business rules in Nest
 
 ## 24. oRPC and Auth Decision
 
-> **As-built reconciliation (2026-05-30).** Both decisions below were the original plan; the implementation diverged. **API:** the backend exposes plain **NestJS REST controllers** with **Zod contracts** shared via `@kichkintoy/shared` — `@orpc/server` is a dependency but is not imported anywhere in `src`. **Auth:** a **custom** phone-OTP + username/password implementation (`auth_credentials`, `phone_verifications`, `auth_sessions`; see §7.2) — `better-auth` is a dependency but is not wired. The product-permission model below (own tables: `user_roles`, `child_guardians`, `teacher_class_assignments`, `child_enrollments`, enforced by NestJS guards) **was** followed and remains correct. The rest of this section records the original rationale; revisit oRPC/Better Auth only if a concrete need arises.
+> **As-built reconciliation (updated 2026-05-31).** **API: oRPC was adopted and is now the only API surface.** Procedures are defined in the shared `appContract` ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), served at `/rpc` by `@orpc/server`'s `RPCHandler` ([`packages/api/src/orpc/router.ts`](../../packages/api/src/orpc/router.ts)), and the web consumes the typed `orpc` client directly through TanStack Query. The 7 NestJS REST controllers were **deleted** (only `app.controller` for health remains). Authorization moved from Nest guards into the oRPC handlers (`requireUser` / `requireCenterAccess` in `orpc/context.ts`), still backed by the own-tables permission model (`user_roles`, `child_guardians`, `teacher_class_assignments`, `child_enrollments`). Rate limiting was ported to a `/rpc` Express middleware ([`orpc/rate-limit.ts`](../../packages/api/src/orpc/rate-limit.ts)) plus service-level OTP limits. **Auth: still custom** (phone-OTP + username/password; `better-auth` installed but unused — §7.2). See [`adding-a-feature.md`](../adding-a-feature.md) for how to extend the API + data layer. The rest of this section records the original rationale.
 
 ### API Choice
 

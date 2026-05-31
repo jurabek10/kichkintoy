@@ -1,5 +1,7 @@
 # Signup Center Selection And Director Approval Spec
 
+> **API note (updated 2026-05-31): the app API is oRPC-only.** The REST-style `METHOD /path` endpoints in this spec are conceptual — the live API is typed oRPC procedures in the shared contract ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), consumed on web via the typed `orpc` client + TanStack Query. Each maps to `orpc.<domain>.<procedure>`. See [`../adding-a-feature.md`](../adding-a-feature.md).
+
 ## 1. Scope
 
 This spec extends [`web-authentication-process-spec.md`](./web-authentication-process-spec.md) with two missing pieces in the signup experience:

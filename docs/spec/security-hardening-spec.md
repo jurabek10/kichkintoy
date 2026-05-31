@@ -15,7 +15,10 @@ Kichkintoy holds children's PII, photos, and locations — the most sensitive da
 - **Constant-time compare** of the code hash (`safeEqualHex`, `timingSafeEqual`).
 - **TTL shortened** 10m → 5m.
 
-### 2.2 Rate limiting — `app.module.ts`, `auth.controller.ts`
+### 2.2 Rate limiting
+> **Updated 2026-05-31 (oRPC migration):** the REST controllers — where `@Throttle` lived — were deleted, and the API is now oRPC-only at `/rpc`. Throttling was **ported to a `/rpc` Express middleware** ([`orpc/rate-limit.ts`](../../packages/api/src/orpc/rate-limit.ts)): per-IP fixed window, `auth.sendCode` 5/min, `auth.verifyCode`/`login`/`register` 10/min, default 100/min. (A review found and fixed a bug where the per-procedure match used `req.path` — stripped of the `/rpc` prefix — so auth caps never fired; now uses `req.originalUrl`. See [`../security/reviews/offline-and-orpc-only-2026-05-31.md`](../security/reviews/offline-and-orpc-only-2026-05-31.md).) Service-level OTP send/verify limits in `AuthService` still provide fine-grained brute-force protection. `@nestjs/throttler`'s `APP_GUARD` remains but now only covers `app.controller`.
+
+Original (REST, now removed):
 - Global IP throttler (`@nestjs/throttler`): 100 req/min/IP default via `APP_GUARD`.
 - Strict per-route on auth: `send-code` 5/min, `verify-code`/`register`/`login` 10/min.
 - In-memory store (per-instance) — fine for single-node MVP.
