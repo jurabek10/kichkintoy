@@ -12,6 +12,7 @@ import { PrismaService } from "../database/prisma.service";
 import { ReportsService } from "../reports/reports.service";
 import { TeacherService } from "../teacher/teacher.service";
 import type { ORPCContext, ORPCDeps } from "./context";
+import { rpcRateLimit } from "./rate-limit";
 import { createAuthRouter } from "./routers/auth.router";
 import {
   createCentersRouter,
@@ -44,6 +45,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
 
   app.use(
     "/rpc{/*path}",
+    rpcRateLimit,
     async (req: Request, res: Response, next: NextFunction) => {
       const { matched } = await handler.handle(req, res, {
         prefix: "/rpc",
