@@ -88,6 +88,9 @@ export type BulkDailyReportRequest = z.infer<
 export const dailyReportCommentRequestSchema = z.object({
   body: z.string().trim().min(1).max(2000),
   parentCommentId: uuidSchema.optional(),
+  // Client-generated id so an offline comment replayed on reconnect is applied
+  // at most once (see the server idempotency guard).
+  idempotencyKey: uuidSchema.optional(),
 });
 export type DailyReportCommentRequest = z.infer<
   typeof dailyReportCommentRequestSchema

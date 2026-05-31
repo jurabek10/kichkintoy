@@ -11,6 +11,7 @@ import {
   dailyReportSummarySchema,
 } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
+import { withIdempotency } from "../common/idempotency";
 import { AuditService } from "../audit/audit.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import type {
@@ -573,32 +574,39 @@ export class ReportsService {
       }
     }
 
-    const comment = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.dailyReportComment.create({
-        data: {
-          dailyReportId: report.id,
-          authorUserId: userId,
-          parentCommentId: input.parentCommentId ?? null,
-          body: input.body.trim(),
-        },
-        include: { authorUser: { select: { id: true, fullName: true } } },
+    // Dedupe offline replays: same client key returns the original comment.
+    // Namespace by user so one author's key can never return another's result.
+    const idemKey = input.idempotencyKey
+      ? `comment:${userId}:${input.idempotencyKey}`
+      : undefined;
+    return withIdempotency(idemKey, async () => {
+      const comment = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.dailyReportComment.create({
+          data: {
+            dailyReportId: report.id,
+            authorUserId: userId,
+            parentCommentId: input.parentCommentId ?? null,
+            body: input.body.trim(),
+          },
+          include: { authorUser: { select: { id: true, fullName: true } } },
+        });
+
+        await this.notifyNewComment(tx, report, userId);
+
+        return created;
       });
 
-      await this.notifyNewComment(tx, report, userId);
-
-      return created;
+      return {
+        id: comment.id,
+        authorUserId: comment.authorUserId,
+        authorName: comment.authorUser.fullName,
+        parentCommentId: comment.parentCommentId,
+        body: comment.body,
+        deletedAt: null,
+        createdAt: comment.createdAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString(),
+      };
     });
-
-    return {
-      id: comment.id,
-      authorUserId: comment.authorUserId,
-      authorName: comment.authorUser.fullName,
-      parentCommentId: comment.parentCommentId,
-      body: comment.body,
-      deletedAt: null,
-      createdAt: comment.createdAt.toISOString(),
-      updatedAt: comment.updatedAt.toISOString(),
-    };
   }
 
   async deleteComment(userId: string, reportId: string, commentId: string) {
