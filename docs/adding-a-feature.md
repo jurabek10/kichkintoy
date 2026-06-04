@@ -3,9 +3,12 @@
 The API is **oRPC-only** and the web data layer is **TanStack Query**. The golden rule: the **contract in `@kichkintoy/shared` is the single source of truth** — define a procedure once and both the server handler and the web client get full type-safety for free.
 
 ```
-shared/api/orpc-contract.ts   ← define input + output schemas (source of truth)
+shared/api/<domain>.ts            ← reusable Zod schemas + exported types
+shared/api/orpc/<domain>.contract.ts
+        │                         ← oRPC procedure inputs/outputs
+shared/api/orpc-contract.ts       ← root appContract composition
         │  (rebuild shared)
-        ├──► api: service (logic) → orpc router handler (auth + parse)
+        ├──► api: service (logic) → oRPC router handler (auth + parse)
         └──► web: queryKeys → useQuery / useMutation(orpc.x.y) + invalidate
 ```
 
@@ -13,9 +16,9 @@ This guide walks the full stack with one example: a per-center **announcement** 
 
 ---
 
-## Layer 1 — Define the contract (`@kichkintoy/shared`)
+## Layer 1 — Define shared schemas (`@kichkintoy/shared`)
 
-Schemas in the domain file, then wire them into `appContract`.
+Put reusable request/response schemas in the domain API file first.
 
 ```ts
 // packages/shared/src/api/centers.ts
@@ -30,20 +33,39 @@ export const setAnnouncementRequestSchema = z.object({
 });
 ```
 
-```ts
-// packages/shared/src/api/orpc-contract.ts  (inside appContract)
-import { centerAnnouncementSchema, setAnnouncementRequestSchema } from "./centers.js";
+## Layer 1b — Add oRPC procedures (`@kichkintoy/shared`)
 
-centers: {
-  // ...existing...
+Add procedures in the matching domain contract file. Keep `orpc-contract.ts` as the small root composition file only.
+
+```ts
+// packages/shared/src/api/orpc/catalog.contract.ts
+import { centerAnnouncementSchema } from "../centers.js";
+
+export const centersContract = {
+  // ...existing centers procedures...
   announcement: oc.input(centerIdInputSchema).output(centerAnnouncementSchema),
-},
-director: {
-  // ...existing...
+};
+```
+
+```ts
+// packages/shared/src/api/orpc/director.contract.ts
+import { centerAnnouncementSchema, setAnnouncementRequestSchema } from "../centers.js";
+
+export const directorContract = {
+  // ...existing director procedures...
   setAnnouncement: oc
     .input(centerIdInputSchema.extend({ body: setAnnouncementRequestSchema }))
     .output(centerAnnouncementSchema),
-},
+};
+```
+
+```ts
+// packages/shared/src/api/orpc-contract.ts
+export const appContract = {
+  // ...existing groups...
+  centers: centersContract,
+  director: directorContract,
+};
 ```
 
 > **⚠️ Always rebuild shared after editing the contract:** `pnpm --filter @kichkintoy/shared build`. If a new export doesn't show up in consumers, delete the incremental cache first: `rm packages/shared/tsconfig.tsbuildinfo` (the incremental build silently skips new exports — a real trap).
@@ -161,9 +183,11 @@ export function Announcement({ centerId }: { centerId: string }) {
 - **Client:** `lib/query.ts` exports an SSR-safe `getQueryClient()` (defaults: `staleTime 60s`, `gcTime 5m`, `refetchOnWindowFocus: false`, retry-with-backoff that skips 4xx). Wrapped by `app/providers.tsx`.
 - **Persistence:** the cache is persisted to **IndexedDB** (`lib/query-persister.ts` + `PersistQueryClientProvider`, 24h `maxAge`, `buster` version) so reloads open instantly and reads work offline. It's **cleared on logout** (`lib/session.ts`) because it holds children's data.
 - **queryKeys factory** (`lib/query-keys.ts`) — always use it so `invalidateQueries` matches.
-- **Reads** → `useQuery({ queryKey, queryFn: () => orpc.x.y(input) })`. **Writes** → `useMutation({ mutationFn: () => orpc.x.y(input), onSuccess: invalidate, onError: toApiError })`.
+- **Reads** → `useQuery({ queryKey, queryFn: () => orpc.x.y(input), enabled })`. Include every variable that changes the response in the `queryKey`.
+- **Writes** → `useMutation({ mutationFn: () => orpc.x.y(input), onSuccess: invalidate, onError: toApiError })`. Invalidate the smallest matching key when possible; use a prefix key (for example `["teacher"]`) when one write affects several related screens.
 - **Errors:** the oRPC client throws `ORPCError`; normalize with `toApiError(err).message` from `@/lib/api/errors`.
-- **Offline-capable writes** (optional): register a resumable keyed default in `lib/offline-mutations.ts` (see the report-comment example) so a write made offline is queued, persisted, and replayed on reconnect with an `idempotencyKey` the server dedupes.
+- **Offline-capable writes** (optional): register a resumable keyed default in `lib/offline-mutations.ts` (see the report-comment example) so a write made offline is queued, persisted, and replayed on reconnect with an `idempotencyKey` the server dedupes. The default must be registered before `resumePausedMutations()` runs; `app/providers.tsx` does this while creating the browser query client.
+- **RPC URL:** web should prefer `NEXT_PUBLIC_RPC_BASE_URL` (for example `http://localhost:4000/rpc`). `NEXT_PUBLIC_API_BASE_URL` remains only as a compatibility fallback in `lib/config.ts`.
 
 ## Auth / security cheatsheet
 
@@ -173,7 +197,8 @@ export function Announcement({ centerId }: { centerId: string }) {
 
 ## Checklist when adding a feature
 
-- [ ] Schemas in `shared/src/api/<domain>.ts`; procedures in `orpc-contract.ts` with a **real `output`** (never `z.unknown()`)
+- [ ] Schemas in `shared/src/api/<domain>.ts`; procedures in `shared/src/api/orpc/<domain>.contract.ts`; root composition in `orpc-contract.ts`
+- [ ] Every procedure has a **real `output`** (never `z.unknown()`)
 - [ ] **Rebuild shared** (`rm tsconfig.tsbuildinfo` if exports go missing)
 - [ ] Prisma migration if new data
 - [ ] Service method (logic + `audit.log` for sensitive actions, `$transaction` for multi-step writes)

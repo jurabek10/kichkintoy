@@ -274,7 +274,7 @@ packages/
 
 - NestJS
 - TypeScript
-- oRPC (`@orpc/server`) served at `/rpc`, typed by the shared `appContract`; Zod contracts in `@kichkintoy/shared`. The API is **oRPC-only** — the REST controllers were migrated away and deleted (see §24)
+- oRPC (`@orpc/server`) served at `/rpc`, typed by the shared `appContract`; Zod contracts in `@kichkintoy/shared` domain files plus `shared/src/api/orpc/*.contract.ts`. The API is **oRPC-only** — the REST controllers were migrated away and deleted (see §24)
 - Zod
 - Custom phone-OTP + username/password auth (the originally-planned Better Auth is **not** wired; `better-auth` is installed but unused — see §7.2 and §24)
 - Prisma
@@ -1167,7 +1167,7 @@ Sensitive data access should always create audit logs.
 
 ## 9. API Design
 
-> **As-built (2026-05-31): the API is oRPC-only.** Procedures are defined once in the shared contract [`packages/shared/src/api/orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts) (`appContract`), served at `/rpc` by `@orpc/server`, and consumed on the web through the typed `orpc` client ([`packages/web/lib/orpc.ts`](../../packages/web/lib/orpc.ts)) wrapped in TanStack Query. There are **no REST endpoints**. The list below is the conceptual operation set; each is now an oRPC procedure `orpc.<domain>.<name>` — e.g. `POST /auth/login` → `orpc.auth.login(input)`, and `GET /director/centers/:id/classes` → `orpc.director.classes({ centerId })`. See [`adding-a-feature.md`](../adding-a-feature.md) for the end-to-end workflow.
+> **As-built (updated 2026-06-04): the API is oRPC-only.** Procedures are defined once in domain contract files under [`packages/shared/src/api/orpc/`](../../packages/shared/src/api/orpc/) and composed into the root [`packages/shared/src/api/orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts) (`appContract`), served at `/rpc` by `@orpc/server`, and consumed on the web through the typed `orpc` client ([`packages/web/lib/orpc.ts`](../../packages/web/lib/orpc.ts)) wrapped in TanStack Query. There are **no REST endpoints**. The list below is the conceptual operation set; each is now an oRPC procedure `orpc.<domain>.<name>` — e.g. `POST /auth/login` → `orpc.auth.login(input)`, and `GET /director/centers/:id/classes` → `orpc.director.classes({ centerId })`. See [`adding-a-feature.md`](../adding-a-feature.md) for the end-to-end workflow.
 
 Conceptual operations (each maps to an oRPC procedure):
 
@@ -1666,7 +1666,7 @@ Do not hide business logic inside Prisma middleware. Keep business rules in Nest
 
 ## 24. oRPC and Auth Decision
 
-> **As-built reconciliation (updated 2026-05-31).** **API: oRPC was adopted and is now the only API surface.** Procedures are defined in the shared `appContract` ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), served at `/rpc` by `@orpc/server`'s `RPCHandler` ([`packages/api/src/orpc/router.ts`](../../packages/api/src/orpc/router.ts)), and the web consumes the typed `orpc` client directly through TanStack Query. The 7 NestJS REST controllers were **deleted** (only `app.controller` for health remains). Authorization moved from Nest guards into the oRPC handlers (`requireUser` / `requireCenterAccess` in `orpc/context.ts`), still backed by the own-tables permission model (`user_roles`, `child_guardians`, `teacher_class_assignments`, `child_enrollments`). Rate limiting was ported to a `/rpc` Express middleware ([`orpc/rate-limit.ts`](../../packages/api/src/orpc/rate-limit.ts)) plus service-level OTP limits. **Auth: still custom** (phone-OTP + username/password; `better-auth` installed but unused — §7.2). See [`adding-a-feature.md`](../adding-a-feature.md) for how to extend the API + data layer. The rest of this section records the original rationale.
+> **As-built reconciliation (updated 2026-06-04).** **API: oRPC was adopted and is now the only API surface.** Procedures are defined in domain contract files under [`shared/src/api/orpc/`](../../packages/shared/src/api/orpc/) and composed into the shared `appContract` ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), served at `/rpc` by `@orpc/server`'s `RPCHandler` ([`packages/api/src/orpc/router.ts`](../../packages/api/src/orpc/router.ts)), and the web consumes the typed `orpc` client directly through TanStack Query. The 7 NestJS REST controllers were **deleted** (only `app.controller` for health remains). Authorization moved from Nest guards into the oRPC handlers (`requireUser` / `requireCenterAccess` in `orpc/context.ts`), still backed by the own-tables permission model (`user_roles`, `child_guardians`, `teacher_class_assignments`, `child_enrollments`). Rate limiting was ported to a `/rpc` Express middleware ([`orpc/rate-limit.ts`](../../packages/api/src/orpc/rate-limit.ts)) plus service-level OTP limits. **Auth: still custom** (phone-OTP + username/password; `better-auth` installed but unused — §7.2). See [`adding-a-feature.md`](../adding-a-feature.md) for how to extend the API + data layer. The rest of this section records the original rationale.
 
 ### API Choice
 

@@ -1,6 +1,6 @@
 # Class And Teacher Management Spec
 
-> **API note (updated 2026-05-31): the app API is oRPC-only.** The REST-style `METHOD /path` endpoints in this spec are conceptual — the live API is typed oRPC procedures in the shared contract ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)), consumed on web via the typed `orpc` client + TanStack Query. Each maps to `orpc.<domain>.<procedure>` (e.g. this feature's `GET /director/centers/:id/classes` → `orpc.director.classes({ centerId })`). See [`../adding-a-feature.md`](../adding-a-feature.md).
+> **API note (updated 2026-06-04): the app API is oRPC-only.** The REST-style `METHOD /path` endpoints in this spec are conceptual — the live API is typed oRPC procedures in domain contracts under [`shared/src/api/orpc/`](../../packages/shared/src/api/orpc/), composed by [`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts), and consumed on web via the typed `orpc` client + TanStack Query. Each maps to `orpc.<domain>.<procedure>` (e.g. this feature's `GET /director/centers/:id/classes` → `orpc.director.classes({ centerId })`). See [`../adding-a-feature.md`](../adding-a-feature.md).
 
 ## 1. Scope
 

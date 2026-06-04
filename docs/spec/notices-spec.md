@@ -1,6 +1,6 @@
 # Notices (공지사항) Spec
 
-> **API note (updated 2026-05-31): the app API is oRPC-only.** When this feature is built, add its procedures to the shared contract ([`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts)) under a `notices` group and consume them on web via the typed `orpc` client + TanStack Query — the REST-style `METHOD /path` endpoints below are conceptual and map to `orpc.notices.<procedure>`. See [`../adding-a-feature.md`](../adding-a-feature.md).
+> **API note (updated 2026-06-04): the app API is oRPC-only.** When this feature is built, add reusable schemas to `shared/src/api/notices.ts`, add oRPC procedures to a new `shared/src/api/orpc/notices.contract.ts`, compose them into [`orpc-contract.ts`](../../packages/shared/src/api/orpc-contract.ts) under a `notices` group, and consume them on web via the typed `orpc` client + TanStack Query. The REST-style `METHOD /path` endpoints below are conceptual and map to `orpc.notices.<procedure>`. See [`../adding-a-feature.md`](../adding-a-feature.md).
 
 > Status: **planned (next deliverable)**. Builds on [`class-and-teacher-management-spec.md`](./class-and-teacher-management-spec.md) and [`daily-reports-spec.md`](./daily-reports-spec.md) (both implemented). Reuses the read-receipt, scheduled-publish, media, and notification plumbing from daily reports almost directly.
 
