@@ -1,7 +1,4 @@
-import {
-  ForbiddenException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { createHash } from "node:crypto";
 import type { Request } from "express";
 import type { implement } from "@orpc/server";
@@ -14,6 +11,7 @@ import type { ClassService } from "../director/class.service";
 import type { DirectorAccessLevel } from "../director/director.guard";
 import type { DirectorService } from "../director/director.service";
 import type { GeoService } from "../geo/geo.service";
+import type { NoticesService } from "../notices/notices.service";
 import type { ReportsService } from "../reports/reports.service";
 import type { TeacherService } from "../teacher/teacher.service";
 
@@ -32,6 +30,7 @@ export type ORPCDeps = {
   directorService: DirectorService;
   geoService: GeoService;
   prisma: PrismaService;
+  noticesService: NoticesService;
   reportsService: ReportsService;
   teacherService: TeacherService;
 };

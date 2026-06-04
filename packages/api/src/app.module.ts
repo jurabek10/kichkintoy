@@ -11,6 +11,7 @@ import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { NoticesModule } from "./notices/notices.module";
 import { ReportsModule } from "./reports/reports.module";
 import { TeacherModule } from "./teacher/teacher.module";
 
@@ -28,6 +29,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     AuditModule,
     MembershipsModule,
     NotificationsModule,
+    NoticesModule,
     AuthModule,
     CentersModule,
     GeoModule,

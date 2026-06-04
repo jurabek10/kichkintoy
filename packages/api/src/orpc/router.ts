@@ -8,6 +8,7 @@ import { CentersService } from "../centers/centers.service";
 import { ClassService } from "../director/class.service";
 import { DirectorService } from "../director/director.service";
 import { GeoService } from "../geo/geo.service";
+import { NoticesService } from "../notices/notices.service";
 import { PrismaService } from "../database/prisma.service";
 import { ReportsService } from "../reports/reports.service";
 import { TeacherService } from "../teacher/teacher.service";
@@ -20,6 +21,7 @@ import {
   createTeacherRouter,
 } from "./routers/catalog.router";
 import { createDirectorRouter } from "./routers/director.router";
+import { createNoticesRouter } from "./routers/notices.router";
 import { createReportsRouter } from "./routers/reports.router";
 
 export function registerORPCRoutes(app: NestExpressApplication) {
@@ -29,6 +31,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     classService: app.get(ClassService, { strict: false }),
     directorService: app.get(DirectorService, { strict: false }),
     geoService: app.get(GeoService, { strict: false }),
+    noticesService: app.get(NoticesService, { strict: false }),
     prisma: app.get(PrismaService, { strict: false }),
     reportsService: app.get(ReportsService, { strict: false }),
     teacherService: app.get(TeacherService, { strict: false }),
@@ -68,5 +71,6 @@ function createORPCRouter(deps: ORPCDeps) {
     teacher: createTeacherRouter(os, deps),
     director: createDirectorRouter(os, deps),
     reports: createReportsRouter(os, deps),
+    notices: createNoticesRouter(os, deps),
   });
 }
