@@ -2,11 +2,7 @@ import type { ContractRouterClient } from "@orpc/contract";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { appContract, type AppContract } from "@kichkintoy/shared";
-import { apiBaseUrl, authTokenStorageKey } from "./config";
-
-function rpcBaseUrl() {
-  return apiBaseUrl.replace(/\/api\/v1\/?$/, "/rpc");
-}
+import { authTokenStorageKey, rpcBaseUrl } from "./config";
 
 function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
@@ -16,11 +12,10 @@ function authHeaders(): Record<string, string> {
 }
 
 const link = new RPCLink({
-  url: rpcBaseUrl(),
+  url: rpcBaseUrl,
   headers: authHeaders,
 });
 
-export const orpc: ContractRouterClient<AppContract> =
-  createORPCClient(link);
+export const orpc: ContractRouterClient<AppContract> = createORPCClient(link);
 
 export { appContract };
