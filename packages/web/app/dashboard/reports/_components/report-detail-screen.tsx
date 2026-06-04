@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
 import {
   REPORT_COMMENT_MUTATION_KEY,
   type ReportCommentVars,
@@ -42,11 +43,15 @@ export function ReportDetailScreen({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [edit, setEdit] = useState({ mood: "", teacherNote: "", healthNote: "" });
+  const [edit, setEdit] = useState({
+    mood: "",
+    teacherNote: "",
+    healthNote: "",
+  });
   const [comment, setComment] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const reportKey = ["report", reportId, { isParent }] as const;
+  const reportKey = queryKeys.reports.detail(reportId, isParent);
 
   const {
     data: report = null,
@@ -77,8 +82,7 @@ export function ReportDetailScreen({
     setActionError(toApiError(err).message);
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      orpc.reports.update({ reportId, body: edit }),
+    mutationFn: () => orpc.reports.update({ reportId, body: edit }),
     onSuccess: async () => {
       toast.success("Report updated.");
       await invalidateReport();
@@ -106,8 +110,9 @@ export function ReportDetailScreen({
 
   const deleteMutation = useMutation({
     mutationFn: () => orpc.reports.delete({ reportId }),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast("Report deleted.");
+      await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push("/dashboard/reports");
     },
     onError: onActionError("Could not delete report."),
@@ -307,7 +312,11 @@ function ReportHeader({
   );
 }
 
-function ReportStatusBadge({ status }: { status: DailyReportDetail["status"] }) {
+function ReportStatusBadge({
+  status,
+}: {
+  status: DailyReportDetail["status"];
+}) {
   return (
     <Badge
       variant={
@@ -330,7 +339,11 @@ function ReportEditForm({
   working,
 }: {
   edit: { mood: string; teacherNote: string; healthNote: string };
-  onChange: (value: { mood: string; teacherNote: string; healthNote: string }) => void;
+  onChange: (value: {
+    mood: string;
+    teacherNote: string;
+    healthNote: string;
+  }) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   working: boolean;
 }) {
@@ -346,7 +359,9 @@ function ReportEditForm({
             <Input
               id="mood"
               value={edit.mood}
-              onChange={(event) => onChange({ ...edit, mood: event.target.value })}
+              onChange={(event) =>
+                onChange({ ...edit, mood: event.target.value })
+              }
             />
           </div>
           <div className="flex flex-col gap-2">

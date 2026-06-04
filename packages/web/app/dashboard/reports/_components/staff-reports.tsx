@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
 import { formatDate, reportStatusLabel } from "@/lib/format";
 import { reportItemSummary, todayIsoDate } from "./report-utils";
 
@@ -38,7 +39,7 @@ export function StaffReports({
     isPending: loading,
     error: loadError,
   } = useQuery({
-    queryKey: ["staff-reports", { director, centerId, date }],
+    queryKey: queryKeys.reports.staffDashboard({ director, centerId, date }),
     queryFn: async () => {
       const [classRows, reportRows] = await Promise.all([
         director

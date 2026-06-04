@@ -1,5 +1,4 @@
-// Central queryKey factory. Use these everywhere so invalidation stays consistent
-// (mirrors the docquery `getKey` convention, adapted to REST resources).
+// Central queryKey factory. Use these everywhere so invalidation stays consistent.
 export const queryKeys = {
   geo: {
     regions: () => ["geo", "regions"] as const,
@@ -23,8 +22,23 @@ export const queryKeys = {
     reports: (params?: Record<string, unknown>) =>
       ["teacher", "reports", params ?? {}] as const,
     classReportStatuses: (classId: string, reportDate?: string) =>
-      ["teacher", "classes", classId, "report-statuses", reportDate ?? ""] as const,
+      [
+        "teacher",
+        "classes",
+        classId,
+        "report-statuses",
+        reportDate ?? "",
+      ] as const,
     report: (reportId: string) => ["teacher", "reports", reportId] as const,
+  },
+  reports: {
+    staffDashboard: (params: {
+      director: boolean;
+      centerId: string | null;
+      date: string;
+    }) => ["teacher", "reports", "dashboard", params] as const,
+    detail: (reportId: string, isParent: boolean) =>
+      ["reports", reportId, { isParent }] as const,
   },
   parent: {
     children: () => ["parent", "children"] as const,

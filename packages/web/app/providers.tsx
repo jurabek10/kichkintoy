@@ -14,11 +14,12 @@ const PERSIST_BUSTER = "v1";
 const MAX_AGE = 1000 * 60 * 60 * 24;
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
+  const [queryClient] = useState(() => {
+    const client = getQueryClient();
+    registerOfflineMutations(client);
+    return client;
+  });
   const [persister] = useState(() => createIdbPersister());
-
-  // Register resumable offline-mutation defaults before anything can replay them.
-  registerOfflineMutations(queryClient);
 
   // Replay queued offline writes whenever connectivity returns.
   useEffect(() => {
