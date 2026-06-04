@@ -226,14 +226,14 @@ model Role {
 }
 
 model UserRole {
-  id                 String   @id @default(uuid()) @db.Uuid
-  userId             String   @map("user_id") @db.Uuid
-  organizationId     String?  @map("organization_id") @db.Uuid
-  centerId           String?  @map("center_id") @db.Uuid
-  branchId           String?  @map("branch_id") @db.Uuid
-  roleId             String   @map("role_id") @db.Uuid
-  canApproveMembers  Boolean  @default(false) @map("can_approve_members")
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  organizationId    String?  @map("organization_id") @db.Uuid
+  centerId          String?  @map("center_id") @db.Uuid
+  branchId          String?  @map("branch_id") @db.Uuid
+  roleId            String   @map("role_id") @db.Uuid
+  canApproveMembers Boolean  @default(false) @map("can_approve_members")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   branch       Branch?       @relation(fields: [branchId], references: [id])
   center       Center?       @relation(fields: [centerId], references: [id])
@@ -457,21 +457,21 @@ model CenterJoinRequest {
 }
 
 model CenterInvitation {
-  id                  String    @id @default(uuid()) @db.Uuid
-  centerId            String    @map("center_id") @db.Uuid
-  invitedByUserId     String    @map("invited_by_user_id") @db.Uuid
-  kind                String
-  classId             String?   @map("class_id") @db.Uuid
-  phone               String
-  childNameHint       String?   @map("child_name_hint")
-  code                String    @unique
-  expiresAt           DateTime  @map("expires_at") @db.Timestamptz(6)
-  sentAt              DateTime? @map("sent_at") @db.Timestamptz(6)
-  acceptedAt          DateTime? @map("accepted_at") @db.Timestamptz(6)
-  acceptedByUserId    String?   @map("accepted_by_user_id") @db.Uuid
-  declinedAt          DateTime? @map("declined_at") @db.Timestamptz(6)
-  revokedAt           DateTime? @map("revoked_at") @db.Timestamptz(6)
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id               String    @id @default(uuid()) @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  invitedByUserId  String    @map("invited_by_user_id") @db.Uuid
+  kind             String
+  classId          String?   @map("class_id") @db.Uuid
+  phone            String
+  childNameHint    String?   @map("child_name_hint")
+  code             String    @unique
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  sentAt           DateTime? @map("sent_at") @db.Timestamptz(6)
+  acceptedAt       DateTime? @map("accepted_at") @db.Timestamptz(6)
+  acceptedByUserId String?   @map("accepted_by_user_id") @db.Uuid
+  declinedAt       DateTime? @map("declined_at") @db.Timestamptz(6)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   center         Center @relation(fields: [centerId], references: [id])
   class          Class? @relation(fields: [classId], references: [id])
@@ -499,10 +499,10 @@ model DailyReport {
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  authorUser User              @relation(fields: [authorUserId], references: [id])
-  center     Center            @relation(fields: [centerId], references: [id])
-  child      Child             @relation(fields: [childId], references: [id])
-  class      Class             @relation(fields: [classId], references: [id])
+  authorUser User                 @relation(fields: [authorUserId], references: [id])
+  center     Center               @relation(fields: [centerId], references: [id])
+  child      Child                @relation(fields: [childId], references: [id])
+  class      Class                @relation(fields: [classId], references: [id])
   items      DailyReportItem[]
   reads      DailyReportRead[]
   comments   DailyReportComment[]
@@ -536,8 +536,8 @@ model DailyReportRead {
   readAt         DateTime? @map("read_at") @db.Timestamptz(6)
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
-  guardianUser User       @relation(fields: [guardianUserId], references: [id])
+  dailyReport  DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  guardianUser User        @relation(fields: [guardianUserId], references: [id])
 
   @@unique([dailyReportId, guardianUserId])
   @@index([dailyReportId])
@@ -564,27 +564,52 @@ model DailyReportComment {
 }
 
 model Notice {
-  id           String    @id @default(uuid()) @db.Uuid
-  centerId     String    @map("center_id") @db.Uuid
-  classId      String?   @map("class_id") @db.Uuid
-  authorUserId String    @map("author_user_id") @db.Uuid
-  title        String
-  body         String
-  targetType   String    @map("target_type")
-  status       String    @default("draft")
-  scheduledAt  DateTime? @map("scheduled_at") @db.Timestamptz(6)
-  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String    @id @default(uuid()) @db.Uuid
+  centerId             String    @map("center_id") @db.Uuid
+  classId              String?   @map("class_id") @db.Uuid
+  authorUserId         String    @map("author_user_id") @db.Uuid
+  title                String
+  body                 String
+  kind                 String    @default("announcement")
+  targetType           String    @map("target_type")
+  status               String    @default("draft")
+  requiresConfirmation Boolean   @default(false) @map("requires_confirmation")
+  allowComments        Boolean   @default(true) @map("allow_comments")
+  isPinned             Boolean   @default(false) @map("is_pinned")
+  isImportant          Boolean   @default(false) @map("is_important")
+  surveyQuestion       String?   @map("survey_question")
+  surveyMultiSelect    Boolean   @default(false) @map("survey_multi_select")
+  surveyAnonymous      Boolean   @default(false) @map("survey_anonymous")
+  surveyDeadline       DateTime? @map("survey_deadline") @db.Timestamptz(6)
+  lastNudgedAt         DateTime? @map("last_nudged_at") @db.Timestamptz(6)
+  scheduledAt          DateTime? @map("scheduled_at") @db.Timestamptz(6)
+  publishedAt          DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   authorUser User              @relation(fields: [authorUserId], references: [id])
   center     Center            @relation(fields: [centerId], references: [id])
   class      Class?            @relation(fields: [classId], references: [id])
   recipients NoticeRecipient[]
+  targets    NoticeTarget[]
 
   @@index([centerId, publishedAt])
   @@index([classId])
   @@map("notices")
+}
+
+model NoticeTarget {
+  id         String   @id @default(uuid()) @db.Uuid
+  noticeId   String   @map("notice_id") @db.Uuid
+  targetKind String   @map("target_kind")
+  targetId   String   @map("target_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, targetKind, targetId])
+  @@index([noticeId])
+  @@map("notice_targets")
 }
 
 model NoticeRecipient {
