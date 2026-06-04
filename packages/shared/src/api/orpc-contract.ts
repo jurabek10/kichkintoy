@@ -5,6 +5,7 @@ import {
   teacherContract,
 } from "./orpc/catalog.contract.js";
 import { directorContract } from "./orpc/director.contract.js";
+import { noticesContract } from "./orpc/notices.contract.js";
 import { reportsContract } from "./orpc/reports.contract.js";
 
 export const appContract = {
@@ -14,6 +15,7 @@ export const appContract = {
   teacher: teacherContract,
   director: directorContract,
   reports: reportsContract,
+  notices: noticesContract,
 };
 
 export type AppContract = typeof appContract;
