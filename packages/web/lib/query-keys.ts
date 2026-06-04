@@ -40,6 +40,16 @@ export const queryKeys = {
     detail: (reportId: string, isParent: boolean) =>
       ["reports", reportId, { isParent }] as const,
   },
+  notices: {
+    audience: (centerId: string) => ["notices", "audience", centerId] as const,
+    authorList: (centerId: string, status?: string) =>
+      ["notices", "author", centerId, status ?? "all"] as const,
+    authorDetail: (noticeId: string) =>
+      ["notices", "author", noticeId] as const,
+    parentList: () => ["notices", "parent"] as const,
+    parentDetail: (noticeId: string) =>
+      ["notices", "parent", noticeId] as const,
+  },
   parent: {
     children: () => ["parent", "children"] as const,
     childReports: (childId: string) =>

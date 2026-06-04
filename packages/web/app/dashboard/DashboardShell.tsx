@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { FileText, GraduationCap, Inbox, LayoutDashboard, LogOut, Mail, School } from "lucide-react";
+import {
+  Bell,
+  FileText,
+  GraduationCap,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  School,
+} from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +27,7 @@ const navByRole: Record<
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "Classes", Icon: School },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
+    { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/teachers", label: "Teachers", Icon: GraduationCap },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
     { href: "/dashboard/invitations", label: "Invitations", Icon: Mail },
@@ -26,11 +36,13 @@ const navByRole: Record<
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "My classes", Icon: School },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
+    { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
   ],
   parent: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
+    { href: "/dashboard/notices", label: "Notices", Icon: Bell },
   ],
 };
 

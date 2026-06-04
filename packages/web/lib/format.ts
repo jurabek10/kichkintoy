@@ -1,4 +1,8 @@
-import type { FacilityType, InvitationKind, JoinRequestKind } from "@kichkintoy/shared";
+import type {
+  FacilityType,
+  InvitationKind,
+  JoinRequestKind,
+} from "@kichkintoy/shared";
 
 export function facilityTypeLabel(value: FacilityType): string {
   if (value === "kindergarten") return "Kindergarten";
@@ -24,6 +28,18 @@ export function reportStatusLabel(value: string): string {
   if (value === "published") return "Published";
   if (value === "scheduled") return "Scheduled";
   return "Draft";
+}
+
+export function noticeStatusLabel(value: string): string {
+  if (value === "published") return "Published";
+  if (value === "scheduled") return "Scheduled";
+  return "Draft";
+}
+
+export function noticeAudienceLabel(value: string): string {
+  if (value === "center") return "Whole center";
+  if (value === "class") return "Classes";
+  return "Children";
 }
 
 export function reportItemTypeLabel(value: string): string {
@@ -56,7 +72,9 @@ export function formatDate(value: string | Date | null | undefined): string {
   });
 }
 
-export function formatDateTime(value: string | Date | null | undefined): string {
+export function formatDateTime(
+  value: string | Date | null | undefined,
+): string {
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "—";
