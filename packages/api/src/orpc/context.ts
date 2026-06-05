@@ -5,12 +5,14 @@ import type { implement } from "@orpc/server";
 import type { appContract } from "@kichkintoy/shared";
 import type { AuthService, RequestContext } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/session.guard";
+import type { AlbumsService } from "../albums/albums.service";
 import type { CentersService } from "../centers/centers.service";
 import type { PrismaService } from "../database/prisma.service";
 import type { ClassService } from "../director/class.service";
 import type { DirectorAccessLevel } from "../director/director.guard";
 import type { DirectorService } from "../director/director.service";
 import type { GeoService } from "../geo/geo.service";
+import type { MediaService } from "../media/media.service";
 import type { NoticesService } from "../notices/notices.service";
 import type { ReportsService } from "../reports/reports.service";
 import type { TeacherService } from "../teacher/teacher.service";
@@ -25,10 +27,12 @@ export type ORPCImplementer = ReturnType<
 
 export type ORPCDeps = {
   authService: AuthService;
+  albumsService: AlbumsService;
   centersService: CentersService;
   classService: ClassService;
   directorService: DirectorService;
   geoService: GeoService;
+  mediaService: MediaService;
   prisma: PrismaService;
   noticesService: NoticesService;
   reportsService: ReportsService;

@@ -4,11 +4,13 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuditModule } from "./audit/audit.module";
+import { AlbumsModule } from "./albums/albums.module";
 import { AuthModule } from "./auth/auth.module";
 import { CentersModule } from "./centers/centers.module";
 import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
+import { MediaModule } from "./media/media.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { NoticesModule } from "./notices/notices.module";
@@ -27,7 +29,9 @@ import { TeacherModule } from "./teacher/teacher.module";
     ]),
     DatabaseModule,
     AuditModule,
+    AlbumsModule,
     MembershipsModule,
+    MediaModule,
     NotificationsModule,
     NoticesModule,
     AuthModule,
