@@ -1,19 +1,23 @@
 import { authContract } from "./orpc/auth.contract.js";
+import { albumsContract } from "./orpc/albums.contract.js";
 import {
   centersContract,
   geoContract,
   teacherContract,
 } from "./orpc/catalog.contract.js";
 import { directorContract } from "./orpc/director.contract.js";
+import { mediaContract } from "./orpc/media.contract.js";
 import { noticesContract } from "./orpc/notices.contract.js";
 import { reportsContract } from "./orpc/reports.contract.js";
 
 export const appContract = {
   auth: authContract,
+  albums: albumsContract,
   geo: geoContract,
   centers: centersContract,
   teacher: teacherContract,
   director: directorContract,
+  media: mediaContract,
   reports: reportsContract,
   notices: noticesContract,
 };
