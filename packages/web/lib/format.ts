@@ -42,6 +42,18 @@ export function noticeAudienceLabel(value: string): string {
   return "Children";
 }
 
+export function albumVisibilityLabel(value: string): string {
+  if (value === "class") return "Class-wide";
+  if (value === "tagged_children") return "Tagged children";
+  return value;
+}
+
+export function albumStatusLabel(value: string): string {
+  if (value === "published") return "Published";
+  if (value === "draft") return "Draft";
+  return value;
+}
+
 export function reportItemTypeLabel(value: string): string {
   if (value === "meal") return "Meal";
   if (value === "sleep") return "Sleep";
