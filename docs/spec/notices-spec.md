@@ -98,7 +98,7 @@ Identical semantics to daily reports §5.4:
 
 ### 5.4 Attachments
 
-Up to **50** media assets (Kidsnote's limit), photos **and** files (PDF/doc), via the existing media pipeline (signed R2 upload, design doc §20). Linked through `media_links` with `entity_type = 'notice'`, `entity_id = notice.id` — same mechanism daily reports use for photos (§5.3), so no new media tables.
+Up to **50** media assets (Kidsnote's limit), photos **and** files (PDF/doc), via the existing media pipeline (signed MinIO/S3 upload, design doc §20). Linked through `media_links` with `entity_type = 'notice'`, `entity_id = notice.id` — same mechanism daily reports use for photos (§5.3), so no new media tables.
 
 ### 5.5 Survey / Poll (설문/투표)
 

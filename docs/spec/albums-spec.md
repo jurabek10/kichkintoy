@@ -382,7 +382,7 @@ Detail:
 
 ## 13. Storage Strategy
 
-Use **Cloudflare R2** for album media in the MVP, matching the system design document's storage strategy. R2 is S3-compatible, so the backend should use an S3-compatible client and keep provider-specific code behind a small storage service boundary.
+Use **MinIO** for album media in the MVP, matching the current implementation. MinIO is S3-compatible, so the backend uses an S3-compatible client and keeps provider-specific code behind a small storage service boundary.
 
 Required storage abstraction:
 
@@ -394,28 +394,28 @@ MediaStorageService
 - getObjectMetadata()
 ```
 
-MVP implementation:
+Current implementation:
 
 ```text
-R2MediaStorageProvider
+MinioStorageService
 ```
 
-Future fallback if Uzbekistan data-residency rules or enterprise customers require local storage:
+Future alternatives if Cloudflare billing is fixed or a managed object store is preferred:
 
 ```text
-MinIOMediaStorageProvider or another S3-compatible provider hosted in Uzbekistan
+R2MediaStorageProvider or another S3-compatible provider
 ```
 
 Important rules:
 
-- Keep the R2 bucket private.
+- Keep the MinIO bucket private.
 - Do not store public object URLs as the source of truth.
 - Store object keys and metadata in `media_assets`.
-- Upload directly from web/mobile to R2 using signed upload URLs created by the API.
+- Upload directly from web/mobile to MinIO using signed upload URLs created by the API.
 - Serve images through short-lived signed download URLs, or through a protected media route that checks authorization before redirecting/signing.
 - Validate MIME type, file extension, file size, and image dimensions before finalizing the upload.
 - Use stable object keys, for example `centers/{centerId}/albums/{postId}/{mediaId}`.
-- Keep the app code provider-neutral so R2 can be replaced without changing album business logic.
+- Keep the app code provider-neutral so MinIO can be replaced without changing album business logic.
 
 ## 14. Privacy And Safety
 
@@ -425,7 +425,7 @@ Required:
 
 - Server-side media filtering for parent responses.
 - No unsigned public media URLs in API responses.
-- Short-lived signed R2 URLs or protected media route.
+- Short-lived signed MinIO URLs or protected media route.
 - Audit log for upload, publish, delete, moderation.
 - Soft-delete comments; posts may be soft-deleted in app and hard-deleted later by retention job.
 - File type and size validation.
@@ -467,7 +467,7 @@ MVP is complete when:
 - Parent cannot fetch another child's private media by direct post ID.
 - Parent can comment/react only on visible posts.
 - Director can delete/moderate any center album post.
-- Album media uploads use private Cloudflare R2 objects through signed upload URLs.
+- Album media uploads use private MinIO objects through signed upload URLs.
 - Parent media reads return only short-lived signed URLs after server-side authorization.
 - All oRPC outputs are strongly typed with Zod schemas.
 - TanStack Query uses `queryKeys.albums`.
@@ -478,7 +478,7 @@ MVP is complete when:
 1. Add shared schemas and oRPC contract.
 2. Add Prisma models and migration.
 3. Add API service, module, router, and root router composition.
-4. Add `MediaStorageService` and R2 provider for signed upload/download URLs.
+4. Add MinIO/S3-compatible media storage for signed upload/download URLs.
 5. Add query keys.
 6. Add staff album list and composer.
 7. Add parent album feed.
@@ -494,4 +494,4 @@ MVP is complete when:
 - Parent download permission per center.
 - Photo consent workflow.
 - Memory book / yearly album export.
-- Optional MinIO/local Uzbekistan object storage provider if required by compliance.
+- Optional managed S3-compatible provider if local operations become too heavy.

@@ -92,7 +92,7 @@
 | PAY-3 | | |
 | PAY-4 | | |
 
-### MEDIA — Uploads & R2
+### MEDIA — Uploads & MinIO / S3-Compatible Storage
 | ID | Result | Reason / evidence |
 |----|--------|-------------------|
 | MEDIA-1 | | |

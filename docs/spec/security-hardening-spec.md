@@ -47,8 +47,8 @@ Original (REST, now removed):
 2. **Per-account login lockout.** Throttling is per-IP; add per-username lockout/backoff (needs a counter, like OTP) to resist distributed brute force.
 3. **Redis throttler + OTP store** when scaling beyond one node (in-memory throttle is per-instance).
 4. **Session lifetime.** Shorten 30-day non-rotating sessions; add rotation + "log out all devices".
-5. **Media privacy.** Confirm R2 buckets are private and served via short-TTL signed URLs only; enforce child-tag access on album media.
-6. **🇺🇿 Data localization (legal + security).** Uzbekistan's Personal Data Law requires citizens' personal data to be stored on servers in Uzbekistan. Verify where Postgres + media actually live before onboarding real users — this conflicts with default Cloudflare R2 / foreign DB regions and is expensive to retrofit.
+5. **Media privacy.** Confirm MinIO buckets are private and served via short-TTL signed URLs only; enforce child-tag access on album media.
+6. **🇺🇿 Data localization (legal + security).** Uzbekistan's Personal Data Law requires citizens' personal data to be stored on servers in Uzbekistan. Verify where Postgres + media actually live before onboarding real users. MinIO makes local/private hosting possible, but the deployed server location still matters.
 7. **Dependency + secret scanning** in CI (`pnpm audit`, Dependabot, secret scanning).
 
 ## 4. Audit Findings Reference

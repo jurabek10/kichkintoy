@@ -2,7 +2,7 @@
 
 > Use this as the **standard** every new feature is checked against. When you finish implementing a feature, hand an LLM **(a)** this file, **(b)** the feature diff/branch, and **(c)** a copy of [`security-review-template.md`](./security-review-template.md), and ask it to produce a filled-in review. Each item has a stable ID (e.g. `AUTHZ-2`) the review references.
 >
-> This is tailored to the real stack: **NestJS + Prisma + Postgres**, custom phone-OTP + username/password auth, multi-tenant by `center_id` / `organization_id`, authorization via `user_roles` + `child_guardians` + `teacher_class_assignments` + `child_enrollments`, Cloudflare R2 media, Eskiz SMS, Click/Payme/Uzum payments. See [`../design/kichkintoy-uzbekistan-system-design.md`](../design/kichkintoy-uzbekistan-system-design.md) §8/§24 and [`../spec/security-hardening-spec.md`](../spec/security-hardening-spec.md).
+> This is tailored to the real stack: **NestJS + Prisma + Postgres**, custom phone-OTP + username/password auth, multi-tenant by `center_id` / `organization_id`, authorization via `user_roles` + `child_guardians` + `teacher_class_assignments` + `child_enrollments`, private MinIO/S3-compatible media, Eskiz SMS, Click/Payme/Uzum payments. See [`../design/kichkintoy-uzbekistan-system-design.md`](../design/kichkintoy-uzbekistan-system-design.md) §8/§24 and [`../spec/security-hardening-spec.md`](../spec/security-hardening-spec.md).
 
 ## How to read an item
 
@@ -76,9 +76,9 @@ Each item is a **requirement**, plus *How we do it here* (the existing pattern t
 - **PAY-3 — Server is the source of truth for amounts.** Never trust client-supplied amount/currency; compute from the invoice.
 - **PAY-4 — Payment state transitions are authorized and audited**; raw payloads stored without leaking secrets.
 
-## MEDIA — Uploads & R2
+## MEDIA — Uploads & MinIO
 
-- **MEDIA-1 — Direct-to-R2 via signed URLs**, permission-checked before issuing the URL (no upload through the API; no public bucket).
+- **MEDIA-1 — Direct-to-MinIO via signed URLs**, permission-checked before issuing the URL (no upload through the API; no public bucket).
 - **MEDIA-2 — Served via short-TTL signed URLs only** — child media is never on a public/guessable URL.
 - **MEDIA-3 — Upload validated** (mime/type/size) and `media_assets` is tenant-scoped (`center_id`); links checked against the owning entity.
   *Here:* `requireMediaAssets` checks asset `centerId` before linking.

@@ -288,7 +288,7 @@ packages/
 
 ### Storage
 
-- Cloudflare R2
+- MinIO private object storage through the S3-compatible API
 
 ### Queue / Cache
 
@@ -1500,7 +1500,7 @@ Mobile:
 - TypeScript
 
 Storage:
-- Cloudflare R2
+- MinIO (S3-compatible private object storage)
 
 App Push Notifications:
 - Firebase Cloud Messaging
@@ -1556,14 +1556,14 @@ Recommended route groups:
 
 ## 20. Storage Strategy
 
-Use Cloudflare R2.
+Use MinIO for the current implementation.
 
 Reasons:
 
-- Has a free tier suitable for MVP
-- S3-compatible API
-- No egress fees
-- Good security controls
+- S3-compatible API, so the same storage boundary can later target R2 or another provider.
+- Can run locally and in a private deployment without depending on Cloudflare billing.
+- Good fit for sensitive child photos when buckets stay private and access is mediated by the API.
+- Easier data-residency path if media must be hosted in Uzbekistan later.
 
 Important backend rule:
 
@@ -1574,13 +1574,15 @@ Recommended flow:
 ```text
 1. Mobile app asks NestJS for upload URL
 2. NestJS checks permission
-3. NestJS creates signed R2 upload URL
-4. Mobile uploads directly to R2
+3. NestJS creates a signed MinIO/S3 upload URL
+4. Mobile uploads directly to MinIO
 5. Mobile tells NestJS upload is complete
 6. NestJS stores media metadata in PostgreSQL
 ```
 
 This protects your backend from heavy file traffic and keeps uploads scalable.
+
+The implementation must keep provider-specific code behind a small media storage boundary. In development this is `MinioStorageService`; in future production deployments it can point at any S3-compatible provider without changing album/report/notice business logic.
 
 ## 21. Notification Strategy
 
