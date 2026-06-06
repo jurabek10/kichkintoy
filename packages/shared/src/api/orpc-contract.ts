@@ -7,6 +7,7 @@ import {
 } from "./orpc/catalog.contract.js";
 import { directorContract } from "./orpc/director.contract.js";
 import { mediaContract } from "./orpc/media.contract.js";
+import { mealsContract } from "./orpc/meals.contract.js";
 import { noticesContract } from "./orpc/notices.contract.js";
 import { reportsContract } from "./orpc/reports.contract.js";
 
@@ -18,6 +19,7 @@ export const appContract = {
   teacher: teacherContract,
   director: directorContract,
   media: mediaContract,
+  meals: mealsContract,
   reports: reportsContract,
   notices: noticesContract,
 };

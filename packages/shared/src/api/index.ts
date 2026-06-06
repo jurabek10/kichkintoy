@@ -5,6 +5,7 @@ export * from "./classes.js";
 export * from "./daily-reports.js";
 export * from "./geo.js";
 export * from "./media.js";
+export * from "./meals.js";
 export * from "./membership.js";
 export * from "./notices.js";
 export * from "./orpc-contract.js";
