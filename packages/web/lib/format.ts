@@ -76,6 +76,14 @@ export function eatingStatusLabel(value: string): string {
   return value;
 }
 
+export function medicationStatusLabel(value: string): string {
+  if (value === "pending") return "Pending";
+  if (value === "administered") return "Administered";
+  if (value === "skipped") return "Skipped";
+  if (value === "cancelled") return "Cancelled";
+  return value;
+}
+
 export function reportItemTypeLabel(value: string): string {
   if (value === "meal") return "Meal";
   if (value === "sleep") return "Sleep";
