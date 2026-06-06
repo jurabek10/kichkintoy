@@ -11,6 +11,7 @@ import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
 import { MediaModule } from "./media/media.module";
+import { MedicationsModule } from "./medications/medications.module";
 import { MealsModule } from "./meals/meals.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
@@ -33,6 +34,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     AlbumsModule,
     MembershipsModule,
     MediaModule,
+    MedicationsModule,
     MealsModule,
     NotificationsModule,
     NoticesModule,
