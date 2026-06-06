@@ -32,7 +32,10 @@ export class MediaService {
   ) {}
 
   async createUploadUrl(userId: string, input: CreateMediaUploadUrlInput) {
-    await this.requireCenterUploader(userId, input.centerId);
+    if (input.purpose === "medication" && !ALLOWED_IMAGE_TYPES.has(input.mimeType)) {
+      throw new BadRequestException("Medication uploads must be images.");
+    }
+    await this.requireCenterUploader(userId, input.centerId, input.purpose);
     const mediaType = mediaTypeForMime(input.mimeType);
     const extension = safeExtension(input.fileName, input.mimeType);
     const asset = await this.prisma.mediaAsset.create({
@@ -105,7 +108,11 @@ export class MediaService {
     });
   }
 
-  private async requireCenterUploader(userId: string, centerId: string) {
+  private async requireCenterUploader(
+    userId: string,
+    centerId: string,
+    purpose?: string,
+  ) {
     const center = await this.prisma.center.findUnique({
       where: { id: centerId },
       select: { id: true, organizationId: true },
@@ -128,6 +135,20 @@ export class MediaService {
       },
     });
     if (!staff) {
+      if (purpose === "medication") {
+        const guardian = await this.prisma.childGuardian.findFirst({
+          where: {
+            userId,
+            child: {
+              childEnrollments: {
+                some: { centerId, enrollmentStatus: "active" },
+              },
+            },
+          },
+          select: { id: true },
+        });
+        if (guardian) return;
+      }
       throw new ForbiddenException("You cannot upload media for this center.");
     }
   }
@@ -137,15 +158,33 @@ export class MediaService {
     mediaAssetId: string,
     centerId: string,
   ) {
+    const center = await this.prisma.center.findUnique({
+      where: { id: centerId },
+      select: { organizationId: true },
+    });
+    const director = center
+      ? await this.prisma.userRole.findFirst({
+          where: {
+            userId,
+            role: { name: { in: ["director", "organization_owner"] } },
+            OR: [
+              { centerId },
+              { organizationId: center.organizationId, centerId: null },
+            ],
+          },
+          select: { id: true },
+        })
+      : null;
+    if (director) return true;
+
     const staff = await this.prisma.userRole.findFirst({
       where: {
         userId,
         centerId,
-        role: { name: { in: ["director", "teacher"] } },
+        role: { name: "teacher" },
       },
       select: { id: true },
     });
-    if (staff) return true;
 
     const albumMedia = await this.prisma.albumMedia.findFirst({
       where: { mediaAssetId },
@@ -159,6 +198,15 @@ export class MediaService {
       },
     });
     if (albumMedia?.post.status === "published") {
+      if (
+        staff &&
+        (await this.teacherHasClassAccess(
+          userId,
+          albumMedia.post.classes.map((item) => item.classId),
+        ))
+      ) {
+        return true;
+      }
       if (albumMedia.post.visibility === "tagged_children") {
         return Boolean(
           await this.prisma.childGuardian.findFirst({
@@ -203,6 +251,17 @@ export class MediaService {
       },
     });
     if (mealMedia?.mealPost.status === "published") {
+      if (
+        staff &&
+        (mealMedia.mealPost.audienceType === "center"
+          ? await this.teacherHasCenterAccess(userId, mealMedia.mealPost.centerId)
+          : await this.teacherHasClassAccess(
+              userId,
+              mealMedia.mealPost.classes.map((item) => item.classId),
+            ))
+      ) {
+        return true;
+      }
       if (mealMedia.mealPost.audienceType === "center") {
         return Boolean(
           await this.prisma.childGuardian.findFirst({
@@ -241,7 +300,52 @@ export class MediaService {
       );
     }
 
+    const medicationRequest = await this.prisma.medicationRequest.findFirst({
+      where: { photoMediaAssetId: mediaAssetId },
+    });
+    if (medicationRequest) {
+      if (medicationRequest.parentUserId === userId) return true;
+      if (!medicationRequest.classId) return false;
+      return Boolean(
+        await this.prisma.teacherClassAssignment.findFirst({
+          where: {
+            teacherUserId: userId,
+            classId: medicationRequest.classId,
+            endedAt: null,
+          },
+          select: { id: true },
+        }),
+      );
+    }
+
     return false;
+  }
+
+  private async teacherHasClassAccess(userId: string, classIds: string[]) {
+    if (classIds.length === 0) return false;
+    return Boolean(
+      await this.prisma.teacherClassAssignment.findFirst({
+        where: {
+          teacherUserId: userId,
+          classId: { in: classIds },
+          endedAt: null,
+        },
+        select: { id: true },
+      }),
+    );
+  }
+
+  private async teacherHasCenterAccess(userId: string, centerId: string) {
+    return Boolean(
+      await this.prisma.teacherClassAssignment.findFirst({
+        where: {
+          teacherUserId: userId,
+          endedAt: null,
+          class: { centerId, status: "active" },
+        },
+        select: { id: true },
+      }),
+    );
   }
 }
 
