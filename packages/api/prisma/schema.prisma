@@ -58,6 +58,7 @@ model Center {
   dailyReports        DailyReport[]
   invoices            Invoice[]
   mealPlans           MealPlan[]
+  mealPosts           MealPost[]
   mediaAssets         MediaAsset[]
   medicationRequests  MedicationRequest[]
   notices             Notice[]
@@ -148,6 +149,8 @@ model User {
   checkedOutAttendanceRecords AttendanceRecord[]        @relation("AttendanceCheckOutBy")
   childGuardians              ChildGuardian[]
   createdMealPlans            MealPlan[]
+  mealChildStatuses           MealChildStatus[]
+  mealPosts                   MealPost[]
   createdSchedules            Schedule[]
   dailyReports                DailyReport[]
   dailyReportReads            DailyReportRead[]
@@ -328,6 +331,7 @@ model Class {
   conversationThreads     ConversationThread[]
   dailyReports            DailyReport[]
   mealPlans               MealPlan[]
+  mealPostClasses         MealPostClass[]
   medicationRequests      MedicationRequest[]
   notices                 Notice[]
   returnHomeRequests      ReturnHomeRequest[]
@@ -372,6 +376,7 @@ model Child {
 
   albumPostChildren   AlbumPostChild[]
   albumMediaChildren  AlbumMediaChild[]
+  mealChildStatuses   MealChildStatus[]
   attendanceRecords   AttendanceRecord[]
   centerJoinRequests  CenterJoinRequest[]
   childEnrollments    ChildEnrollment[]
@@ -648,10 +653,11 @@ model MediaAsset {
   durationSeconds Int?     @map("duration_seconds")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  center       Center       @relation(fields: [centerId], references: [id])
-  uploaderUser User         @relation(fields: [uploaderUserId], references: [id])
+  center       Center          @relation(fields: [centerId], references: [id])
+  uploaderUser User            @relation(fields: [uploaderUserId], references: [id])
   mediaLinks   MediaLink[]
   albumMedia   AlbumMedia[]
+  mealMedia    MealPostMedia[]
 
   @@index([centerId])
   @@map("media_assets")
@@ -833,6 +839,80 @@ model MealPlan {
   @@index([centerId])
   @@index([classId])
   @@map("meal_plans")
+}
+
+model MealPost {
+  id           String    @id @default(uuid()) @db.Uuid
+  centerId     String    @map("center_id") @db.Uuid
+  authorUserId String    @map("author_user_id") @db.Uuid
+  mealDate     DateTime  @map("meal_date") @db.Date
+  mealType     String    @map("meal_type")
+  audienceType String    @default("class") @map("audience_type")
+  menuText     String    @map("menu_text")
+  allergyNote  String?   @map("allergy_note")
+  status       String    @default("draft")
+  publishedAt  DateTime? @map("published_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  authorUser    User              @relation(fields: [authorUserId], references: [id])
+  center        Center            @relation(fields: [centerId], references: [id])
+  classes       MealPostClass[]
+  media         MealPostMedia[]
+  childStatuses MealChildStatus[]
+
+  @@index([centerId, mealDate(sort: Desc)])
+  @@index([status, publishedAt(sort: Desc)])
+  @@map("meal_posts")
+}
+
+model MealPostClass {
+  id         String   @id @default(uuid()) @db.Uuid
+  mealPostId String   @map("meal_post_id") @db.Uuid
+  classId    String   @map("class_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mealPost MealPost @relation(fields: [mealPostId], references: [id], onDelete: Cascade)
+  class    Class    @relation(fields: [classId], references: [id])
+
+  @@unique([mealPostId, classId])
+  @@index([classId])
+  @@map("meal_post_classes")
+}
+
+model MealPostMedia {
+  id           String   @id @default(uuid()) @db.Uuid
+  mealPostId   String   @map("meal_post_id") @db.Uuid
+  mediaAssetId String   @map("media_asset_id") @db.Uuid
+  position     Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  mealPost   MealPost   @relation(fields: [mealPostId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id])
+
+  @@unique([mealPostId, mediaAssetId])
+  @@index([mealPostId, position])
+  @@map("meal_post_media")
+}
+
+model MealChildStatus {
+  id               String   @id @default(uuid()) @db.Uuid
+  mealPostId       String   @map("meal_post_id") @db.Uuid
+  childId          String   @map("child_id") @db.Uuid
+  status           String
+  note             String?
+  recordedByUserId String   @map("recorded_by_user_id") @db.Uuid
+  recordedAt       DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mealPost       MealPost @relation(fields: [mealPostId], references: [id], onDelete: Cascade)
+  child          Child    @relation(fields: [childId], references: [id])
+  recordedByUser User     @relation(fields: [recordedByUserId], references: [id])
+
+  @@unique([mealPostId, childId])
+  @@index([childId])
+  @@map("meal_child_statuses")
 }
 
 model MedicationRequest {
