@@ -1,0 +1,100 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Utensils } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { toApiError } from "@/lib/api/errors";
+import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
+import { MealCard } from "./meal-card";
+
+export function StaffMeals({ centerId }: { centerId: string | null }) {
+  const [date, setDate] = useState(todayIso());
+  const queryInput = { centerId: centerId ?? "", date };
+  const {
+    data: meals = [],
+    isPending,
+    error,
+  } = useQuery({
+    queryKey: queryKeys.meals.staffList(queryInput),
+    queryFn: () => orpc.meals.staffList({ centerId: centerId!, date }),
+    enabled: !!centerId,
+  });
+
+  if (!centerId) {
+    return (
+      <Alert variant="warning">
+        <AlertDescription>
+          Your account is not linked to a center yet.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-xl">Meals</CardTitle>
+            <CardDescription>
+              Share daily menus, food photos, and eating status with families.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              className="w-[155px]"
+            />
+            <Button asChild>
+              <Link href="/dashboard/meals/new">
+                <Plus className="h-4 w-4" />
+                New meal
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{toApiError(error).message}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {isPending ? (
+        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+      ) : meals.length === 0 ? (
+        <Card className="grid place-items-center gap-2 p-8 text-center">
+          <Utensils className="h-8 w-8 text-muted-foreground" />
+          <p className="font-semibold">No meals for this date</p>
+          <p className="text-sm text-muted-foreground">
+            Publish the daily food menu when it is ready.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {meals.map((meal) => (
+            <MealCard key={meal.id} meal={meal} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}

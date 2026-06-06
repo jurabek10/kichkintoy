@@ -13,6 +13,7 @@ import {
   LogOut,
   Mail,
   School,
+  Utensils,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const navByRole: Record<
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
+    { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
     { href: "/dashboard/teachers", label: "Teachers", Icon: GraduationCap },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
     { href: "/dashboard/invitations", label: "Invitations", Icon: Mail },
@@ -40,6 +42,7 @@ const navByRole: Record<
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
+    { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
   ],
   parent: [
@@ -47,6 +50,7 @@ const navByRole: Record<
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
+    { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
   ],
 };
 

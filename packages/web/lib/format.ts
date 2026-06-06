@@ -54,6 +54,28 @@ export function albumStatusLabel(value: string): string {
   return value;
 }
 
+export function mealTypeLabel(value: string): string {
+  if (value === "breakfast") return "Breakfast";
+  if (value === "lunch") return "Lunch";
+  if (value === "snack") return "Snack";
+  if (value === "dinner") return "Dinner";
+  return value;
+}
+
+export function mealAudienceLabel(value: string): string {
+  if (value === "center") return "Whole center";
+  if (value === "class") return "Classes";
+  return value;
+}
+
+export function eatingStatusLabel(value: string): string {
+  if (value === "ate_all") return "All";
+  if (value === "ate_most") return "Most";
+  if (value === "ate_some") return "Some";
+  if (value === "did_not_eat") return "None";
+  return value;
+}
+
 export function reportItemTypeLabel(value: string): string {
   if (value === "meal") return "Meal";
   if (value === "sleep") return "Sleep";
