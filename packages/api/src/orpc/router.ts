@@ -10,6 +10,7 @@ import { ClassService } from "../director/class.service";
 import { DirectorService } from "../director/director.service";
 import { GeoService } from "../geo/geo.service";
 import { MediaService } from "../media/media.service";
+import { MealsService } from "../meals/meals.service";
 import { NoticesService } from "../notices/notices.service";
 import { PrismaService } from "../database/prisma.service";
 import { ReportsService } from "../reports/reports.service";
@@ -25,6 +26,7 @@ import {
 } from "./routers/catalog.router";
 import { createDirectorRouter } from "./routers/director.router";
 import { createMediaRouter } from "./routers/media.router";
+import { createMealsRouter } from "./routers/meals.router";
 import { createNoticesRouter } from "./routers/notices.router";
 import { createReportsRouter } from "./routers/reports.router";
 
@@ -37,6 +39,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     directorService: app.get(DirectorService, { strict: false }),
     geoService: app.get(GeoService, { strict: false }),
     mediaService: app.get(MediaService, { strict: false }),
+    mealsService: app.get(MealsService, { strict: false }),
     noticesService: app.get(NoticesService, { strict: false }),
     prisma: app.get(PrismaService, { strict: false }),
     reportsService: app.get(ReportsService, { strict: false }),
@@ -78,6 +81,7 @@ function createORPCRouter(deps: ORPCDeps) {
     teacher: createTeacherRouter(os, deps),
     director: createDirectorRouter(os, deps),
     media: createMediaRouter(os, deps),
+    meals: createMealsRouter(os, deps),
     reports: createReportsRouter(os, deps),
     notices: createNoticesRouter(os, deps),
   });

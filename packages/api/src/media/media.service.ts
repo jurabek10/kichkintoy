@@ -158,36 +158,90 @@ export class MediaService {
         },
       },
     });
-    if (!albumMedia || albumMedia.post.status !== "published") return false;
-    if (albumMedia.post.visibility === "tagged_children") {
+    if (albumMedia?.post.status === "published") {
+      if (albumMedia.post.visibility === "tagged_children") {
+        return Boolean(
+          await this.prisma.childGuardian.findFirst({
+            where: {
+              userId,
+              childId: {
+                in: albumMedia.post.children.map((item) => item.childId),
+              },
+            },
+            select: { id: true },
+          }),
+        );
+      }
       return Boolean(
         await this.prisma.childGuardian.findFirst({
           where: {
             userId,
-            childId: { in: albumMedia.post.children.map((item) => item.childId) },
+            child: {
+              childEnrollments: {
+                some: {
+                  enrollmentStatus: "active",
+                  classId: {
+                    in: albumMedia.post.classes.map((item) => item.classId),
+                  },
+                },
+              },
+            },
           },
           select: { id: true },
         }),
       );
     }
-    return Boolean(
-      await this.prisma.childGuardian.findFirst({
-        where: {
-          userId,
-          child: {
-            childEnrollments: {
-              some: {
-                enrollmentStatus: "active",
-                classId: {
-                  in: albumMedia.post.classes.map((item) => item.classId),
+
+    const mealMedia = await this.prisma.mealPostMedia.findFirst({
+      where: { mediaAssetId },
+      include: {
+        mealPost: {
+          include: {
+            classes: true,
+          },
+        },
+      },
+    });
+    if (mealMedia?.mealPost.status === "published") {
+      if (mealMedia.mealPost.audienceType === "center") {
+        return Boolean(
+          await this.prisma.childGuardian.findFirst({
+            where: {
+              userId,
+              child: {
+                childEnrollments: {
+                  some: {
+                    centerId: mealMedia.mealPost.centerId,
+                    enrollmentStatus: "active",
+                  },
+                },
+              },
+            },
+            select: { id: true },
+          }),
+        );
+      }
+      return Boolean(
+        await this.prisma.childGuardian.findFirst({
+          where: {
+            userId,
+            child: {
+              childEnrollments: {
+                some: {
+                  enrollmentStatus: "active",
+                  classId: {
+                    in: mealMedia.mealPost.classes.map((item) => item.classId),
+                  },
                 },
               },
             },
           },
-        },
-        select: { id: true },
-      }),
-    );
+          select: { id: true },
+        }),
+      );
+    }
+
+    return false;
   }
 }
 

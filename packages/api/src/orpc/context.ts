@@ -13,6 +13,7 @@ import type { DirectorAccessLevel } from "../director/director.guard";
 import type { DirectorService } from "../director/director.service";
 import type { GeoService } from "../geo/geo.service";
 import type { MediaService } from "../media/media.service";
+import type { MealsService } from "../meals/meals.service";
 import type { NoticesService } from "../notices/notices.service";
 import type { ReportsService } from "../reports/reports.service";
 import type { TeacherService } from "../teacher/teacher.service";
@@ -33,6 +34,7 @@ export type ORPCDeps = {
   directorService: DirectorService;
   geoService: GeoService;
   mediaService: MediaService;
+  mealsService: MealsService;
   prisma: PrismaService;
   noticesService: NoticesService;
   reportsService: ReportsService;
