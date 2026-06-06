@@ -653,11 +653,12 @@ model MediaAsset {
   durationSeconds Int?     @map("duration_seconds")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  center       Center          @relation(fields: [centerId], references: [id])
-  uploaderUser User            @relation(fields: [uploaderUserId], references: [id])
-  mediaLinks   MediaLink[]
-  albumMedia   AlbumMedia[]
-  mealMedia    MealPostMedia[]
+  center             Center              @relation(fields: [centerId], references: [id])
+  uploaderUser       User                @relation(fields: [uploaderUserId], references: [id])
+  mediaLinks         MediaLink[]
+  albumMedia         AlbumMedia[]
+  mealMedia          MealPostMedia[]
+  medicationRequests MedicationRequest[]
 
   @@index([centerId])
   @@map("media_assets")
@@ -921,27 +922,43 @@ model MedicationRequest {
   classId              String?   @map("class_id") @db.Uuid
   childId              String    @map("child_id") @db.Uuid
   parentUserId         String    @map("parent_user_id") @db.Uuid
+  symptoms             String    @default("")
   medicineName         String    @map("medicine_name")
+  medicationType       String    @default("") @map("medication_type")
   dosage               String
+  medicationTime       String    @default("") @map("medication_time")
+  medicationCount      String?   @map("medication_count")
+  storageMethod        String?   @map("storage_method")
   instructions         String?
+  specialNote          String?   @map("special_note")
+  photoMediaAssetId    String?   @map("photo_media_asset_id") @db.Uuid
+  photoCaption         String?   @map("photo_caption")
+  parentSignature      String    @default("") @map("parent_signature")
   requestedForDate     DateTime  @map("requested_for_date") @db.Date
   status               String    @default("pending")
   reviewedByUserId     String?   @map("reviewed_by_user_id") @db.Uuid
   reviewedAt           DateTime? @map("reviewed_at") @db.Timestamptz(6)
   administeredByUserId String?   @map("administered_by_user_id") @db.Uuid
   administeredAt       DateTime? @map("administered_at") @db.Timestamptz(6)
+  administeredDose     String?   @map("administered_dose")
+  staffNote            String?   @map("staff_note")
+  skippedReason        String?   @map("skipped_reason")
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  administeredByUser User?  @relation("MedicationAdministeredBy", fields: [administeredByUserId], references: [id])
-  center             Center @relation(fields: [centerId], references: [id])
-  child              Child  @relation(fields: [childId], references: [id])
-  class              Class? @relation(fields: [classId], references: [id])
-  parentUser         User   @relation("MedicationParent", fields: [parentUserId], references: [id])
-  reviewedByUser     User?  @relation("MedicationReviewedBy", fields: [reviewedByUserId], references: [id])
+  administeredByUser User?       @relation("MedicationAdministeredBy", fields: [administeredByUserId], references: [id])
+  center             Center      @relation(fields: [centerId], references: [id])
+  child              Child       @relation(fields: [childId], references: [id])
+  class              Class?      @relation(fields: [classId], references: [id])
+  parentUser         User        @relation("MedicationParent", fields: [parentUserId], references: [id])
+  photoMediaAsset    MediaAsset? @relation(fields: [photoMediaAssetId], references: [id])
+  reviewedByUser     User?       @relation("MedicationReviewedBy", fields: [reviewedByUserId], references: [id])
 
-  @@index([centerId])
-  @@index([classId])
-  @@index([childId])
+  @@index([centerId, requestedForDate])
+  @@index([classId, requestedForDate])
+  @@index([childId, requestedForDate])
+  @@index([parentUserId, requestedForDate])
+  @@index([status, requestedForDate])
   @@map("medication_requests")
 }
 

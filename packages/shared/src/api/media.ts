@@ -4,6 +4,7 @@ import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 export const mediaPurposeValues = [
   "album",
   "meal",
+  "medication",
   "daily_report",
   "notice",
   "child_profile",
