@@ -46,6 +46,16 @@ export const queryKeys = {
     latestForChild: (childId: string) =>
       ["medications", "latest", childId] as const,
   },
+  pickups: {
+    all: () => ["pickups"] as const,
+    children: (centerId?: string | null) =>
+      ["pickups", "children", centerId ?? "parent"] as const,
+    parentList: (input?: Record<string, unknown>) =>
+      ["pickups", "parent", input ?? {}] as const,
+    staffList: (input: Record<string, unknown>) =>
+      ["pickups", "staff", input] as const,
+    detail: (noticeId: string) => ["pickups", "detail", noticeId] as const,
+  },
   teacher: {
     classes: () => ["teacher", "classes"] as const,
     classChildren: (classId: string) =>

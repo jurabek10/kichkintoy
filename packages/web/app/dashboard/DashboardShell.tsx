@@ -14,6 +14,7 @@ import {
   Mail,
   Pill,
   School,
+  UserCheck,
   Utensils,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
@@ -34,6 +35,7 @@ const navByRole: Record<
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
     { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
     { href: "/dashboard/medications", label: "Medication", Icon: Pill },
+    { href: "/dashboard/pickups", label: "Pickup", Icon: UserCheck },
     { href: "/dashboard/teachers", label: "Teachers", Icon: GraduationCap },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
     { href: "/dashboard/invitations", label: "Invitations", Icon: Mail },
@@ -46,6 +48,7 @@ const navByRole: Record<
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
     { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
     { href: "/dashboard/medications", label: "Medication", Icon: Pill },
+    { href: "/dashboard/pickups", label: "Pickup", Icon: UserCheck },
     { href: "/dashboard/requests", label: "Join requests", Icon: Inbox },
   ],
   parent: [
@@ -55,6 +58,7 @@ const navByRole: Record<
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
     { href: "/dashboard/meals", label: "Meals", Icon: Utensils },
     { href: "/dashboard/medications", label: "Medication", Icon: Pill },
+    { href: "/dashboard/pickups", label: "Pickup", Icon: UserCheck },
   ],
 };
 

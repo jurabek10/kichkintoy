@@ -84,6 +84,22 @@ export function medicationStatusLabel(value: string): string {
   return value;
 }
 
+export function pickupStatusLabel(value: string): string {
+  if (value === "submitted") return "Submitted";
+  if (value === "acknowledged") return "Acknowledged";
+  if (value === "changed") return "Changed";
+  if (value === "cancelled") return "Cancelled";
+  return value;
+}
+
+export function pickupRelationshipLabel(value: string): string {
+  if (value === "mother") return "Mother";
+  if (value === "father") return "Father";
+  if (value === "grandparent") return "Grandparent";
+  if (value === "other") return "Other";
+  return value;
+}
+
 export function reportItemTypeLabel(value: string): string {
   if (value === "meal") return "Meal";
   if (value === "sleep") return "Sleep";
