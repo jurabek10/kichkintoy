@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import { EskizSmsService } from "../auth/eskiz-sms.service";
+import { RealtimeGateway } from "../realtime/realtime.gateway";
 
 export type NotificationChannel = "in_app" | "push" | "sms";
 
@@ -12,6 +13,8 @@ export type EnqueueNotificationInput = {
   body?: string | null;
   entityType?: string | null;
   entityId?: string | null;
+  priority?: "normal" | "high" | "urgent";
+  metadata?: Prisma.InputJsonObject | null;
   channels: NotificationChannel[];
   smsPhoneNumber?: string | null;
 };
@@ -23,6 +26,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eskiz: EskizSmsService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   async enqueue(
@@ -42,10 +46,18 @@ export class NotificationsService {
             entityId: input.entityId ?? null,
             channel,
             status: channel === "in_app" ? "delivered" : "pending",
+            priority: input.priority ?? "normal",
+            metadata: input.metadata ?? Prisma.JsonNull,
             sentAt: channel === "in_app" ? new Date() : null,
           },
         }),
       ),
+    );
+
+    await Promise.all(
+      rows
+        .filter((row) => row.channel === "in_app")
+        .map((row) => this.realtime.publishNotification(row)),
     );
 
     return rows;

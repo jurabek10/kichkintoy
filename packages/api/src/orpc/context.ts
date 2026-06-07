@@ -16,7 +16,9 @@ import type { MediaService } from "../media/media.service";
 import type { MedicationsService } from "../medications/medications.service";
 import type { MealsService } from "../meals/meals.service";
 import type { NoticesService } from "../notices/notices.service";
+import type { NotificationsQueryService } from "../notifications/notifications-query.service";
 import type { PickupsService } from "../pickups/pickups.service";
+import type { RealtimeService } from "../realtime/realtime.service";
 import type { ReportsService } from "../reports/reports.service";
 import type { TeacherService } from "../teacher/teacher.service";
 
@@ -40,7 +42,9 @@ export type ORPCDeps = {
   mealsService: MealsService;
   prisma: PrismaService;
   noticesService: NoticesService;
+  notificationsQueryService: NotificationsQueryService;
   pickupsService: PickupsService;
+  realtimeService: RealtimeService;
   reportsService: ReportsService;
   teacherService: TeacherService;
 };

@@ -7,6 +7,7 @@ import { json, urlencoded } from "express";
 import { AppModule } from "./app.module";
 import { assertNodeVersion } from "./runtime/assert-node-version";
 import { registerORPCRoutes } from "./orpc/router";
+import { RealtimeGateway } from "./realtime/realtime.gateway";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -62,6 +63,7 @@ async function bootstrap() {
   });
 
   registerORPCRoutes(app);
+  app.get(RealtimeGateway, { strict: false }).attach(app.getHttpServer());
 
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);

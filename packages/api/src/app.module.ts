@@ -17,6 +17,7 @@ import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { NoticesModule } from "./notices/notices.module";
 import { PickupsModule } from "./pickups/pickups.module";
+import { RealtimeModule } from "./realtime/realtime.module";
 import { ReportsModule } from "./reports/reports.module";
 import { TeacherModule } from "./teacher/teacher.module";
 
@@ -40,6 +41,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     NotificationsModule,
     NoticesModule,
     PickupsModule,
+    RealtimeModule,
     AuthModule,
     CentersModule,
     GeoModule,
