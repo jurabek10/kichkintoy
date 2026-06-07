@@ -62,6 +62,7 @@ model Center {
   mediaAssets         MediaAsset[]
   medicationRequests  MedicationRequest[]
   notices             Notice[]
+  pickupTimeNotices   PickupTimeNotice[]
   returnHomeRequests  ReturnHomeRequest[]
   schedules           Schedule[]
   userRoles           UserRole[]
@@ -163,6 +164,8 @@ model User {
   messages                    Message[]
   noticeRecipients            NoticeRecipient[]
   notices                     Notice[]
+  pickupAcknowledgements      PickupTimeNotice[]        @relation("PickupAcknowledgedBy")
+  pickupTimeNotices           PickupTimeNotice[]        @relation("PickupParent")
   parentProfile               ParentProfile?
   returnHomeConfirmed         ReturnHomeRequest[]       @relation("ReturnHomeConfirmedBy")
   returnHomeRequests          ReturnHomeRequest[]       @relation("ReturnHomeParent")
@@ -334,6 +337,7 @@ model Class {
   mealPostClasses         MealPostClass[]
   medicationRequests      MedicationRequest[]
   notices                 Notice[]
+  pickupTimeNotices       PickupTimeNotice[]
   returnHomeRequests      ReturnHomeRequest[]
   schedules               Schedule[]
   teacherClassAssignments TeacherClassAssignment[]
@@ -386,6 +390,7 @@ model Child {
   invoices            Invoice[]
   medicationRequests  MedicationRequest[]
   noticeRecipients    NoticeRecipient[]
+  pickupTimeNotices   PickupTimeNotice[]
   returnHomeRequests  ReturnHomeRequest[]
 
   @@map("children")
@@ -960,6 +965,36 @@ model MedicationRequest {
   @@index([parentUserId, requestedForDate])
   @@index([status, requestedForDate])
   @@map("medication_requests")
+}
+
+model PickupTimeNotice {
+  id               String    @id @default(uuid()) @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  classId          String?   @map("class_id") @db.Uuid
+  childId          String    @map("child_id") @db.Uuid
+  parentUserId     String    @map("parent_user_id") @db.Uuid
+  pickupDate       DateTime  @map("pickup_date") @db.Date
+  pickupTime       String    @map("pickup_time")
+  pickupPersonName String    @map("pickup_person_name")
+  relationship     String
+  note             String?
+  status           String    @default("submitted")
+  acknowledgedById String?   @map("acknowledged_by_id") @db.Uuid
+  acknowledgedAt   DateTime? @map("acknowledged_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  acknowledgedBy User?  @relation("PickupAcknowledgedBy", fields: [acknowledgedById], references: [id])
+  center         Center @relation(fields: [centerId], references: [id])
+  child          Child  @relation(fields: [childId], references: [id])
+  class          Class? @relation(fields: [classId], references: [id])
+  parentUser     User   @relation("PickupParent", fields: [parentUserId], references: [id])
+
+  @@index([centerId, pickupDate, status])
+  @@index([classId, pickupDate, status])
+  @@index([childId, pickupDate])
+  @@index([parentUserId, pickupDate])
+  @@map("pickup_time_notices")
 }
 
 model ReturnHomeRequest {
