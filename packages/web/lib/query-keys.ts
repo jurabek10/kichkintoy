@@ -91,6 +91,12 @@ export const queryKeys = {
     parentDetail: (noticeId: string) =>
       ["notices", "parent", noticeId] as const,
   },
+  notifications: {
+    all: () => ["notifications"] as const,
+    list: (input?: Record<string, unknown>) =>
+      ["notifications", "list", input ?? {}] as const,
+    unreadCount: () => ["notifications", "unread-count"] as const,
+  },
   parent: {
     children: () => ["parent", "children"] as const,
     childReports: (childId: string) =>

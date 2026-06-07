@@ -20,7 +20,9 @@ import {
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { NotificationBell } from "./_components/notification-bell";
 import { logoutAndClear, readSession, useSession } from "@/lib/session";
+import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
 
 const navByRole: Record<
@@ -66,6 +68,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  useRealtimeNotifications(session);
 
   useEffect(() => {
     if (loading) return;
@@ -111,6 +114,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   : ""}
               </p>
             </div>
+            <NotificationBell />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
               Sign out
