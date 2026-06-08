@@ -1,6 +1,7 @@
 export * from "./auth.js";
 export * from "./attendance.js";
 export * from "./albums.js";
+export * from "./calendar.js";
 export * from "./centers.js";
 export * from "./classes.js";
 export * from "./daily-reports.js";
