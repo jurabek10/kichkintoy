@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import {
   Bell,
+  ClipboardCheck,
   FileText,
   GraduationCap,
   Images,
@@ -32,6 +33,7 @@ const navByRole: Record<
   director: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "Classes", Icon: School },
+    { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
@@ -45,6 +47,7 @@ const navByRole: Record<
   teacher: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "My classes", Icon: School },
+    { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },
@@ -55,6 +58,7 @@ const navByRole: Record<
   ],
   parent: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
+    { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
     { href: "/dashboard/albums", label: "Albums", Icon: Images },

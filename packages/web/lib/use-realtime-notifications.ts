@@ -68,6 +68,14 @@ export function useRealtimeNotifications(session: StoredSession | null) {
                 queryKey: queryGroupFromHint(hint),
               });
             }
+            if (
+              payload.notificationType.includes("attendance") ||
+              payload.entityType === "attendance_record"
+            ) {
+              void queryClient.invalidateQueries({
+                queryKey: queryKeys.attendance.all(),
+              });
+            }
 
             toast(payload.title, {
               description: payload.body ?? undefined,

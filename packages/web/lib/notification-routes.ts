@@ -16,6 +16,7 @@ export function routeForNotification(input: {
     return `/dashboard/medications/${id}`;
   }
   if (id && source.includes("pickup")) return `/dashboard/pickups/${id}`;
+  if (source.includes("attendance")) return "/dashboard/attendance";
 
   return "/dashboard/notifications";
 }

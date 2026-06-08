@@ -92,6 +92,18 @@ export function pickupStatusLabel(value: string): string {
   return value;
 }
 
+export function attendanceStatusLabel(value: string): string {
+  if (value === "not_checked_in") return "Not checked in";
+  if (value === "present") return "Present";
+  if (value === "absent") return "Absent";
+  if (value === "late") return "Late";
+  if (value === "left_early") return "Left early";
+  if (value === "picked_up") return "Picked up";
+  if (value === "excused") return "Excused";
+  if (value === "cancelled") return "Cancelled";
+  return value;
+}
+
 export function pickupRelationshipLabel(value: string): string {
   if (value === "mother") return "Mother";
   if (value === "father") return "Father";

@@ -15,6 +15,16 @@ export const queryKeys = {
     invitations: (verificationToken: string) =>
       ["auth", "invitations", verificationToken] as const,
   },
+  attendance: {
+    all: () => ["attendance"] as const,
+    children: (centerId?: string | null) =>
+      ["attendance", "children", centerId ?? "parent"] as const,
+    staffList: (input: Record<string, unknown>) =>
+      ["attendance", "staff", input] as const,
+    parentList: (input?: Record<string, unknown>) =>
+      ["attendance", "parent", input ?? {}] as const,
+    detail: (recordId: string) => ["attendance", "detail", recordId] as const,
+  },
   albums: {
     all: () => ["albums"] as const,
     audience: (centerId: string) => ["albums", "audience", centerId] as const,
