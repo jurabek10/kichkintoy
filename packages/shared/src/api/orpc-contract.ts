@@ -1,4 +1,5 @@
 import { authContract } from "./orpc/auth.contract.js";
+import { attendanceContract } from "./orpc/attendance.contract.js";
 import { albumsContract } from "./orpc/albums.contract.js";
 import {
   centersContract,
@@ -17,6 +18,7 @@ import { reportsContract } from "./orpc/reports.contract.js";
 
 export const appContract = {
   auth: authContract,
+  attendance: attendanceContract,
   albums: albumsContract,
   geo: geoContract,
   centers: centersContract,
@@ -35,5 +37,6 @@ export const appContract = {
 export type AppContract = typeof appContract;
 
 export * from "./orpc/director.contract.js";
+export * from "./orpc/attendance.contract.js";
 export * from "./orpc/notifications.contract.js";
 export * from "./orpc/realtime.contract.js";

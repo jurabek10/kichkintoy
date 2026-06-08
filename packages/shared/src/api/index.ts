@@ -1,4 +1,5 @@
 export * from "./auth.js";
+export * from "./attendance.js";
 export * from "./albums.js";
 export * from "./centers.js";
 export * from "./classes.js";
