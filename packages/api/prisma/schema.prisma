@@ -907,7 +907,7 @@ model MealChildStatus {
   id               String   @id @default(uuid()) @db.Uuid
   mealPostId       String   @map("meal_post_id") @db.Uuid
   childId          String   @map("child_id") @db.Uuid
-  status           String
+  status           String    @default("not_checked_in")
   note             String?
   recordedByUserId String   @map("recorded_by_user_id") @db.Uuid
   recordedAt       DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
@@ -1037,6 +1037,8 @@ model AttendanceRecord {
   checkOutAt       DateTime? @map("check_out_at") @db.Timestamptz(6)
   checkInByUserId  String?   @map("check_in_by_user_id") @db.Uuid
   checkOutByUserId String?   @map("check_out_by_user_id") @db.Uuid
+  absenceReason    String?   @map("absence_reason")
+  parentVisibleNote String?  @map("parent_visible_note")
   note             String?
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -1048,8 +1050,9 @@ model AttendanceRecord {
   class          Class  @relation(fields: [classId], references: [id])
 
   @@unique([childId, attendanceDate])
-  @@index([centerId])
-  @@index([classId])
+  @@index([centerId, attendanceDate, status])
+  @@index([classId, attendanceDate, status])
+  @@index([childId, attendanceDate])
   @@map("attendance_records")
 }
 
