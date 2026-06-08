@@ -163,6 +163,9 @@ export class RealtimeGateway {
     if (source.includes("report")) hints.push({ group: "reports", id: entityId });
     if (source.includes("notice")) hints.push({ group: "notices", id: entityId });
     if (source.includes("album")) hints.push({ group: "albums", id: entityId });
+    if (source.includes("calendar")) {
+      hints.push({ group: "calendar", id: entityId });
+    }
     if (source.includes("meal")) hints.push({ group: "meals", id: entityId });
     if (source.includes("medication")) {
       hints.push({ group: "medications", id: entityId });

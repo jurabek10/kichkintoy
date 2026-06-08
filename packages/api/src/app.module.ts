@@ -7,6 +7,7 @@ import { AttendanceModule } from "./attendance/attendance.module";
 import { AuditModule } from "./audit/audit.module";
 import { AlbumsModule } from "./albums/albums.module";
 import { AuthModule } from "./auth/auth.module";
+import { CalendarModule } from "./calendar/calendar.module";
 import { CentersModule } from "./centers/centers.module";
 import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
@@ -36,6 +37,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     AuditModule,
     AttendanceModule,
     AlbumsModule,
+    CalendarModule,
     MembershipsModule,
     MediaModule,
     MedicationsModule,

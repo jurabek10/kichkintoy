@@ -4,6 +4,7 @@ import type { Request } from "express";
 import type { implement } from "@orpc/server";
 import type { appContract } from "@kichkintoy/shared";
 import type { AuthService, RequestContext } from "../auth/auth.service";
+import type { CalendarService } from "../calendar/calendar.service";
 import type { AuthenticatedUser } from "../auth/session.guard";
 import type { AttendanceService } from "../attendance/attendance.service";
 import type { AlbumsService } from "../albums/albums.service";
@@ -35,6 +36,7 @@ export type ORPCDeps = {
   authService: AuthService;
   attendanceService: AttendanceService;
   albumsService: AlbumsService;
+  calendarService: CalendarService;
   centersService: CentersService;
   classService: ClassService;
   directorService: DirectorService;
