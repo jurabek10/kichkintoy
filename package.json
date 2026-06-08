@@ -10,6 +10,7 @@
     "dev": "pnpm -r --parallel dev",
     "dev:api": "pnpm --filter @kichkintoy/api dev",
     "dev:web": "pnpm --filter @kichkintoy/web dev",
+    "dev:web:3001": "pnpm --filter @kichkintoy/web dev:3001",
     "dev:mobile": "pnpm --filter @kichkintoy/mobile dev",
     "stop:api": "node scripts/kill-port.mjs 4000",
     "db:up": "docker compose up -d postgres",

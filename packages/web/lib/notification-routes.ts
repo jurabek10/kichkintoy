@@ -11,6 +11,7 @@ export function routeForNotification(input: {
   if (id && source.includes("report")) return `/dashboard/reports/${id}`;
   if (id && source.includes("notice")) return `/dashboard/notices/${id}`;
   if (id && source.includes("album")) return `/dashboard/albums/${id}`;
+  if (id && source.includes("calendar")) return `/dashboard/calendar/${id}`;
   if (id && source.includes("meal")) return `/dashboard/meals/${id}`;
   if (id && source.includes("medication")) {
     return `/dashboard/medications/${id}`;

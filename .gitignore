@@ -9,6 +9,7 @@ dist
 .next
 out
 coverage
+backups
 
 # mobile / native
 .expo

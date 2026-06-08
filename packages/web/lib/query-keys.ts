@@ -34,6 +34,16 @@ export const queryKeys = {
       ["albums", "parent", childId ?? "all"] as const,
     detail: (postId: string) => ["albums", "detail", postId] as const,
   },
+  calendar: {
+    all: () => ["calendar"] as const,
+    staffList: (input: Record<string, unknown>) =>
+      ["calendar", "staff", input] as const,
+    parentList: (input: Record<string, unknown>) =>
+      ["calendar", "parent", input] as const,
+    upcoming: (input?: Record<string, unknown>) =>
+      ["calendar", "upcoming", input ?? {}] as const,
+    detail: (eventId: string) => ["calendar", "detail", eventId] as const,
+  },
   meals: {
     all: () => ["meals"] as const,
     audience: (centerId: string) => ["meals", "audience", centerId] as const,

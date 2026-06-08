@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import {
   Bell,
+  CalendarDays,
   ClipboardCheck,
   FileText,
   GraduationCap,
@@ -33,6 +34,7 @@ const navByRole: Record<
   director: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "Classes", Icon: School },
+    { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
@@ -47,6 +49,7 @@ const navByRole: Record<
   teacher: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "My classes", Icon: School },
+    { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
@@ -58,6 +61,7 @@ const navByRole: Record<
   ],
   parent: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
+    { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
     { href: "/dashboard/notices", label: "Notices", Icon: Bell },
