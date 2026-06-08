@@ -3,6 +3,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { AttendanceModule } from "./attendance/attendance.module";
 import { AuditModule } from "./audit/audit.module";
 import { AlbumsModule } from "./albums/albums.module";
 import { AuthModule } from "./auth/auth.module";
@@ -33,6 +34,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     ]),
     DatabaseModule,
     AuditModule,
+    AttendanceModule,
     AlbumsModule,
     MembershipsModule,
     MediaModule,

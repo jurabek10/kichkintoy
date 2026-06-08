@@ -5,6 +5,7 @@ import type { implement } from "@orpc/server";
 import type { appContract } from "@kichkintoy/shared";
 import type { AuthService, RequestContext } from "../auth/auth.service";
 import type { AuthenticatedUser } from "../auth/session.guard";
+import type { AttendanceService } from "../attendance/attendance.service";
 import type { AlbumsService } from "../albums/albums.service";
 import type { CentersService } from "../centers/centers.service";
 import type { PrismaService } from "../database/prisma.service";
@@ -32,6 +33,7 @@ export type ORPCImplementer = ReturnType<
 
 export type ORPCDeps = {
   authService: AuthService;
+  attendanceService: AttendanceService;
   albumsService: AlbumsService;
   centersService: CentersService;
   classService: ClassService;
