@@ -43,30 +43,33 @@ model Center {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  organization        Organization         @relation(fields: [organizationId], references: [id])
-  regionRef           Region?              @relation(fields: [regionId], references: [id])
-  districtRef         District?            @relation(fields: [districtId], references: [id])
-  albumPosts          AlbumPost[]
-  attendanceRecords   AttendanceRecord[]
-  auditLogs           AuditLog[]
-  branches            Branch[]
-  calendarEvents      CalendarEvent[]
-  centerInvitations   CenterInvitation[]
-  centerJoinRequests  CenterJoinRequest[]
-  childEnrollments    ChildEnrollment[]
-  classes             Class[]
-  conversationThreads ConversationThread[]
-  dailyReports        DailyReport[]
-  invoices            Invoice[]
-  mealPlans           MealPlan[]
-  mealPosts           MealPost[]
-  mediaAssets         MediaAsset[]
-  medicationRequests  MedicationRequest[]
-  notices             Notice[]
-  pickupTimeNotices   PickupTimeNotice[]
-  returnHomeRequests  ReturnHomeRequest[]
-  schedules           Schedule[]
-  userRoles           UserRole[]
+  organization               Organization                @relation(fields: [organizationId], references: [id])
+  regionRef                  Region?                     @relation(fields: [regionId], references: [id])
+  districtRef                District?                   @relation(fields: [districtId], references: [id])
+  albumPosts                 AlbumPost[]
+  attendanceRecords          AttendanceRecord[]
+  auditLogs                  AuditLog[]
+  branches                   Branch[]
+  calendarEvents             CalendarEvent[]
+  centerInvitations          CenterInvitation[]
+  centerJoinRequests         CenterJoinRequest[]
+  childEnrollments           ChildEnrollment[]
+  classes                    Class[]
+  conversationThreads        ConversationThread[]
+  dailyReports               DailyReport[]
+  invoices                   Invoice[]
+  mealPlans                  MealPlan[]
+  mealPosts                  MealPost[]
+  mediaAssets                MediaAsset[]
+  medicationRequests         MedicationRequest[]
+  notices                    Notice[]
+  pickupTimeNotices          PickupTimeNotice[]
+  returnHomeRequests         ReturnHomeRequest[]
+  schedules                  Schedule[]
+  studentDocumentTemplates   StudentDocumentTemplate[]
+  studentDocumentRequests    StudentDocumentRequest[]
+  studentDocumentSubmissions StudentDocumentSubmission[]
+  userRoles                  UserRole[]
 
   @@index([organizationId])
   @@index([name])
@@ -143,14 +146,14 @@ model User {
   albumComments               AlbumComment[]
   albumPosts                  AlbumPost[]
   albumReactions              AlbumReaction[]
-  auditLogs                   AuditLog[]                @relation("AuditActor")
+  auditLogs                   AuditLog[]                  @relation("AuditActor")
   calendarEvents              CalendarEvent[]
   calendarEventSeen           CalendarEventSeen[]
-  centerInvitationsAccepted   CenterInvitation[]        @relation("CenterInvitationAcceptor")
-  centerInvitationsCreated    CenterInvitation[]        @relation("CenterInvitationCreator")
-  centerJoinRequests          CenterJoinRequest[]       @relation("JoinRequestParent")
-  checkedInAttendanceRecords  AttendanceRecord[]        @relation("AttendanceCheckInBy")
-  checkedOutAttendanceRecords AttendanceRecord[]        @relation("AttendanceCheckOutBy")
+  centerInvitationsAccepted   CenterInvitation[]          @relation("CenterInvitationAcceptor")
+  centerInvitationsCreated    CenterInvitation[]          @relation("CenterInvitationCreator")
+  centerJoinRequests          CenterJoinRequest[]         @relation("JoinRequestParent")
+  checkedInAttendanceRecords  AttendanceRecord[]          @relation("AttendanceCheckInBy")
+  checkedOutAttendanceRecords AttendanceRecord[]          @relation("AttendanceCheckOutBy")
   childGuardians              ChildGuardian[]
   createdMealPlans            MealPlan[]
   mealChildStatuses           MealChildStatus[]
@@ -161,18 +164,18 @@ model User {
   dailyReportComments         DailyReportComment[]
   deviceTokens                DeviceToken[]
   invoices                    Invoice[]
-  medicationAdministered      MedicationRequest[]       @relation("MedicationAdministeredBy")
-  medicationRequests          MedicationRequest[]       @relation("MedicationParent")
-  medicationReviewed          MedicationRequest[]       @relation("MedicationReviewedBy")
+  medicationAdministered      MedicationRequest[]         @relation("MedicationAdministeredBy")
+  medicationRequests          MedicationRequest[]         @relation("MedicationParent")
+  medicationReviewed          MedicationRequest[]         @relation("MedicationReviewedBy")
   messages                    Message[]
   noticeRecipients            NoticeRecipient[]
   notices                     Notice[]
-  pickupAcknowledgements      PickupTimeNotice[]        @relation("PickupAcknowledgedBy")
-  pickupTimeNotices           PickupTimeNotice[]        @relation("PickupParent")
+  pickupAcknowledgements      PickupTimeNotice[]          @relation("PickupAcknowledgedBy")
+  pickupTimeNotices           PickupTimeNotice[]          @relation("PickupParent")
   parentProfile               ParentProfile?
-  returnHomeConfirmed         ReturnHomeRequest[]       @relation("ReturnHomeConfirmedBy")
-  returnHomeRequests          ReturnHomeRequest[]       @relation("ReturnHomeParent")
-  reviewedJoinRequests        CenterJoinRequest[]       @relation("JoinRequestReviewer")
+  returnHomeConfirmed         ReturnHomeRequest[]         @relation("ReturnHomeConfirmedBy")
+  returnHomeRequests          ReturnHomeRequest[]         @relation("ReturnHomeParent")
+  reviewedJoinRequests        CenterJoinRequest[]         @relation("JoinRequestReviewer")
   teacherClassAssignments     TeacherClassAssignment[]
   teacherProfile              TeacherProfile?
   threadParticipants          ConversationParticipant[]
@@ -182,6 +185,10 @@ model User {
   userRoles                   UserRole[]
   notifications               Notification[]
   realtimeTickets             RealtimeTicket[]
+  studentDocumentTemplates    StudentDocumentTemplate[]   @relation("StudentDocumentTemplateCreator")
+  studentDocumentRequests     StudentDocumentRequest[]    @relation("StudentDocumentRequestCreator")
+  studentDocumentSubmissions  StudentDocumentSubmission[] @relation("StudentDocumentSubmitter")
+  reviewedStudentDocuments    StudentDocumentSubmission[] @relation("StudentDocumentReviewer")
 
   @@map("users")
 }
@@ -327,25 +334,26 @@ model Class {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  branch                  Branch?                  @relation(fields: [branchId], references: [id])
-  center                  Center                   @relation(fields: [centerId], references: [id])
-  albumPostClasses        AlbumPostClass[]
-  albumPosts              AlbumPost[]
-  attendanceRecords       AttendanceRecord[]
-  calendarEventClasses    CalendarEventClass[]
-  centerInvitations       CenterInvitation[]
-  centerJoinRequests      CenterJoinRequest[]
-  childEnrollments        ChildEnrollment[]
-  conversationThreads     ConversationThread[]
-  dailyReports            DailyReport[]
-  mealPlans               MealPlan[]
-  mealPostClasses         MealPostClass[]
-  medicationRequests      MedicationRequest[]
-  notices                 Notice[]
-  pickupTimeNotices       PickupTimeNotice[]
-  returnHomeRequests      ReturnHomeRequest[]
-  schedules               Schedule[]
-  teacherClassAssignments TeacherClassAssignment[]
+  branch                        Branch?                       @relation(fields: [branchId], references: [id])
+  center                        Center                        @relation(fields: [centerId], references: [id])
+  albumPostClasses              AlbumPostClass[]
+  albumPosts                    AlbumPost[]
+  attendanceRecords             AttendanceRecord[]
+  calendarEventClasses          CalendarEventClass[]
+  centerInvitations             CenterInvitation[]
+  centerJoinRequests            CenterJoinRequest[]
+  childEnrollments              ChildEnrollment[]
+  conversationThreads           ConversationThread[]
+  dailyReports                  DailyReport[]
+  mealPlans                     MealPlan[]
+  mealPostClasses               MealPostClass[]
+  medicationRequests            MedicationRequest[]
+  notices                       Notice[]
+  pickupTimeNotices             PickupTimeNotice[]
+  returnHomeRequests            ReturnHomeRequest[]
+  schedules                     Schedule[]
+  studentDocumentRequestClasses StudentDocumentRequestClass[]
+  teacherClassAssignments       TeacherClassAssignment[]
 
   @@index([centerId])
   @@index([branchId])
@@ -383,21 +391,23 @@ model Child {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  albumPostChildren     AlbumPostChild[]
-  albumMediaChildren    AlbumMediaChild[]
-  calendarEventChildren CalendarEventChild[]
-  mealChildStatuses     MealChildStatus[]
-  attendanceRecords     AttendanceRecord[]
-  centerJoinRequests    CenterJoinRequest[]
-  childEnrollments      ChildEnrollment[]
-  childGuardians        ChildGuardian[]
-  conversationThreads   ConversationThread[]
-  dailyReports          DailyReport[]
-  invoices              Invoice[]
-  medicationRequests    MedicationRequest[]
-  noticeRecipients      NoticeRecipient[]
-  pickupTimeNotices     PickupTimeNotice[]
-  returnHomeRequests    ReturnHomeRequest[]
+  albumPostChildren              AlbumPostChild[]
+  albumMediaChildren             AlbumMediaChild[]
+  calendarEventChildren          CalendarEventChild[]
+  mealChildStatuses              MealChildStatus[]
+  attendanceRecords              AttendanceRecord[]
+  centerJoinRequests             CenterJoinRequest[]
+  childEnrollments               ChildEnrollment[]
+  childGuardians                 ChildGuardian[]
+  conversationThreads            ConversationThread[]
+  dailyReports                   DailyReport[]
+  invoices                       Invoice[]
+  medicationRequests             MedicationRequest[]
+  noticeRecipients               NoticeRecipient[]
+  pickupTimeNotices              PickupTimeNotice[]
+  returnHomeRequests             ReturnHomeRequest[]
+  studentDocumentRequestChildren StudentDocumentRequestChild[]
+  studentDocumentSubmissions     StudentDocumentSubmission[]
 
   @@map("children")
 }
@@ -664,12 +674,13 @@ model MediaAsset {
   durationSeconds Int?     @map("duration_seconds")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  center             Center              @relation(fields: [centerId], references: [id])
-  uploaderUser       User                @relation(fields: [uploaderUserId], references: [id])
-  mediaLinks         MediaLink[]
-  albumMedia         AlbumMedia[]
-  mealMedia          MealPostMedia[]
-  medicationRequests MedicationRequest[]
+  center                     Center                      @relation(fields: [centerId], references: [id])
+  uploaderUser               User                        @relation(fields: [uploaderUserId], references: [id])
+  mediaLinks                 MediaLink[]
+  albumMedia                 AlbumMedia[]
+  mealMedia                  MealPostMedia[]
+  medicationRequests         MedicationRequest[]
+  studentDocumentAttachments StudentDocumentAttachment[]
 
   @@index([centerId])
   @@map("media_assets")
@@ -900,6 +911,127 @@ model CalendarEventSeen {
   @@unique([eventId, userId])
   @@index([userId, seenAt(sort: Desc)])
   @@map("calendar_event_seen")
+}
+
+model StudentDocumentTemplate {
+  id              String    @id @default(uuid()) @db.Uuid
+  centerId        String    @map("center_id") @db.Uuid
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  title           String
+  description     String?
+  templateType    String    @map("template_type")
+  status          String    @default("draft")
+  fields          Json      @default("[]") @db.JsonB
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  archivedAt      DateTime? @map("archived_at") @db.Timestamptz(6)
+
+  center        Center                   @relation(fields: [centerId], references: [id])
+  createdByUser User                     @relation("StudentDocumentTemplateCreator", fields: [createdByUserId], references: [id])
+  requests      StudentDocumentRequest[]
+
+  @@index([centerId, status])
+  @@map("student_document_templates")
+}
+
+model StudentDocumentRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  centerId        String    @map("center_id") @db.Uuid
+  templateId      String    @map("template_id") @db.Uuid
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  targetType      String    @map("target_type")
+  title           String
+  instructions    String?
+  dueDate         DateTime? @map("due_date") @db.Date
+  status          String    @default("draft")
+  sentAt          DateTime? @map("sent_at") @db.Timestamptz(6)
+  closedAt        DateTime? @map("closed_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  center        Center                        @relation(fields: [centerId], references: [id])
+  template      StudentDocumentTemplate       @relation(fields: [templateId], references: [id])
+  createdByUser User                          @relation("StudentDocumentRequestCreator", fields: [createdByUserId], references: [id])
+  classes       StudentDocumentRequestClass[]
+  children      StudentDocumentRequestChild[]
+  submissions   StudentDocumentSubmission[]
+
+  @@index([centerId, status, dueDate])
+  @@index([templateId])
+  @@map("student_document_requests")
+}
+
+model StudentDocumentRequestClass {
+  id        String   @id @default(uuid()) @db.Uuid
+  requestId String   @map("request_id") @db.Uuid
+  classId   String   @map("class_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  request StudentDocumentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  class   Class                  @relation(fields: [classId], references: [id])
+
+  @@unique([requestId, classId])
+  @@index([classId])
+  @@map("student_document_request_classes")
+}
+
+model StudentDocumentRequestChild {
+  id        String   @id @default(uuid()) @db.Uuid
+  requestId String   @map("request_id") @db.Uuid
+  childId   String   @map("child_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  request StudentDocumentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  child   Child                  @relation(fields: [childId], references: [id])
+
+  @@unique([requestId, childId])
+  @@index([childId])
+  @@map("student_document_request_children")
+}
+
+model StudentDocumentSubmission {
+  id                String    @id @default(uuid()) @db.Uuid
+  requestId         String    @map("request_id") @db.Uuid
+  centerId          String    @map("center_id") @db.Uuid
+  childId           String    @map("child_id") @db.Uuid
+  submittedByUserId String?   @map("submitted_by_user_id") @db.Uuid
+  reviewedByUserId  String?   @map("reviewed_by_user_id") @db.Uuid
+  status            String    @default("not_started")
+  answers           Json      @default("{}") @db.JsonB
+  correctionNote    String?   @map("correction_note")
+  submittedAt       DateTime? @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt        DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  request         StudentDocumentRequest      @relation(fields: [requestId], references: [id])
+  center          Center                      @relation(fields: [centerId], references: [id])
+  child           Child                       @relation(fields: [childId], references: [id])
+  submittedByUser User?                       @relation("StudentDocumentSubmitter", fields: [submittedByUserId], references: [id])
+  reviewedByUser  User?                       @relation("StudentDocumentReviewer", fields: [reviewedByUserId], references: [id])
+  attachments     StudentDocumentAttachment[]
+
+  @@unique([requestId, childId])
+  @@index([centerId, status])
+  @@index([childId, status])
+  @@map("student_document_submissions")
+}
+
+model StudentDocumentAttachment {
+  id               String   @id @default(uuid()) @db.Uuid
+  submissionId     String   @map("submission_id") @db.Uuid
+  mediaAssetId     String   @map("media_asset_id") @db.Uuid
+  fieldKey         String   @map("field_key")
+  originalFilename String?  @map("original_filename")
+  position         Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  submission StudentDocumentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset                @relation(fields: [mediaAssetId], references: [id])
+
+  @@unique([submissionId, mediaAssetId])
+  @@index([submissionId, position])
+  @@map("student_document_attachments")
 }
 
 model MealPlan {
