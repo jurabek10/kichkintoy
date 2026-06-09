@@ -1104,6 +1104,16 @@ function toChild(child: {
     name: [child.firstName, child.lastName].filter(Boolean).join(" "),
     photoUrl: child.photoUrl,
     dateOfBirth: child.dob ? toIsoDate(child.dob) : null,
-    gender: child.gender,
+    gender: normalizeChildGender(child.gender),
   };
+}
+
+function normalizeChildGender(gender: string | null) {
+  if (!gender) return null;
+  if (gender === "boy" || gender === "girl" || gender === "prefer_not_to_say") {
+    return gender;
+  }
+  if (gender === "male") return "boy";
+  if (gender === "female") return "girl";
+  return "prefer_not_to_say";
 }

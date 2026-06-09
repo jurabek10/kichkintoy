@@ -89,7 +89,7 @@ export class ClassService {
           .join(" "),
         photoUrl: enrollment.child.photoUrl,
         dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
-        gender: enrollment.child.gender,
+        gender: normalizeChildGender(enrollment.child.gender),
       })),
     });
   }
@@ -400,4 +400,14 @@ export class ClassService {
     }
     return klass;
   }
+}
+
+function normalizeChildGender(gender: string | null) {
+  if (!gender) return null;
+  if (gender === "boy" || gender === "girl" || gender === "prefer_not_to_say") {
+    return gender;
+  }
+  if (gender === "male") return "boy";
+  if (gender === "female") return "girl";
+  return "prefer_not_to_say";
 }
