@@ -16,6 +16,7 @@ import { notificationsContract } from "./orpc/notifications.contract.js";
 import { pickupsContract } from "./orpc/pickups.contract.js";
 import { realtimeContract } from "./orpc/realtime.contract.js";
 import { reportsContract } from "./orpc/reports.contract.js";
+import { studentDocumentsContract } from "./orpc/student-documents.contract.js";
 
 export const appContract = {
   auth: authContract,
@@ -30,6 +31,7 @@ export const appContract = {
   medications: medicationsContract,
   meals: mealsContract,
   reports: reportsContract,
+  studentDocuments: studentDocumentsContract,
   notices: noticesContract,
   notifications: notificationsContract,
   pickups: pickupsContract,
@@ -43,3 +45,4 @@ export * from "./orpc/attendance.contract.js";
 export * from "./orpc/calendar.contract.js";
 export * from "./orpc/notifications.contract.js";
 export * from "./orpc/realtime.contract.js";
+export * from "./orpc/student-documents.contract.js";
