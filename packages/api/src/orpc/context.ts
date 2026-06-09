@@ -22,6 +22,7 @@ import type { NotificationsQueryService } from "../notifications/notifications-q
 import type { PickupsService } from "../pickups/pickups.service";
 import type { RealtimeService } from "../realtime/realtime.service";
 import type { ReportsService } from "../reports/reports.service";
+import type { StudentDocumentsService } from "../student-documents/student-documents.service";
 import type { TeacherService } from "../teacher/teacher.service";
 
 export type ORPCContext = {
@@ -50,6 +51,7 @@ export type ORPCDeps = {
   pickupsService: PickupsService;
   realtimeService: RealtimeService;
   reportsService: ReportsService;
+  studentDocumentsService: StudentDocumentsService;
   teacherService: TeacherService;
 };
 

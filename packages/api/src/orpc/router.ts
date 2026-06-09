@@ -20,6 +20,7 @@ import { PickupsService } from "../pickups/pickups.service";
 import { PrismaService } from "../database/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
 import { ReportsService } from "../reports/reports.service";
+import { StudentDocumentsService } from "../student-documents/student-documents.service";
 import { TeacherService } from "../teacher/teacher.service";
 import type { ORPCContext, ORPCDeps } from "./context";
 import { rpcRateLimit } from "./rate-limit";
@@ -41,6 +42,7 @@ import { createNotificationsRouter } from "./routers/notifications.router";
 import { createPickupsRouter } from "./routers/pickups.router";
 import { createRealtimeRouter } from "./routers/realtime.router";
 import { createReportsRouter } from "./routers/reports.router";
+import { createStudentDocumentsRouter } from "./routers/student-documents.router";
 
 export function registerORPCRoutes(app: NestExpressApplication) {
   const router = createORPCRouter({
@@ -63,6 +65,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     prisma: app.get(PrismaService, { strict: false }),
     realtimeService: app.get(RealtimeService, { strict: false }),
     reportsService: app.get(ReportsService, { strict: false }),
+    studentDocumentsService: app.get(StudentDocumentsService, { strict: false }),
     teacherService: app.get(TeacherService, { strict: false }),
   });
 
@@ -106,6 +109,7 @@ function createORPCRouter(deps: ORPCDeps) {
     medications: createMedicationsRouter(os, deps),
     meals: createMealsRouter(os, deps),
     reports: createReportsRouter(os, deps),
+    studentDocuments: createStudentDocumentsRouter(os, deps),
     notices: createNoticesRouter(os, deps),
     notifications: createNotificationsRouter(os, deps),
     pickups: createPickupsRouter(os, deps),

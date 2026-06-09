@@ -22,6 +22,12 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/heif",
 ]);
 const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const ALLOWED_DOCUMENT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
 
 @Injectable()
 export class MediaService {
@@ -34,6 +40,12 @@ export class MediaService {
   async createUploadUrl(userId: string, input: CreateMediaUploadUrlInput) {
     if (input.purpose === "medication" && !ALLOWED_IMAGE_TYPES.has(input.mimeType)) {
       throw new BadRequestException("Medication uploads must be images.");
+    }
+    if (
+      input.purpose === "student_document" &&
+      !ALLOWED_DOCUMENT_TYPES.has(input.mimeType)
+    ) {
+      throw new BadRequestException("Student document uploads must be images or PDFs.");
     }
     await this.requireCenterUploader(userId, input.centerId, input.purpose);
     const mediaType = mediaTypeForMime(input.mimeType);
@@ -135,7 +147,7 @@ export class MediaService {
       },
     });
     if (!staff) {
-      if (purpose === "medication") {
+      if (purpose === "medication" || purpose === "student_document") {
         const guardian = await this.prisma.childGuardian.findFirst({
           where: {
             userId,
@@ -318,6 +330,35 @@ export class MediaService {
       );
     }
 
+    const documentAttachment = await this.prisma.studentDocumentAttachment.findFirst({
+      where: { mediaAssetId },
+      include: {
+        submission: {
+          include: {
+            request: true,
+            child: {
+              include: {
+                childEnrollments: {
+                  where: { enrollmentStatus: "active" },
+                  select: { classId: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (documentAttachment) {
+      const submission = documentAttachment.submission;
+      if (submission.submittedByUserId === userId) return true;
+      const guardian = await this.prisma.childGuardian.findFirst({
+        where: { userId, childId: submission.childId },
+        select: { id: true },
+      });
+      if (guardian) return true;
+      return false;
+    }
+
     return false;
   }
 
@@ -352,7 +393,8 @@ export class MediaService {
 function mediaTypeForMime(mimeType: string) {
   if (ALLOWED_IMAGE_TYPES.has(mimeType)) return "image";
   if (ALLOWED_VIDEO_TYPES.has(mimeType)) return "video";
-  throw new BadRequestException("Only image and video uploads are allowed.");
+  if (mimeType === "application/pdf") return "document";
+  throw new BadRequestException("Only image, video, and PDF uploads are allowed.");
 }
 
 function safeExtension(fileName: string, mimeType: string) {
@@ -362,6 +404,7 @@ function safeExtension(fileName: string, mimeType: string) {
   if (mimeType === "image/png") return ".png";
   if (mimeType === "image/webp") return ".webp";
   if (mimeType === "video/mp4") return ".mp4";
+  if (mimeType === "application/pdf") return ".pdf";
   return "";
 }
 
