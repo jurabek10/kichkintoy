@@ -1,0 +1,73 @@
+"use client";
+
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { FileCheck2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
+import { submissionStatusLabel, templateTypeLabel } from "./document-utils";
+
+export function ParentDocuments() {
+  const { data = [], isPending } = useQuery({
+    queryKey: queryKeys.studentDocuments.parentRequests(),
+    queryFn: () => orpc.studentDocuments.parentRequests(),
+  });
+
+  return (
+    <div className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <FileCheck2 className="h-5 w-5" />
+            Documents
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      {isPending ? (
+        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+      ) : data.length === 0 ? (
+        <Card className="grid place-items-center gap-2 p-8 text-center">
+          <FileCheck2 className="h-8 w-8 text-muted-foreground" />
+          <p className="font-semibold">No document requests</p>
+        </Card>
+      ) : (
+        <div className="grid gap-3">
+          {data.map((submission) => (
+            <Link key={submission.id} href={`/dashboard/documents/${submission.id}`}>
+              <Card className="transition hover:bg-muted/50">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div>
+                    <p className="font-semibold">{submission.requestTitle}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {submission.childName} ·{" "}
+                      {templateTypeLabel(submission.templateType)}
+                    </p>
+                    {submission.correctionNote ? (
+                      <p className="mt-1 text-sm text-warning">
+                        {submission.correctionNote}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Badge
+                    variant={
+                      submission.status === "accepted"
+                        ? "success"
+                        : submission.status === "needs_correction"
+                          ? "warning"
+                          : "outline"
+                    }
+                  >
+                    {submissionStatusLabel(submission.status)}
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

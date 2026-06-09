@@ -44,6 +44,25 @@ export const queryKeys = {
       ["calendar", "upcoming", input ?? {}] as const,
     detail: (eventId: string) => ["calendar", "detail", eventId] as const,
   },
+  studentDocuments: {
+    all: () => ["studentDocuments"] as const,
+    templates: (input?: Record<string, unknown>) =>
+      ["studentDocuments", "templates", input ?? {}] as const,
+    template: (templateId: string) =>
+      ["studentDocuments", "template", templateId] as const,
+    requests: (input?: Record<string, unknown>) =>
+      ["studentDocuments", "requests", input ?? {}] as const,
+    request: (requestId: string) =>
+      ["studentDocuments", "request", requestId] as const,
+    submissions: (input?: Record<string, unknown>) =>
+      ["studentDocuments", "submissions", input ?? {}] as const,
+    submission: (submissionId: string) =>
+      ["studentDocuments", "submission", submissionId] as const,
+    parentRequests: (input?: Record<string, unknown>) =>
+      ["studentDocuments", "parentRequests", input ?? {}] as const,
+    safetySummary: (childId: string) =>
+      ["studentDocuments", "safetySummary", childId] as const,
+  },
   meals: {
     all: () => ["meals"] as const,
     audience: (centerId: string) => ["meals", "audience", centerId] as const,

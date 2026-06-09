@@ -17,6 +17,12 @@ export function routeForNotification(input: {
     return `/dashboard/medications/${id}`;
   }
   if (id && source.includes("pickup")) return `/dashboard/pickups/${id}`;
+  if (source.includes("student_document.request_sent")) {
+    return "/dashboard/documents";
+  }
+  if (id && source.includes("student_document")) {
+    return `/dashboard/documents/${id}`;
+  }
   if (source.includes("attendance")) return "/dashboard/attendance";
 
   return "/dashboard/notifications";
