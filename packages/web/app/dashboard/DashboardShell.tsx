@@ -17,7 +17,6 @@ import {
   Mail,
   Pill,
   School,
-  Sparkles,
   UserCheck,
   Utensils,
 } from "lucide-react";
@@ -37,7 +36,6 @@ const navByRole: Record<
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "Classes", Icon: School },
     { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
-    { href: "/dashboard/special-classes", label: "Special classes", Icon: Sparkles },
     { href: "/dashboard/documents", label: "Documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
@@ -54,7 +52,6 @@ const navByRole: Record<
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/classes", label: "My classes", Icon: School },
     { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
-    { href: "/dashboard/special-classes", label: "Special classes", Icon: Sparkles },
     { href: "/dashboard/documents", label: "Documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },
@@ -68,7 +65,6 @@ const navByRole: Record<
   parent: [
     { href: "/dashboard", label: "Overview", Icon: LayoutDashboard },
     { href: "/dashboard/calendar", label: "Calendar", Icon: CalendarDays },
-    { href: "/dashboard/special-classes", label: "Special classes", Icon: Sparkles },
     { href: "/dashboard/documents", label: "Documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", label: "Attendance", Icon: ClipboardCheck },
     { href: "/dashboard/reports", label: "Reports", Icon: FileText },

@@ -47,19 +47,6 @@ export class MediaService {
     ) {
       throw new BadRequestException("Student document uploads must be images or PDFs.");
     }
-    if (
-      input.purpose === "special_class" &&
-      !ALLOWED_IMAGE_TYPES.has(input.mimeType) &&
-      !ALLOWED_VIDEO_TYPES.has(input.mimeType)
-    ) {
-      throw new BadRequestException("Special class uploads must be images or videos.");
-    }
-    if (
-      input.purpose === "development_portfolio" &&
-      input.mimeType !== "application/pdf"
-    ) {
-      throw new BadRequestException("Development portfolios must be PDFs.");
-    }
     await this.requireCenterUploader(userId, input.centerId, input.purpose);
     const mediaType = mediaTypeForMime(input.mimeType);
     const extension = safeExtension(input.fileName, input.mimeType);
@@ -370,86 +357,6 @@ export class MediaService {
       });
       if (guardian) return true;
       return false;
-    }
-
-    const specialMedia = await this.prisma.specialClassSessionMedia.findFirst({
-      where: { mediaAssetId },
-      include: {
-        session: true,
-        children: true,
-      },
-    });
-    if (specialMedia) {
-      if (
-        staff &&
-        (await this.teacherHasClassAccess(userId, [specialMedia.session.classId]))
-      ) {
-        return true;
-      }
-      if (
-        specialMedia.session.status !== "published" ||
-        specialMedia.visibility === "staff_only"
-      ) {
-        return false;
-      }
-      if (specialMedia.visibility === "tagged_children") {
-        return Boolean(
-          await this.prisma.childGuardian.findFirst({
-            where: {
-              userId,
-              childId: {
-                in: specialMedia.children.map((item) => item.childId),
-              },
-            },
-            select: { id: true },
-          }),
-        );
-      }
-      return Boolean(
-        await this.prisma.childGuardian.findFirst({
-          where: {
-            userId,
-            child: {
-              childEnrollments: {
-                some: {
-                  enrollmentStatus: "active",
-                  classId: specialMedia.session.classId,
-                },
-              },
-            },
-          },
-          select: { id: true },
-        }),
-      );
-    }
-
-    const portfolio = await this.prisma.developmentPortfolioExport.findFirst({
-      where: { mediaAssetId },
-    });
-    if (portfolio) {
-      const guardian = await this.prisma.childGuardian.findFirst({
-        where: { userId, childId: portfolio.childId },
-        select: { id: true },
-      });
-      if (guardian) return true;
-      return Boolean(
-        await this.prisma.teacherClassAssignment.findFirst({
-          where: {
-            teacherUserId: userId,
-            endedAt: null,
-            class: {
-              centerId: portfolio.centerId,
-              childEnrollments: {
-                some: {
-                  childId: portfolio.childId,
-                  enrollmentStatus: "active",
-                },
-              },
-            },
-          },
-          select: { id: true },
-        }),
-      );
     }
 
     return false;

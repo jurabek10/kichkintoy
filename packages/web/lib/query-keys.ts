@@ -63,23 +63,6 @@ export const queryKeys = {
     safetySummary: (childId: string) =>
       ["studentDocuments", "safetySummary", childId] as const,
   },
-  specialClasses: {
-    all: () => ["specialClasses"] as const,
-    subjects: (centerId: string) =>
-      ["specialClasses", "subjects", centerId] as const,
-    specialists: (centerId: string) =>
-      ["specialClasses", "specialists", centerId] as const,
-    schedules: (input: Record<string, unknown>) =>
-      ["specialClasses", "schedules", input] as const,
-    staffSessions: (input: Record<string, unknown>) =>
-      ["specialClasses", "staffSessions", input] as const,
-    session: (sessionId: string) =>
-      ["specialClasses", "session", sessionId] as const,
-    parentFeed: (input?: Record<string, unknown>) =>
-      ["specialClasses", "parentFeed", input ?? {}] as const,
-    monthlyProgress: (input: Record<string, unknown>) =>
-      ["specialClasses", "monthlyProgress", input] as const,
-  },
   meals: {
     all: () => ["meals"] as const,
     audience: (centerId: string) => ["meals", "audience", centerId] as const,

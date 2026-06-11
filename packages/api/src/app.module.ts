@@ -21,7 +21,6 @@ import { NoticesModule } from "./notices/notices.module";
 import { PickupsModule } from "./pickups/pickups.module";
 import { RealtimeModule } from "./realtime/realtime.module";
 import { ReportsModule } from "./reports/reports.module";
-import { SpecialClassesModule } from "./special-classes/special-classes.module";
 import { StudentDocumentsModule } from "./student-documents/student-documents.module";
 import { TeacherModule } from "./teacher/teacher.module";
 
@@ -54,7 +53,6 @@ import { TeacherModule } from "./teacher/teacher.module";
     DirectorModule,
     TeacherModule,
     ReportsModule,
-    SpecialClassesModule,
     StudentDocumentsModule,
   ],
   controllers: [AppController],
