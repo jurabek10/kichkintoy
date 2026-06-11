@@ -41,14 +41,14 @@ export function StaffReports({
   } = useQuery({
     queryKey: queryKeys.reports.staffDashboard({ director, centerId, date }),
     queryFn: async () => {
-      const [classRows, reportRows] = await Promise.all([
-        director
-          ? centerId
-            ? orpc.director.classes({ centerId })
-            : Promise.resolve<ClassListItem[]>([])
-          : orpc.teacher.classes(),
-        orpc.reports.teacherList({ reportDate: date }),
-      ]);
+      const classRows = director
+        ? centerId
+          ? await orpc.director.classes({ centerId })
+          : []
+        : await orpc.teacher.classes();
+      const reportRows = director
+        ? []
+        : await orpc.reports.teacherList({ reportDate: date });
       const classes = director
         ? (classRows as ClassListItem[]).filter(
             (klass) => klass.status !== "archived",
@@ -93,10 +93,14 @@ export function StaffReports({
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+      {director ? (
         <StaffClassesCard classes={classes} date={date} loading={loading} />
-        <StaffReportsCard date={date} loading={loading} reports={reports} />
-      </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <StaffClassesCard classes={classes} date={date} loading={loading} />
+          <StaffReportsCard date={date} loading={loading} reports={reports} />
+        </div>
+      )}
     </div>
   );
 }
