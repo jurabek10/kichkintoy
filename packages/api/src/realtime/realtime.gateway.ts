@@ -177,6 +177,9 @@ export class RealtimeGateway {
     if (source.includes("student_document")) {
       hints.push({ group: "studentDocuments", id: entityId });
     }
+    if (source.includes("special_class")) {
+      hints.push({ group: "specialClasses", id: entityId });
+    }
     if (source.includes("join") || source.includes("membership")) {
       hints.push({ group: "director" });
     }
