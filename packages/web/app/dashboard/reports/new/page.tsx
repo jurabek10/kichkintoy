@@ -9,6 +9,7 @@ export default function NewReportPage() {
   return (
     <ReportComposer
       childId={search.get("childId") ?? ""}
+      centerId={search.get("centerId")}
       initialReportDate={search.get("reportDate")}
     />
   );

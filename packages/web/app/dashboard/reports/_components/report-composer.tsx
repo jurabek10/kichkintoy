@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Save, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Paperclip, Plus, Save, Send, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type {
-  DailyReportDetail,
   DailyReportItemInput,
   DailyReportItemType,
+  MediaAsset,
 } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { reportItemTypeLabel } from "@/lib/format";
+import {
+  ClassParticipationSection,
+  classParticipationRowsToItems,
+  type ClassParticipationRow,
+} from "./class-participation-section";
 import { todayIsoDate } from "./report-utils";
 
 const itemTypes: DailyReportItemType[] = [
@@ -47,9 +52,11 @@ const itemTypes: DailyReportItemType[] = [
 
 export function ReportComposer({
   childId,
+  centerId,
   initialReportDate,
 }: {
   childId: string;
+  centerId?: string | null;
   initialReportDate?: string | null;
 }) {
   const router = useRouter();
@@ -59,6 +66,10 @@ export function ReportComposer({
   const [healthNote, setHealthNote] = useState("");
   const [teacherNote, setTeacherNote] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [classParticipationRows, setClassParticipationRows] = useState<
+    ClassParticipationRow[]
+  >([]);
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [items, setItems] = useState<DailyReportItemInput[]>([
     { itemType: "meal", title: "Lunch", value: "", note: "" },
     { itemType: "sleep", title: "Nap", value: "", note: "" },
@@ -74,7 +85,11 @@ export function ReportComposer({
         mood: mood || undefined,
         healthNote: healthNote || undefined,
         teacherNote: teacherNote || undefined,
-        items: compactItems(items),
+        items: compactItems([
+          ...items,
+          ...classParticipationRowsToItems(classParticipationRows),
+        ]),
+        photoAssetIds: mediaAssets.map((asset) => asset.id),
         publish: mode === "publish",
         scheduledAt:
           mode === "schedule" && scheduledAt
@@ -111,6 +126,45 @@ export function ReportComposer({
 
   function removeItem(index: number) {
     setItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  async function uploadFiles(files: FileList | null) {
+    if (!files) return;
+    if (!centerId) {
+      setError("Center id is missing. Open this report from the class reports page.");
+      return;
+    }
+    setError(null);
+    try {
+      const uploaded: MediaAsset[] = [];
+      for (const file of Array.from(files).slice(0, 20 - mediaAssets.length)) {
+        const signed = await orpc.media.createUploadUrl({
+          centerId,
+          fileName: file.name,
+          mimeType: file.type,
+          sizeBytes: file.size,
+          purpose: "daily_report",
+        });
+        const response = await fetch(signed.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+        if (!response.ok) throw new Error(`Upload failed for ${file.name}.`);
+        const asset = await orpc.media.completeUpload({
+          mediaAssetId: signed.mediaAssetId,
+        });
+        uploaded.push(asset);
+      }
+      setMediaAssets((current) => [...current, ...uploaded]);
+      if (uploaded.length > 0) toast.success(`${uploaded.length} file(s) uploaded.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    }
+  }
+
+  function removeMedia(assetId: string) {
+    setMediaAssets((current) => current.filter((asset) => asset.id !== assetId));
   }
 
   return (
@@ -153,6 +207,18 @@ export function ReportComposer({
         onUpdate={updateItem}
       />
 
+      <ClassParticipationSection
+        rows={classParticipationRows}
+        onChange={setClassParticipationRows}
+      />
+
+      <ReportMediaUpload
+        disabled={!centerId}
+        mediaAssets={mediaAssets}
+        onRemove={removeMedia}
+        onUpload={uploadFiles}
+      />
+
       <ComposerActions
         scheduledAt={scheduledAt}
         submitting={submitting}
@@ -161,6 +227,88 @@ export function ReportComposer({
         onPublish={() => submit("publish")}
       />
     </form>
+  );
+}
+
+function ReportMediaUpload({
+  disabled,
+  mediaAssets,
+  onRemove,
+  onUpload,
+}: {
+  disabled: boolean;
+  mediaAssets: MediaAsset[];
+  onRemove: (assetId: string) => void;
+  onUpload: (files: FileList | null) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <CardTitle className="text-base">Photos/videos</CardTitle>
+          <CardDescription>
+            Attach child-safe report media. Videos can be up to 100MB.
+          </CardDescription>
+        </div>
+        <Button type="button" variant="outline" size="sm" disabled={disabled} asChild>
+          <Label className="cursor-pointer">
+            <Upload className="h-4 w-4" />
+            Upload files
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm,video/quicktime"
+              multiple
+              className="sr-only"
+              onChange={(event) => {
+                onUpload(event.target.files);
+                event.currentTarget.value = "";
+              }}
+            />
+          </Label>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {disabled ? (
+          <p className="text-sm text-muted-foreground">
+            Open a child from the class reports page to upload report media.
+          </p>
+        ) : mediaAssets.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No report media uploaded yet.
+          </p>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {mediaAssets.map((asset) => (
+              <li
+                key={asset.id}
+                className="flex items-center justify-between gap-3 rounded-lg border p-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {asset.mediaType === "video" ? "Video" : "Photo"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatMediaSize(asset.sizeBytes)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onRemove(asset.id)}
+                    aria-label="Remove media"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -410,4 +558,12 @@ function successMessage(mode: "draft" | "publish" | "schedule") {
   if (mode === "publish") return "Report published.";
   if (mode === "schedule") return "Report scheduled.";
   return "Draft saved.";
+}
+
+function formatMediaSize(sizeBytes: number | null) {
+  if (!sizeBytes) return "Uploaded";
+  if (sizeBytes >= 1024 * 1024) {
+    return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+  return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
 }
