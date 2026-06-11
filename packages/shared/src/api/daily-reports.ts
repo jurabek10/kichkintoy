@@ -19,16 +19,66 @@ export const dailyReportItemTypeValues = [
   "temperature",
   "medication",
   "health",
+  "class_participation",
   "custom",
 ] as const;
 export const dailyReportItemTypeSchema = z.enum(dailyReportItemTypeValues);
 export type DailyReportItemType = z.infer<typeof dailyReportItemTypeSchema>;
 
+export const classParticipationLevelValues = [
+  "excellent",
+  "good",
+  "needs_support",
+  "not_observed",
+  "absent",
+] as const;
+export const classParticipationLevelSchema = z.enum(
+  classParticipationLevelValues,
+);
+export type ClassParticipationLevel = z.infer<
+  typeof classParticipationLevelSchema
+>;
+
+export const classParticipationInterestValues = [
+  "high",
+  "medium",
+  "low",
+  "not_observed",
+] as const;
+export const classParticipationInterestSchema = z.enum(
+  classParticipationInterestValues,
+);
+export type ClassParticipationInterest = z.infer<
+  typeof classParticipationInterestSchema
+>;
+
+export const classParticipationNoteSchema = z.object({
+  interest: classParticipationInterestSchema,
+  strengths: z.string().trim().max(500).nullable().optional(),
+  needsPractice: z.string().trim().max(500).nullable().optional(),
+  homeSuggestion: z.string().trim().max(500).nullable().optional(),
+  teacherNote: z.string().trim().max(1000).nullable().optional(),
+});
+export type ClassParticipationNote = z.infer<
+  typeof classParticipationNoteSchema
+>;
+
+export const classParticipationItemInputSchema = z.object({
+  itemType: z.literal("class_participation"),
+  title: z.string().trim().min(1).max(80),
+  value: classParticipationLevelSchema,
+  note: z.string().trim().min(1).max(1600),
+  recordedAt: isoDateTimeSchema.nullable().optional(),
+});
+export type ClassParticipationItemInput = z.infer<
+  typeof classParticipationItemInputSchema
+>;
+
 export const dailyReportItemInputSchema = z.object({
   itemType: dailyReportItemTypeSchema,
   title: z.string().trim().max(80).nullable().optional(),
   value: z.string().trim().max(120).nullable().optional(),
-  note: z.string().trim().max(1000).nullable().optional(),
+  note: z.string().trim().max(1600).nullable().optional(),
   recordedAt: isoDateTimeSchema.nullable().optional(),
 });
 export type DailyReportItemInput = z.infer<
@@ -176,6 +226,8 @@ export const dailyReportDetailSchema = dailyReportSummarySchema.extend({
 export type DailyReportDetail = z.infer<typeof dailyReportDetailSchema>;
 
 export const dailyReportClassChildStatusSchema = dailyReportChildSchema.extend({
+  centerId: uuidSchema,
+  class: dailyReportClassSchema,
   report: dailyReportSummarySchema.nullable(),
 });
 export type DailyReportClassChildStatus = z.infer<

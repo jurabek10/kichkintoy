@@ -28,6 +28,8 @@ const ALLOWED_DOCUMENT_TYPES = new Set([
   "image/webp",
   "application/pdf",
 ]);
+const DEFAULT_UPLOAD_LIMIT_BYTES = 25 * 1024 * 1024;
+const DAILY_REPORT_VIDEO_LIMIT_BYTES = 100 * 1024 * 1024;
 
 @Injectable()
 export class MediaService {
@@ -42,10 +44,28 @@ export class MediaService {
       throw new BadRequestException("Medication uploads must be images.");
     }
     if (
+      input.purpose === "daily_report" &&
+      !ALLOWED_IMAGE_TYPES.has(input.mimeType) &&
+      !ALLOWED_VIDEO_TYPES.has(input.mimeType)
+    ) {
+      throw new BadRequestException("Daily report uploads must be images or videos.");
+    }
+    if (
       input.purpose === "student_document" &&
       !ALLOWED_DOCUMENT_TYPES.has(input.mimeType)
     ) {
       throw new BadRequestException("Student document uploads must be images or PDFs.");
+    }
+    const maxBytes =
+      input.purpose === "daily_report" && ALLOWED_VIDEO_TYPES.has(input.mimeType)
+        ? DAILY_REPORT_VIDEO_LIMIT_BYTES
+        : DEFAULT_UPLOAD_LIMIT_BYTES;
+    if (input.sizeBytes > maxBytes) {
+      throw new BadRequestException(
+        input.purpose === "daily_report" && ALLOWED_VIDEO_TYPES.has(input.mimeType)
+          ? "Daily report videos must be 100MB or smaller."
+          : "Uploads must be 25MB or smaller.",
+      );
     }
     await this.requireCenterUploader(userId, input.centerId, input.purpose);
     const mediaType = mediaTypeForMime(input.mimeType);
@@ -306,6 +326,32 @@ export class MediaService {
                 },
               },
             },
+          },
+          select: { id: true },
+        }),
+      );
+    }
+
+    const reportMedia = await this.prisma.mediaLink.findFirst({
+      where: { mediaAssetId, entityType: "daily_report" },
+    });
+    if (reportMedia) {
+      const dailyReport = await this.prisma.dailyReport.findUnique({
+        where: { id: reportMedia.entityId },
+      });
+      if (!dailyReport) return false;
+      if (
+        staff &&
+        (await this.teacherHasClassAccess(userId, [dailyReport.classId]))
+      ) {
+        return true;
+      }
+      if (dailyReport.status !== "published") return false;
+      return Boolean(
+        await this.prisma.childGuardian.findFirst({
+          where: {
+            userId,
+            childId: dailyReport.childId,
           },
           select: { id: true },
         }),

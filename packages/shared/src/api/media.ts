@@ -17,8 +17,23 @@ export const createMediaUploadUrlInputSchema = z.object({
   centerId: uuidSchema,
   fileName: z.string().trim().min(1).max(180),
   mimeType: z.string().trim().min(3).max(120),
-  sizeBytes: z.number().int().positive().max(25 * 1024 * 1024),
+  sizeBytes: z.number().int().positive().max(100 * 1024 * 1024),
   purpose: mediaPurposeSchema,
+}).superRefine((input, ctx) => {
+  const maxBytes =
+    input.purpose === "daily_report" && input.mimeType.startsWith("video/")
+      ? 100 * 1024 * 1024
+      : 25 * 1024 * 1024;
+  if (input.sizeBytes > maxBytes) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["sizeBytes"],
+      message:
+        input.purpose === "daily_report" && input.mimeType.startsWith("video/")
+          ? "Daily report videos must be 100MB or smaller."
+          : "Uploads must be 25MB or smaller.",
+    });
+  }
 });
 export type CreateMediaUploadUrlInput = z.infer<
   typeof createMediaUploadUrlInputSchema

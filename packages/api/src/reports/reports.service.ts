@@ -7,6 +7,8 @@ import {
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import {
+  classParticipationLevelSchema,
+  classParticipationNoteSchema,
   dailyReportDetailSchema,
   dailyReportSummarySchema,
 } from "@kichkintoy/shared";
@@ -84,7 +86,7 @@ export class ReportsService {
   ) {
     await this.publishDueScheduledReports();
     const date = parseReportDate(reportDate ?? todayIsoDate());
-    await this.requireCanAuthorClass(userId, classId);
+    const klass = await this.requireCanAuthorClass(userId, classId);
 
     const enrollments = await this.prisma.childEnrollment.findMany({
       where: { classId, enrollmentStatus: "active" },
@@ -119,6 +121,8 @@ export class ReportsService {
         const report = byChild.get(enrollment.childId);
         return {
           ...toChild(enrollment.child),
+          centerId: enrollment.centerId,
+          class: { id: classId, name: report?.class.name ?? klass.name },
           report: report ? await this.toSummary(report) : null,
         };
       }),
@@ -678,7 +682,7 @@ export class ReportsService {
   private async requireCanAuthorClass(userId: string, classId: string) {
     const klass = await this.prisma.class.findUnique({
       where: { id: classId },
-      select: { id: true, centerId: true },
+      select: { id: true, centerId: true, name: true },
     });
     if (!klass) throw new NotFoundException("Class not found.");
 
@@ -1026,13 +1030,51 @@ function normalizeItems(items: DailyReportItemInput[] = []) {
         clean(item.note) ||
         item.itemType === "mood",
     )
-    .map((item) => ({
-      itemType: item.itemType,
-      title: clean(item.title),
-      value: clean(item.value),
-      note: clean(item.note),
-      recordedAt: item.recordedAt ? parseDateTime(item.recordedAt) : null,
-    }));
+    .map((item) => normalizeItem(item));
+}
+
+function normalizeItem(item: DailyReportItemInput) {
+  if (item.itemType === "class_participation") {
+    return normalizeClassParticipationItem(item);
+  }
+
+  return {
+    itemType: item.itemType,
+    title: clean(item.title),
+    value: clean(item.value),
+    note: clean(item.note),
+    recordedAt: item.recordedAt ? parseDateTime(item.recordedAt) : null,
+  };
+}
+
+function normalizeClassParticipationItem(item: DailyReportItemInput) {
+  const title = clean(item.title);
+  const value = clean(item.value);
+  const note = clean(item.note);
+  if (!title) {
+    throw new BadRequestException("Class participation subject is required.");
+  }
+  const level = classParticipationLevelSchema.safeParse(value);
+  if (!level.success) {
+    throw new BadRequestException("Class participation level is invalid.");
+  }
+  if (!note) {
+    throw new BadRequestException("Class participation note is required.");
+  }
+
+  try {
+    classParticipationNoteSchema.parse(JSON.parse(note));
+  } catch {
+    throw new BadRequestException("Class participation note is invalid.");
+  }
+
+  return {
+    itemType: "class_participation",
+    title,
+    value: level.data,
+    note,
+    recordedAt: item.recordedAt ? parseDateTime(item.recordedAt) : null,
+  };
 }
 
 function assertReportHasContent(
