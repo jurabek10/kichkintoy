@@ -30,9 +30,12 @@ import {
 import {
   formatDate,
   formatDateTime,
+  participationInterestLabel,
+  participationLevelLabel,
   reportItemTypeLabel,
   reportStatusLabel,
 } from "@/lib/format";
+import { SignedReportMedia } from "./signed-report-media";
 
 export function ReportDetailScreen({
   isParent,
@@ -395,6 +398,13 @@ function ReportEditForm({
 }
 
 function ReportBody({ report }: { report: DailyReportDetail }) {
+  const standardItems = report.items.filter(
+    (item) => item.itemType !== "class_participation",
+  );
+  const participationItems = report.items.filter(
+    (item) => item.itemType === "class_participation",
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -407,7 +417,11 @@ function ReportBody({ report }: { report: DailyReportDetail }) {
         {report.healthNote ? (
           <ReportTextSection title="Health note" body={report.healthNote} />
         ) : null}
-        {report.items.length > 0 ? <ReportItems report={report} /> : null}
+        {standardItems.length > 0 ? <ReportItems items={standardItems} /> : null}
+        {participationItems.length > 0 ? (
+          <ClassParticipationItems items={participationItems} />
+        ) : null}
+        {report.photos.length > 0 ? <ReportMedia report={report} /> : null}
       </CardContent>
     </Card>
   );
@@ -424,10 +438,10 @@ function ReportTextSection({ body, title }: { body: string; title: string }) {
   );
 }
 
-function ReportItems({ report }: { report: DailyReportDetail }) {
+function ReportItems({ items }: { items: DailyReportDetail["items"] }) {
   return (
     <section className="grid gap-2 sm:grid-cols-2">
-      {report.items.map((item) => (
+      {items.map((item) => (
         <div key={item.id} className="rounded-lg border p-3">
           <Badge variant="info">{reportItemTypeLabel(item.itemType)}</Badge>
           <p className="mt-2 font-semibold">
@@ -445,6 +459,114 @@ function ReportItems({ report }: { report: DailyReportDetail }) {
       ))}
     </section>
   );
+}
+
+function ReportMedia({ report }: { report: DailyReportDetail }) {
+  return (
+    <section>
+      <h2 className="text-sm font-bold">Photos/videos</h2>
+      <div className="mt-2 grid gap-3 md:grid-cols-2">
+        {report.photos.map((media) => (
+          <SignedReportMedia
+            key={media.id}
+            mediaAssetId={media.id}
+            mediaType={media.mediaType}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ClassParticipationItems({
+  items,
+}: {
+  items: DailyReportDetail["items"];
+}) {
+  return (
+    <section>
+      <h2 className="text-sm font-bold">Class participation</h2>
+      <div className="mt-2 grid gap-2 md:grid-cols-2">
+        {items.map((item) => {
+          const note = parseClassParticipationNote(item.note);
+          return (
+            <div key={item.id} className="rounded-lg border p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold">{item.title || "Subject"}</p>
+                {item.value ? (
+                  <Badge variant="info">
+                    {participationLevelLabel(item.value)}
+                  </Badge>
+                ) : null}
+                {note?.interest ? (
+                  <Badge variant="outline">
+                    Interest: {participationInterestLabel(note.interest)}
+                  </Badge>
+                ) : null}
+              </div>
+              <dl className="mt-3 grid gap-2 text-sm text-muted-foreground">
+                {note?.strengths ? (
+                  <ClassParticipationField
+                    label="Strengths"
+                    value={note.strengths}
+                  />
+                ) : null}
+                {note?.needsPractice ? (
+                  <ClassParticipationField
+                    label="Needs practice"
+                    value={note.needsPractice}
+                  />
+                ) : null}
+                {note?.homeSuggestion ? (
+                  <ClassParticipationField
+                    label="Home practice"
+                    value={note.homeSuggestion}
+                  />
+                ) : null}
+                {note?.teacherNote ? (
+                  <ClassParticipationField
+                    label="Teacher note"
+                    value={note.teacherNote}
+                  />
+                ) : null}
+              </dl>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ClassParticipationField({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <dt className="font-semibold text-foreground">{label}</dt>
+      <dd className="whitespace-pre-wrap">{value}</dd>
+    </div>
+  );
+}
+
+function parseClassParticipationNote(value: string | null) {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as {
+      interest?: string;
+      strengths?: string;
+      needsPractice?: string;
+      homeSuggestion?: string;
+      teacherNote?: string;
+    };
+    return parsed;
+  } catch {
+    return { teacherNote: value };
+  }
 }
 
 function ReadReceipts({ report }: { report: DailyReportDetail }) {

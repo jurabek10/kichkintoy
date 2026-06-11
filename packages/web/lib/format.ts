@@ -121,7 +121,25 @@ export function reportItemTypeLabel(value: string): string {
   if (value === "temperature") return "Temperature";
   if (value === "medication") return "Medication";
   if (value === "health") return "Health";
+  if (value === "class_participation") return "Class participation";
   return "Custom";
+}
+
+export function participationLevelLabel(value: string): string {
+  if (value === "excellent") return "Excellent";
+  if (value === "good") return "Good";
+  if (value === "needs_support") return "Needs support";
+  if (value === "not_observed") return "Not observed";
+  if (value === "absent") return "Absent";
+  return value;
+}
+
+export function participationInterestLabel(value: string): string {
+  if (value === "high") return "High";
+  if (value === "medium") return "Medium";
+  if (value === "low") return "Low";
+  if (value === "not_observed") return "Not observed";
+  return value;
 }
 
 export function genderLabel(value: string | null | undefined): string {
