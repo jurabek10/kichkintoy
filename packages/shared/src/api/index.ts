@@ -14,5 +14,6 @@ export * from "./notices.js";
 export * from "./notifications.js";
 export * from "./pickups.js";
 export * from "./realtime.js";
+export * from "./special-classes.js";
 export * from "./student-documents.js";
 export * from "./orpc-contract.js";
