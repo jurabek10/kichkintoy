@@ -8,7 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cookieName, languages, type Language } from "@/i18n/settings";
+import {
+  cookieName,
+  languages,
+  type Language,
+} from "@kichkintoy/translations/settings";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function LanguageSwitcher() {

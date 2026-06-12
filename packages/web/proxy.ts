@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { cookieName, fallbackLng, isSupportedLanguage } from "./i18n/settings";
+import {
+  cookieName,
+  fallbackLng,
+  isSupportedLanguage,
+} from "@kichkintoy/translations/settings";
 
 export const config = {
   matcher: ["/((?!api|_next|.*\\..*).*)", { source: "/" }],

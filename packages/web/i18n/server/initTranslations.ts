@@ -1,7 +1,7 @@
 import { createInstance, type i18n, type Resource } from "i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
 import { initReactI18next } from "react-i18next/initReactI18next";
-import { fallbackLng, languages } from "../settings";
+import { fallbackLng, languages } from "@kichkintoy/translations/settings";
 
 export default async function initTranslations(
   locale: string,
@@ -17,7 +17,7 @@ export default async function initTranslations(
     i18nInstance.use(
       resourcesToBackend(
         (language: string, namespace: string) =>
-          import(`../../locales/${language}/${namespace}.json`),
+          import(`../../../translations/src/locales/${language}/${namespace}.json`),
       ),
     );
   }

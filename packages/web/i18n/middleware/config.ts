@@ -1,5 +1,5 @@
 import type { Config } from "next-i18n-router/dist/types";
-import { cookieName, fallbackLng, languages } from "../settings";
+import { cookieName, fallbackLng, languages } from "@kichkintoy/translations/settings";
 
 const i18nConfig: Config = {
   locales: [...languages],

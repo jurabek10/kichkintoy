@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 import { Toaster } from "@/components/ui/sonner";
 import LayoutTranslationsProvider from "@/i18n/LayoutTranslationsProvider";
 import initTranslations from "@/i18n/server/initTranslations";
-import { cookieName, fallbackLng, isSupportedLanguage } from "@/i18n/settings";
+import {
+  cookieName,
+  fallbackLng,
+  isSupportedLanguage,
+} from "@kichkintoy/translations/settings";
 import { Providers } from "./providers";
 import "./globals.css";
 
