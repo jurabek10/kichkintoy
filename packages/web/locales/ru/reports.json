@@ -1,0 +1,63 @@
+{
+  "title": "Ежедневные отчеты",
+  "parentDescription": "Читайте обновления воспитателя и оставляйте комментарии.",
+  "staffDescription": "Создавайте черновики, публикуйте отчеты и проверяйте просмотры родителей.",
+  "children": "Дети",
+  "noLinkedChildren": "Пока нет привязанных детей.",
+  "reports": "Отчеты",
+  "childReports": "Отчеты: {{name}}",
+  "loading": "Загрузка...",
+  "noPublishedReports": "Опубликованных отчетов пока нет.",
+  "classes": "Группы",
+  "noClasses": "Нет групп для отчетов.",
+  "noChildrenInClass": "В этой группе нет детей.",
+  "childrenCount": "{{count}} детей",
+  "readCount": "{{read}}/{{total}} прочитали",
+  "newReport": "Новый отчет",
+  "reportsForDate": "Отчеты за {{date}}",
+  "noReportsForDate": "За эту дату отчетов пока нет.",
+  "back": "Отчеты",
+  "classReports": "Отчеты группы",
+  "directorClassDescription": "Следите за пришедшими детьми и готовностью отчетов за {{date}}.",
+  "teacherClassDescription": "Создавайте и публикуйте ежедневные отчеты за {{date}}.",
+  "createDrafts": "Создать черновики",
+  "publishDrafts": "Опубликовать черновики",
+  "createdDrafts": "Создано черновиков: {{count}}.",
+  "publishedReports": "Опубликовано отчетов: {{count}}.",
+  "metrics": {
+    "attended": "Пришли сегодня",
+    "published": "Опубликованные отчеты",
+    "missing": "Нет отчетов"
+  },
+  "directorTable": {
+    "title": "Пришедшие дети",
+    "description": "Показаны только дети, пришедшие {{date}}.",
+    "search": "Искать ребенка или группу",
+    "empty": "Нет детей по этому фильтру.",
+    "name": "Имя",
+    "class": "Группа",
+    "birthday": "Дата рождения",
+    "checkIn": "Приход",
+    "report": "Отчет",
+    "detail": "Детали",
+    "noReport": "Нет отчета"
+  },
+  "filters": {
+    "allReports": "Все отчеты",
+    "published": "Опубликовано",
+    "draft": "Черновик",
+    "scheduled": "Запланировано",
+    "missing": "Нет"
+  },
+  "summary": {
+    "items": "{{count}} пунктов",
+    "photos": "{{count}} фото",
+    "comments": "{{count}} комментариев",
+    "empty": "Пока нет содержимого"
+  },
+  "status": {
+    "published": "Опубликовано",
+    "scheduled": "Запланировано",
+    "draft": "Черновик"
+  }
+}

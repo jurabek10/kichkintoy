@@ -1,0 +1,29 @@
+{
+  "language": {
+    "label": "Язык",
+    "uz": "O'zbek",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "actions": {
+    "signOut": "Выйти",
+    "openSidebar": "Открыть боковое меню",
+    "toggleSidebar": "Свернуть или открыть боковое меню",
+    "closeSidebar": "Закрыть боковое меню"
+  },
+  "roles": {
+    "director": "Директор",
+    "teacher": "Воспитатель",
+    "parent": "Родитель"
+  },
+  "dashboard": {
+    "panel": "Панель: {{role}}",
+    "defaultCenter": "Детский сад Kichkintoy",
+    "subtitle": "Сегодняшние задачи и сообщения",
+    "hello": "Здравствуйте, {{name}}"
+  },
+  "notifications": {
+    "label": "Уведомления",
+    "unread": "Непрочитанных уведомлений: {{count}}"
+  }
+}
