@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import { Building2, GraduationCap, HeartHandshake } from "lucide-react";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { BrandMark } from "./brand-mark";
+import { KidCloud, KidSun } from "./kids-decor";
+import { AuthHeroScene } from "./kids-scene";
 
 export function AuthShell({
   children,
@@ -14,8 +15,11 @@ export function AuthShell({
   const { t } = useLayoutTranslation("app");
 
   return (
-    <main className="min-h-screen bg-[#fbfdff]">
-      <header className="mx-auto flex w-full max-w-shell items-center justify-between px-6 py-5">
+    <main className="relative min-h-screen overflow-hidden bg-kids-dots">
+      <KidCloud className="pointer-events-none absolute left-[8%] top-24 hidden h-12 w-24 animate-float text-white opacity-80 md:block" />
+      <KidCloud className="pointer-events-none absolute right-[12%] top-40 hidden h-9 w-20 animate-float-slow text-white opacity-70 lg:block" />
+      <KidSun className="pointer-events-none absolute -right-10 -top-10 hidden h-44 w-44 animate-float-slow text-sunshine opacity-90 lg:block" />
+      <header className="relative mx-auto flex w-full max-w-shell items-center justify-between px-6 py-5">
         <BrandMark />
         <nav className="hidden items-center gap-6 text-sm font-semibold text-muted-foreground md:flex">
           <a href="#roles" className="transition hover:text-primary">
@@ -29,7 +33,7 @@ export function AuthShell({
           </a>
         </nav>
       </header>
-      <div className="mx-auto grid w-full max-w-shell items-center gap-10 px-6 pb-16 pt-4 lg:grid-cols-[1.05fr_0.95fr] lg:pt-10">
+      <div className="relative mx-auto grid w-full max-w-shell items-center gap-10 px-6 pb-16 pt-4 lg:grid-cols-[1.05fr_0.95fr] lg:pt-10">
         <section className="order-2 flex flex-col gap-8 lg:order-1">
           <div className="max-w-xl">
             <p className="text-sm font-extrabold uppercase text-primary">
@@ -48,29 +52,23 @@ export function AuthShell({
               title={t("authShell.parent")}
               text={t("authShell.parentText")}
               Icon={HeartHandshake}
+              accent="bg-coral/15 text-coral"
             />
             <RoleCard
               title={t("authShell.teacher")}
               text={t("authShell.teacherText")}
               Icon={GraduationCap}
+              accent="bg-mint/15 text-mint"
             />
             <RoleCard
               title={t("authShell.director")}
               text={t("authShell.directorText")}
               Icon={Building2}
+              accent="bg-sky/15 text-sky"
             />
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border bg-white shadow-card">
-            <Image
-              src="/images/uzbek-kindergarten-roles.png"
-              alt={t("authShell.imageAlt")}
-              width={1792}
-              height={1024}
-              priority
-              className="aspect-[16/9] w-full object-cover"
-            />
-          </div>
+          <AuthHeroScene />
         </section>
 
         <section className="order-1 mx-auto w-full max-w-auth-card lg:order-2">
@@ -91,14 +89,18 @@ function RoleCard({
   title,
   text,
   Icon,
+  accent,
 }: {
   title: string;
   text: string;
   Icon: typeof HeartHandshake;
+  accent: string;
 }) {
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-card">
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+    <div className="rounded-2xl border-2 border-transparent bg-white p-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-pop">
+      <span
+        className={`grid h-11 w-11 place-items-center rounded-2xl ${accent}`}
+      >
         <Icon className="h-5 w-5" />
       </span>
       <h2 className="mt-3 text-sm font-extrabold">{title}</h2>
