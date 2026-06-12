@@ -25,6 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import {
+  participationInterestLabel,
+  participationLevelLabel,
+} from "@/lib/format";
 
 export type ClassParticipationRow = {
   id: string;
@@ -53,25 +58,19 @@ const subjectOptions = [
   "Other",
 ] as const;
 
-const participationOptions: Array<{
-  value: ClassParticipationLevel;
-  label: string;
-}> = [
-  { value: "excellent", label: "Excellent" },
-  { value: "good", label: "Good" },
-  { value: "needs_support", label: "Needs support" },
-  { value: "not_observed", label: "Not observed" },
-  { value: "absent", label: "Absent" },
+const participationOptions: ClassParticipationLevel[] = [
+  "excellent",
+  "good",
+  "needs_support",
+  "not_observed",
+  "absent",
 ];
 
-const interestOptions: Array<{
-  value: ClassParticipationInterest;
-  label: string;
-}> = [
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-  { value: "not_observed", label: "Not observed" },
+const interestOptions: ClassParticipationInterest[] = [
+  "high",
+  "medium",
+  "low",
+  "not_observed",
 ];
 
 export function ClassParticipationSection({
@@ -81,6 +80,8 @@ export function ClassParticipationSection({
   rows: ClassParticipationRow[];
   onChange: (rows: ClassParticipationRow[]) => void;
 }) {
+  const { t } = useLayoutTranslation("reports");
+
   function addRow() {
     onChange([...rows, createClassParticipationRow()]);
   }
@@ -97,15 +98,12 @@ export function ClassParticipationSection({
     <Card>
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="text-base">Class participation</CardTitle>
-          <CardDescription>
-            Add subject notes here so parents see strengths and practice needs
-            inside the normal daily report.
-          </CardDescription>
+          <CardTitle className="text-base">{t("participation.title")}</CardTitle>
+          <CardDescription>{t("participation.description")}</CardDescription>
         </div>
         <Button type="button" size="sm" variant="outline" onClick={addRow}>
           <Plus className="h-4 w-4" />
-          Add subject
+          {t("participation.addSubject")}
         </Button>
       </CardHeader>
       {rows.length > 0 ? (
@@ -133,12 +131,13 @@ function ClassParticipationEditor({
   onUpdate: (patch: Partial<ClassParticipationRow>) => void;
   row: ClassParticipationRow;
 }) {
+  const { t } = useLayoutTranslation("reports");
   const customSubject = row.subject === "Other";
 
   return (
     <div className="grid gap-3 rounded-lg border p-3 lg:grid-cols-4">
       <div className="flex flex-col gap-2">
-        <Label>Subject</Label>
+        <Label>{t("participation.subject")}</Label>
         <Select
           value={row.subject}
           onValueChange={(subject) => onUpdate({ subject })}
@@ -149,14 +148,14 @@ function ClassParticipationEditor({
           <SelectContent>
             {subjectOptions.map((subject) => (
               <SelectItem key={subject} value={subject}>
-                {subject}
+                {t(`participation.subjects.${subject}`, subject)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="flex flex-col gap-2">
-        <Label>Participation</Label>
+        <Label>{t("participation.participation")}</Label>
         <Select
           value={row.participation}
           onValueChange={(participation) =>
@@ -167,16 +166,19 @@ function ClassParticipationEditor({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {participationOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {participationOptions.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(
+                  `participationLevels.${value}`,
+                  participationLevelLabel(value),
+                )}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="flex flex-col gap-2">
-        <Label>Interest</Label>
+        <Label>{t("participation.interest")}</Label>
         <Select
           value={row.interest}
           onValueChange={(interest) =>
@@ -187,9 +189,12 @@ function ClassParticipationEditor({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {interestOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {interestOptions.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(
+                  `participationInterests.${value}`,
+                  participationInterestLabel(value),
+                )}
               </SelectItem>
             ))}
           </SelectContent>
@@ -201,51 +206,51 @@ function ClassParticipationEditor({
           variant="ghost"
           size="icon"
           onClick={onRemove}
-          aria-label="Remove subject"
+          aria-label={t("participation.removeSubject")}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
       {customSubject ? (
         <div className="flex flex-col gap-2 lg:col-span-4">
-          <Label>Custom subject</Label>
+          <Label>{t("participation.customSubject")}</Label>
           <Input
             value={row.customSubject}
             onChange={(event) => onUpdate({ customSubject: event.target.value })}
-            placeholder="Subject name"
+            placeholder={t("participation.subjectName")}
           />
         </div>
       ) : null}
       <div className="flex flex-col gap-2 lg:col-span-2">
-        <Label>Strengths</Label>
+        <Label>{t("participation.strengths")}</Label>
         <Input
           value={row.strengths}
           onChange={(event) => onUpdate({ strengths: event.target.value })}
-          placeholder="Counting, rhythm, colors..."
+          placeholder={t("participation.strengthsPlaceholder")}
         />
       </div>
       <div className="flex flex-col gap-2 lg:col-span-2">
-        <Label>Needs practice</Label>
+        <Label>{t("participation.needsPractice")}</Label>
         <Input
           value={row.needsPractice}
           onChange={(event) => onUpdate({ needsPractice: event.target.value })}
-          placeholder="Pronunciation, confidence..."
+          placeholder={t("participation.needsPracticePlaceholder")}
         />
       </div>
       <div className="flex flex-col gap-2 lg:col-span-2">
-        <Label>Home suggestion</Label>
+        <Label>{t("participation.homeSuggestion")}</Label>
         <Input
           value={row.homeSuggestion}
           onChange={(event) => onUpdate({ homeSuggestion: event.target.value })}
-          placeholder="Short practice idea for parents"
+          placeholder={t("participation.homeSuggestionPlaceholder")}
         />
       </div>
       <div className="flex flex-col gap-2 lg:col-span-2">
-        <Label>Teacher note</Label>
+        <Label>{t("participation.teacherNote")}</Label>
         <Textarea
           value={row.teacherNote}
           onChange={(event) => onUpdate({ teacherNote: event.target.value })}
-          placeholder="Short note for this subject"
+          placeholder={t("participation.teacherNotePlaceholder")}
           rows={2}
         />
       </div>

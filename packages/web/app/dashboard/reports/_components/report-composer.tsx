@@ -11,6 +11,7 @@ import type {
   DailyReportItemType,
   MediaAsset,
 } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { reportItemTypeLabel } from "@/lib/format";
@@ -59,6 +61,7 @@ export function ReportComposer({
   centerId?: string | null;
   initialReportDate?: string | null;
 }) {
+  const { t } = useLayoutTranslation("reports");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [reportDate, setReportDate] = useState(initialReportDate ?? todayIsoDate());
@@ -70,10 +73,25 @@ export function ReportComposer({
     ClassParticipationRow[]
   >([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
-  const [items, setItems] = useState<DailyReportItemInput[]>([
-    { itemType: "meal", title: "Lunch", value: "", note: "" },
-    { itemType: "sleep", title: "Nap", value: "", note: "" },
-    { itemType: "activity", title: "Activity", value: "", note: "" },
+  const [items, setItems] = useState<DailyReportItemInput[]>(() => [
+    {
+      itemType: "meal",
+      title: t("composer.defaultItems.lunch"),
+      value: "",
+      note: "",
+    },
+    {
+      itemType: "sleep",
+      title: t("composer.defaultItems.nap"),
+      value: "",
+      note: "",
+    },
+    {
+      itemType: "activity",
+      title: t("composer.defaultItems.activity"),
+      value: "",
+      note: "",
+    },
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +115,7 @@ export function ReportComposer({
             : undefined,
       }),
     onSuccess: async (created, mode) => {
-      toast.success(successMessage(mode));
+      toast.success(successMessage(mode, t));
       // Refresh teacher report lists/statuses before navigating to the new report.
       await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push(`/dashboard/reports/${created.id}`);
@@ -109,7 +127,7 @@ export function ReportComposer({
 
   function submit(mode: "draft" | "publish" | "schedule") {
     if (!childId) {
-      setError("Child id is missing.");
+      setError(t("composer.childIdMissing"));
       return;
     }
     setError(null);
@@ -131,7 +149,7 @@ export function ReportComposer({
   async function uploadFiles(files: FileList | null) {
     if (!files) return;
     if (!centerId) {
-      setError("Center id is missing. Open this report from the class reports page.");
+      setError(t("composer.centerIdMissing"));
       return;
     }
     setError(null);
@@ -150,16 +168,20 @@ export function ReportComposer({
           headers: { "Content-Type": file.type },
           body: file,
         });
-        if (!response.ok) throw new Error(`Upload failed for ${file.name}.`);
+        if (!response.ok)
+          throw new Error(t("composer.uploadFailedFor", { file: file.name }));
         const asset = await orpc.media.completeUpload({
           mediaAssetId: signed.mediaAssetId,
         });
         uploaded.push(asset);
       }
       setMediaAssets((current) => [...current, ...uploaded]);
-      if (uploaded.length > 0) toast.success(`${uploaded.length} file(s) uploaded.`);
+      if (uploaded.length > 0)
+        toast.success(t("composer.filesUploaded", { count: uploaded.length }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(
+        err instanceof Error ? err.message : t("composer.uploadFailed"),
+      );
     }
   }
 
@@ -175,8 +197,8 @@ export function ReportComposer({
         submit("draft");
       }}
     >
-      <BackToReports />
-      <ComposerHeader />
+      <BackToReports t={t} />
+      <ComposerHeader t={t} />
 
       {error ? (
         <Alert variant="destructive">
@@ -189,6 +211,7 @@ export function ReportComposer({
         mood={mood}
         reportDate={reportDate}
         teacherNote={teacherNote}
+        t={t}
         onHealthNoteChange={setHealthNote}
         onMoodChange={setMood}
         onReportDateChange={setReportDate}
@@ -197,6 +220,7 @@ export function ReportComposer({
 
       <ReportItems
         items={items}
+        t={t}
         onAdd={() =>
           setItems((current) => [
             ...current,
@@ -215,6 +239,7 @@ export function ReportComposer({
       <ReportMediaUpload
         disabled={!centerId}
         mediaAssets={mediaAssets}
+        t={t}
         onRemove={removeMedia}
         onUpload={uploadFiles}
       />
@@ -222,6 +247,7 @@ export function ReportComposer({
       <ComposerActions
         scheduledAt={scheduledAt}
         submitting={submitting}
+        t={t}
         onSchedule={() => submit("schedule")}
         onScheduledAtChange={setScheduledAt}
         onPublish={() => submit("publish")}
@@ -235,25 +261,25 @@ function ReportMediaUpload({
   mediaAssets,
   onRemove,
   onUpload,
+  t,
 }: {
   disabled: boolean;
   mediaAssets: MediaAsset[];
   onRemove: (assetId: string) => void;
   onUpload: (files: FileList | null) => void;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <CardTitle className="text-base">Photos/videos</CardTitle>
-          <CardDescription>
-            Attach child-safe report media. Videos can be up to 100MB.
-          </CardDescription>
+          <CardTitle className="text-base">{t("composer.photosVideos")}</CardTitle>
+          <CardDescription>{t("composer.mediaDescription")}</CardDescription>
         </div>
         <Button type="button" variant="outline" size="sm" disabled={disabled} asChild>
           <Label className="cursor-pointer">
             <Upload className="h-4 w-4" />
-            Upload files
+            {t("composer.uploadFiles")}
             <Input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm,video/quicktime"
@@ -270,12 +296,10 @@ function ReportMediaUpload({
       <CardContent>
         {disabled ? (
           <p className="text-sm text-muted-foreground">
-            Open a child from the class reports page to upload report media.
+            {t("composer.openFromClass")}
           </p>
         ) : mediaAssets.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No report media uploaded yet.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("composer.noMedia")}</p>
         ) : (
           <ul className="grid gap-2 sm:grid-cols-2">
             {mediaAssets.map((asset) => (
@@ -285,10 +309,12 @@ function ReportMediaUpload({
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
-                    {asset.mediaType === "video" ? "Video" : "Photo"}
+                    {asset.mediaType === "video"
+                      ? t("composer.video")
+                      : t("composer.photo")}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatMediaSize(asset.sizeBytes)}
+                    {formatMediaSize(asset.sizeBytes, t)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -298,7 +324,7 @@ function ReportMediaUpload({
                     size="icon"
                     variant="ghost"
                     onClick={() => onRemove(asset.id)}
-                    aria-label="Remove media"
+                    aria-label={t("composer.removeMedia")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -312,26 +338,24 @@ function ReportMediaUpload({
   );
 }
 
-function BackToReports() {
+function BackToReports({ t }: { t: TFunction<"reports"> }) {
   return (
     <Link
       href="/dashboard/reports"
       className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4" />
-      Reports
+      {t("back")}
     </Link>
   );
 }
 
-function ComposerHeader() {
+function ComposerHeader({ t }: { t: TFunction<"reports"> }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">New daily report</CardTitle>
-        <CardDescription>
-          Save a draft, publish now, or schedule for later.
-        </CardDescription>
+        <CardTitle className="text-xl">{t("composer.newReport")}</CardTitle>
+        <CardDescription>{t("composer.description")}</CardDescription>
       </CardHeader>
     </Card>
   );
@@ -346,6 +370,7 @@ function ReportBasics({
   onTeacherNoteChange,
   reportDate,
   teacherNote,
+  t,
 }: {
   healthNote: string;
   mood: string;
@@ -355,12 +380,13 @@ function ReportBasics({
   onTeacherNoteChange: (value: string) => void;
   reportDate: string;
   teacherNote: string;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="report-date">Date</Label>
+          <Label htmlFor="report-date">{t("composer.date")}</Label>
           <Input
             id="report-date"
             type="date"
@@ -369,31 +395,31 @@ function ReportBasics({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="mood">Mood</Label>
+          <Label htmlFor="mood">{t("detail.mood")}</Label>
           <Input
             id="mood"
             value={mood}
             onChange={(event) => onMoodChange(event.target.value)}
-            placeholder="Happy, calm, tired..."
+            placeholder={t("composer.moodPlaceholder")}
           />
         </div>
         <div className="flex flex-col gap-2 sm:col-span-2">
-          <Label htmlFor="teacher-note">Teacher note</Label>
+          <Label htmlFor="teacher-note">{t("detail.teacherNote")}</Label>
           <Textarea
             id="teacher-note"
             value={teacherNote}
             onChange={(event) => onTeacherNoteChange(event.target.value)}
-            placeholder="Share the child's day with parents."
+            placeholder={t("composer.teacherNotePlaceholder")}
             rows={5}
           />
         </div>
         <div className="flex flex-col gap-2 sm:col-span-2">
-          <Label htmlFor="health-note">Health note</Label>
+          <Label htmlFor="health-note">{t("detail.healthNote")}</Label>
           <Textarea
             id="health-note"
             value={healthNote}
             onChange={(event) => onHealthNoteChange(event.target.value)}
-            placeholder="Optional health notes."
+            placeholder={t("composer.healthNotePlaceholder")}
           />
         </div>
       </CardContent>
@@ -406,19 +432,21 @@ function ReportItems({
   onAdd,
   onRemove,
   onUpdate,
+  t,
 }: {
   items: DailyReportItemInput[];
   onAdd: () => void;
   onRemove: (index: number) => void;
   onUpdate: (index: number, patch: Partial<DailyReportItemInput>) => void;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Items</CardTitle>
+        <CardTitle className="text-base">{t("composer.items")}</CardTitle>
         <Button type="button" size="sm" variant="outline" onClick={onAdd}>
           <Plus className="h-4 w-4" />
-          Add item
+          {t("composer.addItem")}
         </Button>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
@@ -427,6 +455,7 @@ function ReportItems({
             key={index}
             index={index}
             item={item}
+            t={t}
             onRemove={onRemove}
             onUpdate={onUpdate}
           />
@@ -441,11 +470,13 @@ function ReportItemEditor({
   item,
   onRemove,
   onUpdate,
+  t,
 }: {
   index: number;
   item: DailyReportItemInput;
   onRemove: (index: number) => void;
   onUpdate: (index: number, patch: Partial<DailyReportItemInput>) => void;
+  t: TFunction<"reports">;
 }) {
   return (
     <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[160px_1fr_1fr_auto]">
@@ -461,7 +492,7 @@ function ReportItemEditor({
         <SelectContent>
           {itemTypes.map((type) => (
             <SelectItem key={type} value={type}>
-              {reportItemTypeLabel(type)}
+              {t(`itemTypes.${type}`, reportItemTypeLabel(type))}
             </SelectItem>
           ))}
         </SelectContent>
@@ -469,19 +500,19 @@ function ReportItemEditor({
       <Input
         value={item.title ?? ""}
         onChange={(event) => onUpdate(index, { title: event.target.value })}
-        placeholder="Title"
+        placeholder={t("composer.title")}
       />
       <Input
         value={item.value ?? ""}
         onChange={(event) => onUpdate(index, { value: event.target.value })}
-        placeholder="Value"
+        placeholder={t("composer.value")}
       />
       <Button
         type="button"
         variant="ghost"
         size="icon"
         onClick={() => onRemove(index)}
-        aria-label="Remove item"
+        aria-label={t("composer.removeItem")}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -489,7 +520,7 @@ function ReportItemEditor({
         className="sm:col-span-4"
         value={item.note ?? ""}
         onChange={(event) => onUpdate(index, { note: event.target.value })}
-        placeholder="Note"
+        placeholder={t("composer.note")}
       />
     </div>
   );
@@ -501,18 +532,20 @@ function ComposerActions({
   onScheduledAtChange,
   scheduledAt,
   submitting,
+  t,
 }: {
   onPublish: () => void;
   onSchedule: () => void;
   onScheduledAtChange: (value: string) => void;
   scheduledAt: string;
   submitting: boolean;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card className="sticky bottom-4">
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="schedule-at">Schedule time</Label>
+          <Label htmlFor="schedule-at">{t("composer.scheduleTime")}</Label>
           <Input
             id="schedule-at"
             type="datetime-local"
@@ -524,7 +557,7 @@ function ComposerActions({
         <div className="flex flex-wrap gap-2">
           <Button type="submit" variant="outline" disabled={submitting}>
             <Save className="h-4 w-4" />
-            Save draft
+            {t("composer.saveDraft")}
           </Button>
           <Button
             type="button"
@@ -532,11 +565,11 @@ function ComposerActions({
             disabled={submitting || !scheduledAt}
             onClick={onSchedule}
           >
-            Schedule
+            {t("composer.schedule")}
           </Button>
           <Button type="button" disabled={submitting} onClick={onPublish}>
             <Send className="h-4 w-4" />
-            Publish
+            {t("composer.publish")}
           </Button>
         </div>
       </CardContent>
@@ -554,14 +587,17 @@ function compactItems(items: DailyReportItemInput[]) {
   );
 }
 
-function successMessage(mode: "draft" | "publish" | "schedule") {
-  if (mode === "publish") return "Report published.";
-  if (mode === "schedule") return "Report scheduled.";
-  return "Draft saved.";
+function successMessage(
+  mode: "draft" | "publish" | "schedule",
+  t: TFunction<"reports">,
+) {
+  if (mode === "publish") return t("detail.reportPublished");
+  if (mode === "schedule") return t("composer.reportScheduled");
+  return t("composer.draftSaved");
 }
 
-function formatMediaSize(sizeBytes: number | null) {
-  if (!sizeBytes) return "Uploaded";
+function formatMediaSize(sizeBytes: number | null, t: TFunction<"reports">) {
+  if (!sizeBytes) return t("composer.uploaded");
   if (sizeBytes >= 1024 * 1024) {
     return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
   }

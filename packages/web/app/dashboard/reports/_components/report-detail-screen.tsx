@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, MessageSquare, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { DailyReportDetail } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -44,6 +46,7 @@ export function ReportDetailScreen({
   isParent: boolean;
   reportId: string;
 }) {
+  const { t } = useLayoutTranslation("reports");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [edit, setEdit] = useState({
@@ -81,44 +84,44 @@ export function ReportDetailScreen({
 
   const invalidateReport = () =>
     queryClient.invalidateQueries({ queryKey: reportKey });
-  const onActionError = (_message: string) => (err: unknown) =>
-    setActionError(toApiError(err).message);
+  const onActionError = (message: string) => (err: unknown) =>
+    setActionError(err instanceof Error ? err.message : message);
 
   const saveMutation = useMutation({
     mutationFn: () => orpc.reports.update({ reportId, body: edit }),
     onSuccess: async () => {
-      toast.success("Report updated.");
+      toast.success(t("detail.reportUpdated"));
       await invalidateReport();
     },
-    onError: onActionError("Could not update report."),
+    onError: onActionError(t("detail.couldNotUpdate")),
   });
 
   const publishMutation = useMutation({
     mutationFn: () => orpc.reports.publish({ reportId, body: {} }),
     onSuccess: async () => {
-      toast.success("Report published.");
+      toast.success(t("detail.reportPublished"));
       await invalidateReport();
     },
-    onError: onActionError("Could not publish report."),
+    onError: onActionError(t("detail.couldNotPublish")),
   });
 
   const unpublishMutation = useMutation({
     mutationFn: () => orpc.reports.unpublish({ reportId }),
     onSuccess: async () => {
-      toast("Report moved back to draft.");
+      toast(t("detail.movedToDraft"));
       await invalidateReport();
     },
-    onError: onActionError("Could not unpublish report."),
+    onError: onActionError(t("detail.couldNotUnpublish")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => orpc.reports.delete({ reportId }),
     onSuccess: async () => {
-      toast("Report deleted.");
+      toast(t("detail.reportDeleted"));
       await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push("/dashboard/reports");
     },
-    onError: onActionError("Could not delete report."),
+    onError: onActionError(t("detail.couldNotDelete")),
   });
 
   // Offline-capable: uses the keyed default registered in providers, so a
@@ -126,7 +129,7 @@ export function ReportDetailScreen({
   const commentMutation = useMutation<unknown, Error, ReportCommentVars>({
     mutationKey: REPORT_COMMENT_MUTATION_KEY,
     onSuccess: () => invalidateReport(),
-    onError: onActionError("Could not add comment."),
+    onError: onActionError(t("detail.couldNotComment")),
   });
 
   const working =
@@ -175,15 +178,16 @@ export function ReportDetailScreen({
     setComment("");
   }
 
-  if (loading) return <LoadingCard />;
-  if (!report) return <MissingReport error={error} />;
+  if (loading) return <LoadingCard t={t} />;
+  if (!report) return <MissingReport error={error} t={t} />;
 
   return (
     <div className="flex flex-col gap-4">
-      <BackToReports />
+      <BackToReports t={t} />
       <ReportHeader
         isParent={isParent}
         report={report}
+        t={t}
         working={working}
         onDelete={removeReport}
         onPublish={publish}
@@ -199,19 +203,21 @@ export function ReportDetailScreen({
       {!isParent ? (
         <ReportEditForm
           edit={edit}
+          t={t}
           working={working}
           onChange={setEdit}
           onSubmit={save}
         />
       ) : null}
 
-      <ReportBody report={report} />
+      <ReportBody report={report} t={t} />
 
-      {!isParent ? <ReadReceipts report={report} /> : null}
+      {!isParent ? <ReadReceipts report={report} t={t} /> : null}
 
       <Comments
         comment={comment}
         report={report}
+        t={t}
         working={working}
         onCommentChange={setComment}
         onSubmit={addComment}
@@ -220,32 +226,38 @@ export function ReportDetailScreen({
   );
 }
 
-function LoadingCard() {
+function LoadingCard({ t }: { t: TFunction<"reports"> }) {
   return (
     <Card>
       <CardContent className="p-6 text-sm text-muted-foreground">
-        Loading…
+        {t("detail.loading")}
       </CardContent>
     </Card>
   );
 }
 
-function MissingReport({ error }: { error: string | null }) {
+function MissingReport({
+  error,
+  t,
+}: {
+  error: string | null;
+  t: TFunction<"reports">;
+}) {
   return (
     <Alert variant="destructive">
-      <AlertDescription>{error ?? "Report not found."}</AlertDescription>
+      <AlertDescription>{error ?? t("detail.notFound")}</AlertDescription>
     </Alert>
   );
 }
 
-function BackToReports() {
+function BackToReports({ t }: { t: TFunction<"reports"> }) {
   return (
     <Link
       href="/dashboard/reports"
       className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4" />
-      Reports
+      {t("back")}
     </Link>
   );
 }
@@ -256,6 +268,7 @@ function ReportHeader({
   onPublish,
   onUnpublish,
   report,
+  t,
   working,
 }: {
   isParent: boolean;
@@ -263,6 +276,7 @@ function ReportHeader({
   onPublish: () => void;
   onUnpublish: () => void;
   report: DailyReportDetail;
+  t: TFunction<"reports">;
   working: boolean;
 }) {
   return (
@@ -273,12 +287,14 @@ function ReportHeader({
             <CardTitle className="text-xl">
               {report.child.name} · {formatDate(report.reportDate)}
             </CardTitle>
-            <ReportStatusBadge status={report.status} />
+            <ReportStatusBadge status={report.status} t={t} />
           </div>
           <CardDescription>
-            {report.class.name} · Author {report.author.fullName}
+            {report.class.name} · {t("detail.author")} {report.author.fullName}
             {report.publishedAt
-              ? ` · Published ${formatDateTime(report.publishedAt)}`
+              ? ` · ${t("detail.publishedAt", {
+                  date: formatDateTime(report.publishedAt),
+                })}`
               : ""}
           </CardDescription>
         </div>
@@ -286,7 +302,7 @@ function ReportHeader({
           <div className="flex flex-wrap gap-2">
             {report.status !== "published" ? (
               <Button type="button" onClick={onPublish} disabled={working}>
-                Publish
+                {t("detail.publish")}
               </Button>
             ) : (
               <Button
@@ -295,7 +311,7 @@ function ReportHeader({
                 onClick={onUnpublish}
                 disabled={working}
               >
-                Unpublish
+                {t("detail.unpublish")}
               </Button>
             )}
             <Button
@@ -306,7 +322,7 @@ function ReportHeader({
               disabled={working}
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t("detail.delete")}
             </Button>
           </div>
         ) : null}
@@ -317,8 +333,10 @@ function ReportHeader({
 
 function ReportStatusBadge({
   status,
+  t,
 }: {
   status: DailyReportDetail["status"];
+  t: TFunction<"reports">;
 }) {
   return (
     <Badge
@@ -330,7 +348,7 @@ function ReportStatusBadge({
             : "secondary"
       }
     >
-      {reportStatusLabel(status)}
+      {t(`status.${status}`, reportStatusLabel(status))}
     </Badge>
   );
 }
@@ -339,6 +357,7 @@ function ReportEditForm({
   edit,
   onChange,
   onSubmit,
+  t,
   working,
 }: {
   edit: { mood: string; teacherNote: string; healthNote: string };
@@ -348,17 +367,18 @@ function ReportEditForm({
     healthNote: string;
   }) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  t: TFunction<"reports">;
   working: boolean;
 }) {
   return (
     <form onSubmit={onSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Edit report</CardTitle>
+          <CardTitle className="text-base">{t("detail.editReport")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="mood">Mood</Label>
+            <Label htmlFor="mood">{t("detail.mood")}</Label>
             <Input
               id="mood"
               value={edit.mood}
@@ -368,7 +388,7 @@ function ReportEditForm({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="teacher-note">Teacher note</Label>
+            <Label htmlFor="teacher-note">{t("detail.teacherNote")}</Label>
             <Textarea
               id="teacher-note"
               value={edit.teacherNote}
@@ -379,7 +399,7 @@ function ReportEditForm({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="health-note">Health note</Label>
+            <Label htmlFor="health-note">{t("detail.healthNote")}</Label>
             <Textarea
               id="health-note"
               value={edit.healthNote}
@@ -389,7 +409,7 @@ function ReportEditForm({
             />
           </div>
           <Button type="submit" disabled={working} className="w-fit">
-            Save changes
+            {t("detail.saveChanges")}
           </Button>
         </CardContent>
       </Card>
@@ -397,7 +417,13 @@ function ReportEditForm({
   );
 }
 
-function ReportBody({ report }: { report: DailyReportDetail }) {
+function ReportBody({
+  report,
+  t,
+}: {
+  report: DailyReportDetail;
+  t: TFunction<"reports">;
+}) {
   const standardItems = report.items.filter(
     (item) => item.itemType !== "class_participation",
   );
@@ -408,20 +434,30 @@ function ReportBody({ report }: { report: DailyReportDetail }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Report</CardTitle>
+        <CardTitle className="text-base">{t("detail.report")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {report.teacherNote ? (
-          <ReportTextSection title="Teacher note" body={report.teacherNote} />
+          <ReportTextSection
+            title={t("detail.teacherNote")}
+            body={report.teacherNote}
+          />
         ) : null}
         {report.healthNote ? (
-          <ReportTextSection title="Health note" body={report.healthNote} />
+          <ReportTextSection
+            title={t("detail.healthNote")}
+            body={report.healthNote}
+          />
         ) : null}
-        {standardItems.length > 0 ? <ReportItems items={standardItems} /> : null}
+        {standardItems.length > 0 ? (
+          <ReportItems items={standardItems} t={t} />
+        ) : null}
         {participationItems.length > 0 ? (
-          <ClassParticipationItems items={participationItems} />
+          <ClassParticipationItems items={participationItems} t={t} />
         ) : null}
-        {report.photos.length > 0 ? <ReportMedia report={report} /> : null}
+        {report.photos.length > 0 ? (
+          <ReportMedia report={report} t={t} />
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -438,14 +474,22 @@ function ReportTextSection({ body, title }: { body: string; title: string }) {
   );
 }
 
-function ReportItems({ items }: { items: DailyReportDetail["items"] }) {
+function ReportItems({
+  items,
+  t,
+}: {
+  items: DailyReportDetail["items"];
+  t: TFunction<"reports">;
+}) {
   return (
     <section className="grid gap-2 sm:grid-cols-2">
       {items.map((item) => (
         <div key={item.id} className="rounded-lg border p-3">
-          <Badge variant="info">{reportItemTypeLabel(item.itemType)}</Badge>
+          <Badge variant="info">
+            {t(`itemTypes.${item.itemType}`, reportItemTypeLabel(item.itemType))}
+          </Badge>
           <p className="mt-2 font-semibold">
-            {item.title || item.value || "Item"}
+            {item.title || item.value || t("detail.item")}
           </p>
           {item.value && item.title ? (
             <p className="text-sm text-muted-foreground">{item.value}</p>
@@ -461,10 +505,16 @@ function ReportItems({ items }: { items: DailyReportDetail["items"] }) {
   );
 }
 
-function ReportMedia({ report }: { report: DailyReportDetail }) {
+function ReportMedia({
+  report,
+  t,
+}: {
+  report: DailyReportDetail;
+  t: TFunction<"reports">;
+}) {
   return (
     <section>
-      <h2 className="text-sm font-bold">Photos/videos</h2>
+      <h2 className="text-sm font-bold">{t("detail.photosVideos")}</h2>
       <div className="mt-2 grid gap-3 md:grid-cols-2">
         {report.photos.map((media) => (
           <SignedReportMedia
@@ -480,52 +530,64 @@ function ReportMedia({ report }: { report: DailyReportDetail }) {
 
 function ClassParticipationItems({
   items,
+  t,
 }: {
   items: DailyReportDetail["items"];
+  t: TFunction<"reports">;
 }) {
   return (
     <section>
-      <h2 className="text-sm font-bold">Class participation</h2>
+      <h2 className="text-sm font-bold">{t("detail.classParticipation")}</h2>
       <div className="mt-2 grid gap-2 md:grid-cols-2">
         {items.map((item) => {
           const note = parseClassParticipationNote(item.note);
           return (
             <div key={item.id} className="rounded-lg border p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="font-semibold">{item.title || "Subject"}</p>
+                <p className="font-semibold">
+                  {item.title || t("detail.subject")}
+                </p>
                 {item.value ? (
                   <Badge variant="info">
-                    {participationLevelLabel(item.value)}
+                    {t(
+                      `participationLevels.${item.value}`,
+                      participationLevelLabel(item.value),
+                    )}
                   </Badge>
                 ) : null}
                 {note?.interest ? (
                   <Badge variant="outline">
-                    Interest: {participationInterestLabel(note.interest)}
+                    {t("detail.interest", {
+                      level: t(
+                        `participationInterests.${note.interest}`,
+                        participationInterestLabel(note.interest),
+                      ),
+                    })}
                   </Badge>
                 ) : null}
               </div>
               <dl className="mt-3 grid gap-2 text-sm text-muted-foreground">
                 {note?.strengths ? (
                   <ClassParticipationField
-                    label="Strengths"
+                    label={t("detail.strengths")}
                     value={note.strengths}
                   />
                 ) : null}
                 {note?.needsPractice ? (
                   <ClassParticipationField
-                    label="Needs practice"
+                    label={t("detail.needsPractice")}
                     value={note.needsPractice}
                   />
                 ) : null}
                 {note?.homeSuggestion ? (
                   <ClassParticipationField
-                    label="Home practice"
+                    label={t("detail.homePractice")}
                     value={note.homeSuggestion}
                   />
                 ) : null}
                 {note?.teacherNote ? (
                   <ClassParticipationField
-                    label="Teacher note"
+                    label={t("detail.teacherNote")}
                     value={note.teacherNote}
                   />
                 ) : null}
@@ -569,21 +631,32 @@ function parseClassParticipationNote(value: string | null) {
   }
 }
 
-function ReadReceipts({ report }: { report: DailyReportDetail }) {
+function ReadReceipts({
+  report,
+  t,
+}: {
+  report: DailyReportDetail;
+  t: TFunction<"reports">;
+}) {
   const readText =
     report.guardianCount > 0
-      ? `${report.readCount} of ${report.guardianCount} guardians read`
-      : "No guardians";
+      ? t("detail.guardiansRead", {
+          read: report.readCount,
+          total: report.guardianCount,
+        })
+      : t("detail.noGuardians");
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Read receipts</CardTitle>
+        <CardTitle className="text-base">{t("detail.readReceipts")}</CardTitle>
         <CardDescription>{readText}</CardDescription>
       </CardHeader>
       <CardContent>
         {report.reads.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No receipts yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {t("detail.noReceipts")}
+          </p>
         ) : (
           <ul className="flex flex-col divide-y">
             {report.reads.map((read) => (
@@ -591,7 +664,10 @@ function ReadReceipts({ report }: { report: DailyReportDetail }) {
                 <span className="font-semibold">{read.guardianName}</span>
                 <span className="text-sm text-muted-foreground">
                   {" "}
-                  · {read.readAt ? formatDateTime(read.readAt) : "Unread"}
+                  ·{" "}
+                  {read.readAt
+                    ? formatDateTime(read.readAt)
+                    : t("detail.unread")}
                 </span>
               </li>
             ))}
@@ -607,12 +683,14 @@ function Comments({
   onCommentChange,
   onSubmit,
   report,
+  t,
   working,
 }: {
   comment: string;
   onCommentChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   report: DailyReportDetail;
+  t: TFunction<"reports">;
   working: boolean;
 }) {
   return (
@@ -620,22 +698,22 @@ function Comments({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <MessageSquare className="h-4 w-4" />
-          Comments
+          {t("detail.comments")}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {report.status !== "published" ? (
           <p className="text-sm text-muted-foreground">
-            Comments are available after publish.
+            {t("detail.commentsAfterPublish")}
           </p>
         ) : (
           <>
-            <CommentList report={report} />
+            <CommentList report={report} t={t} />
             <form onSubmit={onSubmit} className="flex flex-col gap-2">
               <Textarea
                 value={comment}
                 onChange={(event) => onCommentChange(event.target.value)}
-                placeholder="Write a comment"
+                placeholder={t("detail.writeComment")}
               />
               <Button
                 type="submit"
@@ -643,7 +721,7 @@ function Comments({
                 disabled={working || !comment.trim()}
               >
                 <Send className="h-4 w-4" />
-                Comment
+                {t("detail.comment")}
               </Button>
             </form>
           </>
@@ -653,9 +731,17 @@ function Comments({
   );
 }
 
-function CommentList({ report }: { report: DailyReportDetail }) {
+function CommentList({
+  report,
+  t,
+}: {
+  report: DailyReportDetail;
+  t: TFunction<"reports">;
+}) {
   if (report.comments.length === 0) {
-    return <p className="text-sm text-muted-foreground">No comments yet.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">{t("detail.noComments")}</p>
+    );
   }
 
   return (
@@ -669,7 +755,7 @@ function CommentList({ report }: { report: DailyReportDetail }) {
             </span>
           </div>
           <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
-            {row.deletedAt ? "Comment deleted." : row.body}
+            {row.deletedAt ? t("detail.commentDeleted") : row.body}
           </p>
         </li>
       ))}
