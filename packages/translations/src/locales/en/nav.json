@@ -1,0 +1,25 @@
+{
+  "groups": {
+    "main": "Main",
+    "communication": "Communication",
+    "care": "Care",
+    "management": "Management"
+  },
+  "items": {
+    "dashboard": "Home",
+    "classes": "Classes",
+    "myClasses": "My classes",
+    "calendar": "Calendar",
+    "documents": "Documents",
+    "attendance": "Attendance",
+    "reports": "Reports",
+    "notices": "Notices",
+    "albums": "Album",
+    "meals": "Meals",
+    "medications": "Medication",
+    "pickups": "Pickup",
+    "teachers": "Teachers",
+    "requests": "Join requests",
+    "invitations": "Invitations"
+  }
+}

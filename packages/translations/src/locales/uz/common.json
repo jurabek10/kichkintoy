@@ -1,0 +1,32 @@
+{
+  "language": {
+    "label": "Til",
+    "uz": "O'zbek",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "actions": {
+    "signOut": "Chiqish",
+    "openSidebar": "Yon menyuni ochish",
+    "toggleSidebar": "Yon menyuni yig'ish yoki ochish",
+    "closeSidebar": "Yon menyuni yopish"
+  },
+  "roles": {
+    "director": "Direktor",
+    "teacher": "Tarbiyachi",
+    "parent": "Ota-ona"
+  },
+  "dashboard": {
+    "panel": "{{role}} paneli",
+    "defaultCenter": "Kichkintoy bog'chasi",
+    "subtitle": "Bugungi ishlar va xabarlar",
+    "hello": "Salom, {{name}}"
+  },
+  "notifications": {
+    "label": "Bildirishnomalar",
+    "unread": "{{count}} ta o'qilmagan bildirishnoma"
+  },
+  "status": {
+    "loading": "Yuklanmoqda…"
+  }
+}

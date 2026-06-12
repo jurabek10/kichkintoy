@@ -1,0 +1,25 @@
+{
+  "groups": {
+    "main": "Основное",
+    "communication": "Связь",
+    "care": "Уход",
+    "management": "Управление"
+  },
+  "items": {
+    "dashboard": "Главная",
+    "classes": "Группы",
+    "myClasses": "Мои группы",
+    "calendar": "Календарь",
+    "documents": "Документы",
+    "attendance": "Посещаемость",
+    "reports": "Отчеты",
+    "notices": "Объявления",
+    "albums": "Альбом",
+    "meals": "Питание",
+    "medications": "Лекарства",
+    "pickups": "Забрать ребенка",
+    "teachers": "Воспитатели",
+    "requests": "Заявки на вступление",
+    "invitations": "Приглашения"
+  }
+}

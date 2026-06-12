@@ -1,0 +1,32 @@
+{
+  "language": {
+    "label": "Language",
+    "uz": "O'zbek",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "actions": {
+    "signOut": "Sign out",
+    "openSidebar": "Open sidebar",
+    "toggleSidebar": "Collapse or expand sidebar",
+    "closeSidebar": "Close sidebar"
+  },
+  "roles": {
+    "director": "Director",
+    "teacher": "Teacher",
+    "parent": "Parent"
+  },
+  "dashboard": {
+    "panel": "{{role}} panel",
+    "defaultCenter": "Kichkintoy kindergarten",
+    "subtitle": "Today's tasks and messages",
+    "hello": "Hi, {{name}}"
+  },
+  "notifications": {
+    "label": "Notifications",
+    "unread": "{{count}} unread notifications"
+  },
+  "status": {
+    "loading": "Loading…"
+  }
+}
