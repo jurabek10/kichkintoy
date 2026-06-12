@@ -3,11 +3,17 @@
 import * as React from "react";
 import {
   type ColumnDef,
+  type ColumnFiltersState,
   type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type Table as TableInstance,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -31,6 +37,7 @@ interface DataTableProps<TData, TValue> {
   emptyMessage?: string;
   /** Builds the "Page X of Y" label for i18n. */
   pageLabel?: (page: number, total: number) => string;
+  toolbar?: (table: TableInstance<TData>) => React.ReactNode;
   className?: string;
 }
 
@@ -40,23 +47,34 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   emptyMessage = "No results.",
   pageLabel,
+  toolbar,
   className,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] =
+    React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: { sorting, columnFilters, columnVisibility },
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     initialState: { pagination: { pageSize } },
   });
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
+      {toolbar ? toolbar(table) : null}
       <div className="overflow-hidden rounded-xl border bg-card shadow-card">
         <Table>
           <TableHeader className="bg-muted/40">
