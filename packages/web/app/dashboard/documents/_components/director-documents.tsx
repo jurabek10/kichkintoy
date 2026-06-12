@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { FileCheck2, Send, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import type { StudentDocumentSubmissionSummary } from "@kichkintoy/shared";
@@ -22,8 +17,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -132,11 +131,31 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
 
   const columns = useMemo<ColumnDef<StudentDocumentSubmissionSummary>[]>(
     () => [
-      { header: "Child", accessorKey: "childName" },
-      { header: "Class", accessorKey: "className" },
-      { header: "Request", accessorKey: "requestTitle" },
       {
-        header: "Status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Child" />
+        ),
+        accessorKey: "childName",
+      },
+      {
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Class" />
+        ),
+        accessorKey: "className",
+        filterFn: (row, id, value) =>
+          (value as string[]).includes(row.getValue(id) ?? "No class"),
+      },
+      {
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Request" />
+        ),
+        accessorKey: "requestTitle",
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Status" />
+        ),
         cell: ({ row }) => (
           <Badge
             className="whitespace-normal text-center leading-tight"
@@ -145,14 +164,21 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
             {submissionStatusLabel(row.original.status)}
           </Badge>
         ),
+        filterFn: (row, id, value) =>
+          (value as string[]).includes(row.getValue(id)),
       },
       {
-        header: "Updated",
+        accessorKey: "updatedAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Updated" />
+        ),
         cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
       },
       {
         id: "actions",
         header: "",
+        enableSorting: false,
+        enableHiding: false,
         cell: ({ row }) => (
           <Button asChild size="sm" variant="outline" className="w-full px-2">
             <Link href={`/dashboard/documents/${row.original.id}`}>Open</Link>
@@ -162,11 +188,6 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
     ],
     [],
   );
-  const table = useReactTable({
-    data: submissionsQuery.data ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
 
   if (!centerId) {
     return (
@@ -180,6 +201,18 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
   const requests = requestsQuery.data ?? [];
   const classes = classesQuery.data ?? [];
   const children = childrenQuery.data?.children ?? [];
+  const submissions = submissionsQuery.data ?? [];
+  const submissionClassOptions = Array.from(
+    new Set(submissions.map((submission) => submission.className ?? "No class")),
+  )
+    .sort()
+    .map((value) => ({ label: value, value }));
+  const submissionStatusOptions = Array.from(
+    new Set(submissions.map((submission) => submission.status)),
+  ).map((status) => ({
+    label: submissionStatusLabel(status),
+    value: status,
+  }));
 
   return (
     <div className="grid gap-4">
@@ -356,61 +389,42 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="min-w-0">
-          <table className="w-full table-fixed text-sm">
-            <colgroup>
-              <col className="w-[18%]" />
-              <col className="w-[18%]" />
-              <col className="w-[28%]" />
-              <col className="w-[14%]" />
-              <col className="w-[12%]" />
-              <col className="w-[10%]" />
-            </colgroup>
-            <thead>
-              {table.getHeaderGroups().map((group) => (
-                <tr key={group.id} className="border-b text-left">
-                  {group.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-3 py-2 align-bottom font-semibold"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-3 py-8 text-center text-sm text-muted-foreground"
-                  >
-                    No submissions yet.
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-b">
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="break-words px-3 py-3 align-top"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <DataTable
+            columns={columns}
+            data={submissions}
+            emptyMessage="No submissions yet."
+            toolbar={(table) => (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    value={
+                      (table
+                        .getColumn("childName")
+                        ?.getFilterValue() as string) ?? ""
+                    }
+                    onChange={(event) =>
+                      table
+                        .getColumn("childName")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    placeholder="Filter children..."
+                    className="h-9 sm:w-[240px]"
+                  />
+                  <DataTableFacetedFilter
+                    column={table.getColumn("className")}
+                    title="Class"
+                    options={submissionClassOptions}
+                  />
+                  <DataTableFacetedFilter
+                    column={table.getColumn("status")}
+                    title="Status"
+                    options={submissionStatusOptions}
+                  />
+                </div>
+                <DataTableViewOptions table={table} />
+              </div>
+            )}
+          />
         </CardContent>
       </Card>
     </div>

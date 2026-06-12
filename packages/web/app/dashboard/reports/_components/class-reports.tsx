@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowLeft, FileText, Plus, Search, Send } from "lucide-react";
 import type { TFunction } from "i18next";
 import { toast } from "sonner";
@@ -27,15 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { formatDate, reportStatusLabel } from "@/lib/format";
@@ -219,9 +211,6 @@ function DirectorClassReportTable({
   reportRows: DailyReportClassChildStatus[];
   t: TFunction<"reports">;
 }) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-
   const rows = useMemo(() => {
     const reportsByChild = new Map(reportRows.map((row) => [row.id, row]));
     return attendanceRecords
@@ -242,20 +231,6 @@ function DirectorClassReportTable({
       });
   }, [attendanceRecords, reportRows]);
 
-  const filteredRows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      const matchesSearch =
-        !query ||
-        row.childName.toLowerCase().includes(query) ||
-        row.className.toLowerCase().includes(query);
-      const reportStatus = row.report?.status ?? "missing";
-      const matchesStatus =
-        statusFilter === "all" || reportStatus === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [rows, search, statusFilter]);
-
   const publishedCount = rows.filter(
     (row) => row.report?.status === "published",
   ).length;
@@ -265,14 +240,24 @@ function DirectorClassReportTable({
     () => [
       {
         accessorKey: "childName",
-        header: t("directorTable.name"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("directorTable.name")}
+          />
+        ),
         cell: ({ row }) => (
           <p className="truncate font-semibold">{row.original.childName}</p>
         ),
       },
       {
         accessorKey: "className",
-        header: t("directorTable.class"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("directorTable.class")}
+          />
+        ),
         cell: ({ row }) => (
           <p className="truncate text-sm text-muted-foreground">
             {row.original.className}
@@ -281,26 +266,46 @@ function DirectorClassReportTable({
       },
       {
         accessorKey: "birthday",
-        header: t("directorTable.birthday"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("directorTable.birthday")}
+          />
+        ),
         cell: ({ row }) => (
           <span className="text-sm">{formatDate(row.original.birthday)}</span>
         ),
       },
       {
         accessorKey: "checkedInAt",
-        header: t("directorTable.checkIn"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("directorTable.checkIn")}
+          />
+        ),
         cell: ({ row }) => (
           <span className="text-sm">{formatTime(row.original.checkedInAt)}</span>
         ),
       },
       {
         id: "reportStatus",
-        header: t("directorTable.report"),
+        accessorFn: (row) => row.report?.status ?? "missing",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("directorTable.report")}
+          />
+        ),
         cell: ({ row }) => <ReportStatusBadge report={row.original.report} t={t} />,
+        filterFn: (row, id, value) =>
+          (value as string[]).includes(row.getValue(id)),
       },
       {
         id: "action",
         header: "",
+        enableSorting: false,
+        enableHiding: false,
         cell: ({ row }) =>
           row.original.report ? (
             <Button asChild size="sm" variant="outline">
@@ -319,12 +324,6 @@ function DirectorClassReportTable({
     [t],
   );
 
-  const table = useReactTable({
-    data: filteredRows,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -334,77 +333,65 @@ function DirectorClassReportTable({
       </div>
 
       <Card>
-        <CardHeader className="gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <CardHeader>
           <div>
             <CardTitle className="text-base">{t("directorTable.title")}</CardTitle>
             <CardDescription>
               {t("directorTable.description", { date: formatDate(date) })}
             </CardDescription>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t("directorTable.search")}
-                className="pl-9 sm:w-[240px]"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="sm:w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("filters.allReports")}</SelectItem>
-                <SelectItem value="published">{t("filters.published")}</SelectItem>
-                <SelectItem value="draft">{t("filters.draft")}</SelectItem>
-                <SelectItem value="scheduled">{t("filters.scheduled")}</SelectItem>
-                <SelectItem value="missing">{t("filters.missing")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </CardHeader>
         <CardContent className="p-0">
           {attendanceLoading ? (
             <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
-          ) : filteredRows.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">
-              {t("directorTable.empty")}
-            </p>
           ) : (
-            <table className="w-full table-fixed text-sm">
-              <thead className="border-y bg-muted/40 text-left">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="px-4 py-3 font-semibold">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="divide-y">
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-muted/30">
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 align-middle">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="p-4">
+              <DataTable
+                columns={columns}
+                data={rows}
+                emptyMessage={t("directorTable.empty")}
+                toolbar={(table) => (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          value={
+                            (table
+                              .getColumn("childName")
+                              ?.getFilterValue() as string) ?? ""
+                          }
+                          onChange={(event) =>
+                            table
+                              .getColumn("childName")
+                              ?.setFilterValue(event.target.value)
+                          }
+                          placeholder={t("directorTable.search")}
+                          className="h-9 pl-9 sm:w-[240px]"
+                        />
+                      </div>
+                      <DataTableFacetedFilter
+                        column={table.getColumn("reportStatus")}
+                        title={t("directorTable.report")}
+                        options={[
+                          {
+                            label: t("filters.published"),
+                            value: "published",
+                          },
+                          { label: t("filters.draft"), value: "draft" },
+                          {
+                            label: t("filters.scheduled"),
+                            value: "scheduled",
+                          },
+                          { label: t("filters.missing"), value: "missing" },
+                        ]}
+                      />
+                    </div>
+                    <DataTableViewOptions table={table} />
+                  </div>
+                )}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

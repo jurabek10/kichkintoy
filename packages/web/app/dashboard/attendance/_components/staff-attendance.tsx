@@ -2,15 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
-import { Check, ChevronsUpDown, ClipboardCheck, LogOut, X } from "lucide-react";
+import { type ColumnDef } from "@tanstack/react-table";
+import { Check, ClipboardCheck, LogOut, X } from "lucide-react";
 import type { AttendanceRecordSummary, AttendanceStatus } from "@kichkintoy/shared";
 import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,6 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
@@ -158,32 +155,36 @@ export function StaffAttendance({
               onValueChange={setDate}
               className="w-[155px]"
             />
-            <Select value={classId} onValueChange={setClassId}>
-              <SelectTrigger className="w-[170px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allClasses")}</SelectItem>
-                {classes.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[175px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allStatuses")}</SelectItem>
-                {statusOptions.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {t(`status.${item}`, attendanceStatusLabel(item))}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!directorView ? (
+              <>
+                <Select value={classId} onValueChange={setClassId}>
+                  <SelectTrigger className="w-[170px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allClasses")}</SelectItem>
+                    {classes.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="w-[175px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                    {statusOptions.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {t(`status.${item}`, attendanceStatusLabel(item))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            ) : null}
           </div>
         </CardHeader>
         {summary ? (
@@ -312,29 +313,32 @@ function DirectorAttendanceTable({
   records: AttendanceRecordSummary[];
   t: TFunction<"attendance">;
 }) {
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "className", desc: false },
-    { id: "childName", desc: false },
-  ]);
-
   const columns = useMemo<ColumnDef<AttendanceRecordSummary>[]>(
     () => [
       {
         accessorKey: "className",
-        header: t("table.class"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.class")} />
+        ),
         cell: ({ row }) => row.original.className ?? t("noClass"),
         sortingFn: (left, right) =>
           compareText(left.original.className, right.original.className),
+        filterFn: (row, id, value) =>
+          (value as string[]).includes(row.getValue(id) ?? t("noClass")),
       },
       {
         id: "childName",
         accessorFn: (record) => record.child.name,
-        header: t("table.child"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.child")} />
+        ),
         cell: ({ row }) => row.original.child.name,
       },
       {
         accessorKey: "status",
-        header: t("table.status"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.status")} />
+        ),
         cell: ({ row }) => (
           <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">
             {t(
@@ -348,17 +352,23 @@ function DirectorAttendanceTable({
             attendanceStatusLabel(left.original.status),
             attendanceStatusLabel(right.original.status),
           ),
+        filterFn: (row, id, value) =>
+          (value as string[]).includes(row.getValue(id)),
       },
       {
         accessorKey: "checkedInAt",
-        header: t("table.checkIn"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.checkIn")} />
+        ),
         cell: ({ row }) => formatDateTime(row.original.checkedInAt),
         sortingFn: (left, right) =>
           compareNullableDate(left.original.checkedInAt, right.original.checkedInAt),
       },
       {
         accessorKey: "checkedOutAt",
-        header: t("table.checkOut"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.checkOut")} />
+        ),
         cell: ({ row }) => formatDateTime(row.original.checkedOutAt),
         sortingFn: (left, right) =>
           compareNullableDate(
@@ -368,7 +378,12 @@ function DirectorAttendanceTable({
       },
       {
         accessorKey: "absenceReason",
-        header: t("table.absentReason"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("table.absentReason")}
+          />
+        ),
         cell: ({ row }) => translateAbsenceReason(row.original.absenceReason, t),
         sortingFn: (left, right) =>
           compareText(left.original.absenceReason, right.original.absenceReason),
@@ -376,72 +391,51 @@ function DirectorAttendanceTable({
       {
         id: "note",
         accessorFn: (record) => record.parentVisibleNote ?? record.staffNote ?? "",
-        header: t("table.note"),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.note")} />
+        ),
         cell: ({ row }) => row.original.parentVisibleNote ?? row.original.staffNote ?? "-",
       },
     ],
     [t],
   );
 
-  const table = useReactTable({
-    data: records,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+  const classOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(records.map((record) => record.className ?? t("noClass"))),
+      )
+        .sort()
+        .map((value) => ({ label: value, value })),
+    [records, t],
+  );
 
   return (
-    <Card className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[860px] text-sm">
-          <thead className="border-b bg-muted/50 text-left text-xs uppercase text-muted-foreground">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="px-4 py-3 font-semibold">
-                    {header.isPlaceholder ? null : (
-                      <button
-                        type="button"
-                        className="flex items-center gap-1 text-left uppercase"
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {header.column.getCanSort() ? (
-                          <ChevronsUpDown className="h-3.5 w-3.5" />
-                        ) : null}
-                      </button>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="divide-y">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className={
-                      cell.column.id === "className"
-                        ? "px-4 py-3 font-medium"
-                        : "max-w-[260px] px-4 py-3 text-muted-foreground"
-                    }
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+    <DataTable
+      columns={columns}
+      data={records}
+      emptyMessage={t("emptyTitle")}
+      toolbar={(table) => (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <DataTableFacetedFilter
+              column={table.getColumn("className")}
+              title={t("table.class")}
+              options={classOptions}
+            />
+            <DataTableFacetedFilter
+              column={table.getColumn("status")}
+              title={t("table.status")}
+              options={statusOptions.map((status) => ({
+                label: t(`status.${status}`, attendanceStatusLabel(status)),
+                value: status,
+              }))}
+            />
+          </div>
+          <DataTableViewOptions table={table} />
+        </div>
+      )}
+    />
   );
 }
 
