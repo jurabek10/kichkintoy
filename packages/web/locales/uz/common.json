@@ -25,5 +25,8 @@
   "notifications": {
     "label": "Bildirishnomalar",
     "unread": "{{count}} ta o'qilmagan bildirishnoma"
+  },
+  "status": {
+    "loading": "Yuklanmoqda…"
   }
 }

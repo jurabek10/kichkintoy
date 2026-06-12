@@ -25,5 +25,8 @@
   "notifications": {
     "label": "Уведомления",
     "unread": "Непрочитанных уведомлений: {{count}}"
+  },
+  "status": {
+    "loading": "Загрузка…"
   }
 }

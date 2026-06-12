@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import {
   Bell,
   CalendarDays,
@@ -15,24 +16,40 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
-  Menu,
-  PanelLeft,
   Pill,
   School,
   UserCheck,
   Utensils,
-  X,
 } from "lucide-react";
-import type { TFunction } from "i18next";
 import { BrandMark } from "@/components/brand-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { CandyTrim, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { NotificationBell } from "./_components/notification-bell";
 import { logoutAndClear, readSession, useSession } from "@/lib/session";
 import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
+
+const KidsToys3D = dynamic(
+  () => import("@/components/kids-3d").then((m) => m.KidsToys3D),
+  { ssr: false },
+);
 
 const navByRole: Record<
   string,
@@ -82,6 +99,23 @@ const navByRole: Record<
   ],
 };
 
+const navColors: Record<string, string> = {
+  "/dashboard": "text-coral",
+  "/dashboard/classes": "text-sky",
+  "/dashboard/attendance": "text-mint",
+  "/dashboard/notices": "text-coral",
+  "/dashboard/albums": "text-grape",
+  "/dashboard/calendar": "text-sky",
+  "/dashboard/reports": "text-mint",
+  "/dashboard/meals": "text-sunshine",
+  "/dashboard/medications": "text-bubblegum",
+  "/dashboard/pickups": "text-grape",
+  "/dashboard/documents": "text-sky",
+  "/dashboard/teachers": "text-coral",
+  "/dashboard/requests": "text-mint",
+  "/dashboard/invitations": "text-grape",
+};
+
 const navGroups = [
   {
     labelKey: "groups.main",
@@ -111,8 +145,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { t: tCommon } = useLayoutTranslation("common");
   const { t: tNav } = useLayoutTranslation("nav");
   useRealtimeNotifications(session);
@@ -147,10 +179,17 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   if (loading || !session) {
     return (
-      <main className="grid min-h-screen place-items-center bg-muted/40 px-6">
-        <Card className="w-full max-w-sm p-8 text-center text-sm text-muted-foreground">
-          Loading…
-        </Card>
+      <main className="grid min-h-screen place-items-center bg-kids-dots px-6">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-52 w-52">
+            <KidsToys3D />
+          </div>
+          <div className="flex gap-2">
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-coral [animation-delay:0ms]" />
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-sky [animation-delay:150ms]" />
+            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-mint [animation-delay:300ms]" />
+          </div>
+        </div>
       </main>
     );
   }
@@ -161,267 +200,130 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     router.replace("/login");
   }
 
+  const isParent = session.user.role === "parent";
+
   return (
-    <div className="min-h-screen bg-[#f7fbff]">
-      {mobileSidebarOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            aria-label={tCommon("actions.closeSidebar")}
-            className="absolute inset-0 bg-foreground/30"
-            onClick={() => setMobileSidebarOpen(false)}
-          />
-          <div className="absolute inset-y-0 left-0 w-[18rem] max-w-[86vw] border-r bg-white shadow-pop">
-            <SidebarContent
-              groupedNav={groupedNav}
-              pathname={pathname}
-              roleLabel={roleLabel}
-              centerName={session.membership.centerName}
-              collapsed={false}
-              onNavigate={() => setMobileSidebarOpen(false)}
-              onSignOut={handleSignOut}
-              tCommon={tCommon}
-              tNav={tNav}
+    <SidebarProvider className={isParent ? "font-kids" : undefined}>
+      <Sidebar collapsible="icon" variant="sidebar">
+        <SidebarHeader className="gap-3 p-3">
+          <div className="flex h-12 items-center px-1">
+            <BrandMark
+              href="/dashboard"
+              className="text-sidebar-foreground group-data-[collapsible=icon]:[&>span:last-child]:hidden"
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-[calc(100%+0.75rem)] top-4 rounded-full bg-white shadow-card"
-              onClick={() => setMobileSidebarOpen(false)}
-              aria-label={tCommon("actions.closeSidebar")}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      ) : null}
-
-      <div
-        className={cn(
-          "lg:grid lg:min-h-screen lg:transition-[grid-template-columns] lg:duration-200",
-          sidebarOpen ? "lg:grid-cols-[272px_1fr]" : "lg:grid-cols-[72px_1fr]",
-        )}
-      >
-        <aside
-          className={cn(
-            "group/sidebar relative hidden border-r bg-white lg:flex lg:flex-col",
-            !sidebarOpen && "items-center",
-          )}
-          data-state={sidebarOpen ? "expanded" : "collapsed"}
-        >
-          <SidebarContent
-            groupedNav={groupedNav}
-            pathname={pathname}
-            roleLabel={roleLabel}
-            centerName={session.membership.centerName}
-            collapsed={!sidebarOpen}
-            onNavigate={() => undefined}
-            onSignOut={handleSignOut}
-            tCommon={tCommon}
-            tNav={tNav}
-          />
-          <button
-            type="button"
-            aria-label={tCommon("actions.toggleSidebar")}
-            title={tCommon("actions.toggleSidebar")}
-            className="absolute inset-y-0 -right-3 hidden w-6 cursor-ew-resize items-center justify-center lg:flex"
-            onClick={() => setSidebarOpen((open) => !open)}
-          >
-            <span className="h-10 w-1 rounded-full bg-transparent transition hover:bg-border" />
-          </button>
-        </aside>
-
-        <div className="min-w-0">
-          <header className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur">
-            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() =>
-                    window.matchMedia("(min-width: 1024px)").matches
-                      ? setSidebarOpen((open) => !open)
-                      : setMobileSidebarOpen(true)
-                  }
-                  aria-label={tCommon("actions.openSidebar")}
-                >
-                  <Menu className="h-4 w-4 lg:hidden" />
-                  <PanelLeft className="hidden h-4 w-4 lg:block" />
-                </Button>
-                <div className="lg:hidden">
-                  <BrandMark href="/dashboard" />
-                </div>
-                <div className="hidden lg:block">
-                  <p className="text-sm font-extrabold">
-                    {tCommon("dashboard.hello", {
-                      name: session.user.fullName,
-                    })}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {roleLabel}
-                    {session.membership.centerName
-                      ? ` · ${session.membership.centerName}`
-                      : ""}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="hidden text-right sm:block lg:hidden">
-                  <p className="text-sm font-bold">{session.user.fullName}</p>
-                  <p className="text-xs text-muted-foreground">{roleLabel}</p>
-                </div>
-                <LanguageSwitcher />
-                <NotificationBell />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="hidden gap-2 sm:inline-flex"
-                >
-                  <LogOut className="h-4 w-4" />
-                  {tCommon("actions.signOut")}
-                </Button>
+          <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
+            <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
+            <div className="relative flex items-center gap-2.5">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary via-sky to-grape text-white">
+                <School className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                  {tCommon("dashboard.panel", { role: roleLabel })}
+                </p>
+                <p className="truncate text-sm font-bold text-sidebar-foreground">
+                  {session.membership.centerName ||
+                    tCommon("dashboard.defaultCenter")}
+                </p>
               </div>
             </div>
-          </header>
-
-          <main className="mx-auto min-w-0 max-w-[1240px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-            {children}
-          </main>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SidebarContent({
-  groupedNav,
-  pathname,
-  roleLabel,
-  centerName,
-  collapsed,
-  onNavigate,
-  onSignOut,
-  tCommon,
-  tNav,
-}: {
-  groupedNav: Array<{
-    labelKey: string;
-    items: Array<{
-      href: string;
-      labelKey: string;
-      Icon: typeof LayoutDashboard;
-    }>;
-  }>;
-  pathname: string;
-  roleLabel: string;
-  centerName: string | null;
-  collapsed: boolean;
-  onNavigate: () => void;
-  onSignOut: () => void;
-  tCommon: TFunction<"common">;
-  tNav: TFunction<"nav">;
-}) {
-  return (
-    <>
-      <div
-        className={cn(
-          "flex h-16 items-center border-b",
-          collapsed ? "justify-center px-2" : "px-4",
-        )}
-      >
-        <BrandMark
-          href="/dashboard"
-          className={cn(collapsed && "[&>span:last-child]:hidden")}
-        />
-      </div>
-
-      <div
-        className={cn(
-          "border-b",
-          collapsed ? "px-2 py-3 text-center" : "px-4 py-4",
-        )}
-      >
-        <div
-          className={cn(
-            "grid place-items-center rounded-xl bg-accent text-accent-foreground",
-            collapsed ? "mx-auto h-10 w-10" : "h-11 w-11",
-          )}
-        >
-          <School className="h-5 w-5" />
-        </div>
-        <div className={cn("mt-3 min-w-0", collapsed && "sr-only")}>
-          <p className="text-xs font-extrabold uppercase text-primary">
-            {tCommon("dashboard.panel", { role: roleLabel })}
-          </p>
-          <p className="mt-1 truncate text-sm font-bold">
-            {centerName || tCommon("dashboard.defaultCenter")}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {tCommon("dashboard.subtitle")}
-          </p>
-        </div>
-      </div>
-
-      <nav className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 py-3">
-        {groupedNav.map((group) => (
-          <div key={group.labelKey} className="flex flex-col gap-1">
-            <p
-              className={cn(
-                "px-2 py-1 text-[11px] font-extrabold uppercase text-muted-foreground/75 transition",
-                collapsed && "h-0 overflow-hidden py-0 opacity-0",
-              )}
-            >
-              {tNav(group.labelKey)}
-            </p>
-            {group.items.map(({ href, labelKey, Icon }) => {
-              const active =
-                pathname === href ||
-                (href !== "/dashboard" && pathname.startsWith(href));
-              const label = tNav(labelKey);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  title={collapsed ? label : undefined}
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex h-10 items-center rounded-xl text-sm font-bold transition",
-                    collapsed ? "justify-center px-0" : "gap-3 px-3",
-                    active
-                      ? "bg-primary text-primary-foreground shadow-card"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className={cn("truncate", collapsed && "sr-only")}>
-                    {label}
-                  </span>
-                </Link>
-              );
-            })}
           </div>
-        ))}
-      </nav>
+        </SidebarHeader>
 
-      <div className="border-t p-2">
-        <Button
-          variant="ghost"
-          size={collapsed ? "icon" : "sm"}
-          onClick={onSignOut}
-          title={collapsed ? tCommon("actions.signOut") : undefined}
-          className={cn(
-            "text-muted-foreground",
-            collapsed ? "h-10 w-10" : "w-full justify-start gap-2",
-          )}
-        >
-          <LogOut className="h-4 w-4" />
-          <span className={cn(collapsed && "sr-only")}>
-            {tCommon("actions.signOut")}
-          </span>
-        </Button>
-      </div>
-    </>
+        <SidebarContent className="px-1">
+          {groupedNav.map((group) => (
+            <SidebarGroup key={group.labelKey}>
+              <SidebarGroupLabel>{tNav(group.labelKey)}</SidebarGroupLabel>
+              <SidebarMenu>
+                {group.items.map(({ href, labelKey, Icon }) => {
+                  const active =
+                    pathname === href ||
+                    (href !== "/dashboard" && pathname.startsWith(href));
+                  const label = tNav(labelKey);
+                  return (
+                    <SidebarMenuItem key={href}>
+                      <SidebarMenuButton asChild isActive={active} tooltip={label}>
+                        <Link href={href}>
+                          <Icon className={navColors[href] ?? "text-primary"} />
+                          <span>{label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
+        </SidebarContent>
+
+        <SidebarFooter className="p-2">
+          <div className="relative mb-1 flex items-center justify-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-r from-sky/15 via-mint/15 to-coral/15 py-2 group-data-[collapsible=icon]:hidden">
+            <KidBalloon className="h-9 w-6 animate-float text-coral" />
+            <KidBalloon className="h-7 w-5 animate-float-slow text-sky" />
+            <KidBalloon className="h-8 w-5 animate-float text-grape" />
+          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={tCommon("actions.signOut")}
+                onClick={handleSignOut}
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut />
+                <span>{tCommon("actions.signOut")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset className="min-w-0 bg-kids-dots">
+        <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
+          <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
+            <div className="flex min-w-0 items-center gap-2">
+              <SidebarTrigger className="text-foreground" />
+              <div className="lg:hidden">
+                <BrandMark href="/dashboard" />
+              </div>
+              <div className="hidden min-w-0 lg:block">
+                <p className="truncate text-sm font-extrabold">
+                  {tCommon("dashboard.hello", { name: session.user.fullName })}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {roleLabel}
+                  {session.membership.centerName
+                    ? ` · ${session.membership.centerName}`
+                    : ""}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden text-right sm:block lg:hidden">
+                <p className="text-sm font-bold">{session.user.fullName}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              </div>
+              <LanguageSwitcher />
+              <NotificationBell />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="hidden gap-2 sm:inline-flex"
+              >
+                <LogOut className="h-4 w-4" />
+                {tCommon("actions.signOut")}
+              </Button>
+            </div>
+          </div>
+          <CandyTrim />
+        </header>
+
+        <main className="mx-auto w-full min-w-0 max-w-[1240px] animate-fade-in-up px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

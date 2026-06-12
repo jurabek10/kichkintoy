@@ -25,5 +25,8 @@
   "notifications": {
     "label": "Notifications",
     "unread": "{{count}} unread notifications"
+  },
+  "status": {
+    "loading": "Loading…"
   }
 }

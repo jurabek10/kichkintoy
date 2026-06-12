@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRight,
   Bell,
@@ -11,15 +12,16 @@ import {
   Mail,
   Utensils,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import { KidSun, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { useSession } from "@/lib/session";
+import { cn } from "@/lib/utils";
+
+const KidsToys3D = dynamic(
+  () => import("@/components/kids-3d").then((m) => m.KidsToys3D),
+  { ssr: false },
+);
 
 export function DashboardHome() {
   const { t } = useLayoutTranslation("app");
@@ -36,16 +38,21 @@ export function DashboardHome() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="overflow-hidden rounded-2xl border bg-white shadow-card">
-        <div className="grid gap-0 lg:grid-cols-[1fr_360px]">
-          <div className="p-6 sm:p-8">
-            <p className="text-xs font-extrabold uppercase text-primary">
-              {roleTitle}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky via-primary to-mint text-white shadow-pop">
+        {/* friendly sky scene */}
+        <KidCloud className="pointer-events-none absolute left-6 top-6 h-10 w-20 animate-float text-white/70" />
+        <KidCloud className="pointer-events-none absolute right-1/3 top-10 hidden h-8 w-16 animate-float-slow text-white/50 lg:block" />
+        <KidBalloon className="pointer-events-none absolute -bottom-3 right-10 hidden h-24 w-14 animate-float text-coral lg:block" />
+        <KidBalloon className="pointer-events-none absolute -bottom-6 right-28 hidden h-20 w-12 animate-float-slow text-sunshine lg:block" />
+        <div className="relative grid gap-0 lg:grid-cols-[1fr_320px]">
+          <div className="p-6 sm:p-9">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/25 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-white">
+              👋 {roleTitle}
             </p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight">
+            <h1 className="mt-3 text-3xl font-black tracking-tight drop-shadow-sm sm:text-4xl">
               {t("dashboardHome.hello", { name: session.user.fullName })}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/90">
               {session.membership.centerName
                 ? t("dashboardHome.centerDescription", {
                     center: session.membership.centerName,
@@ -54,18 +61,18 @@ export function DashboardHome() {
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Metric label={t("dashboardHome.attendance")} value="92%" Icon={CheckCircle2} />
-              <Metric label={t("dashboardHome.newMessages")} value="8" Icon={Bell} />
-              <Metric label={t("dashboardHome.todayPlan")} value="4" Icon={CalendarDays} />
+              <Metric label={t("dashboardHome.attendance")} value="92%" Icon={CheckCircle2} accent="text-mint" />
+              <Metric label={t("dashboardHome.newMessages")} value="8" Icon={Bell} accent="text-sunshine" />
+              <Metric label={t("dashboardHome.todayPlan")} value="4" Icon={CalendarDays} accent="text-coral" />
             </div>
           </div>
 
-          <div className="relative hidden min-h-72 overflow-hidden bg-accent lg:block">
-            <img
-              src="/images/uzbek-kindergarten-roles.png"
-              alt=""
-              className="h-full w-full object-cover object-center"
-            />
+          <div className="relative hidden items-center justify-center lg:flex">
+            <div className="absolute h-52 w-52 rounded-full bg-white/15 blur-2xl" />
+            <KidSun className="absolute left-6 top-6 h-16 w-16 animate-float text-sunshine/80" />
+            <div className="relative h-72 w-full">
+              <KidsToys3D />
+            </div>
           </div>
         </div>
       </section>
@@ -176,21 +183,35 @@ function Metric({
   label,
   value,
   Icon,
+  accent,
 }: {
   label: string;
   value: string;
   Icon: typeof CheckCircle2;
+  accent: string;
 }) {
   return (
-    <div className="rounded-xl border bg-[#fbfdff] p-4">
+    <div className="rounded-2xl border border-white/20 bg-white/15 p-4 backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/25">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold text-muted-foreground">{label}</p>
-        <Icon className="h-4 w-4 text-primary" />
+        <p className="text-xs font-bold text-white/85">{label}</p>
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90">
+          <Icon className={cn("h-4 w-4", accent)} />
+        </span>
       </div>
       <p className="mt-2 text-2xl font-black">{value}</p>
     </div>
   );
 }
+
+const cardAccents: Record<string, string> = {
+  "/dashboard/requests": "bg-coral/15 text-coral group-hover:bg-coral group-hover:text-white",
+  "/dashboard/invitations": "bg-sky/15 text-sky group-hover:bg-sky group-hover:text-white",
+  "/dashboard/albums": "bg-grape/15 text-grape group-hover:bg-grape group-hover:text-white",
+  "/dashboard/meals": "bg-mint/15 text-mint group-hover:bg-mint group-hover:text-white",
+  "/dashboard/reports": "bg-coral/15 text-coral group-hover:bg-coral group-hover:text-white",
+  "/dashboard/notices": "bg-sky/15 text-sky group-hover:bg-sky group-hover:text-white",
+  "/dashboard/pickups": "bg-grape/15 text-grape group-hover:bg-grape group-hover:text-white",
+};
 
 function ActionCard({
   href,
@@ -205,15 +226,23 @@ function ActionCard({
   Icon: typeof Inbox;
   openLabel: string;
 }) {
+  const accent =
+    cardAccents[href] ??
+    "bg-accent text-accent-foreground group-hover:bg-primary group-hover:text-white";
   return (
     <Link
       href={href}
-      className="group block rounded-2xl border bg-white text-card-foreground shadow-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-pop"
+      className="group relative block overflow-hidden rounded-3xl border-2 border-transparent bg-card text-card-foreground shadow-card transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-pop"
     >
       <CardContent className="flex min-h-44 flex-col gap-2 p-5">
-        <div className="flex items-center gap-2">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
-            <Icon className="h-5 w-5" />
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              "grid h-12 w-12 place-items-center rounded-2xl transition-colors duration-300 group-hover:rotate-3",
+              accent,
+            )}
+          >
+            <Icon className="h-6 w-6" />
           </span>
           <h2 className="text-base font-bold">{title}</h2>
         </div>
