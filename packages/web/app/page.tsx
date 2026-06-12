@@ -2,9 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { readSession, routeForMembership } from "@/lib/session";
 
 export default function HomePage() {
+  const { t } = useLayoutTranslation("app");
   const router = useRouter();
 
   useEffect(() => {
@@ -18,7 +20,9 @@ export default function HomePage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-muted/40">
-      <p className="text-sm font-semibold text-muted-foreground">Loading…</p>
+      <p className="text-sm font-semibold text-muted-foreground">
+        {t("loading")}
+      </p>
     </main>
   );
 }
