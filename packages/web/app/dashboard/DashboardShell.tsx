@@ -46,9 +46,19 @@ import { logoutAndClear, readSession, useSession } from "@/lib/session";
 import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
 
+function BouncingDots() {
+  return (
+    <div className="flex h-full items-center justify-center gap-2">
+      <span className="h-3 w-3 animate-bounce rounded-full bg-coral [animation-delay:0ms]" />
+      <span className="h-3 w-3 animate-bounce rounded-full bg-sky [animation-delay:150ms]" />
+      <span className="h-3 w-3 animate-bounce rounded-full bg-mint [animation-delay:300ms]" />
+    </div>
+  );
+}
+
 const KidsToys3D = dynamic(
   () => import("@/components/kids-3d").then((m) => m.KidsToys3D),
-  { ssr: false },
+  { ssr: false, loading: () => <BouncingDots /> },
 );
 
 const navByRole: Record<
@@ -180,15 +190,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   if (loading || !session) {
     return (
       <main className="grid min-h-screen place-items-center bg-kids-dots px-6">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-52 w-52">
-            <KidsToys3D />
-          </div>
-          <div className="flex gap-2">
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-coral [animation-delay:0ms]" />
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-sky [animation-delay:150ms]" />
-            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-mint [animation-delay:300ms]" />
-          </div>
+        <div className="h-64 w-64">
+          <KidsToys3D />
         </div>
       </main>
     );

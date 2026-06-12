@@ -69,8 +69,8 @@ export function DashboardHome() {
 
           <div className="relative hidden items-center justify-center lg:flex">
             <div className="absolute h-52 w-52 rounded-full bg-white/15 blur-2xl" />
-            <KidSun className="absolute left-6 top-6 h-16 w-16 animate-float text-sunshine/80" />
-            <div className="relative h-72 w-full">
+            <KidSun className="absolute left-4 top-4 h-14 w-14 animate-float text-sunshine/70" />
+            <div className="relative h-80 w-full">
               <KidsToys3D />
             </div>
           </div>
