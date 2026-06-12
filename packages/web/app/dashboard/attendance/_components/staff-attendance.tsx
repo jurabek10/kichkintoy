@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -153,10 +153,9 @@ export function StaffAttendance({
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onValueChange={setDate}
               className="w-[155px]"
             />
             <Select value={classId} onValueChange={setClassId}>

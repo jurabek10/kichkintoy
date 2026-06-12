@@ -8,6 +8,7 @@ import { FieldError, FieldHelper } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -160,14 +161,13 @@ export function ChildStep() {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="signup-child-dob">{t("signup.birthDate")}</Label>
-        <Input
+        <DatePicker
           id="signup-child-dob"
-          type="date"
           value={draft.childDateOfBirth}
-          onChange={(event) =>
+          onValueChange={(value) =>
             setDraft((current) => ({
               ...current,
-              childDateOfBirth: event.target.value,
+              childDateOfBirth: value,
             }))
           }
         />

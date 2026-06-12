@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -109,16 +109,14 @@ export function ParentAttendance() {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
+            <DatePicker
               value={from}
-              onChange={(event) => setFrom(event.target.value)}
+              onValueChange={setFrom}
               className="w-[155px]"
             />
-            <Input
-              type="date"
+            <DatePicker
               value={to}
-              onChange={(event) => setTo(event.target.value)}
+              onValueChange={setTo}
               className="w-[155px]"
             />
           </div>
@@ -145,10 +143,9 @@ export function ParentAttendance() {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
+            <DatePicker
               value={absenceDate}
-              onChange={(event) => setAbsenceDate(event.target.value)}
+              onValueChange={setAbsenceDate}
               className="w-[155px]"
             />
           </div>

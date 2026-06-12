@@ -21,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -387,11 +388,10 @@ function ReportBasics({
       <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="report-date">{t("composer.date")}</Label>
-          <Input
+          <DatePicker
             id="report-date"
-            type="date"
             value={reportDate}
-            onChange={(event) => onReportDateChange(event.target.value)}
+            onValueChange={onReportDateChange}
           />
         </div>
         <div className="flex flex-col gap-2">

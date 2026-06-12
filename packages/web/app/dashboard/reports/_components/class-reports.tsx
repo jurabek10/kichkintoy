@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -142,10 +143,9 @@ export function ClassReports({
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onValueChange={setDate}
               className="w-[160px]"
             />
             {!directorView ? (
