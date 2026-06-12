@@ -3,16 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { AuthResponse } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 import { useSignup } from "../SignupContext";
 
 export function ReviewStep() {
+  const { t } = useLayoutTranslation("app");
   const router = useRouter();
   const { draft, reset } = useSignup();
   const [error, setError] = useState<string | null>(null);
@@ -57,28 +58,31 @@ export function ReviewStep() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold tracking-tight">
-          Review and finish
+          {t("signup.reviewTitle")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Confirm your account details below.
+          {t("signup.reviewDescription")}
         </p>
       </header>
 
       <dl className="grid gap-4 rounded-2xl border bg-muted/40 p-5 sm:grid-cols-2">
-        <Detail label="Name" value={draft.fullName} />
-        <Detail label="Phone" value={draft.phoneNumber} />
-        <Detail label="Username" value={draft.username} />
-        <Detail label="Role" value="Teacher" />
+        <Detail label={t("signup.name")} value={draft.fullName} />
+        <Detail label={t("signup.phone")} value={draft.phoneNumber} />
+        <Detail label={t("signup.username")} value={draft.username} />
         <Detail
-          label="Kindergarten"
+          label={t("signup.steps.role")}
+          value={t("signup.roleTeacher")}
+        />
+        <Detail
+          label={t("signup.steps.kindergarten")}
           value={draft.centerName ?? draft.invitationLabel ?? "—"}
         />
         <Detail
-          label="Status"
+          label={t("signup.status")}
           value={
             draft.invitationId
-              ? "Active immediately (invited)"
-              : "Pending director approval"
+              ? t("signup.activeInvited")
+              : t("signup.pendingApproval")
           }
         />
       </dl>
@@ -98,7 +102,7 @@ export function ReviewStep() {
             className="w-full"
             onClick={() => router.back()}
           >
-            Back
+            {t("actions.back")}
           </Button>
         }
         next={
@@ -109,7 +113,9 @@ export function ReviewStep() {
             onClick={submit}
             disabled={submitting}
           >
-            {submitting ? "Creating account…" : "Complete registration"}
+            {submitting
+              ? t("signup.creating")
+              : t("signup.completeRegistration")}
           </Button>
         }
       />

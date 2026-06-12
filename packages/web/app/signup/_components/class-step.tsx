@@ -8,12 +8,14 @@ import type { CenterClassSummary } from "@kichkintoy/shared";
 import { FormActions } from "@/components/form-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
 
 export function ClassStep() {
+  const { t } = useLayoutTranslation("app");
   const router = useRouter();
   const { draft, setDraft } = useSignup();
   const [skip, setSkip] = useState(draft.classId === null);
@@ -48,24 +50,20 @@ export function ClassStep() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold tracking-tight">
-          Which class is your child in?
+          {t("signup.classTitle")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Pick the class at <strong>{draft.centerName}</strong>. The director
-          can change it later if needed.
+          {t("signup.classDescription", { center: draft.centerName })}
         </p>
       </header>
 
       {loading ? (
         <Alert variant="info">
-          <AlertDescription>Loading classes…</AlertDescription>
+          <AlertDescription>{t("signup.loadingClasses")}</AlertDescription>
         </Alert>
       ) : classes.length === 0 ? (
         <Alert variant="warning">
-          <AlertDescription>
-            This center has no classes yet. Choose "I don't know yet" and the
-            director will assign one.
-          </AlertDescription>
+          <AlertDescription>{t("signup.noClassesYet")}</AlertDescription>
         </Alert>
       ) : (
         <div className="flex flex-col gap-2">
@@ -109,9 +107,9 @@ export function ClassStep() {
           <HelpCircle className="h-5 w-5 text-warning" />
         </span>
         <span className="flex flex-col">
-          <span className="text-sm font-bold">I don't know yet</span>
+          <span className="text-sm font-bold">{t("signup.dontKnowYet")}</span>
           <span className="text-xs text-muted-foreground">
-            The director will pick the class when approving.
+            {t("signup.dontKnowDesc")}
           </span>
         </span>
       </button>
@@ -125,7 +123,7 @@ export function ClassStep() {
             className="w-full"
             onClick={() => router.back()}
           >
-            Back
+            {t("actions.back")}
           </Button>
         }
         next={
@@ -135,7 +133,7 @@ export function ClassStep() {
             className="w-full"
             onClick={() => router.push("/signup/child")}
           >
-            Continue
+            {t("actions.continue")}
           </Button>
         }
       />

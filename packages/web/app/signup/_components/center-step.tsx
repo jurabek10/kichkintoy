@@ -20,12 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
-import { facilityTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSignup } from "../SignupContext";
 
 export function CenterStep() {
+  const { t } = useLayoutTranslation("app");
   const router = useRouter();
   const { draft, setDraft } = useSignup();
   const [regionId, setRegionId] = useState<string>("");
@@ -71,7 +72,9 @@ export function CenterStep() {
     onSuccess: (rows) => setResults(rows),
     onError: (err) => {
       setResults([]);
-      setError(err instanceof Error ? err.message : "Could not load centers.");
+      setError(
+        err instanceof Error ? err.message : t("signup.errors.loadCenters"),
+      );
     },
   });
 
@@ -79,10 +82,10 @@ export function CenterStep() {
 
   function runSearch() {
     setError(null);
-    if (!regionId) return setError("Choose a region first.");
-    if (!districtId) return setError("Choose a district first.");
+    if (!regionId) return setError(t("signup.errors.regionRequired"));
+    if (!districtId) return setError(t("signup.errors.districtRequired"));
     if (query.trim().length < 2)
-      return setError("Enter at least 2 characters of the kindergarten name.");
+      return setError(t("signup.errors.searchMinLength"));
 
     setSearched(true);
     searchMutation.mutate();
@@ -117,19 +120,21 @@ export function CenterStep() {
     },
     onError: (err) =>
       setCodeError(
-        err instanceof Error ? err.message : "Center code not found.",
+        err instanceof Error
+          ? err.message
+          : t("signup.errors.centerCodeNotFound"),
       ),
   });
 
   function lookupByCode() {
     setCodeError(null);
-    if (!code.trim()) return setCodeError("Enter the center code.");
+    if (!code.trim()) return setCodeError(t("signup.errors.centerCodeRequired"));
     codeMutation.mutate();
   }
 
   function next() {
     if (!draft.centerId)
-      return setError("Select your kindergarten to continue.");
+      return setError(t("signup.errors.centerRequired"));
     router.push(draft.role === "parent" ? "/signup/class" : "/signup/review");
   }
 
@@ -137,19 +142,19 @@ export function CenterStep() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold tracking-tight">
-          Find your kindergarten
+          {t("signup.centerTitle")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Pick your region and district, then search by name.
+          {t("signup.centerDescription")}
         </p>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="signup-region">Region</Label>
+          <Label htmlFor="signup-region">{t("signup.region")}</Label>
           <Select value={regionId} onValueChange={onRegionChange}>
             <SelectTrigger id="signup-region">
-              <SelectValue placeholder="Select region" />
+              <SelectValue placeholder={t("signup.selectRegion")} />
             </SelectTrigger>
             <SelectContent>
               {regions.map((region) => (
@@ -161,7 +166,7 @@ export function CenterStep() {
           </Select>
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="signup-district">District</Label>
+          <Label htmlFor="signup-district">{t("signup.district")}</Label>
           <Select
             value={districtId}
             onValueChange={setDistrictId}
@@ -169,7 +174,11 @@ export function CenterStep() {
           >
             <SelectTrigger id="signup-district">
               <SelectValue
-                placeholder={regionId ? "Select district" : "Pick a region first"}
+                placeholder={
+                  regionId
+                    ? t("signup.selectDistrict")
+                    : t("signup.pickRegionFirst")
+                }
               />
             </SelectTrigger>
             <SelectContent>
@@ -184,12 +193,12 @@ export function CenterStep() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="signup-center-query">Kindergarten name</Label>
+        <Label htmlFor="signup-center-query">{t("signup.kindergartenName")}</Label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
           <Input
             id="signup-center-query"
             value={query}
-            placeholder="e.g. Quyoshcha"
+            placeholder={t("signup.kindergartenNamePlaceholder")}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -205,7 +214,7 @@ export function CenterStep() {
             disabled={searching}
           >
             <Search className="h-4 w-4" />
-            {searching ? "Searching…" : "Search"}
+            {searching ? t("signup.searching") : t("actions.search")}
           </Button>
         </div>
       </div>
@@ -220,10 +229,7 @@ export function CenterStep() {
         <div className="flex flex-col gap-2">
           {results.length === 0 ? (
             <Alert variant="warning">
-              <AlertDescription>
-                No kindergartens found in this district. Ask your director to
-                send you an invitation.
-              </AlertDescription>
+              <AlertDescription>{t("signup.noCentersFound")}</AlertDescription>
             </Alert>
           ) : (
             results.map((center) => {
@@ -245,7 +251,7 @@ export function CenterStep() {
                   <div className="flex items-center justify-between">
                     <span className="text-base font-bold">{center.name}</span>
                     <Badge variant="secondary">
-                      {facilityTypeLabel(center.facilityType)}
+                      {t(`signup.facilityTypes.${center.facilityType}`)}
                     </Badge>
                   </div>
                   <span className="text-sm text-muted-foreground">
@@ -269,22 +275,22 @@ export function CenterStep() {
           className="h-auto p-0 text-sm"
           onClick={() => setShowCode((v) => !v)}
         >
-          {showCode ? "Hide" : "I have a direct center code instead"}
+          {showCode ? t("signup.hide") : t("signup.directCenterCode")}
         </Button>
         {showCode ? (
           <div className="mt-3 flex flex-col gap-3">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="signup-code-input">Center code</Label>
+              <Label htmlFor="signup-code-input">{t("signup.centerCode")}</Label>
               <Input
                 id="signup-code-input"
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
-                placeholder="e.g. KIC-7HQ4"
+                placeholder={t("signup.centerCodePlaceholder")}
               />
               <FieldError message={codeError ?? undefined} />
             </div>
             <Button type="button" variant="outline" onClick={lookupByCode}>
-              Look up center
+              {t("signup.lookupCenter")}
             </Button>
           </div>
         ) : null}
@@ -299,12 +305,12 @@ export function CenterStep() {
             className="w-full"
             onClick={() => router.back()}
           >
-            Back
+            {t("actions.back")}
           </Button>
         }
         next={
           <Button type="button" size="lg" className="w-full" onClick={next}>
-            Continue
+            {t("actions.continue")}
           </Button>
         }
       />

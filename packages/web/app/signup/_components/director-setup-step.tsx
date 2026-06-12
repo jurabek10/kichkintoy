@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { facilityTypeLabel } from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { persistSession, routeForMembership } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ import { useSignup } from "../SignupContext";
 const facilityOptions: FacilityType[] = ["kindergarten", "daycare", "academy"];
 
 export function DirectorSetupStep() {
+  const { t } = useLayoutTranslation("app");
   const router = useRouter();
   const { draft, setDraft, reset } = useSignup();
   const [query, setQuery] = useState("");
@@ -77,7 +78,9 @@ export function DirectorSetupStep() {
     onSuccess: (rows) => setResults(rows),
     onError: (err) => {
       setResults([]);
-      setError(err instanceof Error ? err.message : "Search failed.");
+      setError(
+        err instanceof Error ? err.message : t("signup.errors.searchFailed"),
+      );
     },
   });
 
@@ -86,9 +89,9 @@ export function DirectorSetupStep() {
   function runSearch() {
     setError(null);
     if (!draft.director.regionId || !draft.director.districtId)
-      return setError("Choose a region and district first.");
+      return setError(t("signup.errors.regionDistrictRequired"));
     if (query.trim().length < 2)
-      return setError("Enter at least 2 characters.");
+      return setError(t("signup.errors.searchMinChars"));
     setSearched(true);
     searchMutation.mutate();
   }
@@ -148,7 +151,9 @@ export function DirectorSetupStep() {
       );
     },
     onError: (err) =>
-      setError(err instanceof Error ? err.message : "Could not register."),
+      setError(
+        err instanceof Error ? err.message : t("signup.errors.registerFailed"),
+      ),
   });
 
   const submitting = registerMutation.isPending;
@@ -158,13 +163,13 @@ export function DirectorSetupStep() {
     setError(null);
 
     if (!draft.director.mode)
-      return setError("Pick an existing kindergarten or create a new one.");
+      return setError(t("signup.errors.pickOrCreate"));
 
     if (draft.director.mode === "create_new") {
       if (draft.director.organizationName.trim().length < 2)
-        return setError("Organization name is required.");
+        return setError(t("signup.errors.orgNameRequired"));
       if (draft.director.centerName.trim().length < 2)
-        return setError("Kindergarten name is required.");
+        return setError(t("signup.errors.kindergartenNameRequired"));
     }
 
     registerMutation.mutate();
@@ -174,15 +179,15 @@ export function DirectorSetupStep() {
     <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold tracking-tight">
-          Set up your kindergarten
+          {t("signup.directorSetupTitle")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Search for your kindergarten. If it doesn't exist yet, create it.
+          {t("signup.directorSetupDescription")}
         </p>
       </header>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="director-facility">Facility type</Label>
+        <Label htmlFor="director-facility">{t("signup.facilityType")}</Label>
         <Select
           value={draft.director.facilityType}
           onValueChange={(value) =>
@@ -195,7 +200,7 @@ export function DirectorSetupStep() {
           <SelectContent>
             {facilityOptions.map((value) => (
               <SelectItem key={value} value={value}>
-                {facilityTypeLabel(value)}
+                {t(`signup.facilityTypes.${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -204,7 +209,7 @@ export function DirectorSetupStep() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="director-region">Region</Label>
+          <Label htmlFor="director-region">{t("signup.region")}</Label>
           <Select
             value={draft.director.regionId}
             onValueChange={(value) => {
@@ -213,7 +218,7 @@ export function DirectorSetupStep() {
             }}
           >
             <SelectTrigger id="director-region">
-              <SelectValue placeholder="Select region" />
+              <SelectValue placeholder={t("signup.selectRegion")} />
             </SelectTrigger>
             <SelectContent>
               {regions.map((region) => (
@@ -225,7 +230,7 @@ export function DirectorSetupStep() {
           </Select>
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="director-district">District</Label>
+          <Label htmlFor="director-district">{t("signup.district")}</Label>
           <Select
             value={draft.director.districtId}
             onValueChange={(value) => updateDirector("districtId", value)}
@@ -235,8 +240,8 @@ export function DirectorSetupStep() {
               <SelectValue
                 placeholder={
                   draft.director.regionId
-                    ? "Select district"
-                    : "Pick a region first"
+                    ? t("signup.selectDistrict")
+                    : t("signup.pickRegionFirst")
                 }
               />
             </SelectTrigger>
@@ -252,12 +257,12 @@ export function DirectorSetupStep() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="director-search">Kindergarten name</Label>
+        <Label htmlFor="director-search">{t("signup.kindergartenName")}</Label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
           <Input
             id="director-search"
             value={query}
-            placeholder="e.g. Quyoshcha"
+            placeholder={t("signup.kindergartenNamePlaceholder")}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -273,7 +278,7 @@ export function DirectorSetupStep() {
             disabled={searching}
           >
             <Search className="h-4 w-4" />
-            {searching ? "Searching…" : "Search"}
+            {searching ? t("signup.searching") : t("actions.search")}
           </Button>
         </div>
       </div>
@@ -282,9 +287,7 @@ export function DirectorSetupStep() {
         <div className="flex flex-col gap-2">
           {results.length === 0 ? (
             <Alert variant="info">
-              <AlertDescription>
-                No kindergartens match. You can create a new one below.
-              </AlertDescription>
+              <AlertDescription>{t("signup.noCentersMatch")}</AlertDescription>
             </Alert>
           ) : (
             results.map((center) => {
@@ -323,7 +326,7 @@ export function DirectorSetupStep() {
             className="h-auto self-start p-0 text-sm"
             onClick={switchToCreate}
           >
-            Can't find your kindergarten? Create a new one
+            {t("signup.cantFindCreate")}
           </Button>
         </div>
       ) : null}
@@ -331,21 +334,25 @@ export function DirectorSetupStep() {
       {draft.director.mode === "claim_existing" ? (
         <Alert variant="info">
           <AlertDescription>
-            You will request to join{" "}
-            <strong>{draft.director.claimCenterName}</strong> as a director. An
-            existing director must approve.
+            {t("signup.claimExistingInfo", {
+              center: draft.director.claimCenterName,
+            })}
           </AlertDescription>
         </Alert>
       ) : null}
 
       {draft.director.mode === "create_new" ? (
         <div className="flex flex-col gap-4 rounded-2xl border bg-muted/40 p-5">
-          <h2 className="text-base font-bold">Create a new kindergarten</h2>
+          <h2 className="text-base font-bold">
+            {t("signup.createNewKindergarten")}
+          </h2>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="director-org-name">Organization name</Label>
+            <Label htmlFor="director-org-name">
+              {t("signup.organizationName")}
+            </Label>
             <Input
               id="director-org-name"
-              placeholder="Legal entity name"
+              placeholder={t("signup.organizationNamePlaceholder")}
               value={draft.director.organizationName}
               onChange={(event) =>
                 updateDirector("organizationName", event.target.value)
@@ -353,10 +360,12 @@ export function DirectorSetupStep() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="director-center-name">Kindergarten name</Label>
+            <Label htmlFor="director-center-name">
+              {t("signup.kindergartenNameField")}
+            </Label>
             <Input
               id="director-center-name"
-              placeholder="What parents will search for"
+              placeholder={t("signup.kindergartenNamePublicPlaceholder")}
               value={draft.director.centerName}
               onChange={(event) =>
                 updateDirector("centerName", event.target.value)
@@ -364,7 +373,9 @@ export function DirectorSetupStep() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="director-address">Address (optional)</Label>
+            <Label htmlFor="director-address">
+              {t("signup.addressOptional")}
+            </Label>
             <Input
               id="director-address"
               value={draft.director.address}
@@ -374,7 +385,9 @@ export function DirectorSetupStep() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="director-phone">Center phone (optional)</Label>
+            <Label htmlFor="director-phone">
+              {t("signup.centerPhoneOptional")}
+            </Label>
             <Input
               id="director-phone"
               type="tel"
@@ -385,7 +398,9 @@ export function DirectorSetupStep() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="director-language">Default language</Label>
+            <Label htmlFor="director-language">
+              {t("signup.defaultLanguage")}
+            </Label>
             <Select
               value={draft.director.defaultLanguage}
               onValueChange={(value) =>
@@ -396,8 +411,8 @@ export function DirectorSetupStep() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="uz">Uzbek</SelectItem>
-                <SelectItem value="ru">Russian</SelectItem>
+                <SelectItem value="uz">{t("signup.uzbek")}</SelectItem>
+                <SelectItem value="ru">{t("signup.russian")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -419,12 +434,12 @@ export function DirectorSetupStep() {
             className="w-full"
             onClick={() => router.back()}
           >
-            Back
+            {t("actions.back")}
           </Button>
         }
         next={
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-            {submitting ? "Creating account…" : "Create account"}
+            {submitting ? t("signup.creating") : t("signup.createAccount")}
           </Button>
         }
       />
