@@ -4,39 +4,63 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 14% 14%;
+    /* Kichkintoy — a cheerful kindergarten palette.
+       Friendly teal primary with candy accents (coral, sunshine, mint, sky,
+       grape, bubblegum). Soft, warm, rounded — made for kids & parents. */
+    --background: 38 48% 94%;
+    --foreground: 211 28% 24%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 14% 14%;
+    --card-foreground: 211 28% 24%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 14% 14%;
+    --popover-foreground: 211 28% 24%;
 
-    --primary: 211 100% 49%;
+    --primary: 186 72% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 213 27% 96%;
-    --secondary-foreground: 220 14% 14%;
+    --secondary: 39 90% 95%;
+    --secondary-foreground: 24 45% 30%;
 
-    --muted: 213 27% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 40 40% 95%;
+    --muted-foreground: 211 14% 46%;
 
-    --accent: 211 100% 96%;
-    --accent-foreground: 211 100% 30%;
+    --accent: 186 62% 93%;
+    --accent-foreground: 188 70% 27%;
 
-    --destructive: 351 77% 50%;
+    /* Candy accents (also exposed as tailwind colors) */
+    --coral: 8 100% 70%;
+    --sunshine: 42 100% 62%;
+    --mint: 162 64% 53%;
+    --sky: 208 92% 64%;
+    --grape: 255 88% 73%;
+    --bubblegum: 340 100% 78%;
+
+    --gold: 42 100% 62%;
+    --gold-foreground: 28 60% 22%;
+
+    --destructive: 357 90% 66%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 213 22% 90%;
-    --input: 213 22% 90%;
-    --ring: 211 100% 49%;
+    --border: 38 36% 90%;
+    --input: 38 36% 90%;
+    --ring: 186 72% 44%;
 
-    --success: 154 65% 38%;
-    --warning: 37 95% 48%;
-    --info: 211 100% 49%;
+    --success: 162 64% 43%;
+    --warning: 42 100% 56%;
+    --info: 208 92% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1.1rem;
+
+    /* Sidebar — light, friendly cream (no more serious navy) */
+    --sidebar-background: 42 64% 97%;
+    --sidebar-foreground: 211 22% 32%;
+    --sidebar-primary: 186 72% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 186 60% 92%;
+    --sidebar-accent-foreground: 188 72% 27%;
+    --sidebar-border: 40 38% 88%;
+    --sidebar-ring: 186 72% 44%;
   }
 
   * {
@@ -51,5 +75,50 @@
   body {
     @apply min-h-screen font-sans antialiased;
     font-feature-settings: "cv11", "ss01";
+  }
+}
+
+/* Unlayered so it beats the per-item icon color utilities: the active sidebar
+   item's icon stays white/legible on its teal pill. */
+[data-sidebar="menu-button"][data-active="true"] svg {
+  color: hsl(var(--sidebar-primary-foreground));
+}
+
+@layer utilities {
+  /* Soft confetti dots — playful, barely-there texture behind surfaces. */
+  .bg-kids-dots {
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(
+        circle,
+        hsl(var(--coral) / 0.16) 0,
+        hsl(var(--coral) / 0.16) 2px,
+        transparent 2.5px
+      ),
+      radial-gradient(
+        circle,
+        hsl(var(--sky) / 0.16) 0,
+        hsl(var(--sky) / 0.16) 2px,
+        transparent 2.5px
+      ),
+      radial-gradient(
+        circle,
+        hsl(var(--sunshine) / 0.18) 0,
+        hsl(var(--sunshine) / 0.18) 2px,
+        transparent 2.5px
+      );
+    background-size: 64px 64px, 64px 64px, 64px 64px;
+    background-position: 0 0, 32px 18px, 18px 44px;
+  }
+
+  /* Candy rainbow strip used under headers — happy, not historical. */
+  .candy-trim {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--coral)),
+      hsl(var(--sunshine)),
+      hsl(var(--mint)),
+      hsl(var(--sky)),
+      hsl(var(--grape))
+    );
   }
 }
