@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -71,10 +71,9 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onValueChange={setDate}
               className="w-[155px]"
             />
             <Select value={status} onValueChange={setStatus}>

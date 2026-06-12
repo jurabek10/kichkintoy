@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -187,11 +188,10 @@ export function MedicationComposer() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="medication-date">Date</Label>
-              <Input
+              <DatePicker
                 id="medication-date"
-                type="date"
                 value={requestedForDate}
-                onChange={(event) => setRequestedForDate(event.target.value)}
+                onValueChange={setRequestedForDate}
               />
             </div>
           </div>

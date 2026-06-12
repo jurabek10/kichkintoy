@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -289,11 +290,10 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
             ) : null}
             <div className="grid gap-2">
               <Label htmlFor="due-date">Due date</Label>
-              <Input
+              <DatePicker
                 id="due-date"
-                type="date"
                 value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
+                onValueChange={setDueDate}
               />
             </div>
             <div className="grid gap-2">

@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -41,10 +41,9 @@ export function ParentPickups() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(event) => setDate(event.target.value)}
+              onValueChange={setDate}
               className="w-[155px]"
             />
             <Button asChild>

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Utensils } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -28,10 +28,9 @@ export function ParentMeals() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-xl">Meals</CardTitle>
-          <Input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(event) => setDate(event.target.value)}
+            onValueChange={setDate}
             className="w-[155px]"
           />
         </CardHeader>

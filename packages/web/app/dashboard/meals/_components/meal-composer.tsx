@@ -22,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -188,11 +189,10 @@ export function MealComposer({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="meal-date">Date</Label>
-              <Input
+              <DatePicker
                 id="meal-date"
-                type="date"
                 value={mealDate}
-                onChange={(event) => setMealDate(event.target.value)}
+                onValueChange={setMealDate}
               />
             </div>
             <div className="grid gap-2">

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -173,11 +174,10 @@ export function EventComposer({
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-2">
               <Label htmlFor="event-date">Date</Label>
-              <Input
+              <DatePicker
                 id="event-date"
-                type="date"
                 value={date}
-                onChange={(event) => setDate(event.target.value)}
+                onValueChange={setDate}
               />
             </div>
             <div className="grid gap-2">
