@@ -38,6 +38,7 @@ export const classRosterChildSchema = z.object({
   name: z.string(),
   photoUrl: z.string().nullable(),
   dateOfBirth: isoDateSchema.nullable(),
+  joinedAt: isoDateSchema.nullable(),
   gender: childGenderSchema.nullable(),
 });
 export type ClassRosterChild = z.infer<typeof classRosterChildSchema>;

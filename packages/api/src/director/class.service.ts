@@ -89,6 +89,7 @@ export class ClassService {
           .join(" "),
         photoUrl: enrollment.child.photoUrl,
         dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
+        joinedAt: enrollment.startedAt.toISOString().slice(0, 10),
         gender: normalizeChildGender(enrollment.child.gender),
       })),
     });
