@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { KichkintoyMark } from "@/components/kids-decor";
 
 export function BrandMark({
   href = "/",
@@ -12,14 +13,14 @@ export function BrandMark({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center gap-2 text-foreground no-underline",
+        "group inline-flex items-center gap-1.5 no-underline",
         className,
       )}
     >
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-base font-black text-primary-foreground">
-        K
+      <KichkintoyMark className="h-6 w-6 shrink-0 transition-transform duration-300 group-hover:-rotate-6" />
+      <span className="font-brand text-2xl font-extrabold leading-none tracking-tight text-sky">
+        Kichkintoy
       </span>
-      <span className="text-lg font-extrabold tracking-tight">Kichkintoy</span>
     </Link>
   );
 }
