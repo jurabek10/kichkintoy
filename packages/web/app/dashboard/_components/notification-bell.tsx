@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 
 export function NotificationBell() {
+  const { t } = useLayoutTranslation("common");
   const { data } = useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
     queryFn: () => orpc.notifications.unreadCount(),
@@ -22,7 +24,11 @@ export function NotificationBell() {
       variant="ghost"
       size="icon"
       className="relative"
-      aria-label={unread > 0 ? `${unread} unread notifications` : "Notifications"}
+      aria-label={
+        unread > 0
+          ? t("notifications.unread", { count: unread })
+          : t("notifications.label")
+      }
     >
       <Link href="/dashboard/notifications">
         <Bell className="h-4 w-4" />
