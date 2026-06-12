@@ -108,6 +108,9 @@ importers:
       '@kichkintoy/shared':
         specifier: workspace:*
         version: link:../shared
+      '@kichkintoy/translations':
+        specifier: workspace:*
+        version: link:../translations
       expo:
         specifier: ^56.0.3
         version: 56.0.3(@babel/core@7.29.0)(@expo/dom-webview@56.0.5)(react-dom@19.2.6(react@19.2.6))(react-native@0.85.3(@babel/core@7.29.0)(@types/react@19.2.15)(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
@@ -144,11 +147,20 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/translations:
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/web:
     dependencies:
       '@kichkintoy/shared':
         specifier: workspace:*
         version: link:../shared
+      '@kichkintoy/translations':
+        specifier: workspace:*
+        version: link:../translations
       '@orpc/client':
         specifier: ^1.14.4
         version: 1.14.4

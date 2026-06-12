@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@kichkintoy/shared": "workspace:*",
+    "@kichkintoy/translations": "workspace:*",
     "expo": "^56.0.3",
     "expo-status-bar": "^56.0.4",
     "react": "^19.2.6",
