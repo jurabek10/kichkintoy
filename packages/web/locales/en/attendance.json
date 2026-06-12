@@ -1,0 +1,61 @@
+{
+  "title": "Attendance",
+  "staffDescription": "Record arrivals, absences, and departures for the day.",
+  "directorDescription": "Monitor all classes, attendance status, pickup times, and absence reasons.",
+  "parentDescription": "Check your child's daily arrival and departure record.",
+  "noCenter": "Your account is not linked to a center yet.",
+  "loading": "Loading…",
+  "allClasses": "All classes",
+  "allStatuses": "All statuses",
+  "allChildren": "All children",
+  "selectChild": "Select child",
+  "summary": {
+    "total": "Total",
+    "present": "Present",
+    "absent": "Absent",
+    "pickedUp": "Picked up"
+  },
+  "emptyTitle": "No children match this filter",
+  "emptyDescription": "Attendance records will appear here.",
+  "parentEmptyTitle": "No attendance records",
+  "parentEmptyDescription": "Check-in and check-out records will appear here.",
+  "checkIn": "Check in",
+  "checkOut": "Check out",
+  "absent": "Absent",
+  "saveAbsent": "Save absent",
+  "reportAbsence": "Report absence",
+  "reportAbsenceDescription": "Send a quick absence reason to the teacher.",
+  "submitAbsence": "Submit absence",
+  "chooseChildFirst": "Choose a child before submitting.",
+  "noClass": "No class",
+  "checkInLabel": "Check-in",
+  "checkOutLabel": "Check-out",
+  "table": {
+    "class": "Class",
+    "child": "Child",
+    "status": "Status",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "absentReason": "Absent reason",
+    "note": "Note"
+  },
+  "reason": "Reason",
+  "shortNote": "Short note",
+  "noteForTeacher": "Optional note for teacher",
+  "status": {
+    "not_checked_in": "Not checked in",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "left_early": "Left early",
+    "picked_up": "Picked up",
+    "excused": "Excused",
+    "cancelled": "Cancelled"
+  },
+  "absenceReasons": {
+    "sick": "Sick",
+    "doctorVisit": "Doctor visit",
+    "familyReason": "Family reason",
+    "travel": "Travel"
+  }
+}

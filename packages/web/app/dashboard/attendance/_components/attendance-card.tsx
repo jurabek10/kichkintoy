@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import type { AttendanceRecordSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { attendanceStatusLabel } from "@/lib/format";
+import { translateAbsenceReason } from "./absence-reason-form";
 
 export function AttendanceCard({
   record,
@@ -13,6 +15,8 @@ export function AttendanceCard({
   record: AttendanceRecordSummary;
   actions?: ReactNode;
 }) {
+  const { t } = useLayoutTranslation("attendance");
+
   return (
     <Card>
       <CardHeader className="space-y-2">
@@ -20,21 +24,23 @@ export function AttendanceCard({
           <div>
             <CardTitle className="text-base">{record.child.name}</CardTitle>
             <p className="text-xs text-muted-foreground">
-              {record.className ?? "No class"} · {record.attendanceDate}
+              {record.className ?? t("noClass")} · {record.attendanceDate}
             </p>
           </div>
           <Badge variant={badgeVariant(record.status)}>
-            {attendanceStatusLabel(record.status)}
+            {t(`status.${record.status}`, attendanceStatusLabel(record.status))}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="grid grid-cols-2 gap-3">
-          <TimeBlock label="Check-in" value={record.checkedInAt} />
-          <TimeBlock label="Check-out" value={record.checkedOutAt} />
+          <TimeBlock label={t("checkInLabel")} value={record.checkedInAt} />
+          <TimeBlock label={t("checkOutLabel")} value={record.checkedOutAt} />
         </div>
         {record.absenceReason ? (
-          <p className="text-muted-foreground">{record.absenceReason}</p>
+          <p className="text-muted-foreground">
+            {translateAbsenceReason(record.absenceReason, t)}
+          </p>
         ) : null}
         {record.parentVisibleNote ? (
           <p className="text-muted-foreground">{record.parentVisibleNote}</p>

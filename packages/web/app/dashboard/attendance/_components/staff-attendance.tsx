@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { Check, ChevronsUpDown, ClipboardCheck, LogOut, X } from "lucide-react";
 import type { AttendanceRecordSummary, AttendanceStatus } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,13 +30,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { attendanceStatusLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import {
   AbsenceReasonForm,
-  absenceReasonOptions,
+  absenceReasonForForm,
+  translateAbsenceReason,
 } from "./absence-reason-form";
 import { AttendanceCard } from "./attendance-card";
 
@@ -56,6 +59,7 @@ export function StaffAttendance({
   centerId: string | null;
   role: string;
 }) {
+  const { t } = useLayoutTranslation("attendance");
   const queryClient = useQueryClient();
   const [date, setDate] = useState(todayIso());
   const [status, setStatus] = useState("all");
@@ -129,9 +133,7 @@ export function StaffAttendance({
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -145,11 +147,9 @@ export function StaffAttendance({
       <Card>
         <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-xl">Attendance</CardTitle>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
             <CardDescription>
-              {directorView
-                ? "Monitor all classes, attendance status, pickup times, and absence reasons."
-                : "Record arrivals, absences, and departures for the day."}
+              {directorView ? t("directorDescription") : t("staffDescription")}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -164,7 +164,7 @@ export function StaffAttendance({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All classes</SelectItem>
+                <SelectItem value="all">{t("allClasses")}</SelectItem>
                 {classes.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {item.name}
@@ -177,10 +177,10 @@ export function StaffAttendance({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="all">{t("allStatuses")}</SelectItem>
                 {statusOptions.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {attendanceStatusLabel(item)}
+                    {t(`status.${item}`, attendanceStatusLabel(item))}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,10 +189,19 @@ export function StaffAttendance({
         </CardHeader>
         {summary ? (
           <CardContent className="grid gap-3 sm:grid-cols-4">
-            <Summary label="Total" value={summary.total} />
-            <Summary label="Present" value={summary.present + summary.late} />
-            <Summary label="Absent" value={summary.absent + summary.excused} />
-            <Summary label="Picked up" value={summary.pickedUp + summary.leftEarly} />
+            <Summary label={t("summary.total")} value={summary.total} />
+            <Summary
+              label={t("summary.present")}
+              value={summary.present + summary.late}
+            />
+            <Summary
+              label={t("summary.absent")}
+              value={summary.absent + summary.excused}
+            />
+            <Summary
+              label={t("summary.pickedUp")}
+              value={summary.pickedUp + summary.leftEarly}
+            />
           </CardContent>
         ) : null}
       </Card>
@@ -211,17 +220,15 @@ export function StaffAttendance({
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+        <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
       ) : records.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No children match this filter</p>
-          <p className="text-sm text-muted-foreground">
-            Attendance records will appear here.
-          </p>
+          <p className="font-semibold">{t("emptyTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
         </Card>
       ) : directorView ? (
-        <DirectorAttendanceTable records={records} />
+        <DirectorAttendanceTable records={records} t={t} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {records.map((record) => (
@@ -237,7 +244,7 @@ export function StaffAttendance({
                     disabled={checkIn.isPending}
                   >
                     <Check className="h-4 w-4" />
-                    Check in
+                    {t("checkIn")}
                   </Button>
                   <Button
                     size="sm"
@@ -246,7 +253,7 @@ export function StaffAttendance({
                     disabled={checkOut.isPending}
                   >
                     <LogOut className="h-4 w-4" />
-                    Check out
+                    {t("checkOut")}
                   </Button>
                   <Button
                     size="sm"
@@ -254,20 +261,20 @@ export function StaffAttendance({
                     onClick={() =>
                       setAbsenceDraft({
                         childId: record.child.id,
-                        reason: record.absenceReason ?? absenceReasonOptions[0],
+                        reason: absenceReasonForForm(record.absenceReason, t),
                         note: record.parentVisibleNote ?? "",
                       })
                     }
                     disabled={markAbsent.isPending}
                   >
                     <X className="h-4 w-4" />
-                    Absent
+                    {t("absent")}
                   </Button>
                   {absenceDraft?.childId === record.child.id ? (
                     <AbsenceReasonForm
                       reason={absenceDraft.reason}
                       note={absenceDraft.note}
-                      submitLabel="Save absent"
+                      submitLabel={t("saveAbsent")}
                       isPending={markAbsent.isPending}
                       onReasonChange={(reason) =>
                         setAbsenceDraft((current) =>
@@ -301,8 +308,10 @@ export function StaffAttendance({
 
 function DirectorAttendanceTable({
   records,
+  t,
 }: {
   records: AttendanceRecordSummary[];
+  t: TFunction<"attendance">;
 }) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "className", desc: false },
@@ -313,23 +322,26 @@ function DirectorAttendanceTable({
     () => [
       {
         accessorKey: "className",
-        header: "Class",
-        cell: ({ row }) => row.original.className ?? "No class",
+        header: t("table.class"),
+        cell: ({ row }) => row.original.className ?? t("noClass"),
         sortingFn: (left, right) =>
           compareText(left.original.className, right.original.className),
       },
       {
         id: "childName",
         accessorFn: (record) => record.child.name,
-        header: "Child",
+        header: t("table.child"),
         cell: ({ row }) => row.original.child.name,
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t("table.status"),
         cell: ({ row }) => (
           <span className="rounded-full bg-muted px-2 py-1 text-xs font-semibold">
-            {attendanceStatusLabel(row.original.status)}
+            {t(
+              `status.${row.original.status}`,
+              attendanceStatusLabel(row.original.status),
+            )}
           </span>
         ),
         sortingFn: (left, right) =>
@@ -340,14 +352,14 @@ function DirectorAttendanceTable({
       },
       {
         accessorKey: "checkedInAt",
-        header: "Check-in",
+        header: t("table.checkIn"),
         cell: ({ row }) => formatDateTime(row.original.checkedInAt),
         sortingFn: (left, right) =>
           compareNullableDate(left.original.checkedInAt, right.original.checkedInAt),
       },
       {
         accessorKey: "checkedOutAt",
-        header: "Check-out",
+        header: t("table.checkOut"),
         cell: ({ row }) => formatDateTime(row.original.checkedOutAt),
         sortingFn: (left, right) =>
           compareNullableDate(
@@ -357,19 +369,19 @@ function DirectorAttendanceTable({
       },
       {
         accessorKey: "absenceReason",
-        header: "Absent reason",
-        cell: ({ row }) => row.original.absenceReason ?? "-",
+        header: t("table.absentReason"),
+        cell: ({ row }) => translateAbsenceReason(row.original.absenceReason, t),
         sortingFn: (left, right) =>
           compareText(left.original.absenceReason, right.original.absenceReason),
       },
       {
         id: "note",
         accessorFn: (record) => record.parentVisibleNote ?? record.staffNote ?? "",
-        header: "Note",
+        header: t("table.note"),
         cell: ({ row }) => row.original.parentVisibleNote ?? row.original.staffNote ?? "-",
       },
     ],
-    [],
+    [t],
   );
 
   const table = useReactTable({

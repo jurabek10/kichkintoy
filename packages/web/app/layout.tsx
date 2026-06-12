@@ -19,7 +19,14 @@ export const metadata: Metadata = {
   description: "Kindergarten communication platform for Uzbekistan",
 };
 
-const layoutNamespaces = ["common", "nav", "app", "reports", "classes"];
+const layoutNamespaces = [
+  "common",
+  "nav",
+  "app",
+  "reports",
+  "classes",
+  "attendance",
+];
 
 export default async function RootLayout({
   children,

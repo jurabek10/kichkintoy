@@ -19,23 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import {
-  AbsenceReasonForm,
-  absenceReasonOptions,
-} from "./absence-reason-form";
+import { AbsenceReasonForm, defaultAbsenceReason } from "./absence-reason-form";
 import { AttendanceCard } from "./attendance-card";
 
 export function ParentAttendance() {
+  const { t } = useLayoutTranslation("attendance");
   const queryClient = useQueryClient();
   const [childId, setChildId] = useState("all");
   const [from, setFrom] = useState(todayIso());
   const [to, setTo] = useState(todayIso());
   const [absenceDate, setAbsenceDate] = useState(todayIso());
-  const [absenceReason, setAbsenceReason] = useState<string>(
-    absenceReasonOptions[0],
+  const [absenceReason, setAbsenceReason] = useState(() =>
+    defaultAbsenceReason(t),
   );
   const [absenceNote, setAbsenceNote] = useState("");
   const input = {
@@ -93,10 +92,8 @@ export function ParentAttendance() {
       <Card>
         <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-xl">Attendance</CardTitle>
-            <CardDescription>
-              Check your child's daily arrival and departure record.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("parentDescription")}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={childId} onValueChange={setChildId}>
@@ -104,7 +101,7 @@ export function ParentAttendance() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All children</SelectItem>
+                <SelectItem value="all">{t("allChildren")}</SelectItem>
                 {children.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
                     {child.name}
@@ -130,10 +127,8 @@ export function ParentAttendance() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Report absence</CardTitle>
-          <CardDescription>
-            Send a quick absence reason to the teacher.
-          </CardDescription>
+          <CardTitle className="text-base">{t("reportAbsence")}</CardTitle>
+          <CardDescription>{t("reportAbsenceDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -142,7 +137,7 @@ export function ParentAttendance() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Select child</SelectItem>
+                <SelectItem value="all">{t("selectChild")}</SelectItem>
                 {children.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
                     {child.name}
@@ -160,8 +155,8 @@ export function ParentAttendance() {
           <AbsenceReasonForm
             reason={absenceReason}
             note={absenceNote}
-            notePlaceholder="Optional note for teacher"
-            submitLabel="Submit absence"
+            notePlaceholder={t("noteForTeacher")}
+            submitLabel={t("submitAbsence")}
             isPending={submitAbsence.isPending || !selectedChildId}
             onReasonChange={setAbsenceReason}
             onNoteChange={setAbsenceNote}
@@ -169,7 +164,7 @@ export function ParentAttendance() {
           />
           {!selectedChildId ? (
             <p className="text-xs text-muted-foreground">
-              Choose a child before submitting.
+              {t("chooseChildFirst")}
             </p>
           ) : null}
         </CardContent>
@@ -189,13 +184,13 @@ export function ParentAttendance() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+        <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
       ) : records.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No attendance records</p>
+          <p className="font-semibold">{t("parentEmptyTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Check-in and check-out records will appear here.
+            {t("parentEmptyDescription")}
           </p>
         </Card>
       ) : (
