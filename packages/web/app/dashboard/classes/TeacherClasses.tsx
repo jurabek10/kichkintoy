@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { School, Users } from "lucide-react";
-import type { TeacherClass } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,11 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { queryKeys } from "@/lib/query-keys";
 import { assignmentRoleLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 
 export function TeacherClasses() {
+  const { t } = useLayoutTranslation("classes");
+
   const {
     data: classes = [],
     isPending: loading,
@@ -30,17 +32,15 @@ export function TeacherClasses() {
   const error = queryError
     ? queryError instanceof Error
       ? queryError.message
-      : "Could not load classes."
+      : t("loadError")
     : null;
 
   return (
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">My classes</CardTitle>
-          <CardDescription>
-            The classes you are assigned to and the children in each.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("myTitle")}</CardTitle>
+          <CardDescription>{t("myDescription")}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -53,7 +53,7 @@ export function TeacherClasses() {
       {loading ? (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading…
+            {t("loading")}
           </CardContent>
         </Card>
       ) : classes.length === 0 ? (
@@ -63,9 +63,9 @@ export function TeacherClasses() {
               <School className="h-6 w-6" />
             </span>
             <div>
-              <p className="font-bold">No classes assigned yet</p>
+              <p className="font-bold">{t("teacherEmptyTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Your director will assign you to a class.
+                {t("teacherEmptyDescription")}
               </p>
             </div>
           </CardContent>
@@ -84,7 +84,10 @@ export function TeacherClasses() {
                     <School className="h-5 w-5" />
                   </span>
                   <Badge variant="info">
-                    {assignmentRoleLabel(klass.assignmentRole)}
+                    {t(
+                      `roles.${klass.assignmentRole}`,
+                      assignmentRoleLabel(klass.assignmentRole),
+                    )}
                   </Badge>
                 </div>
                 <div>
@@ -97,8 +100,7 @@ export function TeacherClasses() {
                 </div>
                 <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  {klass.childCount}{" "}
-                  {klass.childCount === 1 ? "child" : "children"}
+                  {t("childCount", { count: klass.childCount })}
                 </span>
               </CardContent>
             </Link>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import type { ClassRosterChild } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
@@ -11,12 +11,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDate, genderLabel } from "@/lib/format";
 
 export function TeacherClassDetail({ classId }: { classId: string }) {
+  const { t } = useLayoutTranslation("classes");
+
   const {
     data: children = [],
     isPending: loading,
@@ -35,13 +38,13 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
         className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        My classes
+        {t("myTitle")}
       </Link>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Children ({children.length})
+            {t("childrenTitle", { count: children.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -50,10 +53,10 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <p className="text-sm text-muted-foreground">{t("loading")}</p>
           ) : children.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No children in this class yet.
+              {t("noChildrenInClass")}
             </p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
@@ -77,7 +80,8 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{child.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {genderLabel(child.gender)} · {formatDate(child.dateOfBirth)}
+                      {translatedGender(child.gender, t)} ·{" "}
+                      {formatDate(child.dateOfBirth)}
                     </p>
                   </div>
                 </li>
@@ -88,4 +92,14 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
       </Card>
     </div>
   );
+}
+
+function translatedGender(
+  value: string | null | undefined,
+  t: TFunction<"classes">,
+) {
+  if (value === "boy") return t("gender.boy");
+  if (value === "girl") return t("gender.girl");
+  if (value === "prefer_not_to_say") return t("gender.prefer_not_to_say");
+  return genderLabel(value);
 }

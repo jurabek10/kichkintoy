@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
-import type { CenterTeacher, ClassDetail } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { assignmentRoleLabel, formatDate, genderLabel } from "@/lib/format";
@@ -44,6 +45,8 @@ export function DirectorClassDetail({
   centerId: string | null;
   classId: string;
 }) {
+  const { t } = useLayoutTranslation("classes");
+  const { t: tApp } = useLayoutTranslation("app");
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -108,7 +111,7 @@ export function DirectorClassDetail({
         },
       }),
     onSuccess: async () => {
-      toast.success("Class updated.");
+      toast.success(t("classUpdated"));
       setEditOpen(false);
       await invalidateAll();
     },
@@ -126,7 +129,7 @@ export function DirectorClassDetail({
         },
       }),
     onSuccess: async () => {
-      toast.success("Teacher assigned.");
+      toast.success(t("teacherAssigned"));
       setAssignOpen(false);
       setTeacherToAssign("");
       setAssignRole("teacher");
@@ -143,7 +146,7 @@ export function DirectorClassDetail({
         teacherUserId,
       }),
     onSuccess: async () => {
-      toast("Teacher unassigned.");
+      toast(t("teacherUnassigned"));
       await invalidateAll();
     },
     onError: (err) => setActionError(toApiError(err).message),
@@ -155,7 +158,9 @@ export function DirectorClassDetail({
         ? orpc.director.restoreClass({ centerId: centerId!, classId })
         : orpc.director.archiveClass({ centerId: centerId!, classId }),
     onSuccess: async (_data, status) => {
-      toast.success(status === "archived" ? "Class restored." : "Class archived.");
+      toast.success(
+        status === "archived" ? t("classRestored") : t("classArchived"),
+      );
       await invalidateAll();
     },
     onError: (err) => setActionError(toApiError(err).message),
@@ -177,7 +182,7 @@ export function DirectorClassDetail({
     event.preventDefault();
     if (!base) return;
     if (!teacherToAssign) {
-      setActionError("Pick a teacher to assign.");
+      setActionError(t("pickTeacherRequired"));
       return;
     }
     assignMutation.mutate();
@@ -196,9 +201,7 @@ export function DirectorClassDetail({
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -207,7 +210,7 @@ export function DirectorClassDetail({
     return (
       <Card>
         <CardContent className="p-6 text-sm text-muted-foreground">
-          Loading…
+          {t("loading")}
         </CardContent>
       </Card>
     );
@@ -216,13 +219,15 @@ export function DirectorClassDetail({
   if (!detail) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>{error ?? "Class not found."}</AlertDescription>
+        <AlertDescription>{error ?? t("classNotFound")}</AlertDescription>
       </Alert>
     );
   }
 
-  const assignedIds = new Set(detail.teachers.map((t) => t.userId));
-  const assignableTeachers = teachers.filter((t) => !assignedIds.has(t.userId));
+  const assignedIds = new Set(detail.teachers.map((teacher) => teacher.userId));
+  const assignableTeachers = teachers.filter(
+    (teacher) => !assignedIds.has(teacher.userId),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -231,7 +236,7 @@ export function DirectorClassDetail({
         className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        All classes
+        {t("allClasses")}
       </Link>
 
       <Card>
@@ -240,18 +245,18 @@ export function DirectorClassDetail({
             <div className="flex items-center gap-2">
               <CardTitle className="text-xl">{detail.name}</CardTitle>
               {detail.status === "archived" ? (
-                <Badge variant="secondary">Archived</Badge>
+                <Badge variant="secondary">{t("archived")}</Badge>
               ) : null}
             </div>
             <CardDescription>
               {[detail.ageGroup, detail.academicYear].filter(Boolean).join(" · ") ||
-                "No age group or year set"}
+                t("noAgeGroupOrYear")}
             </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={openEdit}>
               <Pencil className="h-4 w-4" />
-              Edit
+              {t("edit")}
             </Button>
             <Button
               variant="outline"
@@ -259,7 +264,7 @@ export function DirectorClassDetail({
               onClick={toggleArchive}
               disabled={working}
             >
-              {detail.status === "archived" ? "Restore" : "Archive"}
+              {detail.status === "archived" ? t("restore") : t("archive")}
             </Button>
           </div>
         </CardHeader>
@@ -274,7 +279,7 @@ export function DirectorClassDetail({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">
-            Teachers ({detail.teachers.length})
+            {t("teachersTitle", { count: detail.teachers.length })}
           </CardTitle>
           <Button
             size="sm"
@@ -282,13 +287,13 @@ export function DirectorClassDetail({
             disabled={assignableTeachers.length === 0}
           >
             <Plus className="h-4 w-4" />
-            Assign teacher
+            {t("assignTeacher")}
           </Button>
         </CardHeader>
         <CardContent>
           {detail.teachers.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No teachers assigned yet.
+              {t("noTeachersAssigned")}
             </p>
           ) : (
             <ul className="flex flex-col divide-y">
@@ -300,7 +305,10 @@ export function DirectorClassDetail({
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{teacher.fullName}</span>
                     <Badge variant="info">
-                      {assignmentRoleLabel(teacher.assignmentRole)}
+                      {t(
+                        `roles.${teacher.assignmentRole}`,
+                        assignmentRoleLabel(teacher.assignmentRole),
+                      )}
                     </Badge>
                   </div>
                   <Button
@@ -311,7 +319,7 @@ export function DirectorClassDetail({
                     disabled={working}
                   >
                     <UserMinus className="h-4 w-4" />
-                    Remove
+                    {t("remove")}
                   </Button>
                 </li>
               ))}
@@ -323,14 +331,13 @@ export function DirectorClassDetail({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Children ({detail.children.length})
+            {t("childrenTitle", { count: detail.children.length })}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {detail.children.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No children enrolled in this class yet. Children are added when you
-              approve parent join requests.
+              {t("noChildrenEnrolled")}
             </p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
@@ -354,7 +361,8 @@ export function DirectorClassDetail({
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{child.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {genderLabel(child.gender)} · {formatDate(child.dateOfBirth)}
+                      {translatedGender(child.gender, t)} ·{" "}
+                      {formatDate(child.dateOfBirth)}
                     </p>
                   </div>
                 </li>
@@ -367,11 +375,11 @@ export function DirectorClassDetail({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit class</DialogTitle>
+            <DialogTitle>{t("editClass")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={saveEdit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="edit-name">Class name</Label>
+              <Label htmlFor="edit-name">{t("className")}</Label>
               <Input
                 id="edit-name"
                 value={name}
@@ -380,7 +388,7 @@ export function DirectorClassDetail({
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="edit-age">Age group</Label>
+                <Label htmlFor="edit-age">{t("ageGroup")}</Label>
                 <Input
                   id="edit-age"
                   value={ageGroup}
@@ -388,7 +396,7 @@ export function DirectorClassDetail({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="edit-year">Academic year</Label>
+                <Label htmlFor="edit-year">{t("academicYear")}</Label>
                 <Input
                   id="edit-year"
                   value={academicYear}
@@ -402,10 +410,10 @@ export function DirectorClassDetail({
                 variant="outline"
                 onClick={() => setEditOpen(false)}
               >
-                Cancel
+                {tApp("actions.cancel")}
               </Button>
               <Button type="submit" disabled={savingEdit}>
-                {savingEdit ? "Saving…" : "Save"}
+                {savingEdit ? t("saving") : tApp("actions.save")}
               </Button>
             </DialogFooter>
           </form>
@@ -415,17 +423,17 @@ export function DirectorClassDetail({
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign teacher</DialogTitle>
+            <DialogTitle>{t("assignTeacher")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={assign} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="assign-teacher">Teacher</Label>
+              <Label htmlFor="assign-teacher">{t("roles.teacher")}</Label>
               <Select
                 value={teacherToAssign}
                 onValueChange={setTeacherToAssign}
               >
                 <SelectTrigger id="assign-teacher">
-                  <SelectValue placeholder="Pick a teacher" />
+                  <SelectValue placeholder={t("pickTeacher")} />
                 </SelectTrigger>
                 <SelectContent>
                   {assignableTeachers.map((teacher) => (
@@ -437,14 +445,16 @@ export function DirectorClassDetail({
               </Select>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="assign-role">Role</Label>
+              <Label htmlFor="assign-role">{t("role")}</Label>
               <Select value={assignRole} onValueChange={setAssignRole}>
                 <SelectTrigger id="assign-role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="teacher">Teacher</SelectItem>
-                  <SelectItem value="assistant_teacher">Assistant</SelectItem>
+                  <SelectItem value="teacher">{t("roles.teacher")}</SelectItem>
+                  <SelectItem value="assistant_teacher">
+                    {t("roles.assistant_teacher")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -454,10 +464,10 @@ export function DirectorClassDetail({
                 variant="outline"
                 onClick={() => setAssignOpen(false)}
               >
-                Cancel
+                {tApp("actions.cancel")}
               </Button>
               <Button type="submit" disabled={assigning}>
-                {assigning ? "Assigning…" : "Assign"}
+                {assigning ? t("assigning") : t("assign")}
               </Button>
             </DialogFooter>
           </form>
@@ -465,4 +475,14 @@ export function DirectorClassDetail({
       </Dialog>
     </div>
   );
+}
+
+function translatedGender(
+  value: string | null | undefined,
+  t: TFunction<"classes">,
+) {
+  if (value === "boy") return t("gender.boy");
+  if (value === "girl") return t("gender.girl");
+  if (value === "prefer_not_to_say") return t("gender.prefer_not_to_say");
+  return genderLabel(value);
 }

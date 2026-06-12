@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, School, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { ClassListItem } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 
@@ -34,6 +36,8 @@ export function DirectorClasses({
 }: {
   centerId: string | null;
 }) {
+  const { t } = useLayoutTranslation("classes");
+  const { t: tApp } = useLayoutTranslation("app");
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -58,7 +62,7 @@ export function DirectorClasses({
       academicYear?: string;
     }) => orpc.director.createClass({ centerId: centerId!, body }),
     onSuccess: async () => {
-      toast.success(`Class "${name.trim()}" created.`);
+      toast.success(t("classCreated", { name: name.trim() }));
       setOpen(false);
       setName("");
       setAgeGroup("");
@@ -78,7 +82,7 @@ export function DirectorClasses({
     event.preventDefault();
     if (!centerId) return;
     if (!name.trim()) {
-      setFormError("Class name is required.");
+      setFormError(t("classNameRequired"));
       return;
     }
     setFormError(null);
@@ -92,9 +96,7 @@ export function DirectorClasses({
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -107,14 +109,12 @@ export function DirectorClasses({
       <Card>
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Classes</CardTitle>
-            <CardDescription>
-              Create your kindergarten's classes and assign teachers to them.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <Button onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" />
-            New class
+            {t("newClass")}
           </Button>
         </CardHeader>
       </Card>
@@ -128,7 +128,7 @@ export function DirectorClasses({
       {loading ? (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading…
+            {t("loading")}
           </CardContent>
         </Card>
       ) : classes.length === 0 ? (
@@ -138,14 +138,14 @@ export function DirectorClasses({
               <School className="h-6 w-6" />
             </span>
             <div>
-              <p className="font-bold">No classes yet</p>
+              <p className="font-bold">{t("emptyTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Create your first class to start assigning teachers and children.
+                {t("emptyDescription")}
               </p>
             </div>
             <Button onClick={() => setOpen(true)}>
               <Plus className="h-4 w-4" />
-              New class
+              {t("newClass")}
             </Button>
           </CardContent>
         </Card>
@@ -153,18 +153,18 @@ export function DirectorClasses({
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {activeClasses.map((klass) => (
-              <ClassCard key={klass.id} centerId={centerId} klass={klass} />
+              <ClassCard key={klass.id} centerId={centerId} klass={klass} t={t} />
             ))}
           </div>
 
           {archivedClasses.length > 0 ? (
             <div className="flex flex-col gap-3">
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                Archived
+                {t("archived")}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {archivedClasses.map((klass) => (
-                  <ClassCard key={klass.id} centerId={centerId} klass={klass} />
+                  <ClassCard key={klass.id} centerId={centerId} klass={klass} t={t} />
                 ))}
               </div>
             </div>
@@ -175,36 +175,36 @@ export function DirectorClasses({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New class</DialogTitle>
+            <DialogTitle>{t("newClass")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={create} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="class-name">Class name</Label>
+              <Label htmlFor="class-name">{t("className")}</Label>
               <Input
                 id="class-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Quyoshcha"
+                placeholder={t("classNamePlaceholder")}
                 autoFocus
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="class-age">Age group (optional)</Label>
+                <Label htmlFor="class-age">{t("ageGroupOptional")}</Label>
                 <Input
                   id="class-age"
                   value={ageGroup}
                   onChange={(event) => setAgeGroup(event.target.value)}
-                  placeholder="3–4"
+                  placeholder={t("ageGroupPlaceholder")}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="class-year">Academic year (optional)</Label>
+                <Label htmlFor="class-year">{t("academicYearOptional")}</Label>
                 <Input
                   id="class-year"
                   value={academicYear}
                   onChange={(event) => setAcademicYear(event.target.value)}
-                  placeholder="2026"
+                  placeholder={t("academicYearPlaceholder")}
                 />
               </div>
             </div>
@@ -214,10 +214,10 @@ export function DirectorClasses({
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {tApp("actions.cancel")}
               </Button>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating…" : "Create class"}
+                {submitting ? t("creating") : t("createClass")}
               </Button>
             </DialogFooter>
           </form>
@@ -230,9 +230,11 @@ export function DirectorClasses({
 function ClassCard({
   centerId,
   klass,
+  t,
 }: {
   centerId: string;
   klass: ClassListItem;
+  t: TFunction<"classes">;
 }) {
   return (
     <Link
@@ -245,7 +247,7 @@ function ClassCard({
             <School className="h-5 w-5" />
           </span>
           {klass.status === "archived" ? (
-            <Badge variant="secondary">Archived</Badge>
+            <Badge variant="secondary">{t("archived")}</Badge>
           ) : null}
         </div>
         <div>
@@ -258,12 +260,9 @@ function ClassCard({
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <Users className="h-4 w-4" />
-            {klass.childCount} {klass.childCount === 1 ? "child" : "children"}
+            {t("childCount", { count: klass.childCount })}
           </span>
-          <span>
-            {klass.teacherCount}{" "}
-            {klass.teacherCount === 1 ? "teacher" : "teachers"}
-          </span>
+          <span>{t("teacherCount", { count: klass.teacherCount })}</span>
         </div>
         {klass.teachers.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
