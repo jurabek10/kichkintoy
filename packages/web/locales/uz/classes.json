@@ -43,6 +43,25 @@
   "childrenTitle": "Bolalar ({{count}})",
   "noChildrenEnrolled": "Bu sinfda hali bola yo'q. Bolalar ota-ona so'rovlarini tasdiqlaganingizda qo'shiladi.",
   "noChildrenInClass": "Bu sinfda hali bola yo'q.",
+  "childrenTable": {
+    "image": "Rasm",
+    "name": "Ism",
+    "birthday": "Tug'ilgan kun",
+    "joined": "Qo'shilgan sana",
+    "payment": "To'lov",
+    "paymentComingSoon": "Tez orada",
+    "actions": "Amallar",
+    "delete": "O'chirish",
+    "deleteComingSoon": "Bolani olib tashlash enrollment API tayyor bo'lgandan keyin qo'shiladi.",
+    "search": "Bolalarni filterlash..."
+  },
+  "childProfile": {
+    "title": "Bola profili",
+    "description": "Bola ma'lumotlari va tahrirlash vositalari shu yerda bo'ladi.",
+    "back": "Sinflarga qaytish",
+    "comingSoon": "Direktor uchun bola tahrirlash hali ulanmagan.",
+    "childId": "Bola ID"
+  },
   "editClass": "Sinfni tahrirlash",
   "ageGroup": "Yosh guruhi",
   "academicYear": "O'quv yili",

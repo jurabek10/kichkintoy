@@ -43,6 +43,25 @@
   "childrenTitle": "Children ({{count}})",
   "noChildrenEnrolled": "No children enrolled in this class yet. Children are added when you approve parent join requests.",
   "noChildrenInClass": "No children in this class yet.",
+  "childrenTable": {
+    "image": "Image",
+    "name": "Name",
+    "birthday": "Birthday",
+    "joined": "Joined",
+    "payment": "Payment",
+    "paymentComingSoon": "Coming soon",
+    "actions": "Actions",
+    "delete": "Delete",
+    "deleteComingSoon": "Child removal will be added after the enrollment API is ready.",
+    "search": "Filter children..."
+  },
+  "childProfile": {
+    "title": "Child profile",
+    "description": "Child information and editing tools will appear here.",
+    "back": "Back to classes",
+    "comingSoon": "Director child editing is not connected yet.",
+    "childId": "Child ID"
+  },
   "editClass": "Edit class",
   "ageGroup": "Age group",
   "academicYear": "Academic year",

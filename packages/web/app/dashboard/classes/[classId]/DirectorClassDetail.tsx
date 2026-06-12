@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pencil, Plus, UserMinus } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import type { TFunction } from "i18next";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { ClassRosterChild } from "@kichkintoy/shared";
 import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import {
   Dialog,
   DialogContent,
@@ -171,6 +176,98 @@ export function DirectorClassDetail({
   const working = unassignMutation.isPending || archiveMutation.isPending;
   const error =
     actionError ?? (detailError ? toApiError(detailError).message : null);
+  const childColumns = useMemo<ColumnDef<ClassRosterChild>[]>(
+    () => [
+      {
+        id: "image",
+        header: t("childrenTable.image"),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <ChildAvatar
+            name={row.original.name}
+            photoUrl={row.original.photoUrl}
+          />
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("childrenTable.name")}
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{row.original.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {translatedGender(row.original.gender, t)}
+            </p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "dateOfBirth",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("childrenTable.birthday")}
+          />
+        ),
+        cell: ({ row }) => formatDate(row.original.dateOfBirth),
+      },
+      {
+        accessorKey: "joinedAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("childrenTable.joined")}
+          />
+        ),
+        cell: ({ row }) => formatDate(row.original.joinedAt),
+      },
+      {
+        id: "paymentStatus",
+        accessorFn: () => t("childrenTable.paymentComingSoon"),
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t("childrenTable.payment")}
+          />
+        ),
+        cell: () => (
+          <Badge variant="outline">{t("childrenTable.paymentComingSoon")}</Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: t("childrenTable.actions"),
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/dashboard/children/${row.original.childId}`}>
+                <Pencil className="h-4 w-4" />
+                {t("edit")}
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled
+              title={t("childrenTable.deleteComingSoon")}
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("childrenTable.delete")}
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [t],
+  );
 
   function saveEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -335,40 +432,26 @@ export function DirectorClassDetail({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {detail.children.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("noChildrenEnrolled")}
-            </p>
-          ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {detail.children.map((child) => (
-                <li
-                  key={child.childId}
-                  className="flex items-center gap-3 rounded-xl border p-3"
-                >
-                  <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
-                    {child.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={child.photoUrl}
-                        alt={child.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      child.name.slice(0, 1).toUpperCase()
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{child.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {translatedGender(child.gender, t)} ·{" "}
-                      {formatDate(child.dateOfBirth)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <DataTable
+            columns={childColumns}
+            data={detail.children}
+            emptyMessage={t("noChildrenEnrolled")}
+            toolbar={(table) => (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Input
+                  value={
+                    (table.getColumn("name")?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(event) =>
+                    table.getColumn("name")?.setFilterValue(event.target.value)
+                  }
+                  placeholder={t("childrenTable.search")}
+                  className="h-9 sm:w-[260px]"
+                />
+                <DataTableViewOptions table={table} />
+              </div>
+            )}
+          />
         </CardContent>
       </Card>
 
@@ -474,6 +557,25 @@ export function DirectorClassDetail({
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ChildAvatar({
+  name,
+  photoUrl,
+}: {
+  name: string;
+  photoUrl: string | null;
+}) {
+  return (
+    <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        name.slice(0, 1).toUpperCase()
+      )}
+    </span>
   );
 }
 
