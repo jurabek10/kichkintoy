@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Users } from "lucide-react";
+import type { TFunction } from "i18next";
 import type {
   ClassListItem,
   DailyReportListResponse,
@@ -23,6 +24,7 @@ import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { formatDate, reportStatusLabel } from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { reportItemSummary, todayIsoDate } from "./report-utils";
 
 export function StaffReports({
@@ -32,6 +34,7 @@ export function StaffReports({
   centerId: string | null;
   director: boolean;
 }) {
+  const { t } = useLayoutTranslation("reports");
   const [date, setDate] = useState(todayIsoDate());
 
   const {
@@ -70,10 +73,8 @@ export function StaffReports({
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Daily reports</CardTitle>
-            <CardDescription>
-              Create drafts, publish reports, and check parent reads.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -94,11 +95,11 @@ export function StaffReports({
       ) : null}
 
       {director ? (
-        <StaffClassesCard classes={classes} date={date} loading={loading} />
+        <StaffClassesCard classes={classes} date={date} loading={loading} t={t} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <StaffClassesCard classes={classes} date={date} loading={loading} />
-          <StaffReportsCard date={date} loading={loading} reports={reports} />
+          <StaffClassesCard classes={classes} date={date} loading={loading} t={t} />
+          <StaffReportsCard date={date} loading={loading} reports={reports} t={t} />
         </div>
       )}
     </div>
@@ -109,22 +110,24 @@ function StaffClassesCard({
   classes,
   date,
   loading,
+  t,
 }: {
   classes: Array<TeacherClass | ClassListItem>;
   date: string;
   loading: boolean;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Classes</CardTitle>
+        <CardTitle className="text-base">{t("classes")}</CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t("loading")}</p>
         ) : classes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No classes available for reports.
+            {t("noClasses")}
           </p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -139,7 +142,7 @@ function StaffClassesCard({
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {klass.childCount} children
+                  {t("childrenCount", { count: klass.childCount })}
                 </p>
               </Link>
             ))}
@@ -154,24 +157,26 @@ function StaffReportsCard({
   date,
   loading,
   reports,
+  t,
 }: {
   date: string;
   loading: boolean;
   reports: DailyReportListResponse;
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Reports for {formatDate(date)}
+          {t("reportsForDate", { date: formatDate(date) })}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t("loading")}</p>
         ) : reports.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No reports for this date yet.
+            {t("noReportsForDate")}
           </p>
         ) : (
           <ul className="flex flex-col divide-y">
@@ -186,7 +191,7 @@ function StaffReportsCard({
                       {report.child.name}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {report.class.name} · {reportItemSummary(report)}
+                      {report.class.name} · {reportItemSummary(report, t)}
                     </p>
                   </div>
                   <Badge
@@ -198,7 +203,7 @@ function StaffReportsCard({
                           : "secondary"
                     }
                   >
-                    {reportStatusLabel(report.status)}
+                    {t(`status.${report.status}`, reportStatusLabel(report.status))}
                   </Badge>
                 </Link>
               </li>

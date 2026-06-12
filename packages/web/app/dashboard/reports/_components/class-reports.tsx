@@ -10,6 +10,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowLeft, FileText, Plus, Search, Send } from "lucide-react";
+import type { TFunction } from "i18next";
 import { toast } from "sonner";
 import type {
   AttendanceRecordSummary,
@@ -37,6 +38,7 @@ import {
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { formatDate, reportStatusLabel } from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function ClassReports({
   centerId,
@@ -49,6 +51,7 @@ export function ClassReports({
   initialDate: string;
   role: string;
 }) {
+  const { t } = useLayoutTranslation("reports");
   const queryClient = useQueryClient();
   const [date, setDate] = useState(initialDate);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -84,7 +87,7 @@ export function ClassReports({
     mutationFn: () =>
       orpc.reports.bulkCreateDrafts({ classId, body: { reportDate: date } }),
     onSuccess: async (result) => {
-      toast.success(`Created ${result.created} drafts.`);
+      toast.success(t("createdDrafts", { count: result.created }));
       await queryClient.invalidateQueries({ queryKey: rowsKey });
     },
     onError: (err) => setActionError(toApiError(err).message),
@@ -94,7 +97,7 @@ export function ClassReports({
     mutationFn: () =>
       orpc.reports.publishDrafts({ classId, body: { reportDate: date } }),
     onSuccess: async (result) => {
-      toast.success(`Published ${result.published} reports.`);
+      toast.success(t("publishedReports", { count: result.published }));
       await queryClient.invalidateQueries({ queryKey: rowsKey });
     },
     onError: (err) => setActionError(toApiError(err).message),
@@ -125,17 +128,17 @@ export function ClassReports({
         className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Reports
+        {t("back")}
       </Link>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Class reports</CardTitle>
+            <CardTitle className="text-xl">{t("classReports")}</CardTitle>
             <CardDescription>
               {directorView
-                ? `Monitor checked-in children and report completion for ${formatDate(date)}.`
-                : `Draft and publish daily reports for ${formatDate(date)}.`}
+                ? t("directorClassDescription", { date: formatDate(date) })
+                : t("teacherClassDescription", { date: formatDate(date) })}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -154,11 +157,11 @@ export function ClassReports({
                   disabled={working}
                 >
                   <Plus className="h-4 w-4" />
-                  Create drafts
+                  {t("createDrafts")}
                 </Button>
                 <Button type="button" onClick={publishDrafts} disabled={working}>
                   <Send className="h-4 w-4" />
-                  Publish drafts
+                  {t("publishDrafts")}
                 </Button>
               </>
             ) : null}
@@ -178,9 +181,10 @@ export function ClassReports({
           attendanceRecords={attendanceQuery.data?.records ?? []}
           date={date}
           reportRows={rows}
+          t={t}
         />
       ) : (
-        <ClassReportRows date={date} loading={loading} rows={rows} />
+        <ClassReportRows date={date} loading={loading} rows={rows} t={t} />
       )}
     </div>
   );
@@ -207,11 +211,13 @@ function DirectorClassReportTable({
   attendanceRecords,
   date,
   reportRows,
+  t,
 }: {
   attendanceLoading: boolean;
   attendanceRecords: AttendanceRecordSummary[];
   date: string;
   reportRows: DailyReportClassChildStatus[];
+  t: TFunction<"reports">;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -228,7 +234,7 @@ function DirectorClassReportTable({
         return {
           childId: record.child.id,
           childName: record.child.name,
-          className: record.className ?? reportRow?.class.name ?? "Class",
+          className: record.className ?? reportRow?.class.name ?? t("directorTable.class"),
           birthday: reportRow?.dateOfBirth ?? null,
           checkedInAt: record.checkedInAt,
           report: reportRow?.report ?? null,
@@ -259,14 +265,14 @@ function DirectorClassReportTable({
     () => [
       {
         accessorKey: "childName",
-        header: "Name",
+        header: t("directorTable.name"),
         cell: ({ row }) => (
           <p className="truncate font-semibold">{row.original.childName}</p>
         ),
       },
       {
         accessorKey: "className",
-        header: "Class",
+        header: t("directorTable.class"),
         cell: ({ row }) => (
           <p className="truncate text-sm text-muted-foreground">
             {row.original.className}
@@ -275,22 +281,22 @@ function DirectorClassReportTable({
       },
       {
         accessorKey: "birthday",
-        header: "Birthday",
+        header: t("directorTable.birthday"),
         cell: ({ row }) => (
           <span className="text-sm">{formatDate(row.original.birthday)}</span>
         ),
       },
       {
         accessorKey: "checkedInAt",
-        header: "Check-in",
+        header: t("directorTable.checkIn"),
         cell: ({ row }) => (
           <span className="text-sm">{formatTime(row.original.checkedInAt)}</span>
         ),
       },
       {
         id: "reportStatus",
-        header: "Report",
-        cell: ({ row }) => <ReportStatusBadge report={row.original.report} />,
+        header: t("directorTable.report"),
+        cell: ({ row }) => <ReportStatusBadge report={row.original.report} t={t} />,
       },
       {
         id: "action",
@@ -300,15 +306,17 @@ function DirectorClassReportTable({
             <Button asChild size="sm" variant="outline">
               <Link href={`/dashboard/reports/${row.original.report.id}`}>
                 <FileText className="h-4 w-4" />
-                Detail
+                {t("directorTable.detail")}
               </Link>
             </Button>
           ) : (
-            <span className="text-sm text-muted-foreground">No report</span>
+            <span className="text-sm text-muted-foreground">
+              {t("directorTable.noReport")}
+            </span>
           ),
       },
     ],
-    [],
+    [t],
   );
 
   const table = useReactTable({
@@ -320,17 +328,17 @@ function DirectorClassReportTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <ReportMetric label="Attended today" value={rows.length} />
-        <ReportMetric label="Reports published" value={publishedCount} />
-        <ReportMetric label="Missing reports" value={missingCount} />
+        <ReportMetric label={t("metrics.attended")} value={rows.length} />
+        <ReportMetric label={t("metrics.published")} value={publishedCount} />
+        <ReportMetric label={t("metrics.missing")} value={missingCount} />
       </div>
 
       <Card>
         <CardHeader className="gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-base">Checked-in children</CardTitle>
+            <CardTitle className="text-base">{t("directorTable.title")}</CardTitle>
             <CardDescription>
-              Only children checked in on {formatDate(date)} are shown.
+              {t("directorTable.description", { date: formatDate(date) })}
             </CardDescription>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -339,7 +347,7 @@ function DirectorClassReportTable({
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search child or class"
+                placeholder={t("directorTable.search")}
                 className="pl-9 sm:w-[240px]"
               />
             </div>
@@ -348,21 +356,21 @@ function DirectorClassReportTable({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All reports</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="missing">Missing</SelectItem>
+                <SelectItem value="all">{t("filters.allReports")}</SelectItem>
+                <SelectItem value="published">{t("filters.published")}</SelectItem>
+                <SelectItem value="draft">{t("filters.draft")}</SelectItem>
+                <SelectItem value="scheduled">{t("filters.scheduled")}</SelectItem>
+                <SelectItem value="missing">{t("filters.missing")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           {attendanceLoading ? (
-            <p className="p-6 text-sm text-muted-foreground">Loading…</p>
+            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
           ) : filteredRows.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
-              No checked-in children match this filter.
+              {t("directorTable.empty")}
             </p>
           ) : (
             <table className="w-full table-fixed text-sm">
@@ -417,10 +425,12 @@ function ReportMetric({ label, value }: { label: string; value: number }) {
 
 function ReportStatusBadge({
   report,
+  t,
 }: {
   report: DailyReportClassChildStatus["report"];
+  t: TFunction<"reports">;
 }) {
-  if (!report) return <Badge variant="destructive">Missing</Badge>;
+  if (!report) return <Badge variant="destructive">{t("filters.missing")}</Badge>;
   return (
     <Badge
       variant={
@@ -431,7 +441,7 @@ function ReportStatusBadge({
             : "secondary"
       }
     >
-      {reportStatusLabel(report.status)}
+      {t(`status.${report.status}`, { defaultValue: reportStatusLabel(report.status) })}
     </Badge>
   );
 }
@@ -450,24 +460,26 @@ function ClassReportRows({
   date,
   loading,
   rows,
+  t,
 }: {
   date: string;
   loading: boolean;
   rows: DailyReportClassChildStatus[];
+  t: TFunction<"reports">;
 }) {
   return (
     <Card>
       <CardContent className="p-0">
         {loading ? (
-          <p className="p-6 text-sm text-muted-foreground">Loading…</p>
+          <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
         ) : rows.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">
-            No children are enrolled in this class.
+            {t("noChildrenInClass")}
           </p>
         ) : (
           <ul className="flex flex-col divide-y">
             {rows.map((row) => (
-              <ClassReportRow key={row.id} date={date} row={row} />
+              <ClassReportRow key={row.id} date={date} row={row} t={t} />
             ))}
           </ul>
         )}
@@ -479,9 +491,11 @@ function ClassReportRows({
 function ClassReportRow({
   date,
   row,
+  t,
 }: {
   date: string;
   row: DailyReportClassChildStatus;
+  t: TFunction<"reports">;
 }) {
   return (
     <li className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -489,8 +503,8 @@ function ClassReportRow({
         <p className="font-semibold">{row.name}</p>
         <p className="text-sm text-muted-foreground">
           {row.report
-            ? `${row.report.itemCount} items · ${row.report.readCount}/${row.report.guardianCount} read`
-            : "No report yet"}
+            ? `${t("summary.items", { count: row.report.itemCount })} · ${t("readCount", { read: row.report.readCount, total: row.report.guardianCount })}`
+            : t("directorTable.noReport")}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -505,12 +519,14 @@ function ClassReportRow({
                     : "secondary"
               }
             >
-              {reportStatusLabel(row.report.status)}
+              {t(`status.${row.report.status}`, {
+                defaultValue: reportStatusLabel(row.report.status),
+              })}
             </Badge>
             <Button asChild size="sm" variant="outline">
               <Link href={`/dashboard/reports/${row.report.id}`}>
                 <FileText className="h-4 w-4" />
-                Open
+                {t("directorTable.detail")}
               </Link>
             </Button>
           </>
@@ -520,7 +536,7 @@ function ClassReportRow({
               href={`/dashboard/reports/new?childId=${row.id}&centerId=${row.centerId}&reportDate=${date}`}
             >
               <Plus className="h-4 w-4" />
-              New report
+              {t("newReport")}
             </Link>
           </Button>
         )}
