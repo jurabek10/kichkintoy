@@ -5,8 +5,10 @@ import { CalendarDays, MapPin } from "lucide-react";
 import type { CalendarEventSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function EventCard({ event }: { event: CalendarEventSummary }) {
+  const { t } = useLayoutTranslation("calendar");
   return (
     <Link href={`/dashboard/calendar/${event.id}`} className="block">
       <Card className="h-full transition hover:border-primary/50">
@@ -15,15 +17,11 @@ export function EventCard({ event }: { event: CalendarEventSummary }) {
             <div>
               <CardTitle className="text-base">{event.title}</CardTitle>
               <p className="text-xs text-muted-foreground">
-                {eventContext(event)}
+                {eventContext(event, t)}
               </p>
             </div>
             <Badge variant={event.status === "cancelled" ? "destructive" : "secondary"}>
-              {event.status === "cancelled"
-                ? "Cancelled"
-                : event.seenByMe
-                  ? "Seen"
-                  : "Scheduled"}
+              {t(eventStatusKey(event))}
             </Badge>
           </div>
         </CardHeader>
@@ -62,10 +60,22 @@ export function formatEventTime(event: CalendarEventSummary) {
   })}`;
 }
 
-export function eventContext(event: CalendarEventSummary) {
-  if (event.audienceType === "center") return "Whole center";
+export function eventContext(
+  event: CalendarEventSummary,
+  t: (key: string) => string,
+) {
+  if (event.audienceType === "center") return t("audience.wholeCenter");
   if (event.audienceType === "class") {
-    return event.classNames.length ? event.classNames.join(", ") : "Class event";
+    return event.classNames.length
+      ? event.classNames.join(", ")
+      : t("audience.classEvent");
   }
-  return event.childNames.length ? event.childNames.join(", ") : "Child event";
+  return event.childNames.length
+    ? event.childNames.join(", ")
+    : t("audience.childEvent");
+}
+
+function eventStatusKey(event: CalendarEventSummary) {
+  if (event.status === "cancelled") return "status.cancelled";
+  return event.seenByMe ? "status.seen" : "status.scheduled";
 }

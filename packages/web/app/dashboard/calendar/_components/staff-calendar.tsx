@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { CalendarMonth } from "./calendar-month";
 import { EventCard } from "./event-card";
 
@@ -25,6 +26,7 @@ export function StaffCalendar({
   centerId: string | null;
   role: string;
 }) {
+  const { t } = useLayoutTranslation("calendar");
   const [month, setMonth] = useState(currentMonth());
   const [selectedDate, setSelectedDate] = useState(todayIso());
   const range = monthRange(month);
@@ -55,9 +57,7 @@ export function StaffCalendar({
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -67,10 +67,8 @@ export function StaffCalendar({
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Calendar</CardTitle>
-            <CardDescription>
-              Plan center, class, and child-specific events.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Input
@@ -85,7 +83,7 @@ export function StaffCalendar({
             <Button asChild>
               <Link href="/dashboard/calendar/new">
                 <Plus className="h-4 w-4" />
-                New event
+                {t("newEvent")}
               </Link>
             </Button>
           </div>
@@ -107,11 +105,15 @@ export function StaffCalendar({
 
       <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold">Events on {selectedDate}</h2>
+          <h2 className="text-base font-bold">
+            {t("eventsOnDate", { date: selectedDate })}
+          </h2>
           {isPending ? (
-            <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+            <Card className="p-6 text-sm text-muted-foreground">
+              {t("loading")}
+            </Card>
           ) : selectedEvents.length === 0 ? (
-            <EmptyState text="No events for this date" />
+            <EmptyState text={t("noEventsForDate")} />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {selectedEvents.map((event) => (
@@ -121,9 +123,9 @@ export function StaffCalendar({
           )}
         </div>
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold">Upcoming</h2>
+          <h2 className="text-base font-bold">{t("upcoming")}</h2>
           {upcoming.length === 0 ? (
-            <EmptyState text="No upcoming events" />
+            <EmptyState text={t("noUpcomingEvents")} />
           ) : (
             <div className="grid gap-3">
               {upcoming.map((event) => (

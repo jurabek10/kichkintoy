@@ -1,0 +1,81 @@
+{
+  "title": "Kalendar",
+  "staffDescription": "Markaz, sinf va alohida bolalar uchun tadbirlarni rejalashtiring.",
+  "parentDescription": "Farzandingiz uchun markaz va sinf tadbirlarini ko'ring.",
+  "newEvent": "Yangi tadbir",
+  "back": "Kalendarga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "allChildren": "Barcha bolalar",
+  "eventsOnDate": "{{date}} dagi tadbirlar",
+  "upcoming": "Yaqinlashayotgan",
+  "noEventsForDate": "Bu sana uchun tadbir yo'q",
+  "noUpcomingEvents": "Yaqinlashayotgan tadbir yo'q",
+  "weekdays": {
+    "sun": "Yak",
+    "mon": "Dush",
+    "tue": "Sesh",
+    "wed": "Chor",
+    "thu": "Pay",
+    "fri": "Jum",
+    "sat": "Shan"
+  },
+  "audience": {
+    "wholeCenter": "Butun markaz",
+    "class": "Sinf",
+    "child": "Bola",
+    "classEvent": "Sinf tadbiri",
+    "childEvent": "Bola tadbiri"
+  },
+  "status": {
+    "cancelled": "Bekor qilingan",
+    "seen": "Ko'rilgan",
+    "scheduled": "Rejalangan"
+  },
+  "composer": {
+    "newTitle": "Yangi tadbir",
+    "editTitle": "Tadbirni tahrirlash",
+    "description": "Markaz, sinf yoki alohida bolaga oid jadval ma'lumotlarini qo'shing.",
+    "title": "Sarlavha",
+    "date": "Sana",
+    "startTime": "Boshlanish vaqti",
+    "endTime": "Tugash vaqti",
+    "allDay": "Butun kun",
+    "audience": "Auditoriya",
+    "chooseClass": "Sinfni tanlang",
+    "chooseChild": "Bolani tanlang",
+    "location": "Joy",
+    "locationPlaceholder": "Uchrashuv xonasi, bog', manzil yoki xarita izohi",
+    "reminder": "Eslatma",
+    "details": "Tafsilotlar",
+    "saveChanges": "O'zgarishlarni saqlash",
+    "create": "Tadbir yaratish"
+  },
+  "reminders": {
+    "none": "Eslatma yo'q",
+    "oneHour": "1 soat oldin",
+    "oneDay": "1 kun oldin",
+    "threeDays": "3 kun oldin"
+  },
+  "validation": {
+    "centerRequired": "Hisobingiz markazga bog'lanmagan.",
+    "titleRequired": "Sarlavha majburiy.",
+    "directorOnly": "Faqat direktorlar butun markaz uchun tadbir yaratishi mumkin.",
+    "classRequired": "Sinfni tanlang.",
+    "childRequired": "Bolani tanlang."
+  },
+  "toast": {
+    "created": "Tadbir yaratildi.",
+    "updated": "Tadbir yangilandi.",
+    "cancelled": "Tadbir bekor qilindi."
+  },
+  "detail": {
+    "notFound": "Tadbir topilmadi.",
+    "cancelTitle": "Tadbirni bekor qilish",
+    "cancelDescription": "Bekor qilingan tadbirlar ota-onalarga ko'rinib turadi.",
+    "reason": "Sabab",
+    "cancelButton": "Tadbirni bekor qilish",
+    "cancelled": "Bu tadbir bekor qilingan.",
+    "markingSeen": "Ko'rilgan deb belgilanmoqda..."
+  }
+}

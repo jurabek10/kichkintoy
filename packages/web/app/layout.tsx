@@ -45,6 +45,7 @@ const layoutNamespaces = [
   "reports",
   "classes",
   "attendance",
+  "calendar",
 ];
 
 export default async function RootLayout({

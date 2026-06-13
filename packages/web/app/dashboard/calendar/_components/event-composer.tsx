@@ -36,12 +36,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 const reminderOptions = [
-  { value: "none", label: "No reminder" },
-  { value: "60", label: "1 hour before" },
-  { value: "1440", label: "1 day before" },
-  { value: "4320", label: "3 days before" },
+  { value: "none", key: "reminders.none" },
+  { value: "60", key: "reminders.oneHour" },
+  { value: "1440", key: "reminders.oneDay" },
+  { value: "4320", key: "reminders.threeDays" },
 ] as const;
 
 export function EventComposer({
@@ -53,6 +54,7 @@ export function EventComposer({
   role: string;
   event?: CalendarEventSummary;
 }) {
+  const { t } = useLayoutTranslation("calendar");
   const router = useRouter();
   const queryClient = useQueryClient();
   const director = role === "director" || role === "organization_owner";
@@ -113,7 +115,7 @@ export function EventComposer({
         : orpc.calendar.create({ centerId: centerId!, ...payload });
     },
     onSuccess: async (saved) => {
-      toast.success(event ? "Event updated." : "Event created.");
+      toast.success(event ? t("toast.updated") : t("toast.created"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all() });
       await queryClient.invalidateQueries({
         queryKey: queryKeys.notifications.unreadCount(),
@@ -126,13 +128,17 @@ export function EventComposer({
   function submit(formEvent: FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
     setError(null);
-    if (!centerId) return setError("Your account is not linked to a center.");
-    if (!title.trim()) return setError("Title is required.");
+    if (!centerId) return setError(t("validation.centerRequired"));
+    if (!title.trim()) return setError(t("validation.titleRequired"));
     if (audienceType === "center" && !director) {
-      return setError("Only directors can create center-wide events.");
+      return setError(t("validation.directorOnly"));
     }
-    if (audienceType === "class" && !classId) return setError("Choose a class.");
-    if (audienceType === "child" && !childId) return setError("Choose a child.");
+    if (audienceType === "class" && !classId) {
+      return setError(t("validation.classRequired"));
+    }
+    if (audienceType === "child" && !childId) {
+      return setError(t("validation.childRequired"));
+    }
     mutation.mutate();
   }
 
@@ -141,18 +147,16 @@ export function EventComposer({
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/calendar">
           <ArrowLeft className="h-4 w-4" />
-          Back to calendar
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">
-            {event ? "Edit event" : "New event"}
+            {event ? t("composer.editTitle") : t("composer.newTitle")}
           </CardTitle>
-          <CardDescription>
-            Add center, class, or child-specific schedule information.
-          </CardDescription>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -162,7 +166,7 @@ export function EventComposer({
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="event-title">Title</Label>
+            <Label htmlFor="event-title">{t("composer.title")}</Label>
             <Input
               id="event-title"
               value={title}
@@ -173,7 +177,7 @@ export function EventComposer({
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-2">
-              <Label htmlFor="event-date">Date</Label>
+              <Label htmlFor="event-date">{t("composer.date")}</Label>
               <DatePicker
                 id="event-date"
                 value={date}
@@ -181,7 +185,7 @@ export function EventComposer({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="event-start">Start time</Label>
+              <Label htmlFor="event-start">{t("composer.startTime")}</Label>
               <Input
                 id="event-start"
                 type="time"
@@ -191,7 +195,7 @@ export function EventComposer({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="event-end">End time</Label>
+              <Label htmlFor="event-end">{t("composer.endTime")}</Label>
               <Input
                 id="event-end"
                 type="time"
@@ -207,11 +211,11 @@ export function EventComposer({
               checked={allDay}
               onCheckedChange={(checked) => setAllDay(checked === true)}
             />
-            All day
+            {t("composer.allDay")}
           </label>
 
           <div className="grid gap-3">
-            <Label>Audience</Label>
+            <Label>{t("composer.audience")}</Label>
             <RadioGroup
               value={audienceType}
               onValueChange={(value) => {
@@ -223,20 +227,20 @@ export function EventComposer({
             >
               <AudienceOption
                 value="center"
-                label="Whole center"
+                label={t("audience.wholeCenter")}
                 disabled={!director}
               />
-              <AudienceOption value="class" label="Class" />
-              <AudienceOption value="child" label="Child" />
+              <AudienceOption value="class" label={t("audience.class")} />
+              <AudienceOption value="child" label={t("audience.child")} />
             </RadioGroup>
           </div>
 
           {audienceType === "class" ? (
             <div className="grid gap-2">
-              <Label>Class</Label>
+              <Label>{t("audience.class")}</Label>
               <Select value={classId} onValueChange={setClassId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose class" />
+                  <SelectValue placeholder={t("composer.chooseClass")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(classesQuery.data ?? []).map((klass) => (
@@ -251,10 +255,10 @@ export function EventComposer({
 
           {audienceType === "child" ? (
             <div className="grid gap-2">
-              <Label>Child</Label>
+              <Label>{t("audience.child")}</Label>
               <Select value={childId} onValueChange={setChildId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose child" />
+                  <SelectValue placeholder={t("composer.chooseChild")} />
                 </SelectTrigger>
                 <SelectContent>
                   {children.map((child) => (
@@ -268,18 +272,18 @@ export function EventComposer({
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="event-location">Location</Label>
+            <Label htmlFor="event-location">{t("composer.location")}</Label>
             <Input
               id="event-location"
               value={locationText}
               onChange={(event) => setLocationText(event.target.value)}
               maxLength={300}
-              placeholder="Meeting room, park, address, or map note"
+              placeholder={t("composer.locationPlaceholder")}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label>Reminder</Label>
+            <Label>{t("composer.reminder")}</Label>
             <Select value={reminder} onValueChange={setReminder}>
               <SelectTrigger>
                 <SelectValue />
@@ -287,7 +291,7 @@ export function EventComposer({
               <SelectContent>
                 {reminderOptions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                    {t(item.key)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -295,7 +299,7 @@ export function EventComposer({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="event-description">Details</Label>
+            <Label htmlFor="event-description">{t("composer.details")}</Label>
             <Textarea
               id="event-description"
               value={description}
@@ -308,7 +312,7 @@ export function EventComposer({
           <div className="flex justify-end">
             <Button type="submit" disabled={mutation.isPending}>
               <Save className="h-4 w-4" />
-              {event ? "Save changes" : "Create event"}
+              {event ? t("composer.saveChanges") : t("composer.create")}
             </Button>
           </div>
         </CardContent>

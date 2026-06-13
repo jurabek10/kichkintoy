@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { EventComposer } from "./event-composer";
 import { eventContext, formatEventTime } from "./event-card";
 
@@ -31,6 +32,7 @@ export function EventDetailScreen({
   centerId: string | null;
   role: string;
 }) {
+  const { t } = useLayoutTranslation("calendar");
   const queryClient = useQueryClient();
   const [cancellationReason, setCancellationReason] = useState("");
   const isParent = role === "parent";
@@ -59,7 +61,7 @@ export function EventDetailScreen({
         cancellationReason: cancellationReason || undefined,
       }),
     onSuccess: async () => {
-      toast.success("Event cancelled.");
+      toast.success(t("toast.cancelled"));
       await queryClient.invalidateQueries({
         queryKey: queryKeys.calendar.all(),
       });
@@ -79,14 +81,16 @@ export function EventDetailScreen({
   }, [currentEventId, eventSeen, isParent, markSeen.isPending]);
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !event) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Event not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -98,10 +102,10 @@ export function EventDetailScreen({
         <EventComposer centerId={centerId} role={role} event={event} />
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cancel event</CardTitle>
-            <CardDescription>
-              Cancelled events remain visible to parents.
-            </CardDescription>
+            <CardTitle className="text-base">
+              {t("detail.cancelTitle")}
+            </CardTitle>
+            <CardDescription>{t("detail.cancelDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             {cancel.error ? (
@@ -110,7 +114,7 @@ export function EventDetailScreen({
               </Alert>
             ) : null}
             <div className="grid gap-2">
-              <Label htmlFor="cancel-reason">Reason</Label>
+              <Label htmlFor="cancel-reason">{t("detail.reason")}</Label>
               <Input
                 id="cancel-reason"
                 value={cancellationReason}
@@ -126,7 +130,7 @@ export function EventDetailScreen({
                 onClick={() => cancel.mutate()}
               >
                 <X className="h-4 w-4" />
-                Cancel event
+                {t("detail.cancelButton")}
               </Button>
             </div>
           </CardContent>
@@ -140,13 +144,13 @@ export function EventDetailScreen({
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/calendar">
           <ArrowLeft className="h-4 w-4" />
-          Back to calendar
+          {t("back")}
         </Link>
       </Button>
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">{event.title}</CardTitle>
-          <CardDescription>{eventContext(event)}</CardDescription>
+          <CardDescription>{eventContext(event, t)}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 text-sm">
           <p className="flex items-center gap-2 text-muted-foreground">
@@ -162,7 +166,7 @@ export function EventDetailScreen({
           {event.status === "cancelled" ? (
             <Alert variant="warning">
               <AlertDescription>
-                This event was cancelled.
+                {t("detail.cancelled")}
                 {event.cancellationReason ? ` ${event.cancellationReason}` : ""}
               </AlertDescription>
             </Alert>
@@ -171,7 +175,7 @@ export function EventDetailScreen({
             <p className="whitespace-pre-wrap">{event.description}</p>
           ) : null}
           <p className="text-xs text-muted-foreground">
-            {event.seenByMe ? "Seen" : "Marking as seen..."}
+            {event.seenByMe ? t("status.seen") : t("detail.markingSeen")}
           </p>
         </CardContent>
       </Card>

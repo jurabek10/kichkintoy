@@ -1,0 +1,81 @@
+{
+  "title": "Calendar",
+  "staffDescription": "Plan center, class, and child-specific events.",
+  "parentDescription": "View center and class events for your child.",
+  "newEvent": "New event",
+  "back": "Back to calendar",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "allChildren": "All children",
+  "eventsOnDate": "Events on {{date}}",
+  "upcoming": "Upcoming",
+  "noEventsForDate": "No events for this date",
+  "noUpcomingEvents": "No upcoming events",
+  "weekdays": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  },
+  "audience": {
+    "wholeCenter": "Whole center",
+    "class": "Class",
+    "child": "Child",
+    "classEvent": "Class event",
+    "childEvent": "Child event"
+  },
+  "status": {
+    "cancelled": "Cancelled",
+    "seen": "Seen",
+    "scheduled": "Scheduled"
+  },
+  "composer": {
+    "newTitle": "New event",
+    "editTitle": "Edit event",
+    "description": "Add center, class, or child-specific schedule information.",
+    "title": "Title",
+    "date": "Date",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "allDay": "All day",
+    "audience": "Audience",
+    "chooseClass": "Choose class",
+    "chooseChild": "Choose child",
+    "location": "Location",
+    "locationPlaceholder": "Meeting room, park, address, or map note",
+    "reminder": "Reminder",
+    "details": "Details",
+    "saveChanges": "Save changes",
+    "create": "Create event"
+  },
+  "reminders": {
+    "none": "No reminder",
+    "oneHour": "1 hour before",
+    "oneDay": "1 day before",
+    "threeDays": "3 days before"
+  },
+  "validation": {
+    "centerRequired": "Your account is not linked to a center.",
+    "titleRequired": "Title is required.",
+    "directorOnly": "Only directors can create center-wide events.",
+    "classRequired": "Choose a class.",
+    "childRequired": "Choose a child."
+  },
+  "toast": {
+    "created": "Event created.",
+    "updated": "Event updated.",
+    "cancelled": "Event cancelled."
+  },
+  "detail": {
+    "notFound": "Event not found.",
+    "cancelTitle": "Cancel event",
+    "cancelDescription": "Cancelled events remain visible to parents.",
+    "reason": "Reason",
+    "cancelButton": "Cancel event",
+    "cancelled": "This event was cancelled.",
+    "markingSeen": "Marking as seen..."
+  }
+}

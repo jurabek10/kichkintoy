@@ -3,9 +3,18 @@
 import type { CalendarEventSummary } from "@kichkintoy/shared";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
 
-const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekdays = [
+  "weekdays.sun",
+  "weekdays.mon",
+  "weekdays.tue",
+  "weekdays.wed",
+  "weekdays.thu",
+  "weekdays.fri",
+  "weekdays.sat",
+] as const;
 
 export function CalendarMonth({
   month,
@@ -18,6 +27,7 @@ export function CalendarMonth({
   selectedDate: string;
   onSelectDate: (date: string) => void;
 }) {
+  const { t } = useLayoutTranslation("calendar");
   const days = monthDays(month);
   const eventCounts = new Map<string, number>();
   for (const event of events) {
@@ -30,7 +40,7 @@ export function CalendarMonth({
       <div className="grid grid-cols-7 border-b bg-muted/50 text-center text-xs font-semibold text-muted-foreground">
         {weekdays.map((day) => (
           <div key={day} className="px-2 py-3">
-            {day}
+            {t(day)}
           </div>
         ))}
       </div>

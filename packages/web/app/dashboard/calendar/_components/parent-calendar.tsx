@@ -21,10 +21,12 @@ import {
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { CalendarMonth } from "./calendar-month";
 import { EventCard } from "./event-card";
 
 export function ParentCalendar() {
+  const { t } = useLayoutTranslation("calendar");
   const [month, setMonth] = useState(currentMonth());
   const [selectedDate, setSelectedDate] = useState(todayIso());
   const [childId, setChildId] = useState("all");
@@ -67,10 +69,8 @@ export function ParentCalendar() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Calendar</CardTitle>
-            <CardDescription>
-              View center and class events for your child.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("parentDescription")}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Select value={childId} onValueChange={setChildId}>
@@ -78,7 +78,7 @@ export function ParentCalendar() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All children</SelectItem>
+                <SelectItem value="all">{t("allChildren")}</SelectItem>
                 {children.map((child) => (
                   <SelectItem key={child.id} value={child.id}>
                     {child.name}
@@ -114,11 +114,15 @@ export function ParentCalendar() {
 
       <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold">Events on {selectedDate}</h2>
+          <h2 className="text-base font-bold">
+            {t("eventsOnDate", { date: selectedDate })}
+          </h2>
           {isPending ? (
-            <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+            <Card className="p-6 text-sm text-muted-foreground">
+              {t("loading")}
+            </Card>
           ) : selectedEvents.length === 0 ? (
-            <EmptyState text="No events for this date" />
+            <EmptyState text={t("noEventsForDate")} />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {selectedEvents.map((event) => (
@@ -128,9 +132,9 @@ export function ParentCalendar() {
           )}
         </div>
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold">Upcoming</h2>
+          <h2 className="text-base font-bold">{t("upcoming")}</h2>
           {upcoming.length === 0 ? (
-            <EmptyState text="No upcoming events" />
+            <EmptyState text={t("noUpcomingEvents")} />
           ) : (
             <div className="grid gap-3">
               {upcoming.map((event) => (
