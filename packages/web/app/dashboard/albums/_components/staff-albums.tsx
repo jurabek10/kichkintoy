@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -27,6 +28,7 @@ import { AlbumCard } from "./album-card";
 type AlbumStatusFilter = "all" | "draft" | "published";
 
 export function StaffAlbums({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("albums");
   const [status, setStatus] = useState<AlbumStatusFilter>("all");
   const {
     data: posts = [],
@@ -45,9 +47,7 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -57,10 +57,8 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Albums</CardTitle>
-            <CardDescription>
-              Share class photos with parents using child-safe visibility.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select
@@ -71,15 +69,15 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Drafts</SelectItem>
+                <SelectItem value="all">{t("filters.all")}</SelectItem>
+                <SelectItem value="published">{t("status.published")}</SelectItem>
+                <SelectItem value="draft">{t("filters.drafts")}</SelectItem>
               </SelectContent>
             </Select>
             <Button asChild>
               <Link href="/dashboard/albums/new">
                 <Plus className="h-4 w-4" />
-                New album
+                {t("newAlbum")}
               </Link>
             </Button>
           </div>
@@ -93,14 +91,14 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : posts.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Images className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No album posts yet</p>
-          <p className="text-sm text-muted-foreground">
-            Publish class photos when you are ready.
-          </p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty.staffBody")}</p>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -10,12 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import {
-  albumStatusLabel,
-  albumVisibilityLabel,
-  formatDateTime,
-} from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
@@ -23,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { SignedAlbumImage } from "./signed-album-image";
 
 export function AlbumDetailScreen({ postId }: { postId: string }) {
+  const { t } = useLayoutTranslation("albums");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
@@ -40,7 +38,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
   const publishMutation = useMutation({
     mutationFn: () => orpc.albums.publish({ postId }),
     onSuccess: async () => {
-      toast.success("Album published.");
+      toast.success(t("toast.published"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.albums.all() });
       await queryClient.invalidateQueries({
         queryKey: queryKeys.albums.detail(postId),
@@ -52,7 +50,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
   const deleteMutation = useMutation({
     mutationFn: () => orpc.albums.delete({ postId }),
     onSuccess: async () => {
-      toast.success("Album deleted.");
+      toast.success(t("toast.deleted"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.albums.all() });
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -89,14 +87,16 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
   }
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !post) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Album not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -108,19 +108,19 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
         <Button asChild variant="ghost">
           <Link href="/dashboard/albums">
             <ArrowLeft className="h-4 w-4" />
-            Back to albums
+            {t("back")}
           </Link>
         </Button>
         {staff ? (
           <div className="flex gap-2">
             {post.status === "draft" ? (
-              <Button
-                onClick={() => publishMutation.mutate()}
-                disabled={publishMutation.isPending}
-              >
-                <Send className="h-4 w-4" />
-                Publish
-              </Button>
+            <Button
+              onClick={() => publishMutation.mutate()}
+              disabled={publishMutation.isPending}
+            >
+              <Send className="h-4 w-4" />
+              {t("detail.publish")}
+            </Button>
             ) : null}
             <Button
               variant="destructive"
@@ -128,7 +128,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
               disabled={deleteMutation.isPending}
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t("detail.delete")}
             </Button>
           </div>
         ) : null}
@@ -137,22 +137,24 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
       <Card>
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">{albumStatusLabel(post.status)}</Badge>
-            <Badge variant="outline">
-              {albumVisibilityLabel(post.visibility)}
-            </Badge>
+            <Badge variant="outline">{t(statusKey(post.status))}</Badge>
+            <Badge variant="outline">{t(visibilityKey(post.visibility))}</Badge>
             {post.classes.map((klass) => (
               <Badge key={klass.id} variant="secondary">
                 {klass.name}
               </Badge>
             ))}
           </div>
-          <CardTitle className="text-xl">{post.caption || "Album post"}</CardTitle>
+          <CardTitle className="text-xl">
+            {post.caption || t("card.emptyTitle")}
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
-            {post.author.fullName} ·{" "}
-            {post.publishedAt
-              ? formatDateTime(post.publishedAt)
-              : `Updated ${formatDateTime(post.updatedAt)}`}
+            {t("detail.authorDate", {
+              author: post.author.fullName,
+              date: post.publishedAt
+                ? formatDateTime(post.publishedAt)
+                : t("updatedAt", { date: formatDateTime(post.updatedAt) }),
+            })}
           </p>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -211,7 +213,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Comments</CardTitle>
+          <CardTitle className="text-base">{t("detail.comments")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           {post.allowComments && post.status === "published" ? (
@@ -219,7 +221,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
               <Textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
-                placeholder="Write a comment"
+                placeholder={t("detail.writeComment")}
                 rows={3}
               />
               <Button
@@ -228,18 +230,20 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
                 disabled={commentMutation.isPending || !comment.trim()}
               >
                 <Send className="h-4 w-4" />
-                Comment
+                {t("detail.comment")}
               </Button>
             </form>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Comments are disabled.
+              {t("detail.commentsDisabled")}
             </p>
           )}
 
           <div className="grid gap-3">
             {post.comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet.</p>
+              <p className="text-sm text-muted-foreground">
+                {t("detail.noComments")}
+              </p>
             ) : (
               post.comments.map((item) => (
                 <div key={item.id} className="rounded-md border p-3">
@@ -250,7 +254,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
                     </span>
                   </div>
                   <p className="mt-1 whitespace-pre-wrap text-sm">
-                    {item.deletedAt ? "Comment deleted" : item.body}
+                    {item.deletedAt ? t("detail.commentDeleted") : item.body}
                   </p>
                 </div>
               ))
@@ -260,4 +264,14 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
       </Card>
     </div>
   );
+}
+
+function statusKey(value: string) {
+  if (value === "published") return "status.published";
+  return "status.draft";
+}
+
+function visibilityKey(value: string) {
+  if (value === "class") return "visibility.class";
+  return "visibility.taggedChildren";
 }

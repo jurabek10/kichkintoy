@@ -1,0 +1,78 @@
+{
+  "title": "Albomlar",
+  "staffDescription": "Bolalar uchun xavfsiz ko'rinish bilan sinf rasmlarini ota-onalar bilan ulashing.",
+  "newAlbum": "Yangi albom",
+  "back": "Albomlarga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "updatedAt": "Yangilangan: {{date}}",
+  "filters": {
+    "all": "Barchasi",
+    "drafts": "Qoralamalar"
+  },
+  "status": {
+    "draft": "Qoralama",
+    "published": "E'lon qilingan"
+  },
+  "visibility": {
+    "class": "Sinf bo'yicha",
+    "taggedChildren": "Belgilangan bolalar",
+    "classDescription": "Tanlangan sinflardagi barcha vasiylar ko'ra oladi.",
+    "taggedChildrenDescription": "Faqat belgilangan bolalar vasiylari ko'ra oladi."
+  },
+  "empty": {
+    "staffTitle": "Hali albom posti yo'q",
+    "staffBody": "Tayyor bo'lganda sinf rasmlarini e'lon qiling.",
+    "parentTitle": "Hali rasm yo'q",
+    "parentBody": "Sinf albomi rasmlari shu yerda ko'rinadi."
+  },
+  "card": {
+    "emptyBody": "Albom posti",
+    "emptyTitle": "Albom posti"
+  },
+  "composer": {
+    "newTitle": "Yangi albom posti",
+    "description": "Bolalar uchun xavfsiz ko'rinish bilan sinf rasmlarini ulashing.",
+    "caption": "Izoh",
+    "classes": "Sinflar",
+    "noClasses": "Mavjud sinf yo'q.",
+    "visibility": "Ko'rinish",
+    "taggedChildren": "Belgilangan bolalar",
+    "chooseClassForChildren": "Bolalarni belgilash uchun sinfni tanlang.",
+    "media": "Rasmlar",
+    "chooseFiles": "Rasmlar yoki videolarni tanlang",
+    "allowComments": "Izohlarga ruxsat berish",
+    "allowCommentsDescription": "Post e'lon qilinganda ota-onalar izoh qoldirishi mumkin.",
+    "saveDraft": "Qoralamani saqlash",
+    "publish": "E'lon qilish"
+  },
+  "validation": {
+    "centerRequired": "Hisobingiz markazga bog'lanmagan.",
+    "classRequired": "Kamida bitta sinfni tanlang.",
+    "childRequired": "Kamida bitta bolani belgilang.",
+    "publishRequired": "E'lon qilishdan oldin izoh yoki rasm qo'shing."
+  },
+  "upload": {
+    "failedFor": "{{file}} uchun yuklab bo'lmadi.",
+    "completed": "{{count}} ta fayl yuklandi.",
+    "failed": "Yuklash amalga oshmadi.",
+    "ready": "{{count}} ta yuklangan fayl tayyor."
+  },
+  "toast": {
+    "published": "Albom e'lon qilindi.",
+    "savedAsDraft": "Albom qoralama sifatida saqlandi.",
+    "deleted": "Albom o'chirildi."
+  },
+  "detail": {
+    "notFound": "Albom topilmadi.",
+    "authorDate": "{{author}} · {{date}}",
+    "publish": "E'lon qilish",
+    "delete": "O'chirish",
+    "comments": "Izohlar",
+    "writeComment": "Izoh yozing",
+    "comment": "Izoh",
+    "commentsDisabled": "Izohlar o'chirilgan.",
+    "noComments": "Hali izoh yo'q.",
+    "commentDeleted": "Izoh o'chirildi."
+  }
+}

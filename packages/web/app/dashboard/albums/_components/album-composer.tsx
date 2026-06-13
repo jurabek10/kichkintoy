@@ -22,11 +22,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 
 export function AlbumComposer({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("albums");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [caption, setCaption] = useState("");
@@ -64,7 +66,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
         publish,
       }),
     onSuccess: async (post, publish) => {
-      toast.success(publish ? "Album published." : "Album saved as draft.");
+      toast.success(publish ? t("toast.published") : t("toast.savedAsDraft"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.albums.all() });
       router.push(`/dashboard/albums/${post.id}`);
     },
@@ -78,13 +80,13 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
 
   function save(publish: boolean) {
     setError(null);
-    if (!centerId) return setError("Your account is not linked to a center.");
-    if (classIds.length === 0) return setError("Choose at least one class.");
+    if (!centerId) return setError(t("validation.centerRequired"));
+    if (classIds.length === 0) return setError(t("validation.classRequired"));
     if (visibility === "tagged_children" && childIds.length === 0) {
-      return setError("Tag at least one child.");
+      return setError(t("validation.childRequired"));
     }
     if (publish && !caption.trim() && mediaAssetIds.length === 0) {
-      return setError("Add a caption or photo before publishing.");
+      return setError(t("validation.publishRequired"));
     }
     createMutation.mutate(publish);
   }
@@ -108,7 +110,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           body: file,
         });
         if (!response.ok) {
-          throw new Error(`Upload failed for ${file.name}.`);
+          throw new Error(t("upload.failedFor", { file: file.name }));
         }
         const asset = await orpc.media.completeUpload({
           mediaAssetId: signed.mediaAssetId,
@@ -116,9 +118,11 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
         uploaded.push(asset.id);
       }
       setMediaAssetIds((current) => [...current, ...uploaded]);
-      if (uploaded.length > 0) toast.success(`${uploaded.length} file(s) uploaded.`);
+      if (uploaded.length > 0) {
+        toast.success(t("upload.completed", { count: uploaded.length }));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(err instanceof Error ? err.message : t("upload.failed"));
     }
   }
 
@@ -147,16 +151,14 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/albums">
           <ArrowLeft className="h-4 w-4" />
-          Back to albums
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">New album post</CardTitle>
-          <CardDescription>
-            Share class photos with parent-safe visibility.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -166,7 +168,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="album-caption">Caption</Label>
+            <Label htmlFor="album-caption">{t("composer.caption")}</Label>
             <Textarea
               id="album-caption"
               value={caption}
@@ -177,7 +179,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           </div>
 
           <div className="grid gap-2">
-            <Label>Classes</Label>
+            <Label>{t("composer.classes")}</Label>
             <div className="grid max-h-60 gap-2 overflow-auto rounded-md border p-3 sm:grid-cols-2">
               {(audience?.classes ?? []).map((klass) => (
                 <label
@@ -195,14 +197,14 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
               ))}
               {audience?.classes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No classes available.
+                  {t("composer.noClasses")}
                 </p>
               ) : null}
             </div>
           </div>
 
           <div className="grid gap-3">
-            <Label>Visibility</Label>
+            <Label>{t("composer.visibility")}</Label>
             <RadioGroup
               value={visibility}
               onValueChange={(value) => setVisibility(value as AlbumVisibility)}
@@ -210,20 +212,20 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
             >
               <VisibilityOption
                 value="class"
-                label="Class-wide"
-                description="All guardians in selected classes can view it."
+                label={t("visibility.class")}
+                description={t("visibility.classDescription")}
               />
               <VisibilityOption
                 value="tagged_children"
-                label="Tagged children"
-                description="Only guardians of tagged children can view it."
+                label={t("visibility.taggedChildren")}
+                description={t("visibility.taggedChildrenDescription")}
               />
             </RadioGroup>
           </div>
 
           {visibility === "tagged_children" ? (
             <div className="grid gap-2">
-              <Label>Tagged children</Label>
+              <Label>{t("composer.taggedChildren")}</Label>
               <div className="grid max-h-64 gap-2 overflow-auto rounded-md border p-3 sm:grid-cols-2">
                 {visibleChildren.map((child) => (
                   <label
@@ -248,7 +250,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
                 ))}
                 {visibleChildren.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Choose a class to tag children.
+                    {t("composer.chooseClassForChildren")}
                   </p>
                 ) : null}
               </div>
@@ -256,10 +258,10 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="album-assets">Photos</Label>
+            <Label htmlFor="album-assets">{t("composer.media")}</Label>
             <label className="grid cursor-pointer place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition hover:border-primary/50">
               <Upload className="h-6 w-6" />
-              <span>Choose photos or videos</span>
+              <span>{t("composer.chooseFiles")}</span>
               <Input
                 id="album-assets"
                 type="file"
@@ -271,16 +273,16 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
             </label>
             {mediaAssetIds.length > 0 ? (
               <p className="text-sm text-muted-foreground">
-                {mediaAssetIds.length} uploaded file(s) ready.
+                {t("upload.ready", { count: mediaAssetIds.length })}
               </p>
             ) : null}
           </div>
 
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>
-              <Label htmlFor="allow-comments">Allow comments</Label>
+              <Label htmlFor="allow-comments">{t("composer.allowComments")}</Label>
               <p className="text-xs text-muted-foreground">
-                Parents can comment when the post is published.
+                {t("composer.allowCommentsDescription")}
               </p>
             </div>
             <Switch
@@ -299,7 +301,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           disabled={createMutation.isPending}
         >
           <Save className="h-4 w-4" />
-          Save draft
+          {t("composer.saveDraft")}
         </Button>
         <Button
           type="button"
@@ -307,7 +309,7 @@ export function AlbumComposer({ centerId }: { centerId: string | null }) {
           disabled={createMutation.isPending}
         >
           <Send className="h-4 w-4" />
-          Publish
+          {t("composer.publish")}
         </Button>
       </div>
     </form>

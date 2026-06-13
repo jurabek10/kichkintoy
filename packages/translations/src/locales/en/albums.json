@@ -1,0 +1,78 @@
+{
+  "title": "Albums",
+  "staffDescription": "Share class photos with parents using child-safe visibility.",
+  "newAlbum": "New album",
+  "back": "Back to albums",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "updatedAt": "Updated {{date}}",
+  "filters": {
+    "all": "All",
+    "drafts": "Drafts"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "visibility": {
+    "class": "Class-wide",
+    "taggedChildren": "Tagged children",
+    "classDescription": "All guardians in selected classes can view it.",
+    "taggedChildrenDescription": "Only guardians of tagged children can view it."
+  },
+  "empty": {
+    "staffTitle": "No album posts yet",
+    "staffBody": "Publish class photos when you are ready.",
+    "parentTitle": "No photos yet",
+    "parentBody": "Class album photos will appear here."
+  },
+  "card": {
+    "emptyBody": "Album post",
+    "emptyTitle": "Album post"
+  },
+  "composer": {
+    "newTitle": "New album post",
+    "description": "Share class photos with parent-safe visibility.",
+    "caption": "Caption",
+    "classes": "Classes",
+    "noClasses": "No classes available.",
+    "visibility": "Visibility",
+    "taggedChildren": "Tagged children",
+    "chooseClassForChildren": "Choose a class to tag children.",
+    "media": "Photos",
+    "chooseFiles": "Choose photos or videos",
+    "allowComments": "Allow comments",
+    "allowCommentsDescription": "Parents can comment when the post is published.",
+    "saveDraft": "Save draft",
+    "publish": "Publish"
+  },
+  "validation": {
+    "centerRequired": "Your account is not linked to a center.",
+    "classRequired": "Choose at least one class.",
+    "childRequired": "Tag at least one child.",
+    "publishRequired": "Add a caption or photo before publishing."
+  },
+  "upload": {
+    "failedFor": "Upload failed for {{file}}.",
+    "completed": "{{count}} file(s) uploaded.",
+    "failed": "Upload failed.",
+    "ready": "{{count}} uploaded file(s) ready."
+  },
+  "toast": {
+    "published": "Album published.",
+    "savedAsDraft": "Album saved as draft.",
+    "deleted": "Album deleted."
+  },
+  "detail": {
+    "notFound": "Album not found.",
+    "authorDate": "{{author}} · {{date}}",
+    "publish": "Publish",
+    "delete": "Delete",
+    "comments": "Comments",
+    "writeComment": "Write a comment",
+    "comment": "Comment",
+    "commentsDisabled": "Comments are disabled.",
+    "noComments": "No comments yet.",
+    "commentDeleted": "Comment deleted."
+  }
+}
