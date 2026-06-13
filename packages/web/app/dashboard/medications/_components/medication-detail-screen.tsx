@@ -14,18 +14,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import {
-  formatDate,
-  formatDateTime,
-  medicationStatusLabel,
-} from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
 import { SignedMedicationImage } from "./signed-medication-image";
+import { medicationStatusLabelKey } from "./medication-labels";
 
 export function MedicationDetailScreen({ requestId }: { requestId: string }) {
+  const { t } = useLayoutTranslation("medications");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const staff = session?.user.role !== "parent";
@@ -50,7 +49,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
   const cancelMutation = useMutation({
     mutationFn: () => orpc.medications.cancel({ requestId }),
     onSuccess: async () => {
-      toast.success("Medication request cancelled.");
+      toast.success(t("toast.requestCancelled"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -73,7 +72,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
         },
       }),
     onSuccess: async () => {
-      toast.success("Medication report saved.");
+      toast.success(t("toast.reportSaved"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -89,14 +88,16 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
   }
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !request) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Medication request not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -110,7 +111,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
         <Button asChild variant="ghost">
           <Link href="/dashboard/medications">
             <ArrowLeft className="h-4 w-4" />
-            Back to medication
+            {t("back")}
           </Link>
         </Button>
         {!staff && pending ? (
@@ -120,7 +121,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
             disabled={cancelMutation.isPending}
           >
             <Ban className="h-4 w-4" />
-            Cancel request
+            {t("detail.cancelRequest")}
           </Button>
         ) : null}
       </div>
@@ -128,7 +129,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
       <Card>
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap gap-2">
-            <Badge>{medicationStatusLabel(request.status)}</Badge>
+            <Badge>{t(medicationStatusLabelKey(request.status))}</Badge>
             <Badge variant="outline">
               {formatDate(request.requestedForDate)}
             </Badge>
@@ -153,18 +154,21 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
 
           <InfoGrid
             items={[
-              ["Child", request.child.name],
-              ["Class", request.child.className ?? "No class"],
-              ["Parent", request.parentName],
-              ["Symptoms", request.symptoms],
-              ["Medicine type", request.medicationType],
-              ["Dosage", request.dosage],
-              ["Count/frequency", request.medicationCount ?? "—"],
-              ["Storage", request.storageMethod ?? "—"],
-              ["Instructions", request.instructions ?? "—"],
-              ["Special note", request.specialNote ?? "—"],
-              ["Signature", request.parentSignature],
-              ["Submitted", formatDateTime(request.createdAt)],
+              [t("detail.child"), request.child.name],
+              [
+                t("detail.class"),
+                request.child.className ?? t("detail.noClass"),
+              ],
+              [t("detail.parent"), request.parentName],
+              [t("detail.symptoms"), request.symptoms],
+              [t("detail.medicineType"), request.medicationType],
+              [t("detail.dosage"), request.dosage],
+              [t("detail.countFrequency"), request.medicationCount ?? "—"],
+              [t("detail.storage"), request.storageMethod ?? "—"],
+              [t("detail.instructions"), request.instructions ?? "—"],
+              [t("detail.specialNote"), request.specialNote ?? "—"],
+              [t("detail.signature"), request.parentSignature],
+              [t("detail.submitted"), formatDateTime(request.createdAt)],
             ]}
           />
         </CardContent>
@@ -172,7 +176,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Medication report</CardTitle>
+          <CardTitle className="text-base">{t("detail.reportTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           {pending && staff ? (
@@ -186,23 +190,32 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
                 }
                 className="grid gap-2 sm:grid-cols-2"
               >
-                <ReportOption value="administered" label="Administered" />
-                <ReportOption value="skipped" label="Skipped" />
+                <ReportOption
+                  value="administered"
+                  label={t("status.administered")}
+                />
+                <ReportOption value="skipped" label={t("status.skipped")} />
               </RadioGroup>
 
               {completionStatus === "administered" ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="administered-at">Administered time</Label>
+                    <Label htmlFor="administered-at">
+                      {t("detail.administeredTime")}
+                    </Label>
                     <Input
                       id="administered-at"
                       type="datetime-local"
                       value={administeredAt}
-                      onChange={(event) => setAdministeredAt(event.target.value)}
+                      onChange={(event) =>
+                        setAdministeredAt(event.target.value)
+                      }
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="administered-dose">Administered dose</Label>
+                    <Label htmlFor="administered-dose">
+                      {t("detail.administeredDose")}
+                    </Label>
                     <Input
                       id="administered-dose"
                       value={administeredDose}
@@ -215,7 +228,9 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
                 </div>
               ) : (
                 <div className="grid gap-2">
-                  <Label htmlFor="skipped-reason">Skipped reason</Label>
+                  <Label htmlFor="skipped-reason">
+                    {t("detail.skippedReason")}
+                  </Label>
                   <Textarea
                     id="skipped-reason"
                     value={skippedReason}
@@ -226,7 +241,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
               )}
 
               <div className="grid gap-2">
-                <Label htmlFor="staff-note">Staff note</Label>
+                <Label htmlFor="staff-note">{t("detail.staffNote")}</Label>
                 <Textarea
                   id="staff-note"
                   value={staffNote}
@@ -241,33 +256,33 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
                 disabled={completeMutation.isPending}
               >
                 <Save className="h-4 w-4" />
-                Save report
+                {t("detail.saveReport")}
               </Button>
             </>
           ) : request.status === "pending" ? (
             <p className="text-sm text-muted-foreground">
-              The center has not completed this medication report yet.
+              {t("detail.noReportYet")}
             </p>
           ) : (
             <div className="grid gap-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
                 <span className="font-semibold">
-                  {medicationStatusLabel(request.status)}
+                  {t(medicationStatusLabelKey(request.status))}
                 </span>
               </div>
               <InfoGrid
                 items={[
-                  ["Staff", request.administeredBy?.fullName ?? "—"],
+                  [t("detail.staff"), request.administeredBy?.fullName ?? "—"],
                   [
-                    "Administered at",
+                    t("detail.administeredAt"),
                     request.administeredAt
                       ? formatDateTime(request.administeredAt)
                       : "—",
                   ],
-                  ["Dose", request.administeredDose ?? "—"],
-                  ["Skipped reason", request.skippedReason ?? "—"],
-                  ["Staff note", request.staffNote ?? "—"],
+                  [t("detail.dose"), request.administeredDose ?? "—"],
+                  [t("detail.skippedReason"), request.skippedReason ?? "—"],
+                  [t("detail.staffNote"), request.staffNote ?? "—"],
                 ]}
               />
             </div>

@@ -27,11 +27,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 
 export function MedicationComposer() {
+  const { t } = useLayoutTranslation("medications");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [childId, setChildId] = useState("");
@@ -45,7 +47,9 @@ export function MedicationComposer() {
   const [storageMethod, setStorageMethod] = useState("");
   const [instructions, setInstructions] = useState("");
   const [specialNote, setSpecialNote] = useState("");
-  const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(null);
+  const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(
+    null,
+  );
   const [photoCaption, setPhotoCaption] = useState("");
   const [parentSignature, setParentSignature] = useState("");
   const [consent, setConsent] = useState(false);
@@ -82,7 +86,7 @@ export function MedicationComposer() {
         consent: true,
       }),
     onSuccess: async (request) => {
-      toast.success("Medication request sent.");
+      toast.success(t("toast.requestSent"));
       await queryClient.invalidateQueries({
         queryKey: queryKeys.medications.all(),
       });
@@ -94,14 +98,18 @@ export function MedicationComposer() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    if (!childId) return setError("Choose a child.");
-    if (!symptoms.trim()) return setError("Symptoms are required.");
-    if (!medicineName.trim()) return setError("Medicine name is required.");
-    if (!medicationType.trim()) return setError("Medicine type is required.");
-    if (!dosage.trim()) return setError("Dosage is required.");
-    if (!medicationTime.trim()) return setError("Medication time is required.");
-    if (!parentSignature.trim()) return setError("Parent signature is required.");
-    if (!consent) return setError("Consent is required.");
+    if (!childId) return setError(t("validation.childRequired"));
+    if (!symptoms.trim()) return setError(t("validation.symptomsRequired"));
+    if (!medicineName.trim())
+      return setError(t("validation.medicineNameRequired"));
+    if (!medicationType.trim())
+      return setError(t("validation.medicationTypeRequired"));
+    if (!dosage.trim()) return setError(t("validation.dosageRequired"));
+    if (!medicationTime.trim())
+      return setError(t("validation.medicationTimeRequired"));
+    if (!parentSignature.trim())
+      return setError(t("validation.parentSignatureRequired"));
+    if (!consent) return setError(t("validation.consentRequired"));
     createMutation.mutate();
   }
 
@@ -110,11 +118,13 @@ export function MedicationComposer() {
     if (!file) return;
     const effectiveChildId = childId || audience?.children[0]?.id;
     if (!effectiveChildId) {
-      return setError("Choose a child before uploading a photo.");
+      return setError(t("validation.chooseChildBeforeUpload"));
     }
     if (!childId) setChildId(effectiveChildId);
-    const child = audience?.children.find((item) => item.id === effectiveChildId);
-    if (!child) return setError("Choose a child before uploading a photo.");
+    const child = audience?.children.find(
+      (item) => item.id === effectiveChildId,
+    );
+    if (!child) return setError(t("validation.chooseChildBeforeUpload"));
     setError(null);
     try {
       const signed = await orpc.media.createUploadUrl({
@@ -129,14 +139,20 @@ export function MedicationComposer() {
         headers: { "Content-Type": file.type },
         body: file,
       });
-      if (!response.ok) throw new Error(`Upload failed for ${file.name}.`);
+      if (!response.ok) {
+        throw new Error(
+          t("validation.uploadFailedForFile", { file: file.name }),
+        );
+      }
       const asset = await orpc.media.completeUpload({
         mediaAssetId: signed.mediaAssetId,
       });
       setPhotoMediaAssetId(asset.id);
-      toast.success("Medication photo uploaded.");
+      toast.success(t("toast.photoUploaded"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(
+        err instanceof Error ? err.message : t("validation.uploadFailed"),
+      );
     }
   }
 
@@ -147,16 +163,14 @@ export function MedicationComposer() {
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/medications">
           <ArrowLeft className="h-4 w-4" />
-          Back to medication
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">New medication request</CardTitle>
-          <CardDescription>
-            Send detailed medicine instructions and consent to your center.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -167,10 +181,10 @@ export function MedicationComposer() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label>Child</Label>
+              <Label>{t("composer.child")}</Label>
               <Select value={childId} onValueChange={setChildId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose child" />
+                  <SelectValue placeholder={t("composer.chooseChild")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(audience?.children ?? []).map((child) => (
@@ -182,12 +196,12 @@ export function MedicationComposer() {
               </Select>
               {selectedChild ? (
                 <p className="text-xs text-muted-foreground">
-                  {selectedChild.className ?? "No class"}
+                  {selectedChild.className ?? t("detail.noClass")}
                 </p>
               ) : null}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="medication-date">Date</Label>
+              <Label htmlFor="medication-date">{t("composer.date")}</Label>
               <DatePicker
                 id="medication-date"
                 value={requestedForDate}
@@ -197,7 +211,7 @@ export function MedicationComposer() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="symptoms">Symptoms</Label>
+            <Label htmlFor="symptoms">{t("composer.symptoms")}</Label>
             <Textarea
               id="symptoms"
               value={symptoms}
@@ -209,39 +223,44 @@ export function MedicationComposer() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               id="medicine-name"
-              label="Medicine name"
+              label={t("composer.medicineName")}
               value={medicineName}
               onChange={setMedicineName}
             />
             <Field
               id="medication-type"
-              label="Medicine type"
+              label={t("composer.medicationType")}
               value={medicationType}
               onChange={setMedicationType}
             />
-            <Field id="dosage" label="Dosage" value={dosage} onChange={setDosage} />
+            <Field
+              id="dosage"
+              label={t("composer.dosage")}
+              value={dosage}
+              onChange={setDosage}
+            />
             <Field
               id="medication-time"
-              label="Medication time"
+              label={t("composer.medicationTime")}
               value={medicationTime}
               onChange={setMedicationTime}
             />
             <Field
               id="medication-count"
-              label="Count/frequency"
+              label={t("composer.countFrequency")}
               value={medicationCount}
               onChange={setMedicationCount}
             />
             <Field
               id="storage-method"
-              label="Storage method"
+              label={t("composer.storageMethod")}
               value={storageMethod}
               onChange={setStorageMethod}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="instructions">Instructions</Label>
+            <Label htmlFor="instructions">{t("composer.instructions")}</Label>
             <Textarea
               id="instructions"
               value={instructions}
@@ -251,7 +270,7 @@ export function MedicationComposer() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="special-note">Special note</Label>
+            <Label htmlFor="special-note">{t("composer.specialNote")}</Label>
             <Textarea
               id="special-note"
               value={specialNote}
@@ -261,7 +280,9 @@ export function MedicationComposer() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="medication-photo">Medication photo</Label>
+            <Label htmlFor="medication-photo">
+              {t("composer.medicationPhoto")}
+            </Label>
             <label
               className={`grid place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition ${
                 selectedChild
@@ -270,7 +291,7 @@ export function MedicationComposer() {
               }`}
             >
               <Upload className="h-6 w-6" />
-              <span>Choose one medicine photo</span>
+              <span>{t("composer.choosePhoto")}</span>
               <Input
                 id="medication-photo"
                 type="file"
@@ -282,13 +303,13 @@ export function MedicationComposer() {
             </label>
             {photoMediaAssetId ? (
               <p className="text-sm text-muted-foreground">
-                One photo uploaded.
+                {t("composer.photoUploaded")}
               </p>
             ) : null}
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="photo-caption">Photo caption</Label>
+            <Label htmlFor="photo-caption">{t("composer.photoCaption")}</Label>
             <Input
               id="photo-caption"
               value={photoCaption}
@@ -299,7 +320,9 @@ export function MedicationComposer() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="parent-signature">Parent signature</Label>
+            <Label htmlFor="parent-signature">
+              {t("composer.parentSignature")}
+            </Label>
             <Input
               id="parent-signature"
               value={parentSignature}
@@ -312,10 +335,7 @@ export function MedicationComposer() {
               checked={consent}
               onCheckedChange={(checked) => setConsent(checked === true)}
             />
-            <span>
-              I confirm these medication instructions are accurate and authorize
-              the center to administer this medication as requested.
-            </span>
+            <span>{t("composer.consent")}</span>
           </label>
         </CardContent>
       </Card>
@@ -323,7 +343,7 @@ export function MedicationComposer() {
       <div className="sticky bottom-4 flex justify-end rounded-md border bg-background p-3 shadow-pop">
         <Button type="submit" disabled={createMutation.isPending}>
           <Send className="h-4 w-4" />
-          Send request
+          {t("composer.saveRequest")}
         </Button>
       </div>
     </form>

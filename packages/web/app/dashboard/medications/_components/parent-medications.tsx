@@ -13,12 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { MedicationCard } from "./medication-card";
 
 export function ParentMedications() {
+  const { t } = useLayoutTranslation("medications");
   const [date, setDate] = useState(todayIso());
   const input = { date };
   const {
@@ -35,10 +37,8 @@ export function ParentMedications() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Medication</CardTitle>
-            <CardDescription>
-              Send medicine instructions and check staff reports.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("parentDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -49,7 +49,7 @@ export function ParentMedications() {
             <Button asChild>
               <Link href="/dashboard/medications/new">
                 <Plus className="h-4 w-4" />
-                New request
+                {t("newRequest")}
               </Link>
             </Button>
           </div>
@@ -63,13 +63,15 @@ export function ParentMedications() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : requests.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Pill className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No medication requests</p>
+          <p className="font-semibold">{t("empty.parentTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Today's medication requests will appear here.
+            {t("empty.parentBody")}
           </p>
         </Card>
       ) : (

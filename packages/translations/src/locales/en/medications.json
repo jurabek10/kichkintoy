@@ -1,0 +1,96 @@
+{
+  "title": "Medication",
+  "parentDescription": "Send medicine instructions and check staff reports.",
+  "staffDescription": "Review parent requests and complete administration reports.",
+  "newRequest": "New request",
+  "back": "Back to medication",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "filters": {
+    "all": "All statuses"
+  },
+  "status": {
+    "pending": "Pending",
+    "administered": "Administered",
+    "skipped": "Skipped",
+    "cancelled": "Cancelled"
+  },
+  "labels": {
+    "symptoms": "Symptoms"
+  },
+  "empty": {
+    "parentTitle": "No medication requests",
+    "parentBody": "Today's medication requests will appear here.",
+    "staffTitle": "No medication requests",
+    "staffBody": "Requests from parents will appear here."
+  },
+  "composer": {
+    "newTitle": "New medication request",
+    "description": "Send detailed medicine instructions and consent to your center.",
+    "child": "Child",
+    "chooseChild": "Choose child",
+    "date": "Date",
+    "symptoms": "Symptoms",
+    "medicineName": "Medicine name",
+    "medicationType": "Medicine type",
+    "dosage": "Dosage",
+    "medicationTime": "Medication time",
+    "countFrequency": "Count/frequency",
+    "storageMethod": "Storage method",
+    "instructions": "Instructions",
+    "specialNote": "Special note",
+    "medicationPhoto": "Medication photo",
+    "choosePhoto": "Choose one medicine photo",
+    "photoUploaded": "One photo uploaded.",
+    "photoCaption": "Photo caption",
+    "parentSignature": "Parent signature",
+    "consent": "I confirm these medication instructions are accurate and authorize the center to administer this medication as requested.",
+    "saveRequest": "Send request"
+  },
+  "validation": {
+    "childRequired": "Choose a child.",
+    "symptomsRequired": "Symptoms are required.",
+    "medicineNameRequired": "Medicine name is required.",
+    "medicationTypeRequired": "Medicine type is required.",
+    "dosageRequired": "Dosage is required.",
+    "medicationTimeRequired": "Medication time is required.",
+    "parentSignatureRequired": "Parent signature is required.",
+    "consentRequired": "Consent is required.",
+    "chooseChildBeforeUpload": "Choose a child before uploading a photo.",
+    "uploadFailed": "Upload failed.",
+    "uploadFailedForFile": "Upload failed for {{file}}."
+  },
+  "toast": {
+    "requestSent": "Medication request sent.",
+    "photoUploaded": "Medication photo uploaded.",
+    "requestCancelled": "Medication request cancelled.",
+    "reportSaved": "Medication report saved."
+  },
+  "detail": {
+    "notFound": "Medication request not found.",
+    "cancelRequest": "Cancel request",
+    "reportTitle": "Medication report",
+    "child": "Child",
+    "class": "Class",
+    "parent": "Parent",
+    "symptoms": "Symptoms",
+    "medicineType": "Medicine type",
+    "dosage": "Dosage",
+    "countFrequency": "Count/frequency",
+    "storage": "Storage",
+    "instructions": "Instructions",
+    "specialNote": "Special note",
+    "signature": "Signature",
+    "submitted": "Submitted",
+    "noClass": "No class",
+    "administeredTime": "Administered time",
+    "administeredDose": "Administered dose",
+    "skippedReason": "Skipped reason",
+    "staffNote": "Staff note",
+    "saveReport": "Save report",
+    "noReportYet": "The center has not completed this medication report yet.",
+    "staff": "Staff",
+    "administeredAt": "Administered at",
+    "dose": "Dose"
+  }
+}

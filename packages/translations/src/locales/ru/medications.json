@@ -1,0 +1,96 @@
+{
+  "title": "Лекарства",
+  "parentDescription": "Отправляйте инструкции по лекарствам и смотрите отчеты персонала.",
+  "staffDescription": "Проверяйте запросы родителей и заполняйте отчеты о выдаче лекарств.",
+  "newRequest": "Новый запрос",
+  "back": "Назад к лекарствам",
+  "loading": "Загрузка...",
+  "noCenter": "Ваш аккаунт пока не привязан к центру.",
+  "filters": {
+    "all": "Все статусы"
+  },
+  "status": {
+    "pending": "Ожидает",
+    "administered": "Выдано",
+    "skipped": "Пропущено",
+    "cancelled": "Отменено"
+  },
+  "labels": {
+    "symptoms": "Симптомы"
+  },
+  "empty": {
+    "parentTitle": "Запросов на лекарства нет",
+    "parentBody": "Запросы на лекарства за сегодня появятся здесь.",
+    "staffTitle": "Запросов на лекарства нет",
+    "staffBody": "Запросы от родителей появятся здесь."
+  },
+  "composer": {
+    "newTitle": "Новый запрос на лекарства",
+    "description": "Отправьте подробные инструкции по лекарству и согласие в ваш центр.",
+    "child": "Ребенок",
+    "chooseChild": "Выберите ребенка",
+    "date": "Дата",
+    "symptoms": "Симптомы",
+    "medicineName": "Название лекарства",
+    "medicationType": "Тип лекарства",
+    "dosage": "Дозировка",
+    "medicationTime": "Время выдачи",
+    "countFrequency": "Количество/частота",
+    "storageMethod": "Способ хранения",
+    "instructions": "Инструкции",
+    "specialNote": "Особая заметка",
+    "medicationPhoto": "Фото лекарства",
+    "choosePhoto": "Выберите одно фото лекарства",
+    "photoUploaded": "Одно фото загружено.",
+    "photoCaption": "Подпись к фото",
+    "parentSignature": "Подпись родителя",
+    "consent": "Я подтверждаю, что эти инструкции по лекарству верны, и разрешаю центру выдавать это лекарство по запросу.",
+    "saveRequest": "Отправить запрос"
+  },
+  "validation": {
+    "childRequired": "Выберите ребенка.",
+    "symptomsRequired": "Симптомы обязательны.",
+    "medicineNameRequired": "Название лекарства обязательно.",
+    "medicationTypeRequired": "Тип лекарства обязателен.",
+    "dosageRequired": "Дозировка обязательна.",
+    "medicationTimeRequired": "Время выдачи обязательно.",
+    "parentSignatureRequired": "Подпись родителя обязательна.",
+    "consentRequired": "Согласие обязательно.",
+    "chooseChildBeforeUpload": "Выберите ребенка перед загрузкой фото.",
+    "uploadFailed": "Не удалось загрузить файл.",
+    "uploadFailedForFile": "Не удалось загрузить {{file}}."
+  },
+  "toast": {
+    "requestSent": "Запрос на лекарства отправлен.",
+    "photoUploaded": "Фото лекарства загружено.",
+    "requestCancelled": "Запрос на лекарства отменен.",
+    "reportSaved": "Отчет о лекарствах сохранен."
+  },
+  "detail": {
+    "notFound": "Запрос на лекарства не найден.",
+    "cancelRequest": "Отменить запрос",
+    "reportTitle": "Отчет о лекарствах",
+    "child": "Ребенок",
+    "class": "Группа",
+    "parent": "Родитель",
+    "symptoms": "Симптомы",
+    "medicineType": "Тип лекарства",
+    "dosage": "Дозировка",
+    "countFrequency": "Количество/частота",
+    "storage": "Хранение",
+    "instructions": "Инструкции",
+    "specialNote": "Особая заметка",
+    "signature": "Подпись",
+    "submitted": "Отправлено",
+    "noClass": "Без группы",
+    "administeredTime": "Время выдачи",
+    "administeredDose": "Выданная дозировка",
+    "skippedReason": "Причина пропуска",
+    "staffNote": "Заметка сотрудника",
+    "saveReport": "Сохранить отчет",
+    "noReportYet": "Центр еще не завершил этот отчет о лекарствах.",
+    "staff": "Сотрудник",
+    "administeredAt": "Выдано в",
+    "dose": "Доза"
+  }
+}

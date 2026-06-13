@@ -5,17 +5,17 @@ import { Camera, Pill } from "lucide-react";
 import type { MedicationRequestSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  formatDate,
-  medicationStatusLabel,
-} from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDate } from "@/lib/format";
 import { SignedMedicationImage } from "./signed-medication-image";
+import { medicationStatusLabelKey } from "./medication-labels";
 
 export function MedicationCard({
   request,
 }: {
   request: MedicationRequestSummary;
 }) {
+  const { t } = useLayoutTranslation("medications");
   return (
     <Link href={`/dashboard/medications/${request.id}`} className="block">
       <Card className="overflow-hidden transition hover:border-primary/40 hover:shadow-pop">
@@ -33,7 +33,7 @@ export function MedicationCard({
         )}
         <CardContent className="grid gap-3 p-4">
           <div className="flex flex-wrap gap-2">
-            <Badge>{medicationStatusLabel(request.status)}</Badge>
+            <Badge>{t(medicationStatusLabelKey(request.status))}</Badge>
             <Badge variant="outline">
               {formatDate(request.requestedForDate)}
             </Badge>
@@ -48,7 +48,7 @@ export function MedicationCard({
             </p>
           </div>
           <p className="line-clamp-2 text-xs text-muted-foreground">
-            Symptoms: {request.symptoms}
+            {t("labels.symptoms")}: {request.symptoms}
           </p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{request.child.className ?? request.centerName}</span>

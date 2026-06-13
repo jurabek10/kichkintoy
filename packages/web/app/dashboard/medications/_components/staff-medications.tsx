@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import {
   Select,
   SelectContent,
@@ -19,10 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
-import { medicationStatusLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { MedicationCard } from "./medication-card";
+import { medicationStatusLabelKey } from "./medication-labels";
 import type { MedicationStatus } from "@kichkintoy/shared";
 
 const statusOptions: MedicationStatus[] = [
@@ -33,6 +34,7 @@ const statusOptions: MedicationStatus[] = [
 ];
 
 export function StaffMedications({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("medications");
   const [date, setDate] = useState(todayIso());
   const [status, setStatus] = useState("pending");
   const input = {
@@ -53,9 +55,7 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -65,10 +65,8 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Medication</CardTitle>
-            <CardDescription>
-              Review parent requests and complete administration reports.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -81,10 +79,10 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="all">{t("filters.all")}</SelectItem>
                 {statusOptions.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {medicationStatusLabel(item)}
+                    {t(medicationStatusLabelKey(item))}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -100,13 +98,15 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : requests.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Pill className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No medication requests</p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Requests from parents will appear here.
+            {t("empty.staffBody")}
           </p>
         </Card>
       ) : (

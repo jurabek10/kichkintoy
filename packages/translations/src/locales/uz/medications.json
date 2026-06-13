@@ -1,0 +1,96 @@
+{
+  "title": "Dori-darmon",
+  "parentDescription": "Dori ko'rsatmalarini yuboring va xodimlar hisobotlarini ko'ring.",
+  "staffDescription": "Ota-ona so'rovlarini ko'rib chiqing va dori berish hisobotini to'ldiring.",
+  "newRequest": "Yangi so'rov",
+  "back": "Dori-darmonga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "filters": {
+    "all": "Barcha holatlar"
+  },
+  "status": {
+    "pending": "Kutilmoqda",
+    "administered": "Berildi",
+    "skipped": "O'tkazildi",
+    "cancelled": "Bekor qilingan"
+  },
+  "labels": {
+    "symptoms": "Belgilar"
+  },
+  "empty": {
+    "parentTitle": "Dori so'rovlari yo'q",
+    "parentBody": "Bugungi dori so'rovlari shu yerda ko'rinadi.",
+    "staffTitle": "Dori so'rovlari yo'q",
+    "staffBody": "Ota-onalar so'rovlari shu yerda ko'rinadi."
+  },
+  "composer": {
+    "newTitle": "Yangi dori so'rovi",
+    "description": "Dori bo'yicha batafsil ko'rsatmalar va rozilikni markazingizga yuboring.",
+    "child": "Bola",
+    "chooseChild": "Bolani tanlang",
+    "date": "Sana",
+    "symptoms": "Belgilar",
+    "medicineName": "Dori nomi",
+    "medicationType": "Dori turi",
+    "dosage": "Doza",
+    "medicationTime": "Berish vaqti",
+    "countFrequency": "Soni/chastotasi",
+    "storageMethod": "Saqlash usuli",
+    "instructions": "Ko'rsatmalar",
+    "specialNote": "Maxsus eslatma",
+    "medicationPhoto": "Dori rasmi",
+    "choosePhoto": "Bitta dori suratini tanlang",
+    "photoUploaded": "Bitta surat yuklandi.",
+    "photoCaption": "Rasm sarlavhasi",
+    "parentSignature": "Ota-ona imzosi",
+    "consent": "Men ushbu dori ko'rsatmalari to'g'ri ekanini tasdiqlayman va markazga ushbu dorini berishga ruxsat beraman.",
+    "saveRequest": "So'rov yuborish"
+  },
+  "validation": {
+    "childRequired": "Bolani tanlang.",
+    "symptomsRequired": "Belgilar majburiy.",
+    "medicineNameRequired": "Dori nomi majburiy.",
+    "medicationTypeRequired": "Dori turi majburiy.",
+    "dosageRequired": "Doza majburiy.",
+    "medicationTimeRequired": "Berish vaqti majburiy.",
+    "parentSignatureRequired": "Ota-ona imzosi majburiy.",
+    "consentRequired": "Rozilik majburiy.",
+    "chooseChildBeforeUpload": "Rasm yuklashdan oldin bolani tanlang.",
+    "uploadFailed": "Yuklash amalga oshmadi.",
+    "uploadFailedForFile": "{{file}} fayli yuklanmadi."
+  },
+  "toast": {
+    "requestSent": "Dori so'rovi yuborildi.",
+    "photoUploaded": "Dori rasmi yuklandi.",
+    "requestCancelled": "Dori so'rovi bekor qilindi.",
+    "reportSaved": "Dori hisoboti saqlandi."
+  },
+  "detail": {
+    "notFound": "Dori so'rovi topilmadi.",
+    "cancelRequest": "So'rovni bekor qilish",
+    "reportTitle": "Dori hisoboti",
+    "child": "Bola",
+    "class": "Sinf",
+    "parent": "Ota-ona",
+    "symptoms": "Belgilar",
+    "medicineType": "Dori turi",
+    "dosage": "Doza",
+    "countFrequency": "Soni/chastotasi",
+    "storage": "Saqlash",
+    "instructions": "Ko'rsatmalar",
+    "specialNote": "Maxsus eslatma",
+    "signature": "Imzo",
+    "submitted": "Yuborilgan",
+    "noClass": "Sinf yo'q",
+    "administeredTime": "Berilgan vaqt",
+    "administeredDose": "Berilgan doza",
+    "skippedReason": "O'tkazib yuborish sababi",
+    "staffNote": "Xodim eslatmasi",
+    "saveReport": "Hisobotni saqlash",
+    "noReportYet": "Markaz hali bu dori hisobotini yakunlamadi.",
+    "staff": "Xodim",
+    "administeredAt": "Berilgan vaqti",
+    "dose": "Doza"
+  }
+}
