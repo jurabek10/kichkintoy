@@ -1,0 +1,25 @@
+{
+  "title": "Teachers",
+  "description": "Your approved teachers, their classes, and who can approve join requests.",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "canApprove": "Can approve requests",
+  "toggleAria": "Toggle approval permission for {{name}}",
+  "errors": {
+    "updateFailed": "Could not update.",
+    "loadFailed": "Could not load teachers."
+  },
+  "empty": {
+    "title": "No teachers yet",
+    "body": "Invite teachers or approve their join requests to see them here.",
+    "noClasses": "No classes assigned"
+  },
+  "assignmentRole": {
+    "teacher": "Teacher",
+    "assistantTeacher": "Assistant teacher"
+  },
+  "toast": {
+    "canApprove": "{{name}} can now approve requests.",
+    "cannotApprove": "{{name}} can no longer approve requests."
+  }
+}

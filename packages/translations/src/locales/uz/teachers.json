@@ -1,0 +1,25 @@
+{
+  "title": "O'qituvchilar",
+  "description": "Tasdiqlangan o'qituvchilaringiz, ularning sinflari va qo'shilish so'rovlarini kim tasdiqlashi mumkinligi.",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "canApprove": "So'rovlarni tasdiqlay oladi",
+  "toggleAria": "{{name}} uchun tasdiqlash ruxsatini o'zgartirish",
+  "errors": {
+    "updateFailed": "Yangilab bo'lmadi.",
+    "loadFailed": "O'qituvchilar yuklanmadi."
+  },
+  "empty": {
+    "title": "Hali o'qituvchilar yo'q",
+    "body": "Ularni ko'rish uchun o'qituvchilarni taklif qiling yoki qo'shilish so'rovlarini tasdiqlang.",
+    "noClasses": "Sinf biriktirilmagan"
+  },
+  "assignmentRole": {
+    "teacher": "O'qituvchi",
+    "assistantTeacher": "Yordamchi o'qituvchi"
+  },
+  "toast": {
+    "canApprove": "{{name}} endi so'rovlarni tasdiqlay oladi.",
+    "cannotApprove": "{{name}} endi so'rovlarni tasdiqlay olmaydi."
+  }
+}

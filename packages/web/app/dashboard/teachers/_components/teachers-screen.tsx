@@ -16,10 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { assignmentRoleLabel } from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
+import { assignmentRoleLabelKey } from "./teacher-labels";
 
 export function TeachersScreen({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("teachers");
   const queryClient = useQueryClient();
   const [mutationError, setMutationError] = useState<string | null>(null);
 
@@ -31,13 +33,18 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
     error: loadError,
   } = useQuery({
     queryKey: teachersKey,
-    queryFn: () =>
-      orpc.director.teachers({ centerId: centerId! }),
+    queryFn: () => orpc.director.teachers({ centerId: centerId! }),
     enabled: !!centerId,
   });
 
   const toggleMutation = useMutation({
-    mutationFn: ({ teacher, next }: { teacher: CenterTeacher; next: boolean }) =>
+    mutationFn: ({
+      teacher,
+      next,
+    }: {
+      teacher: CenterTeacher;
+      next: boolean;
+    }) =>
       orpc.director.updateTeacher({
         centerId: centerId!,
         userId: teacher.userId,
@@ -60,14 +67,14 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
         queryClient.setQueryData(teachersKey, context.previous);
       }
       setMutationError(
-        err instanceof Error ? err.message : "Could not update.",
+        err instanceof Error ? err.message : t("errors.updateFailed"),
       );
     },
     onSuccess: (_data, { teacher, next }) => {
       toast.success(
         next
-          ? `${teacher.fullName} can now approve requests.`
-          : `${teacher.fullName} can no longer approve requests.`,
+          ? t("toast.canApprove", { name: teacher.fullName })
+          : t("toast.cannotApprove", { name: teacher.fullName }),
       );
     },
     onSettled: () => {
@@ -80,7 +87,7 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
     (loadError
       ? loadError instanceof Error
         ? loadError.message
-        : "Could not load teachers."
+        : t("errors.loadFailed")
       : null);
 
   function togglePermission(teacher: CenterTeacher, next: boolean) {
@@ -91,9 +98,7 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -102,11 +107,8 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Teachers</CardTitle>
-          <CardDescription>
-            Your approved teachers, their classes, and who can approve join
-            requests.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -119,7 +121,7 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
       {loading ? (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading…
+            {t("loading")}
           </CardContent>
         </Card>
       ) : teachers.length === 0 ? (
@@ -129,10 +131,8 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
               <GraduationCap className="h-6 w-6" />
             </span>
             <div>
-              <p className="font-bold">No teachers yet</p>
-              <p className="text-sm text-muted-foreground">
-                Invite teachers or approve their join requests to see them here.
-              </p>
+              <p className="font-bold">{t("empty.title")}</p>
+              <p className="text-sm text-muted-foreground">{t("empty.body")}</p>
             </div>
           </CardContent>
         </Card>
@@ -156,20 +156,20 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
                           <Badge key={assignment.classId} variant="info">
                             {assignment.className}
                             {assignment.assignmentRole === "assistant_teacher"
-                              ? ` · ${assignmentRoleLabel(assignment.assignmentRole)}`
+                              ? ` · ${t(assignmentRoleLabelKey(assignment.assignmentRole))}`
                               : ""}
                           </Badge>
                         ))}
                       </div>
                     ) : (
                       <p className="pt-1 text-xs text-muted-foreground">
-                        No classes assigned
+                        {t("empty.noClasses")}
                       </p>
                     )}
                   </div>
                   <label className="flex items-center gap-3 sm:justify-end">
                     <span className="text-sm font-medium text-muted-foreground">
-                      Can approve requests
+                      {t("canApprove")}
                     </span>
                     <Switch
                       checked={teacher.canApproveMembers}
@@ -181,7 +181,7 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
                         toggleMutation.variables?.teacher.userId ===
                           teacher.userId
                       }
-                      aria-label={`Toggle approval permission for ${teacher.fullName}`}
+                      aria-label={t("toggleAria", { name: teacher.fullName })}
                     />
                   </label>
                 </li>
