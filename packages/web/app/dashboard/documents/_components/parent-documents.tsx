@@ -5,11 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { FileCheck2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { submissionStatusLabel, templateTypeLabel } from "./document-utils";
+import { submissionStatusKey, templateTypeKey } from "./document-utils";
 
 export function ParentDocuments() {
+  const { t } = useLayoutTranslation("documents");
   const { data = [], isPending } = useQuery({
     queryKey: queryKeys.studentDocuments.parentRequests(),
     queryFn: () => orpc.studentDocuments.parentRequests(),
@@ -21,17 +23,19 @@ export function ParentDocuments() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <FileCheck2 className="h-5 w-5" />
-            Documents
+            {t("title")}
           </CardTitle>
         </CardHeader>
       </Card>
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : data.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <FileCheck2 className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No document requests</p>
+          <p className="font-semibold">{t("empty.parentTitle")}</p>
         </Card>
       ) : (
         <div className="grid gap-3">
@@ -43,7 +47,7 @@ export function ParentDocuments() {
                     <p className="font-semibold">{submission.requestTitle}</p>
                     <p className="text-sm text-muted-foreground">
                       {submission.childName} ·{" "}
-                      {templateTypeLabel(submission.templateType)}
+                      {t(templateTypeKey(submission.templateType))}
                     </p>
                     {submission.correctionNote ? (
                       <p className="mt-1 text-sm text-warning">
@@ -60,7 +64,7 @@ export function ParentDocuments() {
                           : "outline"
                     }
                   >
-                    {submissionStatusLabel(submission.status)}
+                    {t(submissionStatusKey(submission.status))}
                   </Badge>
                 </CardContent>
               </Card>

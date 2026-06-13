@@ -1,65 +1,64 @@
+import type { TFunction } from "i18next";
 import type {
   StudentDocumentField,
   StudentDocumentSubmissionStatus,
   StudentDocumentTemplateType,
 } from "@kichkintoy/shared";
 
-export function templateTypeLabel(type: StudentDocumentTemplateType | string) {
-  const labels: Record<string, string> = {
-    admission: "Admission form",
-    medical_allergy: "Medical / allergy",
-    emergency_contact: "Emergency contact",
-    consent: "Consent form",
-    file_upload: "File upload",
-    custom: "Custom",
-  };
-  return labels[type] ?? type;
+export function templateTypeKey(type: StudentDocumentTemplateType | string) {
+  if (type === "admission") return "templateType.admission";
+  if (type === "medical_allergy") return "templateType.medicalAllergy";
+  if (type === "emergency_contact") return "templateType.emergencyContact";
+  if (type === "consent") return "templateType.consent";
+  if (type === "file_upload") return "templateType.fileUpload";
+  return "templateType.custom";
 }
 
-export function submissionStatusLabel(
+export function submissionStatusKey(
   status: StudentDocumentSubmissionStatus | string,
 ) {
-  const labels: Record<string, string> = {
-    not_started: "Not started",
-    in_progress: "In progress",
-    submitted: "Submitted",
-    needs_correction: "Needs correction",
-    accepted: "Accepted",
-    closed: "Closed",
-  };
-  return labels[status] ?? status;
+  if (status === "not_started") return "status.notStarted";
+  if (status === "in_progress") return "status.inProgress";
+  if (status === "submitted") return "status.submitted";
+  if (status === "needs_correction") return "status.needsCorrection";
+  if (status === "accepted") return "status.accepted";
+  return "status.closed";
 }
 
-export const defaultMedicalFields: StudentDocumentField[] = [
-  {
-    key: "allergies",
-    label: "Allergies",
-    type: "long_text",
-    required: true,
-  },
-  {
-    key: "medical_notes",
-    label: "Medical notes",
-    type: "long_text",
-    required: false,
-  },
-  {
-    key: "emergency_contact",
-    label: "Emergency contact",
-    type: "short_text",
-    required: true,
-  },
-  {
-    key: "parent_signature",
-    label: "Parent signature",
-    type: "signature",
-    required: true,
-  },
-  {
-    key: "document_files",
-    label: "Supporting document",
-    type: "file",
-    required: false,
-    maxFiles: 5,
-  },
-];
+export function buildDefaultMedicalFields(
+  t: TFunction<"documents">,
+): StudentDocumentField[] {
+  return [
+    {
+      key: "allergies",
+      label: t("fields.allergies"),
+      type: "long_text",
+      required: true,
+    },
+    {
+      key: "medical_notes",
+      label: t("fields.medicalNotes"),
+      type: "long_text",
+      required: false,
+    },
+    {
+      key: "emergency_contact",
+      label: t("fields.emergencyContact"),
+      type: "short_text",
+      required: true,
+    },
+    {
+      key: "parent_signature",
+      label: t("fields.parentSignature"),
+      type: "signature",
+      required: true,
+    },
+    {
+      key: "document_files",
+      label: t("fields.supportingDocument"),
+      type: "file",
+      required: false,
+      maxFiles: 5,
+    },
+  ];
+}

@@ -1,0 +1,118 @@
+{
+  "title": "Documents",
+  "directorDescription": "Request admission, medical, and safety documents from parents.",
+  "teacherTitle": "Child safety documents",
+  "noCenter": "Your account is not linked to a center.",
+  "loading": "Loading...",
+  "back": "Back to documents",
+  "defaultTitle": "Medical and allergy information",
+  "defaultInstructions": "Please complete this form and upload any supporting document if needed.",
+  "templateDescription": "Medical, allergy, emergency contact, and document upload.",
+  "toast": {
+    "templateCreated": "Template created.",
+    "requestSent": "Document request sent.",
+    "draftSaved": "Draft saved.",
+    "submitted": "Document submitted.",
+    "reviewSaved": "Review saved.",
+    "fileUploaded": "File uploaded."
+  },
+  "table": {
+    "child": "Child",
+    "class": "Class",
+    "request": "Request",
+    "status": "Status",
+    "updated": "Updated",
+    "open": "Open",
+    "noClass": "No class"
+  },
+  "templateType": {
+    "admission": "Admission form",
+    "medicalAllergy": "Medical / allergy",
+    "emergencyContact": "Emergency contact",
+    "consent": "Consent form",
+    "fileUpload": "File upload",
+    "custom": "Custom"
+  },
+  "status": {
+    "notStarted": "Not started",
+    "inProgress": "In progress",
+    "submitted": "Submitted",
+    "needsCorrection": "Needs correction",
+    "accepted": "Accepted",
+    "closed": "Closed"
+  },
+  "filters": {
+    "childPlaceholder": "Filter children..."
+  },
+  "empty": {
+    "parentTitle": "No document requests",
+    "parentBody": "Document requests will appear here.",
+    "staffTitle": "No document requests",
+    "staffBody": "Create a request to get started."
+  },
+  "composer": {
+    "title": "Create and send",
+    "description": "Start with a medical/allergy template, then send it to families.",
+    "titleLabel": "Title",
+    "createTemplate": "Create medical template",
+    "template": "Template",
+    "chooseTemplate": "Choose template",
+    "target": "Target",
+    "class": "Class",
+    "child": "Child",
+    "chooseClass": "Choose class",
+    "chooseChild": "Choose child",
+    "dueDate": "Due date",
+    "instructions": "Instructions",
+    "sendRequest": "Send request"
+  },
+  "target": {
+    "center": "Whole center",
+    "class": "Class",
+    "child": "Child"
+  },
+  "requests": {
+    "title": "Open requests",
+    "empty": "No document requests yet.",
+    "acceptedCount": "{{accepted}}/{{total}} accepted"
+  },
+  "submissions": {
+    "title": "Submissions",
+    "description": "Review each child's document status without leaving the page.",
+    "empty": "No submissions yet.",
+    "filterChildren": "Filter children...",
+    "class": "Class",
+    "status": "Status"
+  },
+  "safety": {
+    "class": "Class",
+    "noClass": "No class",
+    "allergies": "Allergies",
+    "medicalNotes": "Medical notes",
+    "emergencyContacts": "Emergency contacts",
+    "none": "None"
+  },
+  "detail": {
+    "notFound": "Document not found.",
+    "dueDate": "Due {{date}}",
+    "uploadedFiles": "Uploaded files",
+    "file": "file",
+    "saveDraft": "Save draft",
+    "submit": "Submit",
+    "uploadedCount": "{{count}} uploaded",
+    "uploading": "Uploading"
+  },
+  "review": {
+    "title": "Director review",
+    "correctionNote": "Correction note",
+    "needsCorrection": "Needs correction",
+    "accept": "Accept"
+  },
+  "fields": {
+    "allergies": "Allergies",
+    "medicalNotes": "Medical notes",
+    "emergencyContact": "Emergency contact",
+    "parentSignature": "Parent signature",
+    "supportingDocument": "Supporting document"
+  }
+}

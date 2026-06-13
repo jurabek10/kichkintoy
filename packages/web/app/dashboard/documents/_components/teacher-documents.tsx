@@ -12,11 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 
 export function TeacherDocuments({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("documents");
   const [childId, setChildId] = useState("");
   const childrenQuery = useQuery({
     queryKey: queryKeys.attendance.children(centerId),
@@ -32,7 +34,7 @@ export function TeacherDocuments({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>Your account is not linked to a center.</AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -45,13 +47,13 @@ export function TeacherDocuments({ centerId }: { centerId: string | null }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <ShieldCheck className="h-5 w-5" />
-            Child safety documents
+            {t("teacherTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Select value={childId} onValueChange={setChildId}>
             <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder="Choose child" />
+              <SelectValue placeholder={t("chooseChild")} />
             </SelectTrigger>
             <SelectContent>
               {children.map((child) => (
@@ -78,18 +80,18 @@ export function TeacherDocuments({ centerId }: { centerId: string | null }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 text-sm">
-            <Info label="Class" value={safetyQuery.data.className ?? "No class"} />
-            <Info label="Allergies" value={safetyQuery.data.allergies ?? "None"} />
+            <Info label={t("safety.class")} value={safetyQuery.data.className ?? t("safety.noClass")} />
+            <Info label={t("safety.allergies")} value={safetyQuery.data.allergies ?? t("safety.none")} />
             <Info
-              label="Medical notes"
-              value={safetyQuery.data.medicalNotes ?? "None"}
+              label={t("safety.medicalNotes")}
+              value={safetyQuery.data.medicalNotes ?? t("safety.none")}
             />
             <Info
-              label="Emergency contacts"
+              label={t("safety.emergencyContacts")}
               value={
                 safetyQuery.data.emergencyContacts.length
                   ? safetyQuery.data.emergencyContacts.join(", ")
-                  : "None"
+                  : t("safety.none")
               }
             />
           </CardContent>

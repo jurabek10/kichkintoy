@@ -1,0 +1,118 @@
+{
+  "title": "Hujjatlar",
+  "directorDescription": "Ota-onalardan qabul, tibbiy va xavfsizlik hujjatlarini so'rang.",
+  "teacherTitle": "Bola xavfsizlik hujjatlari",
+  "noCenter": "Hisobingiz markazga bog'lanmagan.",
+  "loading": "Yuklanmoqda...",
+  "back": "Hujjatlarga qaytish",
+  "defaultTitle": "Tibbiy va allergiya ma'lumotlari",
+  "defaultInstructions": "Iltimos, ushbu shaklni to'ldiring va kerak bo'lsa, qo'shimcha hujjat yuklang.",
+  "templateDescription": "Tibbiy, allergiya, favqulodda aloqa va hujjat yuklash.",
+  "toast": {
+    "templateCreated": "Shablon yaratildi.",
+    "requestSent": "Hujjat so'rovi yuborildi.",
+    "draftSaved": "Qoralama saqlandi.",
+    "submitted": "Hujjat yuborildi.",
+    "reviewSaved": "Ko'rib chiqish saqlandi.",
+    "fileUploaded": "Fayl yuklandi."
+  },
+  "table": {
+    "child": "Bola",
+    "class": "Sinf",
+    "request": "So'rov",
+    "status": "Holat",
+    "updated": "Yangilangan",
+    "open": "Ochish",
+    "noClass": "Sinf yo'q"
+  },
+  "templateType": {
+    "admission": "Qabul shakli",
+    "medicalAllergy": "Tibbiy / allergiya",
+    "emergencyContact": "Favqulodda aloqa",
+    "consent": "Rozilik shakli",
+    "fileUpload": "Fayl yuklash",
+    "custom": "Moslashtirilgan"
+  },
+  "status": {
+    "notStarted": "Boshlanmagan",
+    "inProgress": "Jarayonda",
+    "submitted": "Yuborilgan",
+    "needsCorrection": "Tuzatish kerak",
+    "accepted": "Qabul qilingan",
+    "closed": "Yopilgan"
+  },
+  "filters": {
+    "childPlaceholder": "Bolalarni filtrlash..."
+  },
+  "empty": {
+    "parentTitle": "Hujjat so'rovlari yo'q",
+    "parentBody": "Hujjat so'rovlari shu yerda ko'rinadi.",
+    "staffTitle": "Hujjat so'rovlari yo'q",
+    "staffBody": "Boshlash uchun so'rov yarating."
+  },
+  "composer": {
+    "title": "Yaratish va yuborish",
+    "description": "Tibbiy/allergiya shablonidan boshlang, so'ng uni oilalarga yuboring.",
+    "titleLabel": "Sarlavha",
+    "createTemplate": "Tibbiy shablon yaratish",
+    "template": "Shablon",
+    "chooseTemplate": "Shablonni tanlang",
+    "target": "Maqsad",
+    "class": "Sinf",
+    "child": "Bola",
+    "chooseClass": "Sinfni tanlang",
+    "chooseChild": "Bolani tanlang",
+    "dueDate": "Topshirish muddati",
+    "instructions": "Ko'rsatmalar",
+    "sendRequest": "So'rov yuborish"
+  },
+  "target": {
+    "center": "Butun markaz",
+    "class": "Sinf",
+    "child": "Bola"
+  },
+  "requests": {
+    "title": "Ochiq so'rovlar",
+    "empty": "Hozircha hujjat so'rovlari yo'q.",
+    "acceptedCount": "{{accepted}}/{{total}} qabul qilingan"
+  },
+  "submissions": {
+    "title": "Topshiriqlar",
+    "description": "Sahifani tark etmasdan har bir bolaning hujjat holatini ko'rib chiqing.",
+    "empty": "Hozircha topshiriqlar yo'q.",
+    "filterChildren": "Bolalarni filtrlash...",
+    "class": "Sinf",
+    "status": "Holat"
+  },
+  "safety": {
+    "class": "Sinf",
+    "noClass": "Sinf yo'q",
+    "allergies": "Allergiyalar",
+    "medicalNotes": "Tibbiy izohlar",
+    "emergencyContacts": "Favqulodda aloqalar",
+    "none": "Yo'q"
+  },
+  "detail": {
+    "notFound": "Hujjat topilmadi.",
+    "dueDate": "Muddat: {{date}}",
+    "uploadedFiles": "Yuklangan fayllar",
+    "file": "fayl",
+    "saveDraft": "Qoralamani saqlash",
+    "submit": "Yuborish",
+    "uploadedCount": "{{count}} ta yuklangan",
+    "uploading": "Yuklanmoqda"
+  },
+  "review": {
+    "title": "Direktor ko'rib chiqishi",
+    "correctionNote": "Tuzatish izohi",
+    "needsCorrection": "Tuzatish kerak",
+    "accept": "Qabul qilish"
+  },
+  "fields": {
+    "allergies": "Allergiyalar",
+    "medicalNotes": "Tibbiy izohlar",
+    "emergencyContact": "Favqulodda aloqa",
+    "parentSignature": "Ota-ona imzosi",
+    "supportingDocument": "Qo'shimcha hujjat"
+  }
+}

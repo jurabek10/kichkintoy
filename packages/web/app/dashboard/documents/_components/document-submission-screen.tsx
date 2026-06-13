@@ -18,17 +18,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
-import { submissionStatusLabel } from "./document-utils";
+import { submissionStatusKey } from "./document-utils";
 
 export function DocumentSubmissionScreen({
   submissionId,
 }: {
   submissionId: string;
 }) {
+  const { t } = useLayoutTranslation("documents");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const isParent = session?.user.role === "parent";
@@ -56,7 +58,7 @@ export function DocumentSubmissionScreen({
         answers: effectiveAnswers,
       }),
     onSuccess: async () => {
-      toast.success("Draft saved.");
+      toast.success(t("toast.draftSaved"));
       setAnswers({});
       await invalidate();
     },
@@ -70,7 +72,7 @@ export function DocumentSubmissionScreen({
         answers: effectiveAnswers,
       }),
     onSuccess: async () => {
-      toast.success("Document submitted.");
+      toast.success(t("toast.submitted"));
       setAnswers({});
       await invalidate();
     },
@@ -85,7 +87,7 @@ export function DocumentSubmissionScreen({
         correctionNote: decision === "needs_correction" ? correctionNote : undefined,
       }),
     onSuccess: async () => {
-      toast.success("Review saved.");
+      toast.success(t("toast.reviewSaved"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -133,7 +135,7 @@ export function DocumentSubmissionScreen({
           ...uploaded,
         ],
       }));
-      toast.success("File uploaded.");
+      toast.success(t("toast.fileUploaded"));
     } catch (err) {
       toast.error(toApiError(err).message);
     } finally {
@@ -143,14 +145,16 @@ export function DocumentSubmissionScreen({
   }
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !data) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Document not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -165,15 +169,19 @@ export function DocumentSubmissionScreen({
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/documents">
           <ArrowLeft className="h-4 w-4" />
-          Back to documents
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader className="grid gap-2">
           <div className="flex flex-wrap gap-2">
-            <Badge>{submissionStatusLabel(data.status)}</Badge>
-            {data.dueDate ? <Badge variant="outline">Due {data.dueDate}</Badge> : null}
+            <Badge>{t(submissionStatusKey(data.status))}</Badge>
+            {data.dueDate ? (
+              <Badge variant="outline">
+                {t("detail.dueDate", { date: data.dueDate })}
+              </Badge>
+            ) : null}
           </div>
           <CardTitle className="text-xl">{data.requestTitle}</CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -206,7 +214,7 @@ export function DocumentSubmissionScreen({
 
           {data.attachments.length > 0 ? (
             <div className="grid gap-2">
-              <Label>Uploaded files</Label>
+              <Label>{t("detail.uploadedFiles")}</Label>
               <div className="grid gap-2">
                 {data.attachments.map((attachment) => (
                   <Button
@@ -221,7 +229,7 @@ export function DocumentSubmissionScreen({
                       window.open(signed.downloadUrl, "_blank", "noopener,noreferrer");
                     }}
                   >
-                    {attachment.fieldKey} · {attachment.mimeType ?? "file"}
+                    {attachment.fieldKey} · {attachment.mimeType ?? t("detail.file")}
                   </Button>
                 ))}
               </div>
@@ -236,7 +244,7 @@ export function DocumentSubmissionScreen({
                 disabled={saveDraft.isPending}
                 onClick={() => saveDraft.mutate()}
               >
-                Save draft
+                {t("detail.saveDraft")}
               </Button>
               <Button
                 type="button"
@@ -244,7 +252,7 @@ export function DocumentSubmissionScreen({
                 onClick={() => submit.mutate()}
               >
                 <CheckCircle2 className="h-4 w-4" />
-                Submit
+                {t("detail.submit")}
               </Button>
             </div>
           ) : null}
@@ -254,13 +262,13 @@ export function DocumentSubmissionScreen({
       {!isParent ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Director review</CardTitle>
+            <CardTitle className="text-base">{t("review.title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Textarea
               value={correctionNote}
               onChange={(event) => setCorrectionNote(event.target.value)}
-              placeholder="Correction note"
+              placeholder={t("review.correctionNote")}
               rows={3}
             />
             <div className="flex flex-wrap justify-end gap-2">
@@ -269,13 +277,13 @@ export function DocumentSubmissionScreen({
                 disabled={review.isPending}
                 onClick={() => review.mutate("needs_correction")}
               >
-                Needs correction
+                {t("review.needsCorrection")}
               </Button>
               <Button
                 disabled={review.isPending}
                 onClick={() => review.mutate("accepted")}
               >
-                Accept
+                {t("review.accept")}
               </Button>
             </div>
           </CardContent>
@@ -300,6 +308,7 @@ function FieldEditor({
   onChange: (value: StudentDocumentAnswerValue) => void;
   onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const { t } = useLayoutTranslation("documents");
   const stringValue = typeof value === "string" ? value : "";
   return (
     <div className="grid gap-2">
@@ -335,12 +344,14 @@ function FieldEditor({
             onChange={onUpload}
           />
           <Badge variant="outline">
-            {Array.isArray(value) ? value.length : 0} uploaded
+            {t("detail.uploadedCount", {
+              count: Array.isArray(value) ? value.length : 0,
+            })}
           </Badge>
           {uploading ? (
             <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <Upload className="h-4 w-4" />
-              Uploading
+              {t("detail.uploading")}
             </span>
           ) : null}
         </div>

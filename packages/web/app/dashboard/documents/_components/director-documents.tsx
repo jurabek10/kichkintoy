@@ -32,18 +32,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import {
-  defaultMedicalFields,
-  submissionStatusLabel,
-  templateTypeLabel,
+  buildDefaultMedicalFields,
+  submissionStatusKey,
+  templateTypeKey,
 } from "./document-utils";
 
 export function DirectorDocuments({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("documents");
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState("Medical and allergy information");
+  const [title, setTitle] = useState(t("defaultTitle"));
   const [targetType, setTargetType] = useState<"center" | "class" | "child">(
     "class",
   );
@@ -52,7 +54,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
   const [childId, setChildId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [instructions, setInstructions] = useState(
-    "Please complete this form and upload any supporting document if needed.",
+    t("defaultInstructions"),
   );
 
   const templatesInput = { centerId: centerId ?? "", status: "active" as const };
@@ -90,13 +92,13 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
       orpc.studentDocuments.createTemplate({
         centerId: centerId!,
         title,
-        description: "Medical, allergy, emergency contact, and document upload.",
+        description: t("templateDescription"),
         templateType: "medical_allergy",
         status: "active",
-        fields: defaultMedicalFields,
+        fields: buildDefaultMedicalFields(t),
       }),
     onSuccess: async (template) => {
-      toast.success("Template created.");
+      toast.success(t("toast.templateCreated"));
       setTemplateId(template.id);
       await queryClient.invalidateQueries({
         queryKey: queryKeys.studentDocuments.all(),
@@ -118,7 +120,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
         childIds: targetType === "child" && childId ? [childId] : undefined,
       }),
     onSuccess: async () => {
-      toast.success("Document request sent.");
+      toast.success(t("toast.requestSent"));
       await queryClient.invalidateQueries({
         queryKey: queryKeys.studentDocuments.all(),
       });
@@ -133,35 +135,35 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
     () => [
       {
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Child" />
+          <DataTableColumnHeader column={column} title={t("table.child")} />
         ),
         accessorKey: "childName",
       },
       {
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Class" />
+          <DataTableColumnHeader column={column} title={t("table.class")} />
         ),
         accessorKey: "className",
         filterFn: (row, id, value) =>
-          (value as string[]).includes(row.getValue(id) ?? "No class"),
+          (value as string[]).includes(row.getValue(id) ?? t("table.noClass")),
       },
       {
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Request" />
+          <DataTableColumnHeader column={column} title={t("table.request")} />
         ),
         accessorKey: "requestTitle",
       },
       {
         accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Status" />
+          <DataTableColumnHeader column={column} title={t("table.status")} />
         ),
         cell: ({ row }) => (
           <Badge
             className="whitespace-normal text-center leading-tight"
             variant={row.original.status === "accepted" ? "success" : "outline"}
           >
-            {submissionStatusLabel(row.original.status)}
+            {t(submissionStatusKey(row.original.status))}
           </Badge>
         ),
         filterFn: (row, id, value) =>
@@ -170,7 +172,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
       {
         accessorKey: "updatedAt",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Updated" />
+          <DataTableColumnHeader column={column} title={t("table.updated")} />
         ),
         cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
       },
@@ -181,18 +183,20 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
         enableHiding: false,
         cell: ({ row }) => (
           <Button asChild size="sm" variant="outline" className="w-full px-2">
-            <Link href={`/dashboard/documents/${row.original.id}`}>Open</Link>
+            <Link href={`/dashboard/documents/${row.original.id}`}>
+              {t("table.open")}
+            </Link>
           </Button>
         ),
       },
     ],
-    [],
+    [t],
   );
 
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>Your account is not linked to a center.</AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -203,14 +207,16 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
   const children = childrenQuery.data?.children ?? [];
   const submissions = submissionsQuery.data ?? [];
   const submissionClassOptions = Array.from(
-    new Set(submissions.map((submission) => submission.className ?? "No class")),
+    new Set(
+      submissions.map((submission) => submission.className ?? t("table.noClass")),
+    ),
   )
     .sort()
     .map((value) => ({ label: value, value }));
   const submissionStatusOptions = Array.from(
     new Set(submissions.map((submission) => submission.status)),
   ).map((status) => ({
-    label: submissionStatusLabel(status),
+    label: t(submissionStatusKey(status)),
     value: status,
   }));
 
@@ -220,25 +226,21 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <FileCheck2 className="h-5 w-5" />
-            Documents
+            {t("title")}
           </CardTitle>
-          <CardDescription>
-            Request admission, medical, and safety documents from parents.
-          </CardDescription>
+          <CardDescription>{t("directorDescription")}</CardDescription>
         </CardHeader>
       </Card>
 
       <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <Card className="min-w-0">
-          <CardHeader>
-            <CardTitle className="text-base">Create and send</CardTitle>
-            <CardDescription>
-              Start with a medical/allergy template, then send it to families.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="doc-title">Title</Label>
+        <CardHeader>
+          <CardTitle className="text-base">{t("composer.title")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+              <Label htmlFor="doc-title">{t("composer.titleLabel")}</Label>
               <Input
                 id="doc-title"
                 value={title}
@@ -252,25 +254,25 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
               onClick={() => createTemplate.mutate()}
             >
               <ShieldCheck className="h-4 w-4" />
-              Create medical template
+              {t("composer.createTemplate")}
             </Button>
             <div className="grid gap-2">
-              <Label>Template</Label>
+              <Label>{t("composer.template")}</Label>
               <Select value={templateId} onValueChange={setTemplateId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose template" />
+                  <SelectValue placeholder={t("composer.chooseTemplate")} />
                 </SelectTrigger>
                 <SelectContent>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
-                      {template.title} · {templateTypeLabel(template.templateType)}
+                      {template.title} · {t(templateTypeKey(template.templateType))}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label>Target</Label>
+              <Label>{t("composer.target")}</Label>
               <Select
                 value={targetType}
                 onValueChange={(value) =>
@@ -281,18 +283,18 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="center">Whole center</SelectItem>
-                  <SelectItem value="class">Class</SelectItem>
-                  <SelectItem value="child">Child</SelectItem>
+                  <SelectItem value="center">{t("target.center")}</SelectItem>
+                  <SelectItem value="class">{t("target.class")}</SelectItem>
+                  <SelectItem value="child">{t("target.child")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {targetType === "class" ? (
               <div className="grid gap-2">
-                <Label>Class</Label>
+                <Label>{t("composer.class")}</Label>
                 <Select value={classId} onValueChange={setClassId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose class" />
+                    <SelectValue placeholder={t("composer.chooseClass")} />
                   </SelectTrigger>
                   <SelectContent>
                     {classes.map((item) => (
@@ -306,10 +308,10 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
             ) : null}
             {targetType === "child" ? (
               <div className="grid gap-2">
-                <Label>Child</Label>
+                <Label>{t("composer.child")}</Label>
                 <Select value={childId} onValueChange={setChildId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose child" />
+                    <SelectValue placeholder={t("composer.chooseChild")} />
                   </SelectTrigger>
                   <SelectContent>
                     {children.map((item) => (
@@ -322,7 +324,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
               </div>
             ) : null}
             <div className="grid gap-2">
-              <Label htmlFor="due-date">Due date</Label>
+              <Label htmlFor="due-date">{t("composer.dueDate")}</Label>
               <DatePicker
                 id="due-date"
                 value={dueDate}
@@ -330,7 +332,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="instructions">Instructions</Label>
+              <Label htmlFor="instructions">{t("composer.instructions")}</Label>
               <Textarea
                 id="instructions"
                 value={instructions}
@@ -349,18 +351,18 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
               onClick={() => sendRequest.mutate()}
             >
               <Send className="h-4 w-4" />
-              Send request
+              {t("composer.sendRequest")}
             </Button>
           </CardContent>
         </Card>
 
         <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-base">Open requests</CardTitle>
+            <CardTitle className="text-base">{t("requests.title")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
             {requests.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No document requests yet.</p>
+              <p className="text-sm text-muted-foreground">{t("requests.empty")}</p>
             ) : (
               requests.map((request) => (
                 <div
@@ -370,10 +372,13 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
                   <div className="min-w-0">
                     <p className="break-words font-semibold">{request.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      {request.acceptedCount}/{request.totalSubmissions} accepted
+                      {t("requests.acceptedCount", {
+                        accepted: request.acceptedCount,
+                        total: request.totalSubmissions,
+                      })}
                     </p>
                   </div>
-                  <Badge>{request.status}</Badge>
+                  <Badge>{t(submissionStatusKey(request.status))}</Badge>
                 </div>
               ))
             )}
@@ -383,41 +388,39 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
 
       <Card className="min-w-0">
         <CardHeader>
-          <CardTitle className="text-base">Submissions</CardTitle>
-          <CardDescription>
-            Review each child's document status without leaving the page.
-          </CardDescription>
+          <CardTitle className="text-base">{t("submissions.title")}</CardTitle>
+          <CardDescription>{t("submissions.description")}</CardDescription>
         </CardHeader>
         <CardContent className="min-w-0">
           <DataTable
             columns={columns}
             data={submissions}
-            emptyMessage="No submissions yet."
+            emptyMessage={t("submissions.empty")}
             toolbar={(table) => (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Input
                     value={
                       (table
-                        .getColumn("childName")
-                        ?.getFilterValue() as string) ?? ""
+                      .getColumn("childName")
+                      ?.getFilterValue() as string) ?? ""
                     }
                     onChange={(event) =>
                       table
                         .getColumn("childName")
                         ?.setFilterValue(event.target.value)
                     }
-                    placeholder="Filter children..."
+                    placeholder={t("submissions.filterChildren")}
                     className="h-9 sm:w-[240px]"
                   />
                   <DataTableFacetedFilter
                     column={table.getColumn("className")}
-                    title="Class"
+                    title={t("submissions.class")}
                     options={submissionClassOptions}
                   />
                   <DataTableFacetedFilter
                     column={table.getColumn("status")}
-                    title="Status"
+                    title={t("submissions.status")}
                     options={submissionStatusOptions}
                   />
                 </div>

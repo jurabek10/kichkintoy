@@ -1,0 +1,118 @@
+{
+  "title": "Документы",
+  "directorDescription": "Запрашивайте у родителей документы по приему, здоровью и безопасности.",
+  "teacherTitle": "Документы по безопасности ребенка",
+  "noCenter": "Ваш аккаунт не привязан к центру.",
+  "loading": "Загрузка...",
+  "back": "Назад к документам",
+  "defaultTitle": "Медицинская и аллергическая информация",
+  "defaultInstructions": "Пожалуйста, заполните эту форму и загрузите дополнительные документы, если нужно.",
+  "templateDescription": "Медицинские, аллергические, экстренные контакты и загрузка документов.",
+  "toast": {
+    "templateCreated": "Шаблон создан.",
+    "requestSent": "Запрос на документ отправлен.",
+    "draftSaved": "Черновик сохранен.",
+    "submitted": "Документ отправлен.",
+    "reviewSaved": "Проверка сохранена.",
+    "fileUploaded": "Файл загружен."
+  },
+  "table": {
+    "child": "Ребенок",
+    "class": "Группа",
+    "request": "Запрос",
+    "status": "Статус",
+    "updated": "Обновлено",
+    "open": "Открыть",
+    "noClass": "Нет группы"
+  },
+  "templateType": {
+    "admission": "Анкета приема",
+    "medicalAllergy": "Медицинское / аллергии",
+    "emergencyContact": "Экстренный контакт",
+    "consent": "Форма согласия",
+    "fileUpload": "Загрузка файла",
+    "custom": "Пользовательский"
+  },
+  "status": {
+    "notStarted": "Не начато",
+    "inProgress": "В процессе",
+    "submitted": "Отправлено",
+    "needsCorrection": "Нужна правка",
+    "accepted": "Принято",
+    "closed": "Закрыто"
+  },
+  "filters": {
+    "childPlaceholder": "Фильтр по детям..."
+  },
+  "empty": {
+    "parentTitle": "Запросов на документы нет",
+    "parentBody": "Здесь появятся запросы на документы.",
+    "staffTitle": "Запросов на документы нет",
+    "staffBody": "Создайте запрос, чтобы начать."
+  },
+  "composer": {
+    "title": "Создать и отправить",
+    "description": "Начните с шаблона медицинской/аллергической формы и отправьте его семьям.",
+    "titleLabel": "Заголовок",
+    "createTemplate": "Создать медицинский шаблон",
+    "template": "Шаблон",
+    "chooseTemplate": "Выберите шаблон",
+    "target": "Кому",
+    "class": "Группа",
+    "child": "Ребенок",
+    "chooseClass": "Выберите группу",
+    "chooseChild": "Выберите ребенка",
+    "dueDate": "Срок",
+    "instructions": "Инструкции",
+    "sendRequest": "Отправить запрос"
+  },
+  "target": {
+    "center": "Весь центр",
+    "class": "Группа",
+    "child": "Ребенок"
+  },
+  "requests": {
+    "title": "Открытые запросы",
+    "empty": "Запросов на документы пока нет.",
+    "acceptedCount": "Принято: {{accepted}}/{{total}}"
+  },
+  "submissions": {
+    "title": "Отправленные",
+    "description": "Проверяйте статус документов каждого ребенка, не покидая страницу.",
+    "empty": "Пока нет отправок.",
+    "filterChildren": "Фильтр по детям...",
+    "class": "Группа",
+    "status": "Статус"
+  },
+  "safety": {
+    "class": "Группа",
+    "noClass": "Нет группы",
+    "allergies": "Аллергии",
+    "medicalNotes": "Медицинские заметки",
+    "emergencyContacts": "Экстренные контакты",
+    "none": "Нет"
+  },
+  "detail": {
+    "notFound": "Документ не найден.",
+    "dueDate": "Срок: {{date}}",
+    "uploadedFiles": "Загруженные файлы",
+    "file": "файл",
+    "saveDraft": "Сохранить черновик",
+    "submit": "Отправить",
+    "uploadedCount": "Загружено: {{count}}",
+    "uploading": "Загрузка"
+  },
+  "review": {
+    "title": "Проверка директора",
+    "correctionNote": "Заметка о правке",
+    "needsCorrection": "Нужна правка",
+    "accept": "Принять"
+  },
+  "fields": {
+    "allergies": "Аллергии",
+    "medicalNotes": "Медицинские заметки",
+    "emergencyContact": "Экстренный контакт",
+    "parentSignature": "Подпись родителя",
+    "supportingDocument": "Подтверждающий документ"
+  }
+}
