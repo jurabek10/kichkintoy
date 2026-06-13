@@ -49,6 +49,8 @@ const layoutNamespaces = [
   "notices",
   "albums",
   "documents",
+  "requests",
+  "invitations",
   "meals",
   "medications",
   "pickups",

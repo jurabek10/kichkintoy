@@ -1,0 +1,58 @@
+{
+  "title": "Join requests",
+  "description": "Approve parents and teachers waiting to join.",
+  "noCenter": "Your account is not linked to a center yet.",
+  "loading": "Loading...",
+  "filters": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "kind": {
+    "parent": "Parent",
+    "teacher": "Teacher",
+    "director": "Director"
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "empty": "No {{filter}} requests right now.",
+  "table": {
+    "type": "Type",
+    "name": "Name",
+    "contact": "Child / Phone",
+    "submitted": "Submitted",
+    "actions": "Actions"
+  },
+  "actions": {
+    "review": "Review",
+    "approve": "Approve",
+    "reject": "Reject",
+    "working": "Working..."
+  },
+  "validation": {
+    "pickClass": "Pick a class for this parent before approving."
+  },
+  "toast": {
+    "approved": "Approved {{name}}.",
+    "rejected": "Rejected {{name}}."
+  },
+  "detail": {
+    "noPhone": "No phone",
+    "noUsername": "no username",
+    "childName": "Child name",
+    "dateOfBirth": "Date of birth",
+    "gender": "Gender",
+    "requestedClass": "Requested class",
+    "notPicked": "Not picked",
+    "relationship": "Relationship",
+    "assignClass": "Assign class",
+    "pickClass": "Pick a class",
+    "rejectionNote": "Rejection note (optional)",
+    "rejectionPlaceholder": "Visible to the requester after rejection."
+  }
+}

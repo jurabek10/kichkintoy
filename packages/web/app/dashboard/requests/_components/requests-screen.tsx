@@ -32,9 +32,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import { formatDate, joinKindLabel } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import {
+  joinRequestKindLabelKey,
+  joinRequestStatusLabelKey,
+} from "./request-labels";
 
 type JoinRequestRow = {
   id: string;
@@ -63,15 +68,18 @@ type JoinRequestRow = {
 
 type Filter = "pending" | "approved" | "rejected" | "cancelled";
 
-const statusVariant: Record<Filter, "default" | "success" | "destructive" | "secondary"> =
-  {
-    pending: "default",
-    approved: "success",
-    rejected: "destructive",
-    cancelled: "secondary",
-  };
+const statusVariant: Record<
+  Filter,
+  "default" | "success" | "destructive" | "secondary"
+> = {
+  pending: "default",
+  approved: "success",
+  rejected: "destructive",
+  cancelled: "secondary",
+};
 
 export function RequestsScreen({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("requests");
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<Filter>("pending");
   const [actionError, setActionError] = useState<string | null>(null);
@@ -110,7 +118,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
         classId: pickedClassId || undefined,
       }),
     onSuccess: async (_data, row) => {
-      toast.success(`Approved ${row.requester.fullName}.`);
+      toast.success(t("toast.approved", { name: row.requester.fullName }));
       setSelected(null);
       setPickedClassId("");
       await invalidateRequests();
@@ -126,7 +134,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
         reason: rejectReason.trim() || undefined,
       }),
     onSuccess: async (_data, row) => {
-      toast(`Rejected ${row.requester.fullName}.`);
+      toast(t("toast.rejected", { name: row.requester.fullName }));
       setSelected(null);
       setRejectReason("");
       await invalidateRequests();
@@ -143,7 +151,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
     const needsClass =
       row.kind === "parent" && !row.child?.requestedClass && !pickedClassId;
     if (needsClass) {
-      setActionError("Pick a class for this parent before approving.");
+      setActionError(t("validation.pickClass"));
       return;
     }
     approveMutation.mutate(row);
@@ -157,9 +165,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -169,10 +175,8 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
       <Card>
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Join requests</CardTitle>
-            <CardDescription>
-              Approve parents and teachers waiting to join.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             {(["pending", "approved", "rejected", "cancelled"] as const).map(
@@ -185,7 +189,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
                   className="capitalize"
                   onClick={() => setFilter(value)}
                 >
-                  {value}
+                  {t(`filters.${value}`)}
                 </Button>
               ),
             )}
@@ -202,21 +206,27 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-6 text-sm text-muted-foreground">Loading…</p>
+            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
           ) : requests.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
-              No {filter} requests right now.
+              {t("empty", { filter: t(`filters.${filter}`) })}
             </p>
           ) : (
             <table className="w-full table-fixed text-left text-sm">
               <thead className="bg-muted text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="w-24 px-4 py-3 font-semibold">Type</th>
-                  <th className="px-4 py-3 font-semibold">Name</th>
-                  <th className="px-4 py-3 font-semibold">Child / Phone</th>
-                  <th className="w-32 px-4 py-3 font-semibold">Submitted</th>
+                  <th className="w-24 px-4 py-3 font-semibold">
+                    {t("table.type")}
+                  </th>
+                  <th className="px-4 py-3 font-semibold">{t("table.name")}</th>
+                  <th className="px-4 py-3 font-semibold">
+                    {t("table.contact")}
+                  </th>
+                  <th className="w-32 px-4 py-3 font-semibold">
+                    {t("table.submitted")}
+                  </th>
                   <th className="w-32 px-4 py-3 text-right font-semibold">
-                    Actions
+                    {t("table.actions")}
                   </th>
                 </tr>
               </thead>
@@ -225,7 +235,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
                   <tr key={row.id} className="border-t hover:bg-muted/40">
                     <td className="px-4 py-3">
                       <Badge variant={statusVariant[row.status]}>
-                        {joinKindLabel(row.kind)}
+                        {t(joinRequestKindLabelKey(row.kind))}
                       </Badge>
                     </td>
                     <td className="truncate px-4 py-3 font-semibold">
@@ -234,7 +244,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
                     <td className="truncate px-4 py-3 text-muted-foreground">
                       {row.kind === "parent" && row.child?.name
                         ? row.child.name
-                        : row.requester.phoneNumber ?? "—"}
+                        : (row.requester.phoneNumber ?? "—")}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(row.createdAt)}
@@ -251,7 +261,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
                           setActionError(null);
                         }}
                       >
-                        Review
+                        {t("actions.review")}
                       </Button>
                     </td>
                   </tr>
@@ -273,33 +283,38 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
             <DialogHeader>
               <div>
                 <Badge variant="default" className="mb-2">
-                  {joinKindLabel(selected.kind)}
+                  {t(joinRequestKindLabelKey(selected.kind))}
                 </Badge>
                 <DialogTitle>{selected.requester.fullName}</DialogTitle>
                 <DialogDescription>
-                  {selected.requester.phoneNumber ?? "No phone"} ·{" "}
-                  {selected.requester.username ?? "no username"}
+                  {selected.requester.phoneNumber ?? t("detail.noPhone")} ·{" "}
+                  {selected.requester.username ?? t("detail.noUsername")}
                 </DialogDescription>
               </div>
             </DialogHeader>
 
             {selected.kind === "parent" && selected.child ? (
               <dl className="grid gap-3 rounded-xl border bg-muted/40 p-4 sm:grid-cols-2">
-                <Detail label="Child name" value={selected.child.name} />
                 <Detail
-                  label="Date of birth"
+                  label={t("detail.childName")}
+                  value={selected.child.name}
+                />
+                <Detail
+                  label={t("detail.dateOfBirth")}
                   value={formatDate(selected.child.dateOfBirth)}
                 />
                 <Detail
-                  label="Gender"
+                  label={t("detail.gender")}
                   value={selected.child.gender ?? "—"}
                 />
                 <Detail
-                  label="Requested class"
-                  value={selected.child.requestedClass?.name ?? "Not picked"}
+                  label={t("detail.requestedClass")}
+                  value={
+                    selected.child.requestedClass?.name ?? t("detail.notPicked")
+                  }
                 />
                 <Detail
-                  label="Relationship"
+                  label={t("detail.relationship")}
                   value={
                     selected.child.relationship ??
                     selected.child.customRelationshipLabel ??
@@ -319,10 +334,10 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
             selected.kind === "parent" &&
             !selected.child?.requestedClass ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="approve-class">Assign class</Label>
+                <Label htmlFor="approve-class">{t("detail.assignClass")}</Label>
                 <Select value={pickedClassId} onValueChange={setPickedClassId}>
                   <SelectTrigger id="approve-class">
-                    <SelectValue placeholder="Pick a class" />
+                    <SelectValue placeholder={t("detail.pickClass")} />
                   </SelectTrigger>
                   <SelectContent>
                     {classes.map((klass) => (
@@ -337,13 +352,15 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
 
             {selected.status === "pending" ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="reject-reason">Rejection note (optional)</Label>
+                <Label htmlFor="reject-reason">
+                  {t("detail.rejectionNote")}
+                </Label>
                 <Textarea
                   id="reject-reason"
                   rows={3}
                   value={rejectReason}
                   onChange={(event) => setRejectReason(event.target.value)}
-                  placeholder="Visible to the requester after rejection."
+                  placeholder={t("detail.rejectionPlaceholder")}
                 />
               </div>
             ) : null}
@@ -356,21 +373,21 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
                   onClick={() => reject(selected)}
                   disabled={acting}
                 >
-                  {acting ? "Working…" : "Reject"}
+                  {acting ? t("actions.working") : t("actions.reject")}
                 </Button>
                 <Button
                   type="button"
                   onClick={() => approve(selected)}
                   disabled={acting}
                 >
-                  {acting ? "Working…" : "Approve"}
+                  {acting ? t("actions.working") : t("actions.approve")}
                 </Button>
               </DialogFooter>
             ) : (
               <Alert>
                 <AlertDescription>
                   <span className="font-semibold capitalize">
-                    {selected.status}
+                    {t(joinRequestStatusLabelKey(selected.status))}
                   </span>
                   {selected.reviewerMessage ? (
                     <>

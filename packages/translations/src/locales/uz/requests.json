@@ -1,0 +1,58 @@
+{
+  "title": "Qo'shilish so'rovlari",
+  "description": "Qo'shilishni kutayotgan ota-onalar va o'qituvchilarni tasdiqlang.",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "loading": "Yuklanmoqda...",
+  "filters": {
+    "pending": "Kutilmoqda",
+    "approved": "Tasdiqlangan",
+    "rejected": "Rad etilgan",
+    "cancelled": "Bekor qilingan"
+  },
+  "kind": {
+    "parent": "Ota-ona",
+    "teacher": "O'qituvchi",
+    "director": "Direktor"
+  },
+  "status": {
+    "pending": "Kutilmoqda",
+    "approved": "Tasdiqlangan",
+    "rejected": "Rad etilgan",
+    "cancelled": "Bekor qilingan"
+  },
+  "empty": "Hozircha {{filter}} so'rovlar yo'q.",
+  "table": {
+    "type": "Turi",
+    "name": "Nomi",
+    "contact": "Bola / Telefon",
+    "submitted": "Yuborilgan",
+    "actions": "Amallar"
+  },
+  "actions": {
+    "review": "Ko'rib chiqish",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "working": "Ishlanmoqda..."
+  },
+  "validation": {
+    "pickClass": "Tasdiqlashdan oldin ota-ona uchun sinf tanlang."
+  },
+  "toast": {
+    "approved": "{{name}} tasdiqlandi.",
+    "rejected": "{{name}} rad etildi."
+  },
+  "detail": {
+    "noPhone": "Telefon yo'q",
+    "noUsername": "foydalanuvchi nomi yo'q",
+    "childName": "Bola ismi",
+    "dateOfBirth": "Tug'ilgan sana",
+    "gender": "Jinsi",
+    "requestedClass": "So'ralgan sinf",
+    "notPicked": "Tanlanmagan",
+    "relationship": "Aloqa",
+    "assignClass": "Sinf biriktirish",
+    "pickClass": "Sinfni tanlang",
+    "rejectionNote": "Rad etish izohi (ixtiyoriy)",
+    "rejectionPlaceholder": "Rad etilgandan keyin so'rov yuboruvchiga ko'rinadi."
+  }
+}
