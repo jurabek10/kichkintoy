@@ -5,15 +5,18 @@ import { ImageIcon, Utensils } from "lucide-react";
 import type { MealPostSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  eatingStatusLabel,
-  formatDate,
-  mealAudienceLabel,
-  mealTypeLabel,
-} from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDate } from "@/lib/format";
 import { SignedMealImage } from "./signed-meal-image";
+import {
+  eatingStatusLabelKey,
+  mealAudienceLabelKey,
+  mealStatusLabelKey,
+  mealTypeLabelKey,
+} from "./meal-labels";
 
 export function MealCard({ meal }: { meal: MealPostSummary }) {
+  const { t } = useLayoutTranslation("meals");
   return (
     <Link href={`/dashboard/meals/${meal.id}`} className="block">
       <Card className="overflow-hidden transition hover:border-primary/40 hover:shadow-pop">
@@ -31,12 +34,14 @@ export function MealCard({ meal }: { meal: MealPostSummary }) {
         )}
         <CardContent className="grid gap-3 p-4">
           <div className="flex flex-wrap gap-2">
-            <Badge>{mealTypeLabel(meal.mealType)}</Badge>
+            <Badge>{t(mealTypeLabelKey(meal.mealType))}</Badge>
             <Badge variant="outline">{formatDate(meal.mealDate)}</Badge>
             <Badge variant="outline">
-              {mealAudienceLabel(meal.audienceType)}
+              {t(mealAudienceLabelKey(meal.audienceType))}
             </Badge>
-            <Badge variant="outline">{meal.status}</Badge>
+            <Badge variant="outline">
+              {t(mealStatusLabelKey(meal.status))}
+            </Badge>
           </div>
           <div>
             <p className="line-clamp-2 text-sm font-semibold">
@@ -44,7 +49,7 @@ export function MealCard({ meal }: { meal: MealPostSummary }) {
             </p>
             {meal.allergyNote ? (
               <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
-                Allergy: {meal.allergyNote}
+                {t("labels.allergy")}: {meal.allergyNote}
               </p>
             ) : null}
           </div>
@@ -52,7 +57,7 @@ export function MealCard({ meal }: { meal: MealPostSummary }) {
             <div className="flex flex-wrap gap-2">
               {meal.myChildStatuses.map((status) => (
                 <Badge key={status.id} variant="secondary">
-                  {status.child.name}: {eatingStatusLabel(status.status)}
+                  {status.child.name}: {t(eatingStatusLabelKey(status.status))}
                 </Badge>
               ))}
             </div>

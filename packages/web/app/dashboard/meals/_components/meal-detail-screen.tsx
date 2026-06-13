@@ -17,17 +17,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import {
-  eatingStatusLabel,
-  formatDate,
-  mealAudienceLabel,
-  mealTypeLabel,
-} from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
 import { SignedMealImage } from "./signed-meal-image";
+import {
+  eatingStatusLabelKey,
+  mealAudienceLabelKey,
+  mealStatusLabelKey,
+  mealTypeLabelKey,
+} from "./meal-labels";
 
 const eatingStatuses: MealEatingStatus[] = [
   "ate_all",
@@ -37,12 +39,13 @@ const eatingStatuses: MealEatingStatus[] = [
 ];
 
 export function MealDetailScreen({ mealId }: { mealId: string }) {
+  const { t } = useLayoutTranslation("meals");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const staff = session?.user.role !== "parent";
-  const [statuses, setStatuses] = useState<Record<string, MealEatingStatus | "">>(
-    {},
-  );
+  const [statuses, setStatuses] = useState<
+    Record<string, MealEatingStatus | "">
+  >({});
 
   const {
     data: meal,
@@ -65,7 +68,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
   const publishMutation = useMutation({
     mutationFn: () => orpc.meals.publish({ mealId }),
     onSuccess: async () => {
-      toast.success("Meal published.");
+      toast.success(t("toast.published"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -74,7 +77,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
   const deleteMutation = useMutation({
     mutationFn: () => orpc.meals.delete({ mealId }),
     onSuccess: async () => {
-      toast.success("Meal deleted.");
+      toast.success(t("toast.deleted"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.meals.all() });
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -94,7 +97,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
         },
       }),
     onSuccess: async () => {
-      toast.success("Eating status saved.");
+      toast.success(t("toast.statusSaved"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -108,14 +111,16 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
   }
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !meal) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Meal not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -127,7 +132,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
         <Button asChild variant="ghost">
           <Link href="/dashboard/meals">
             <ArrowLeft className="h-4 w-4" />
-            Back to meals
+            {t("back")}
           </Link>
         </Button>
         {staff ? (
@@ -138,7 +143,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
                 disabled={publishMutation.isPending}
               >
                 <Send className="h-4 w-4" />
-                Publish
+                {t("detail.publish")}
               </Button>
             ) : null}
             <Button
@@ -147,7 +152,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
               disabled={deleteMutation.isPending}
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              {t("detail.delete")}
             </Button>
           </div>
         ) : null}
@@ -156,11 +161,13 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
       <Card>
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap gap-2">
-            <Badge>{mealTypeLabel(meal.mealType)}</Badge>
+            <Badge>{t(mealTypeLabelKey(meal.mealType))}</Badge>
             <Badge variant="outline">{formatDate(meal.mealDate)}</Badge>
-            <Badge variant="outline">{meal.status}</Badge>
             <Badge variant="outline">
-              {mealAudienceLabel(meal.audienceType)}
+              {t(mealStatusLabelKey(meal.status))}
+            </Badge>
+            <Badge variant="outline">
+              {t(mealAudienceLabelKey(meal.audienceType))}
             </Badge>
           </div>
           <CardTitle className="text-xl">{meal.menuText}</CardTitle>
@@ -205,21 +212,23 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">Eating status</CardTitle>
+          <CardTitle className="text-base">
+            {t("detail.eatingStatus")}
+          </CardTitle>
           {staff ? (
             <Button
               onClick={() => statusMutation.mutate()}
               disabled={statusMutation.isPending}
             >
               <Save className="h-4 w-4" />
-              Save status
+              {t("detail.saveStatus")}
             </Button>
           ) : null}
         </CardHeader>
         <CardContent className="grid gap-3">
           {meal.childStatuses.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No eating status recorded yet.
+              {t("detail.noEatingStatus")}
             </p>
           ) : (
             meal.childStatuses.map((status) => (
@@ -230,7 +239,7 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
                 <div>
                   <p className="text-sm font-semibold">{status.child.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {status.child.className ?? "No class"}
+                    {status.child.className ?? t("detail.noClass")}
                   </p>
                 </div>
                 {staff ? (
@@ -248,17 +257,19 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unset">Not recorded</SelectItem>
+                      <SelectItem value="unset">
+                        {t("detail.notRecorded")}
+                      </SelectItem>
                       {eatingStatuses.map((item) => (
                         <SelectItem key={item} value={item}>
-                          {eatingStatusLabel(item)}
+                          {t(eatingStatusLabelKey(item))}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
                   <Badge variant="secondary" className="w-fit">
-                    {eatingStatusLabel(status.status)}
+                    {t(eatingStatusLabelKey(status.status))}
                   </Badge>
                 )}
               </div>

@@ -13,12 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { MealCard } from "./meal-card";
 
 export function StaffMeals({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("meals");
   const [date, setDate] = useState(todayIso());
   const queryInput = { centerId: centerId ?? "", date };
   const {
@@ -34,9 +36,7 @@ export function StaffMeals({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -46,10 +46,8 @@ export function StaffMeals({ centerId }: { centerId: string | null }) {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Meals</CardTitle>
-            <CardDescription>
-              Share daily menus, food photos, and eating status with families.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -60,7 +58,7 @@ export function StaffMeals({ centerId }: { centerId: string | null }) {
             <Button asChild>
               <Link href="/dashboard/meals/new">
                 <Plus className="h-4 w-4" />
-                New meal
+                {t("newMeal")}
               </Link>
             </Button>
           </div>
@@ -74,13 +72,15 @@ export function StaffMeals({ centerId }: { centerId: string | null }) {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : meals.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Utensils className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No meals for this date</p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Publish the daily food menu when it is ready.
+            {t("empty.staffBody")}
           </p>
         </Card>
       ) : (

@@ -34,10 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import { eatingStatusLabel, mealTypeLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { eatingStatusLabelKey, mealTypeLabelKey } from "./meal-labels";
 
 const mealTypes: MealType[] = ["breakfast", "lunch", "snack", "dinner"];
 const eatingStatuses: MealEatingStatus[] = [
@@ -54,6 +55,7 @@ export function MealComposer({
   centerId: string | null;
   director: boolean;
 }) {
+  const { t } = useLayoutTranslation("meals");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [mealDate, setMealDate] = useState(todayIso());
@@ -104,7 +106,7 @@ export function MealComposer({
         publish,
       }),
     onSuccess: async (meal, publish) => {
-      toast.success(publish ? "Meal published." : "Meal saved as draft.");
+      toast.success(publish ? t("toast.published") : t("toast.savedAsDraft"));
       await queryClient.invalidateQueries({ queryKey: queryKeys.meals.all() });
       router.push(`/dashboard/meals/${meal.id}`);
     },
@@ -118,10 +120,10 @@ export function MealComposer({
 
   function save(publish: boolean) {
     setError(null);
-    if (!centerId) return setError("Your account is not linked to a center.");
-    if (!menuText.trim()) return setError("Menu text is required.");
+    if (!centerId) return setError(t("validation.centerRequired"));
+    if (!menuText.trim()) return setError(t("validation.menuRequired"));
     if (audienceType === "class" && classIds.length === 0) {
-      return setError("Choose at least one class.");
+      return setError(t("validation.chooseClass"));
     }
     createMutation.mutate(publish);
   }
@@ -131,7 +133,10 @@ export function MealComposer({
     setError(null);
     try {
       const uploaded: string[] = [];
-      for (const file of Array.from(files).slice(0, 10 - mediaAssetIds.length)) {
+      for (const file of Array.from(files).slice(
+        0,
+        10 - mediaAssetIds.length,
+      )) {
         const signed = await orpc.media.createUploadUrl({
           centerId,
           fileName: file.name,
@@ -144,16 +149,24 @@ export function MealComposer({
           headers: { "Content-Type": file.type },
           body: file,
         });
-        if (!response.ok) throw new Error(`Upload failed for ${file.name}.`);
+        if (!response.ok) {
+          throw new Error(
+            t("validation.uploadFailedForFile", { file: file.name }),
+          );
+        }
         const asset = await orpc.media.completeUpload({
           mediaAssetId: signed.mediaAssetId,
         });
         uploaded.push(asset.id);
       }
       setMediaAssetIds((current) => [...current, ...uploaded]);
-      if (uploaded.length) toast.success(`${uploaded.length} file(s) uploaded.`);
+      if (uploaded.length) {
+        toast.success(t("toast.uploaded", { count: uploaded.length }));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(
+        err instanceof Error ? err.message : t("validation.uploadFailed"),
+      );
     }
   }
 
@@ -168,16 +181,14 @@ export function MealComposer({
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/meals">
           <ArrowLeft className="h-4 w-4" />
-          Back to meals
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">New meal</CardTitle>
-          <CardDescription>
-            Publish today's menu with a food photo and optional eating status.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -188,7 +199,7 @@ export function MealComposer({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="meal-date">Date</Label>
+              <Label htmlFor="meal-date">{t("composer.date")}</Label>
               <DatePicker
                 id="meal-date"
                 value={mealDate}
@@ -196,7 +207,7 @@ export function MealComposer({
               />
             </div>
             <div className="grid gap-2">
-              <Label>Meal type</Label>
+              <Label>{t("composer.mealType")}</Label>
               <Select
                 value={mealType}
                 onValueChange={(value) => setMealType(value as MealType)}
@@ -207,7 +218,7 @@ export function MealComposer({
                 <SelectContent>
                   {mealTypes.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {mealTypeLabel(type)}
+                      {t(mealTypeLabelKey(type))}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -216,7 +227,7 @@ export function MealComposer({
           </div>
 
           <div className="grid gap-3">
-            <Label>Audience</Label>
+            <Label>{t("composer.audience")}</Label>
             <RadioGroup
               value={audienceType}
               onValueChange={(value) =>
@@ -225,15 +236,21 @@ export function MealComposer({
               className="grid gap-2 sm:grid-cols-2"
             >
               {director ? (
-                <AudienceOption value="center" label="Whole center" />
+                <AudienceOption
+                  value="center"
+                  label={t("audience.wholeCenter")}
+                />
               ) : null}
-              <AudienceOption value="class" label="Selected classes" />
+              <AudienceOption
+                value="class"
+                label={t("audience.selectedClasses")}
+              />
             </RadioGroup>
           </div>
 
           {audienceType === "class" ? (
             <div className="grid gap-2">
-              <Label>Classes</Label>
+              <Label>{t("composer.classes")}</Label>
               <div className="grid max-h-60 gap-2 overflow-auto rounded-md border p-3 sm:grid-cols-2">
                 {(audience?.classes ?? []).map((klass) => (
                   <label
@@ -254,7 +271,7 @@ export function MealComposer({
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="menu-text">Menu text</Label>
+            <Label htmlFor="menu-text">{t("composer.menuText")}</Label>
             <Textarea
               id="menu-text"
               value={menuText}
@@ -264,7 +281,7 @@ export function MealComposer({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="allergy-note">Allergy note</Label>
+            <Label htmlFor="allergy-note">{t("composer.allergyNote")}</Label>
             <Textarea
               id="allergy-note"
               value={allergyNote}
@@ -274,10 +291,10 @@ export function MealComposer({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="meal-photo">Food photos</Label>
+            <Label htmlFor="meal-photo">{t("composer.foodPhotos")}</Label>
             <label className="grid cursor-pointer place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition hover:border-primary/50">
               <Upload className="h-6 w-6" />
-              <span>Choose photos or videos</span>
+              <span>{t("composer.choosePhotos")}</span>
               <Input
                 id="meal-photo"
                 type="file"
@@ -289,17 +306,17 @@ export function MealComposer({
             </label>
             {mediaAssetIds.length ? (
               <p className="text-sm text-muted-foreground">
-                {mediaAssetIds.length} uploaded file(s) ready.
+                {t("composer.uploadedFiles", { count: mediaAssetIds.length })}
               </p>
             ) : null}
           </div>
 
           <div className="grid gap-2">
-            <Label>Eating status</Label>
+            <Label>{t("composer.eatingStatus")}</Label>
             <div className="grid max-h-80 gap-2 overflow-auto rounded-md border p-3">
               {visibleChildren.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Choose an audience to record child eating status.
+                  {t("composer.chooseAudience")}
                 </p>
               ) : (
                 visibleChildren.map((child) => (
@@ -310,7 +327,7 @@ export function MealComposer({
                     <div>
                       <p className="text-sm font-semibold">{child.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {child.className ?? "No class"}
+                        {child.className ?? t("detail.noClass")}
                       </p>
                     </div>
                     <Select
@@ -319,7 +336,9 @@ export function MealComposer({
                         setChildStatuses((current) => ({
                           ...current,
                           [child.id]:
-                            value === "unset" ? "" : (value as MealEatingStatus),
+                            value === "unset"
+                              ? ""
+                              : (value as MealEatingStatus),
                         }))
                       }
                     >
@@ -327,10 +346,12 @@ export function MealComposer({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unset">Not recorded</SelectItem>
+                        <SelectItem value="unset">
+                          {t("detail.notRecorded")}
+                        </SelectItem>
                         {eatingStatuses.map((status) => (
                           <SelectItem key={status} value={status}>
-                            {eatingStatusLabel(status)}
+                            {t(eatingStatusLabelKey(status))}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -350,7 +371,7 @@ export function MealComposer({
           disabled={createMutation.isPending}
         >
           <Save className="h-4 w-4" />
-          Save draft
+          {t("composer.saveDraft")}
         </Button>
         <Button
           type="button"
@@ -358,7 +379,7 @@ export function MealComposer({
           disabled={createMutation.isPending}
         >
           <Send className="h-4 w-4" />
-          Publish
+          {t("composer.publish")}
         </Button>
       </div>
     </form>

@@ -1,0 +1,80 @@
+{
+  "title": "Meals",
+  "staffDescription": "Share daily menus, food photos, and eating status with families.",
+  "parentDescription": "See the daily menu for your child.",
+  "newMeal": "New meal",
+  "back": "Back to meals",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "empty": {
+    "staffTitle": "No meals for this date",
+    "staffBody": "Publish the daily food menu when it is ready.",
+    "parentTitle": "No meals yet",
+    "parentBody": "Today's food menu will appear here."
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "mealType": {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "snack": "Snack",
+    "dinner": "Dinner"
+  },
+  "audience": {
+    "wholeCenter": "Whole center",
+    "selectedClasses": "Selected classes"
+  },
+  "eatingStatus": {
+    "ateAll": "All",
+    "ateMost": "Most",
+    "ateSome": "Some",
+    "didNotEat": "None",
+    "notRecorded": "Not recorded"
+  },
+  "labels": {
+    "allergy": "Allergy"
+  },
+  "composer": {
+    "newTitle": "New meal",
+    "description": "Publish today's menu with a food photo and optional eating status.",
+    "date": "Date",
+    "mealType": "Meal type",
+    "audience": "Audience",
+    "classes": "Classes",
+    "menuText": "Menu text",
+    "allergyNote": "Allergy note",
+    "foodPhotos": "Food photos",
+    "choosePhotos": "Choose photos or videos",
+    "uploadedFiles": "{{count}} uploaded file(s) ready.",
+    "eatingStatus": "Eating status",
+    "chooseAudience": "Choose an audience to record child eating status.",
+    "saveDraft": "Save draft",
+    "publish": "Publish"
+  },
+  "validation": {
+    "centerRequired": "Your account is not linked to a center.",
+    "menuRequired": "Menu text is required.",
+    "chooseClass": "Choose at least one class.",
+    "uploadFailed": "Upload failed.",
+    "uploadFailedForFile": "Upload failed for {{file}}."
+  },
+  "toast": {
+    "published": "Meal published.",
+    "savedAsDraft": "Meal saved as draft.",
+    "uploaded": "{{count}} file(s) uploaded.",
+    "statusSaved": "Eating status saved.",
+    "deleted": "Meal deleted."
+  },
+  "detail": {
+    "notFound": "Meal not found.",
+    "publish": "Publish",
+    "delete": "Delete",
+    "eatingStatus": "Eating status",
+    "saveStatus": "Save status",
+    "noEatingStatus": "No eating status recorded yet.",
+    "noClass": "No class",
+    "notRecorded": "Not recorded"
+  }
+}

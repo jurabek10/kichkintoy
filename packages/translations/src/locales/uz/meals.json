@@ -1,0 +1,80 @@
+{
+  "title": "Taomlar",
+  "staffDescription": "Kunlik menyular, ovqat suratlari va ovqatlanish holatini oilalar bilan ulashing.",
+  "parentDescription": "Farzandingiz uchun kunlik menyuni ko'ring.",
+  "newMeal": "Yangi taom",
+  "back": "Taomlarga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "empty": {
+    "staffTitle": "Bu sana uchun taom yo'q",
+    "staffBody": "Tayyor bo'lganda kunlik taom menyusini e'lon qiling.",
+    "parentTitle": "Hali taom yo'q",
+    "parentBody": "Bugungi ovqat menyusi shu yerda ko'rinadi."
+  },
+  "status": {
+    "draft": "Qoralama",
+    "published": "E'lon qilingan"
+  },
+  "mealType": {
+    "breakfast": "Nonushta",
+    "lunch": "Tushlik",
+    "snack": "Tamaddi",
+    "dinner": "Kechki ovqat"
+  },
+  "audience": {
+    "wholeCenter": "Butun markaz",
+    "selectedClasses": "Tanlangan sinflar"
+  },
+  "eatingStatus": {
+    "ateAll": "Hammasi",
+    "ateMost": "Ko'p qismi",
+    "ateSome": "Bir qismi",
+    "didNotEat": "Hech narsa yemadi",
+    "notRecorded": "Kiritilmagan"
+  },
+  "labels": {
+    "allergy": "Allergiya"
+  },
+  "composer": {
+    "newTitle": "Yangi taom",
+    "description": "Bugungi menyuni ovqat surati va ixtiyoriy ovqatlanish holati bilan e'lon qiling.",
+    "date": "Sana",
+    "mealType": "Taom turi",
+    "audience": "Auditoriya",
+    "classes": "Sinflar",
+    "menuText": "Menyu matni",
+    "allergyNote": "Allergiya eslatmasi",
+    "foodPhotos": "Ovqat suratlari",
+    "choosePhotos": "Rasm yoki video tanlang",
+    "uploadedFiles": "{{count}} ta yuklangan fayl tayyor.",
+    "eatingStatus": "Ovqatlanish holati",
+    "chooseAudience": "Bolalar ovqatlanish holatini yozish uchun auditoriyani tanlang.",
+    "saveDraft": "Qoralamani saqlash",
+    "publish": "E'lon qilish"
+  },
+  "validation": {
+    "centerRequired": "Hisobingiz markazga bog'lanmagan.",
+    "menuRequired": "Menyu matni majburiy.",
+    "chooseClass": "Kamida bitta sinfni tanlang.",
+    "uploadFailed": "Yuklash amalga oshmadi.",
+    "uploadFailedForFile": "{{file}} uchun yuklash amalga oshmadi."
+  },
+  "toast": {
+    "published": "Taom e'lon qilindi.",
+    "savedAsDraft": "Taom qoralama sifatida saqlandi.",
+    "uploaded": "{{count}} ta fayl yuklandi.",
+    "statusSaved": "Ovqatlanish holati saqlandi.",
+    "deleted": "Taom o'chirildi."
+  },
+  "detail": {
+    "notFound": "Taom topilmadi.",
+    "publish": "E'lon qilish",
+    "delete": "O'chirish",
+    "eatingStatus": "Ovqatlanish holati",
+    "saveStatus": "Holatni saqlash",
+    "noEatingStatus": "Hali ovqatlanish holati kiritilmagan.",
+    "noClass": "Sinf yo'q",
+    "notRecorded": "Kiritilmagan"
+  }
+}

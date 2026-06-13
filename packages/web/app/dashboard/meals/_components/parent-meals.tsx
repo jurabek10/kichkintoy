@@ -4,14 +4,21 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Utensils } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { MealCard } from "./meal-card";
 
 export function ParentMeals() {
+  const { t } = useLayoutTranslation("meals");
   const [date, setDate] = useState(todayIso());
   const queryInput = { date };
   const {
@@ -27,7 +34,10 @@ export function ParentMeals() {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-xl">Meals</CardTitle>
+          <div>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("parentDescription")}</CardDescription>
+          </div>
           <DatePicker
             value={date}
             onValueChange={setDate}
@@ -43,13 +53,15 @@ export function ParentMeals() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : meals.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Utensils className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No meals yet</p>
+          <p className="font-semibold">{t("empty.parentTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Today's food menu will appear here.
+            {t("empty.parentBody")}
           </p>
         </Card>
       ) : (

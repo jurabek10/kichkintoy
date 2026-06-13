@@ -1,0 +1,80 @@
+{
+  "title": "Питание",
+  "staffDescription": "Делитесь дневным меню, фото еды и статусом питания с семьями.",
+  "parentDescription": "Смотрите дневное меню для вашего ребенка.",
+  "newMeal": "Новое меню",
+  "back": "Назад к питанию",
+  "loading": "Загрузка...",
+  "noCenter": "Ваш аккаунт пока не привязан к центру.",
+  "empty": {
+    "staffTitle": "На эту дату пока нет блюд",
+    "staffBody": "Опубликуйте дневное меню, когда оно будет готово.",
+    "parentTitle": "Блюд пока нет",
+    "parentBody": "Меню на сегодня появится здесь."
+  },
+  "status": {
+    "draft": "Черновик",
+    "published": "Опубликовано"
+  },
+  "mealType": {
+    "breakfast": "Завтрак",
+    "lunch": "Обед",
+    "snack": "Перекус",
+    "dinner": "Ужин"
+  },
+  "audience": {
+    "wholeCenter": "Весь центр",
+    "selectedClasses": "Выбранные группы"
+  },
+  "eatingStatus": {
+    "ateAll": "Все",
+    "ateMost": "Почти все",
+    "ateSome": "Часть",
+    "didNotEat": "Не ел",
+    "notRecorded": "Не указано"
+  },
+  "labels": {
+    "allergy": "Аллергия"
+  },
+  "composer": {
+    "newTitle": "Новое меню",
+    "description": "Опубликуйте меню на сегодня с фото еды и необязательным статусом питания.",
+    "date": "Дата",
+    "mealType": "Тип блюда",
+    "audience": "Аудитория",
+    "classes": "Группы",
+    "menuText": "Текст меню",
+    "allergyNote": "Примечание об аллергии",
+    "foodPhotos": "Фото еды",
+    "choosePhotos": "Выберите фото или видео",
+    "uploadedFiles": "Готово {{count}} загруженных файлов.",
+    "eatingStatus": "Статус питания",
+    "chooseAudience": "Выберите аудиторию, чтобы отметить статус питания ребенка.",
+    "saveDraft": "Сохранить черновик",
+    "publish": "Опубликовать"
+  },
+  "validation": {
+    "centerRequired": "Ваш аккаунт не привязан к центру.",
+    "menuRequired": "Текст меню обязателен.",
+    "chooseClass": "Выберите хотя бы одну группу.",
+    "uploadFailed": "Не удалось загрузить файл.",
+    "uploadFailedForFile": "Не удалось загрузить {{file}}."
+  },
+  "toast": {
+    "published": "Меню опубликовано.",
+    "savedAsDraft": "Меню сохранено как черновик.",
+    "uploaded": "Загружено файлов: {{count}}.",
+    "statusSaved": "Статус питания сохранен.",
+    "deleted": "Меню удалено."
+  },
+  "detail": {
+    "notFound": "Меню не найдено.",
+    "publish": "Опубликовать",
+    "delete": "Удалить",
+    "eatingStatus": "Статус питания",
+    "saveStatus": "Сохранить статус",
+    "noEatingStatus": "Статус питания еще не указан.",
+    "noClass": "Без группы",
+    "notRecorded": "Не указано"
+  }
+}
