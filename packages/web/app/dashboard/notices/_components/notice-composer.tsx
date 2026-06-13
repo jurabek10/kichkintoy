@@ -20,13 +20,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toApiError } from "@/lib/api/errors";
-import { noticeAudienceLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -37,6 +37,7 @@ export function NoticeComposer({
   centerId: string | null;
   director: boolean;
 }) {
+  const { t } = useLayoutTranslation("notices");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
@@ -80,7 +81,9 @@ export function NoticeComposer({
         publish,
       }),
     onSuccess: async (notice, publish) => {
-      toast.success(publish ? "Notice published." : "Notice saved as draft.");
+      toast.success(
+        publish ? t("toast.published") : t("toast.savedAsDraft"),
+      );
       await queryClient.invalidateQueries({ queryKey: ["notices"] });
       router.push(`/dashboard/notices/${notice.id}`);
     },
@@ -94,11 +97,11 @@ export function NoticeComposer({
 
   function save(publish: boolean) {
     setError(null);
-    if (!centerId) return setError("Your account is not linked to a center.");
-    if (!title.trim()) return setError("Title is required.");
-    if (!body.trim()) return setError("Body is required.");
+    if (!centerId) return setError(t("validation.centerRequired"));
+    if (!title.trim()) return setError(t("validation.titleRequired"));
+    if (!body.trim()) return setError(t("validation.bodyRequired"));
     if (targetType !== "center" && targetIds.length === 0) {
-      return setError("Choose at least one audience target.");
+      return setError(t("validation.targetRequired"));
     }
     createMutation.mutate(publish);
   }
@@ -121,17 +124,14 @@ export function NoticeComposer({
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/notices">
           <ArrowLeft className="h-4 w-4" />
-          Back to notices
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">New notice</CardTitle>
-          <CardDescription>
-            Send one operational message to a center, classes, or selected
-            children.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -141,7 +141,7 @@ export function NoticeComposer({
           ) : null}
 
           <div className="grid gap-2">
-            <Label htmlFor="notice-title">Title</Label>
+            <Label htmlFor="notice-title">{t("composer.title")}</Label>
             <Input
               id="notice-title"
               value={title}
@@ -151,7 +151,7 @@ export function NoticeComposer({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="notice-body">Body</Label>
+            <Label htmlFor="notice-body">{t("composer.body")}</Label>
             <Textarea
               id="notice-body"
               value={body}
@@ -161,7 +161,7 @@ export function NoticeComposer({
           </div>
 
           <div className="grid gap-3">
-            <Label>Audience</Label>
+            <Label>{t("composer.audience")}</Label>
             <RadioGroup
               value={targetType}
               onValueChange={(value) => setTarget(value as NoticeTargetType)}
@@ -175,12 +175,13 @@ export function NoticeComposer({
 
           {targetType !== "center" ? (
             <div className="grid gap-2">
-              <Label>{noticeAudienceLabel(targetType)}</Label>
+              <Label>{t(targetTypeLabelKey(targetType))}</Label>
               <div className="grid max-h-64 gap-2 overflow-auto rounded-md border p-3 sm:grid-cols-2">
                 {choices.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No available{" "}
-                    {targetType === "class" ? "classes" : "children"}.
+                    {targetType === "class"
+                      ? t("composer.noClasses")
+                      : t("composer.noChildren")}
                   </p>
                 ) : (
                   choices.map((choice) => (
@@ -213,24 +214,24 @@ export function NoticeComposer({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <ToggleRow
-              label="Requires confirmation"
+              label={t("composer.requiresConfirmation")}
               checked={requiresConfirmation}
               onCheckedChange={setRequiresConfirmation}
             />
             <ToggleRow
-              label="Allow comments"
+              label={t("composer.allowComments")}
               checked={allowComments}
               onCheckedChange={setAllowComments}
             />
             {director ? (
               <ToggleRow
-                label="Pin notice"
+                label={t("composer.pinNotice")}
                 checked={isPinned}
                 onCheckedChange={setIsPinned}
               />
             ) : null}
             <ToggleRow
-              label="Important"
+              label={t("composer.important")}
               checked={isImportant}
               onCheckedChange={setIsImportant}
             />
@@ -245,7 +246,7 @@ export function NoticeComposer({
           disabled={createMutation.isPending}
         >
           <Save className="h-4 w-4" />
-          Save draft
+          {t("composer.saveDraft")}
         </Button>
         <Button
           type="button"
@@ -253,7 +254,7 @@ export function NoticeComposer({
           onClick={() => save(true)}
         >
           <Send className="h-4 w-4" />
-          Publish
+          {t("composer.publish")}
         </Button>
       </div>
     </form>
@@ -261,14 +262,21 @@ export function NoticeComposer({
 }
 
 function AudienceOption({ value }: { value: NoticeTargetType }) {
+  const { t } = useLayoutTranslation("notices");
   return (
     <label className="flex items-center gap-2 rounded-md border p-3">
       <RadioGroupItem value={value} />
       <span className="text-sm font-semibold">
-        {noticeAudienceLabel(value)}
+        {t(targetTypeLabelKey(value))}
       </span>
     </label>
   );
+}
+
+function targetTypeLabelKey(value: NoticeTargetType) {
+  if (value === "center") return "audience.center";
+  if (value === "class") return "audience.class";
+  return "audience.child";
 }
 
 function ToggleRow({

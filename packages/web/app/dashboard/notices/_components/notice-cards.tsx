@@ -5,14 +5,12 @@ import { AlertCircle, CheckCircle2, Pin, Users } from "lucide-react";
 import type { NoticeSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  formatDateTime,
-  noticeAudienceLabel,
-  noticeStatusLabel,
-} from "@/lib/format";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function NoticeCard({ notice }: { notice: NoticeSummary }) {
+  const { t } = useLayoutTranslation("notices");
   const actionNeeded =
     notice.requiresConfirmation &&
     !notice.myConfirmedAt &&
@@ -31,24 +29,24 @@ export function NoticeCard({ notice }: { notice: NoticeSummary }) {
             {notice.isPinned ? (
               <Badge variant="secondary">
                 <Pin className="h-3 w-3" />
-                Pinned
+                {t("badges.pinned")}
               </Badge>
             ) : null}
             {actionNeeded ? (
               <Badge>
                 <AlertCircle className="h-3 w-3" />
-                Action needed
+                {t("badges.actionNeeded")}
               </Badge>
             ) : null}
             {!actionNeeded && notice.myConfirmedAt ? (
               <Badge variant="secondary">
                 <CheckCircle2 className="h-3 w-3" />
-                Confirmed
+                {t("badges.confirmed")}
               </Badge>
             ) : null}
-            <Badge variant="outline">{noticeStatusLabel(notice.status)}</Badge>
+            <Badge variant="outline">{t(statusKey(notice.status))}</Badge>
             <Badge variant="outline">
-              {noticeAudienceLabel(notice.targetType)}
+              {t(audienceKey(notice.targetType))}
             </Badge>
           </div>
 
@@ -63,16 +61,31 @@ export function NoticeCard({ notice }: { notice: NoticeSummary }) {
             <span>
               {notice.publishedAt
                 ? formatDateTime(notice.publishedAt)
-                : `Updated ${formatDateTime(notice.updatedAt)}`}
+                : t("updatedAt", { date: formatDateTime(notice.updatedAt) })}
             </span>
             {notice.child ? <span>{notice.child.name}</span> : null}
             <span className="inline-flex items-center gap-1">
               <Users className="h-3.5 w-3.5" />
-              {notice.readCount}/{notice.recipientCount} read
+              {t("readCount", {
+                read: notice.readCount,
+                total: notice.recipientCount,
+              })}
             </span>
           </div>
         </CardContent>
       </Card>
     </Link>
   );
+}
+
+function statusKey(value: string) {
+  if (value === "published") return "status.published";
+  if (value === "scheduled") return "status.scheduled";
+  return "status.draft";
+}
+
+function audienceKey(value: string) {
+  if (value === "center") return "audience.center";
+  if (value === "class") return "audience.class";
+  return "audience.child";
 }

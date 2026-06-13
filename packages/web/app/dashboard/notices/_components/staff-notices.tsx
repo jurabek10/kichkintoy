@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { NoticeCard } from "./notice-cards";
@@ -32,6 +33,7 @@ export function StaffNotices({
   centerId: string | null;
   director: boolean;
 }) {
+  const { t } = useLayoutTranslation("notices");
   const [status, setStatus] = useState<NoticeStatusFilter>("all");
   const {
     data: notices = [],
@@ -50,9 +52,7 @@ export function StaffNotices({
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -62,10 +62,8 @@ export function StaffNotices({
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Notices</CardTitle>
-            <CardDescription>
-              Send operational updates to parents and track who has read them.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Select
@@ -76,16 +74,20 @@ export function StaffNotices({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Drafts</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="all">{t("filters.all")}</SelectItem>
+                <SelectItem value="published">
+                  {t("status.published")}
+                </SelectItem>
+                <SelectItem value="draft">{t("filters.drafts")}</SelectItem>
+                <SelectItem value="scheduled">
+                  {t("status.scheduled")}
+                </SelectItem>
               </SelectContent>
             </Select>
             <Button asChild>
               <Link href="/dashboard/notices/new">
                 <Plus className="h-4 w-4" />
-                New notice
+                {t("newNotice")}
               </Link>
             </Button>
           </div>
@@ -99,14 +101,14 @@ export function StaffNotices({
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : notices.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Bell className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No notices yet</p>
-          <p className="text-sm text-muted-foreground">
-            Create your first center-home announcement.
-          </p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty.staffBody")}</p>
         </Card>
       ) : (
         <div className="grid gap-3">

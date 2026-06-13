@@ -1,0 +1,76 @@
+{
+  "title": "E'lonlar",
+  "staffDescription": "Ota-onalarga operatsion yangiliklar yuboring va kim o'qiganini kuzating.",
+  "newNotice": "Yangi e'lon",
+  "back": "E'lonlarga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "updatedAt": "Yangilangan: {{date}}",
+  "readCount": "{{read}}/{{total}} o'qidi",
+  "confirmedCount": "{{confirmed}}/{{total}} tasdiqladi",
+  "filters": {
+    "all": "Barchasi",
+    "drafts": "Qoralamalar"
+  },
+  "status": {
+    "draft": "Qoralama",
+    "scheduled": "Rejalangan",
+    "published": "E'lon qilingan"
+  },
+  "audience": {
+    "center": "Butun markaz",
+    "class": "Sinflar",
+    "child": "Bolalar"
+  },
+  "badges": {
+    "pinned": "Mahkamlangan",
+    "actionNeeded": "Harakat kerak",
+    "confirmed": "Tasdiqlangan",
+    "confirmation": "Tasdiqlash"
+  },
+  "empty": {
+    "staffTitle": "Hali e'lon yo'q",
+    "staffBody": "Markaz va uy orasidagi birinchi e'loningizni yarating.",
+    "parentTitle": "Hali e'lon yo'q",
+    "parentBody": "Muhim markaz yangiliklari shu yerda ko'rinadi."
+  },
+  "composer": {
+    "newTitle": "Yangi e'lon",
+    "description": "Markazga, sinflarga yoki tanlangan bolalarga bitta operatsion xabar yuboring.",
+    "title": "Sarlavha",
+    "body": "Matn",
+    "audience": "Auditoriya",
+    "noClasses": "Mavjud sinf yo'q.",
+    "noChildren": "Mavjud bola yo'q.",
+    "requiresConfirmation": "Tasdiqlash talab qilinadi",
+    "allowComments": "Izohlarga ruxsat berish",
+    "pinNotice": "E'lonni mahkamlash",
+    "important": "Muhim",
+    "saveDraft": "Qoralamani saqlash",
+    "publish": "E'lon qilish"
+  },
+  "validation": {
+    "centerRequired": "Hisobingiz markazga bog'lanmagan.",
+    "titleRequired": "Sarlavha majburiy.",
+    "bodyRequired": "Matn majburiy.",
+    "targetRequired": "Kamida bitta auditoriya tanlang."
+  },
+  "toast": {
+    "published": "E'lon qilindi.",
+    "savedAsDraft": "E'lon qoralama sifatida saqlandi.",
+    "confirmed": "E'lon tasdiqlandi.",
+    "deleted": "E'lon o'chirildi."
+  },
+  "detail": {
+    "notFound": "E'lon topilmadi.",
+    "authorDate": "{{author}} · {{date}}",
+    "publish": "E'lon qilish",
+    "delete": "O'chirish",
+    "confirmPrompt": "Iltimos, bu e'lonni tasdiqlang.",
+    "confirm": "Tasdiqlash",
+    "readReceipts": "O'qilganlik",
+    "noReceipts": "O'qilganlik ma'lumoti e'lon qilingandan keyin paydo bo'ladi.",
+    "readAt": "O'qilgan: {{date}}",
+    "confirmedAt": "Tasdiqlangan: {{date}}"
+  }
+}

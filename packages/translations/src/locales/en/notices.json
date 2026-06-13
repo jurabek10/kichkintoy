@@ -1,0 +1,76 @@
+{
+  "title": "Notices",
+  "staffDescription": "Send operational updates to parents and track who has read them.",
+  "newNotice": "New notice",
+  "back": "Back to notices",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "updatedAt": "Updated {{date}}",
+  "readCount": "{{read}}/{{total}} read",
+  "confirmedCount": "{{confirmed}}/{{total}} confirmed",
+  "filters": {
+    "all": "All",
+    "drafts": "Drafts"
+  },
+  "status": {
+    "draft": "Draft",
+    "scheduled": "Scheduled",
+    "published": "Published"
+  },
+  "audience": {
+    "center": "Whole center",
+    "class": "Classes",
+    "child": "Children"
+  },
+  "badges": {
+    "pinned": "Pinned",
+    "actionNeeded": "Action needed",
+    "confirmed": "Confirmed",
+    "confirmation": "Confirmation"
+  },
+  "empty": {
+    "staffTitle": "No notices yet",
+    "staffBody": "Create your first center-home announcement.",
+    "parentTitle": "No notices yet",
+    "parentBody": "Important center updates will appear here."
+  },
+  "composer": {
+    "newTitle": "New notice",
+    "description": "Send one operational message to a center, classes, or selected children.",
+    "title": "Title",
+    "body": "Body",
+    "audience": "Audience",
+    "noClasses": "No available classes.",
+    "noChildren": "No available children.",
+    "requiresConfirmation": "Requires confirmation",
+    "allowComments": "Allow comments",
+    "pinNotice": "Pin notice",
+    "important": "Important",
+    "saveDraft": "Save draft",
+    "publish": "Publish"
+  },
+  "validation": {
+    "centerRequired": "Your account is not linked to a center.",
+    "titleRequired": "Title is required.",
+    "bodyRequired": "Body is required.",
+    "targetRequired": "Choose at least one audience target."
+  },
+  "toast": {
+    "published": "Notice published.",
+    "savedAsDraft": "Notice saved as draft.",
+    "confirmed": "Notice confirmed.",
+    "deleted": "Notice deleted."
+  },
+  "detail": {
+    "notFound": "Notice not found.",
+    "authorDate": "{{author}} · {{date}}",
+    "publish": "Publish",
+    "delete": "Delete",
+    "confirmPrompt": "Please confirm this notice.",
+    "confirm": "Confirm",
+    "readReceipts": "Read receipts",
+    "noReceipts": "Receipts appear after publishing.",
+    "readAt": "Read: {{date}}",
+    "confirmedAt": "Confirmed: {{date}}"
+  }
+}
