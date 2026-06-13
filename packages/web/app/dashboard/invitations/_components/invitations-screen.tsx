@@ -29,9 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import { formatDateTime, invitationKindLabel } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
+import {
+  invitationKindLabelKey,
+  invitationStatusLabelKey,
+} from "./invitation-labels";
 
 type InvitationRow = {
   id: string;
@@ -62,6 +67,7 @@ const statusVariant: Record<
 };
 
 export function InvitationsScreen({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("invitations");
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -101,7 +107,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
             : undefined,
       }),
     onSuccess: async () => {
-      toast.success(`Invitation SMS sent to ${phone.trim()}.`);
+      toast.success(t("toast.sent", { phone: phone.trim() }));
       setPhone("");
       setChildNameHint("");
       setClassId("");
@@ -117,7 +123,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
         invitationId: row.id,
       }),
     onSuccess: async (_data, row) => {
-      toast.success(`Resent invitation to ${row.phone}.`);
+      toast.success(t("toast.resent", { phone: row.phone }));
       await queryClient.invalidateQueries({ queryKey: invitationsKey });
     },
     onError: (err) => setFormError(toApiError(err).message),
@@ -130,15 +136,14 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
         invitationId: row.id,
       }),
     onSuccess: async (_data, row) => {
-      toast(`Revoked invitation to ${row.phone}.`);
+      toast(t("toast.revoked", { phone: row.phone }));
       await queryClient.invalidateQueries({ queryKey: invitationsKey });
     },
     onError: (err) => setFormError(toApiError(err).message),
   });
 
   const submitting = sendMutation.isPending;
-  const error =
-    formError ?? (loadError ? toApiError(loadError).message : null);
+  const error = formError ?? (loadError ? toApiError(loadError).message : null);
   const rowBusy = (id: string) =>
     (resendMutation.isPending && resendMutation.variables?.id === id) ||
     (revokeMutation.isPending && revokeMutation.variables?.id === id);
@@ -148,11 +153,11 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
     if (!centerId) return;
     setFormError(null);
     if (!phone.trim()) {
-      setFormError("Phone number is required.");
+      setFormError(t("validation.phoneRequired"));
       return;
     }
     if (kind === "parent" && !classId) {
-      setFormError("Pick a class for parent invitations.");
+      setFormError(t("validation.classRequired"));
       return;
     }
     sendMutation.mutate();
@@ -171,9 +176,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -182,23 +185,20 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Invitations</CardTitle>
-          <CardDescription>
-            Invite a parent or teacher by phone number. They will get an SMS
-            link to sign up.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Send a new invitation</CardTitle>
+          <CardTitle className="text-base">{t("composer.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={send} className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="invite-kind">Invitation type</Label>
+                <Label htmlFor="invite-kind">{t("composer.kind")}</Label>
                 <Select
                   value={kind}
                   onValueChange={(value) => {
@@ -210,19 +210,19 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="parent">Parent</SelectItem>
-                    <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="parent">{t("kind.parent")}</SelectItem>
+                    <SelectItem value="teacher">{t("kind.teacher")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="invite-phone">Phone number</Label>
+                <Label htmlFor="invite-phone">{t("composer.phone")}</Label>
                 <Input
                   id="invite-phone"
                   type="tel"
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
-                  placeholder="+998 90 123 45 67"
+                  placeholder={t("composer.phonePlaceholder")}
                 />
               </div>
             </div>
@@ -230,10 +230,10 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
             {kind === "parent" ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="invite-class">Class</Label>
+                  <Label htmlFor="invite-class">{t("composer.class")}</Label>
                   <Select value={classId} onValueChange={setClassId}>
                     <SelectTrigger id="invite-class">
-                      <SelectValue placeholder="Pick a class" />
+                      <SelectValue placeholder={t("composer.pickClass")} />
                     </SelectTrigger>
                     <SelectContent>
                       {classes.map((klass) => (
@@ -245,14 +245,12 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                   </Select>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="invite-hint">
-                    Child name hint (optional)
-                  </Label>
+                  <Label htmlFor="invite-hint">{t("composer.childHint")}</Label>
                   <Input
                     id="invite-hint"
                     value={childNameHint}
                     onChange={(event) => setChildNameHint(event.target.value)}
-                    placeholder="Aziza"
+                    placeholder={t("composer.childHintPlaceholder")}
                   />
                 </div>
               </div>
@@ -260,11 +258,11 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="invite-class-teacher">
-                    Class (optional)
+                    {t("composer.classOptional")}
                   </Label>
                   <Select value={classId} onValueChange={setClassId}>
                     <SelectTrigger id="invite-class-teacher">
-                      <SelectValue placeholder="No class" />
+                      <SelectValue placeholder={t("composer.noClass")} />
                     </SelectTrigger>
                     <SelectContent>
                       {classes.map((klass) => (
@@ -287,7 +285,9 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
             <div>
               <Button type="submit" disabled={submitting}>
                 <Send className="h-4 w-4" />
-                {submitting ? "Sending…" : "Send invitation"}
+                {submitting
+                  ? t("actions.sending")
+                  : t("actions.sendInvitation")}
               </Button>
             </div>
           </form>
@@ -297,22 +297,30 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-6 text-sm text-muted-foreground">Loading…</p>
+            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
           ) : rows.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">
-              No invitations yet. Send one above.
-            </p>
+            <p className="p-6 text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
             <table className="w-full table-fixed text-left text-sm">
               <thead className="bg-muted text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="w-24 px-4 py-3 font-semibold">Type</th>
-                  <th className="px-4 py-3 font-semibold">Phone</th>
-                  <th className="px-4 py-3 font-semibold">Class</th>
-                  <th className="w-28 px-4 py-3 font-semibold">Status</th>
-                  <th className="w-40 px-4 py-3 font-semibold">Created</th>
+                  <th className="w-24 px-4 py-3 font-semibold">
+                    {t("table.type")}
+                  </th>
+                  <th className="px-4 py-3 font-semibold">
+                    {t("table.phone")}
+                  </th>
+                  <th className="px-4 py-3 font-semibold">
+                    {t("table.class")}
+                  </th>
+                  <th className="w-28 px-4 py-3 font-semibold">
+                    {t("table.status")}
+                  </th>
+                  <th className="w-40 px-4 py-3 font-semibold">
+                    {t("table.created")}
+                  </th>
                   <th className="w-40 px-4 py-3 text-right font-semibold">
-                    Actions
+                    {t("table.actions")}
                   </th>
                 </tr>
               </thead>
@@ -326,7 +334,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                     <tr key={row.id} className="border-t hover:bg-muted/40">
                       <td className="px-4 py-3">
                         <Badge variant="default">
-                          {invitationKindLabel(row.kind)}
+                          {t(invitationKindLabelKey(row.kind))}
                         </Badge>
                       </td>
                       <td className="truncate px-4 py-3 font-semibold">
@@ -337,7 +345,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                       </td>
                       <td className="px-4 py-3">
                         <Badge variant={statusVariant[row.status]}>
-                          {row.status}
+                          {t(invitationStatusLabelKey(row.status))}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
@@ -353,7 +361,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                               onClick={() => resend(row)}
                               disabled={rowBusy(row.id)}
                             >
-                              Resend
+                              {t("actions.resend")}
                             </Button>
                             <Button
                               type="button"
@@ -363,7 +371,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
                               onClick={() => revoke(row)}
                               disabled={rowBusy(row.id)}
                             >
-                              Revoke
+                              {t("actions.revoke")}
                             </Button>
                           </div>
                         ) : (

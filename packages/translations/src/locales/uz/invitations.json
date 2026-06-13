@@ -1,0 +1,53 @@
+{
+  "title": "Takliflar",
+  "description": "Ota-ona yoki o'qituvchini telefon raqami orqali taklif qiling. Ularga ro'yxatdan o'tish uchun SMS havola yuboriladi.",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "loading": "Yuklanmoqda...",
+  "empty": "Hali takliflar yo'q. Yuqoridan birini yuboring.",
+  "kind": {
+    "parent": "Ota-ona",
+    "teacher": "O'qituvchi"
+  },
+  "status": {
+    "pending": "Kutilmoqda",
+    "accepted": "Qabul qilingan",
+    "declined": "Rad etilgan",
+    "revoked": "Bekor qilingan",
+    "expired": "Muddati tugagan"
+  },
+  "table": {
+    "type": "Turi",
+    "phone": "Telefon",
+    "class": "Sinf",
+    "status": "Holat",
+    "created": "Yaratilgan",
+    "actions": "Amallar"
+  },
+  "composer": {
+    "title": "Yangi taklif yuborish",
+    "kind": "Taklif turi",
+    "phone": "Telefon raqami",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "class": "Sinf",
+    "pickClass": "Sinfni tanlang",
+    "childHint": "Bola ismi uchun ishora (ixtiyoriy)",
+    "childHintPlaceholder": "Aziza",
+    "classOptional": "Sinf (ixtiyoriy)",
+    "noClass": "Sinf yo'q"
+  },
+  "actions": {
+    "sendInvitation": "Taklif yuborish",
+    "sending": "Yuborilmoqda...",
+    "resend": "Qayta yuborish",
+    "revoke": "Bekor qilish"
+  },
+  "validation": {
+    "phoneRequired": "Telefon raqami majburiy.",
+    "classRequired": "Ota-ona takliflari uchun sinf tanlang."
+  },
+  "toast": {
+    "sent": "Taklif SMSi {{phone}} raqamiga yuborildi.",
+    "resent": "Taklif {{phone}} raqamiga qayta yuborildi.",
+    "revoked": "Taklif {{phone}} raqamiga bekor qilindi."
+  }
+}

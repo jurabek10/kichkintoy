@@ -1,0 +1,53 @@
+{
+  "title": "Invitations",
+  "description": "Invite a parent or teacher by phone number. They will get an SMS link to sign up.",
+  "noCenter": "Your account is not linked to a center yet.",
+  "loading": "Loading...",
+  "empty": "No invitations yet. Send one above.",
+  "kind": {
+    "parent": "Parent",
+    "teacher": "Teacher"
+  },
+  "status": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "revoked": "Revoked",
+    "expired": "Expired"
+  },
+  "table": {
+    "type": "Type",
+    "phone": "Phone",
+    "class": "Class",
+    "status": "Status",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "composer": {
+    "title": "Send a new invitation",
+    "kind": "Invitation type",
+    "phone": "Phone number",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "class": "Class",
+    "pickClass": "Pick a class",
+    "childHint": "Child name hint (optional)",
+    "childHintPlaceholder": "Aziza",
+    "classOptional": "Class (optional)",
+    "noClass": "No class"
+  },
+  "actions": {
+    "sendInvitation": "Send invitation",
+    "sending": "Sending...",
+    "resend": "Resend",
+    "revoke": "Revoke"
+  },
+  "validation": {
+    "phoneRequired": "Phone number is required.",
+    "classRequired": "Pick a class for parent invitations."
+  },
+  "toast": {
+    "sent": "Invitation SMS sent to {{phone}}.",
+    "resent": "Resent invitation to {{phone}}.",
+    "revoked": "Revoked invitation to {{phone}}."
+  }
+}
