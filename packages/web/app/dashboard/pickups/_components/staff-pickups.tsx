@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import {
   Select,
   SelectContent,
@@ -20,10 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
-import { pickupStatusLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { PickupCard } from "./pickup-card";
+import { pickupStatusLabelKey } from "./pickup-labels";
 
 const statusOptions: PickupNoticeStatus[] = [
   "submitted",
@@ -33,6 +34,7 @@ const statusOptions: PickupNoticeStatus[] = [
 ];
 
 export function StaffPickups({ centerId }: { centerId: string | null }) {
+  const { t } = useLayoutTranslation("pickups");
   const [date, setDate] = useState(todayIso());
   const [status, setStatus] = useState("all");
   const input = {
@@ -53,9 +55,7 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
   if (!centerId) {
     return (
       <Alert variant="warning">
-        <AlertDescription>
-          Your account is not linked to a center yet.
-        </AlertDescription>
+        <AlertDescription>{t("noCenter")}</AlertDescription>
       </Alert>
     );
   }
@@ -65,10 +65,8 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Pickup</CardTitle>
-            <CardDescription>
-              Review today's pickup notices and acknowledge changes.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -81,10 +79,10 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="all">{t("filters.all")}</SelectItem>
                 {statusOptions.map((item) => (
                   <SelectItem key={item} value={item}>
-                    {pickupStatusLabel(item)}
+                    {t(pickupStatusLabelKey(item))}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -100,13 +98,15 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : notices.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <UserCheck className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No pickup notices for today</p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Parent pickup notices will appear here.
+            {t("empty.staffBody")}
           </p>
         </Card>
       ) : (

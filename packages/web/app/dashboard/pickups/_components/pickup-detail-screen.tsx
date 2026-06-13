@@ -21,16 +21,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import {
-  formatDate,
-  formatDateTime,
-  pickupRelationshipLabel,
-  pickupStatusLabel,
-} from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
+import {
+  pickupRelationshipLabelKey,
+  pickupStatusLabelKey,
+} from "./pickup-labels";
 
 const relationships: PickupRelationship[] = [
   "mother",
@@ -40,6 +40,7 @@ const relationships: PickupRelationship[] = [
 ];
 
 export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
+  const { t } = useLayoutTranslation("pickups");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const staff = session?.user.role !== "parent";
@@ -83,7 +84,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
         },
       }),
     onSuccess: async () => {
-      toast.success("Pickup notice updated.");
+      toast.success(t("toast.updated"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -92,7 +93,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
   const cancelMutation = useMutation({
     mutationFn: () => orpc.pickups.cancel({ noticeId }),
     onSuccess: async () => {
-      toast.success("Pickup notice cancelled.");
+      toast.success(t("toast.cancelled"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -101,7 +102,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
   const acknowledgeMutation = useMutation({
     mutationFn: () => orpc.pickups.acknowledge({ noticeId }),
     onSuccess: async () => {
-      toast.success("Pickup notice acknowledged.");
+      toast.success(t("toast.acknowledged"));
       await invalidate();
     },
     onError: (err) => toast.error(toApiError(err).message),
@@ -117,21 +118,23 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!pickupPersonName.trim()) {
-      toast.error("Pickup person name is required.");
+      toast.error(t("validation.personRequired"));
       return;
     }
     updateMutation.mutate();
   }
 
   if (isPending) {
-    return <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>;
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+    );
   }
 
   if (error || !notice) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          {error ? toApiError(error).message : "Pickup notice not found."}
+          {error ? toApiError(error).message : t("detail.notFound")}
         </AlertDescription>
       </Alert>
     );
@@ -147,21 +150,21 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
         <Button asChild variant="ghost">
           <Link href="/dashboard/pickups">
             <ArrowLeft className="h-4 w-4" />
-            Back to pickup
+            {t("back")}
           </Link>
         </Button>
         {parentCanEdit ? (
           <Button
             variant="destructive"
             onClick={() => {
-              if (window.confirm("Cancel this pickup notice?")) {
+              if (window.confirm(t("detail.cancelConfirm"))) {
                 cancelMutation.mutate();
               }
             }}
             disabled={cancelMutation.isPending}
           >
             <Ban className="h-4 w-4" />
-            Cancel notice
+            {t("detail.cancelNotice")}
           </Button>
         ) : null}
       </div>
@@ -169,7 +172,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
       <Card>
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap gap-2">
-            <Badge>{pickupStatusLabel(notice.status)}</Badge>
+            <Badge>{t(pickupStatusLabelKey(notice.status))}</Badge>
             <Badge variant="outline">{formatDate(notice.pickupDate)}</Badge>
             <Badge variant="outline">{notice.pickupTime}</Badge>
           </div>
@@ -178,17 +181,26 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
         <CardContent>
           <InfoGrid
             items={[
-              ["Class", notice.child.className ?? "No class"],
-              ["Parent", notice.parentName],
-              ["Pickup person", notice.pickupPersonName],
-              ["Relationship", pickupRelationshipLabel(notice.relationship)],
-              ["Note", notice.note ?? "-"],
               [
-                "Acknowledged by",
-                notice.acknowledgedBy?.fullName ?? "Not acknowledged",
+                t("detail.class"),
+                notice.child.className ?? t("detail.noClass"),
               ],
-              ["Acknowledged at", formatDateTime(notice.acknowledgedAt)],
-              ["Submitted", formatDateTime(notice.createdAt)],
+              [t("detail.parent"), notice.parentName],
+              [t("detail.person"), notice.pickupPersonName],
+              [
+                t("detail.relationship"),
+                t(pickupRelationshipLabelKey(notice.relationship)),
+              ],
+              [t("detail.note"), notice.note ?? "—"],
+              [
+                t("detail.acknowledgedBy"),
+                notice.acknowledgedBy?.fullName ?? t("detail.notAcknowledged"),
+              ],
+              [
+                t("detail.acknowledgedAt"),
+                formatDateTime(notice.acknowledgedAt),
+              ],
+              [t("detail.submitted"), formatDateTime(notice.createdAt)],
             ]}
           />
         </CardContent>
@@ -198,32 +210,34 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
         <form onSubmit={submit}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Change pickup notice</CardTitle>
+              <CardTitle className="text-base">
+                {t("detail.editTitle")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="pickup-date"
-                  label="Pickup date"
+                  label={t("composer.date")}
                   type="date"
                   value={pickupDate}
                   onChange={setPickupDate}
                 />
                 <Field
                   id="pickup-time"
-                  label="Pickup time"
+                  label={t("composer.time")}
                   type="time"
                   value={pickupTime}
                   onChange={setPickupTime}
                 />
                 <Field
                   id="pickup-person-name"
-                  label="Pickup person name"
+                  label={t("composer.personName")}
                   value={pickupPersonName}
                   onChange={setPickupPersonName}
                 />
                 <div className="grid gap-2">
-                  <Label>Relationship</Label>
+                  <Label>{t("composer.relationship")}</Label>
                   <Select
                     value={relationship}
                     onValueChange={(value) =>
@@ -236,7 +250,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
                     <SelectContent>
                       {relationships.map((item) => (
                         <SelectItem key={item} value={item}>
-                          {pickupRelationshipLabel(item)}
+                          {t(pickupRelationshipLabelKey(item))}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -244,7 +258,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="pickup-note">Note</Label>
+                <Label htmlFor="pickup-note">{t("composer.note")}</Label>
                 <Textarea
                   id="pickup-note"
                   value={note}
@@ -259,7 +273,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
                 disabled={updateMutation.isPending}
               >
                 <Save className="h-4 w-4" />
-                Save changes
+                {t("detail.saveChanges")}
               </Button>
             </CardContent>
           </Card>
@@ -269,7 +283,9 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
       {staffCanAcknowledge ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Staff confirmation</CardTitle>
+            <CardTitle className="text-base">
+              {t("detail.staffConfirmation")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Button
@@ -277,7 +293,7 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
               disabled={acknowledgeMutation.isPending}
             >
               <CheckCircle2 className="h-4 w-4" />
-              Acknowledge
+              {t("detail.acknowledge")}
             </Button>
           </CardContent>
         </Card>

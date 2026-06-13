@@ -1,0 +1,73 @@
+{
+  "title": "Olib ketish",
+  "parentDescription": "Farzandingizni kim va qachon olib ketishini markazga bildiring.",
+  "staffDescription": "Bugungi olib ketish xabarlarini ko'rib chiqing va o'zgarishlarni tasdiqlang.",
+  "newNotice": "Yangi xabar",
+  "back": "Olib ketish sahifasiga qaytish",
+  "loading": "Yuklanmoqda...",
+  "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "filters": {
+    "all": "Barcha holatlar"
+  },
+  "status": {
+    "submitted": "Yuborilgan",
+    "changed": "O'zgartirilgan",
+    "acknowledged": "Tasdiqlangan",
+    "cancelled": "Bekor qilingan"
+  },
+  "relationship": {
+    "mother": "Ona",
+    "father": "Ota",
+    "grandparent": "Buvi/bobo",
+    "other": "Boshqa"
+  },
+  "empty": {
+    "parentTitle": "Olib ketish xabarlari yo'q",
+    "parentBody": "Bugungi olib ketish rejalari shu yerda ko'rinadi.",
+    "staffTitle": "Bugun uchun olib ketish xabarlari yo'q",
+    "staffBody": "Ota-onalarning olib ketish xabarlari shu yerda ko'rinadi."
+  },
+  "composer": {
+    "newTitle": "Yangi olib ketish xabari",
+    "description": "Farzandingizni kim va qachon olib ketishini markazga bildiring.",
+    "child": "Bola",
+    "chooseChild": "Bolani tanlang",
+    "date": "Olib ketish sanasi",
+    "time": "Olib ketish vaqti",
+    "personName": "Olib ketuvchi shaxs nomi",
+    "relationship": "Aloqa",
+    "note": "Izoh",
+    "sendNotice": "Xabar yuborish"
+  },
+  "validation": {
+    "childRequired": "Bolani tanlang.",
+    "dateRequired": "Olib ketish sanasi majburiy.",
+    "timeRequired": "Olib ketish vaqti majburiy.",
+    "personRequired": "Olib ketuvchi shaxs nomi majburiy."
+  },
+  "toast": {
+    "sent": "Olib ketish xabari yuborildi.",
+    "updated": "Olib ketish xabari yangilandi.",
+    "cancelled": "Olib ketish xabari bekor qilindi.",
+    "acknowledged": "Olib ketish xabari tasdiqlandi."
+  },
+  "detail": {
+    "notFound": "Olib ketish xabari topilmadi.",
+    "cancelNotice": "Xabarni bekor qilish",
+    "cancelConfirm": "Ushbu olib ketish xabarini bekor qilasizmi?",
+    "class": "Sinf",
+    "parent": "Ota-ona",
+    "person": "Olib ketuvchi",
+    "relationship": "Aloqa",
+    "note": "Izoh",
+    "acknowledgedBy": "Tasdiqlagan",
+    "notAcknowledged": "Tasdiqlanmagan",
+    "acknowledgedAt": "Tasdiqlangan vaqt",
+    "submitted": "Yuborilgan",
+    "noClass": "Sinf yo'q",
+    "editTitle": "Olib ketish xabarini o'zgartirish",
+    "saveChanges": "O'zgarishlarni saqlash",
+    "staffConfirmation": "Xodim tasdig'i",
+    "acknowledge": "Tasdiqlash"
+  }
+}

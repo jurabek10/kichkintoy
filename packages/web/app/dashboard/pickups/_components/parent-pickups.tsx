@@ -13,12 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { PickupCard } from "./pickup-card";
 
 export function ParentPickups() {
+  const { t } = useLayoutTranslation("pickups");
   const [date, setDate] = useState(todayIso());
   const input = { date };
   const {
@@ -35,10 +37,8 @@ export function ParentPickups() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-xl">Pickup</CardTitle>
-            <CardDescription>
-              Tell the center who will pick up your child and when.
-            </CardDescription>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("parentDescription")}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <DatePicker
@@ -49,7 +49,7 @@ export function ParentPickups() {
             <Button asChild>
               <Link href="/dashboard/pickups/new">
                 <Plus className="h-4 w-4" />
-                New notice
+                {t("newNotice")}
               </Link>
             </Button>
           </div>
@@ -63,13 +63,15 @@ export function ParentPickups() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">Loading...</Card>
+        <Card className="p-6 text-sm text-muted-foreground">
+          {t("loading")}
+        </Card>
       ) : notices.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <UserCheck className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">No pickup notices</p>
+          <p className="font-semibold">{t("empty.parentTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Today's pickup plans will appear here.
+            {t("empty.parentBody")}
           </p>
         </Card>
       ) : (

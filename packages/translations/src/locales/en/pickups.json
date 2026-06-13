@@ -1,0 +1,73 @@
+{
+  "title": "Pickup",
+  "parentDescription": "Tell the center who will pick up your child and when.",
+  "staffDescription": "Review today's pickup notices and acknowledge changes.",
+  "newNotice": "New notice",
+  "back": "Back to pickup",
+  "loading": "Loading...",
+  "noCenter": "Your account is not linked to a center yet.",
+  "filters": {
+    "all": "All statuses"
+  },
+  "status": {
+    "submitted": "Submitted",
+    "changed": "Changed",
+    "acknowledged": "Acknowledged",
+    "cancelled": "Cancelled"
+  },
+  "relationship": {
+    "mother": "Mother",
+    "father": "Father",
+    "grandparent": "Grandparent",
+    "other": "Other"
+  },
+  "empty": {
+    "parentTitle": "No pickup notices",
+    "parentBody": "Today's pickup plans will appear here.",
+    "staffTitle": "No pickup notices for today",
+    "staffBody": "Parent pickup notices will appear here."
+  },
+  "composer": {
+    "newTitle": "New pickup notice",
+    "description": "Tell the center who will pick up your child and when.",
+    "child": "Child",
+    "chooseChild": "Choose child",
+    "date": "Pickup date",
+    "time": "Pickup time",
+    "personName": "Pickup person name",
+    "relationship": "Relationship",
+    "note": "Note",
+    "sendNotice": "Send notice"
+  },
+  "validation": {
+    "childRequired": "Choose a child.",
+    "dateRequired": "Pickup date is required.",
+    "timeRequired": "Pickup time is required.",
+    "personRequired": "Pickup person name is required."
+  },
+  "toast": {
+    "sent": "Pickup notice sent.",
+    "updated": "Pickup notice updated.",
+    "cancelled": "Pickup notice cancelled.",
+    "acknowledged": "Pickup notice acknowledged."
+  },
+  "detail": {
+    "notFound": "Pickup notice not found.",
+    "cancelNotice": "Cancel notice",
+    "cancelConfirm": "Cancel this pickup notice?",
+    "class": "Class",
+    "parent": "Parent",
+    "person": "Pickup person",
+    "relationship": "Relationship",
+    "note": "Note",
+    "acknowledgedBy": "Acknowledged by",
+    "notAcknowledged": "Not acknowledged",
+    "acknowledgedAt": "Acknowledged at",
+    "submitted": "Submitted",
+    "noClass": "No class",
+    "editTitle": "Change pickup notice",
+    "saveChanges": "Save changes",
+    "staffConfirmation": "Staff confirmation",
+    "acknowledge": "Acknowledge"
+  }
+}

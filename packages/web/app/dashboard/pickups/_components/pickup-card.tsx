@@ -5,19 +5,21 @@ import { Clock, UserCheck } from "lucide-react";
 import type { PickupNoticeSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDate } from "@/lib/format";
 import {
-  formatDate,
-  pickupRelationshipLabel,
-  pickupStatusLabel,
-} from "@/lib/format";
+  pickupRelationshipLabelKey,
+  pickupStatusLabelKey,
+} from "./pickup-labels";
 
 export function PickupCard({ notice }: { notice: PickupNoticeSummary }) {
+  const { t } = useLayoutTranslation("pickups");
   return (
     <Link href={`/dashboard/pickups/${notice.id}`} className="block">
       <Card className="h-full transition hover:border-primary/50 hover:shadow-sm">
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge>{pickupStatusLabel(notice.status)}</Badge>
+            <Badge>{t(pickupStatusLabelKey(notice.status))}</Badge>
             <Badge variant="outline">{formatDate(notice.pickupDate)}</Badge>
             <Badge variant="outline" className="gap-1">
               <Clock className="h-3.5 w-3.5" />
@@ -31,12 +33,12 @@ export function PickupCard({ notice }: { notice: PickupNoticeSummary }) {
         </CardHeader>
         <CardContent className="grid gap-2 text-sm">
           <p className="text-muted-foreground">
-            {notice.child.className ?? "No class"}
+            {notice.child.className ?? t("detail.noClass")}
           </p>
           <p>
             <span className="font-medium">{notice.pickupPersonName}</span>{" "}
             <span className="text-muted-foreground">
-              ({pickupRelationshipLabel(notice.relationship)})
+              ({t(pickupRelationshipLabelKey(notice.relationship))})
             </span>
           </p>
           {notice.note ? (

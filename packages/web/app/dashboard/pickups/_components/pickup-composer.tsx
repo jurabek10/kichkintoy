@@ -27,10 +27,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
-import { pickupRelationshipLabel } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { pickupRelationshipLabelKey } from "./pickup-labels";
 
 const relationships: PickupRelationship[] = [
   "mother",
@@ -40,6 +41,7 @@ const relationships: PickupRelationship[] = [
 ];
 
 export function PickupComposer() {
+  const { t } = useLayoutTranslation("pickups");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [childId, setChildId] = useState("");
@@ -73,8 +75,10 @@ export function PickupComposer() {
         note: note || undefined,
       }),
     onSuccess: async (notice) => {
-      toast.success("Pickup notice sent.");
-      await queryClient.invalidateQueries({ queryKey: queryKeys.pickups.all() });
+      toast.success(t("toast.sent"));
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.pickups.all(),
+      });
       router.push(`/dashboard/pickups/${notice.id}`);
     },
     onError: (err) => setError(toApiError(err).message),
@@ -83,11 +87,11 @@ export function PickupComposer() {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    if (!childId) return setError("Choose a child.");
-    if (!pickupDate) return setError("Pickup date is required.");
-    if (!pickupTime) return setError("Pickup time is required.");
+    if (!childId) return setError(t("validation.childRequired"));
+    if (!pickupDate) return setError(t("validation.dateRequired"));
+    if (!pickupTime) return setError(t("validation.timeRequired"));
     if (!pickupPersonName.trim()) {
-      return setError("Pickup person name is required.");
+      return setError(t("validation.personRequired"));
     }
     createMutation.mutate();
   }
@@ -99,16 +103,14 @@ export function PickupComposer() {
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/pickups">
           <ArrowLeft className="h-4 w-4" />
-          Back to pickup
+          {t("back")}
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">New pickup notice</CardTitle>
-          <CardDescription>
-            Tell the center who will pick up your child and when.
-          </CardDescription>
+          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -119,10 +121,10 @@ export function PickupComposer() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label>Child</Label>
+              <Label>{t("composer.child")}</Label>
               <Select value={childId} onValueChange={setChildId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose child" />
+                  <SelectValue placeholder={t("composer.chooseChild")} />
                 </SelectTrigger>
                 <SelectContent>
                   {(audience?.children ?? []).map((child) => (
@@ -134,32 +136,32 @@ export function PickupComposer() {
               </Select>
               {selectedChild ? (
                 <p className="text-xs text-muted-foreground">
-                  {selectedChild.className ?? "No class"}
+                  {selectedChild.className ?? t("detail.noClass")}
                 </p>
               ) : null}
             </div>
             <Field
               id="pickup-date"
-              label="Pickup date"
+              label={t("composer.date")}
               type="date"
               value={pickupDate}
               onChange={setPickupDate}
             />
             <Field
               id="pickup-time"
-              label="Pickup time"
+              label={t("composer.time")}
               type="time"
               value={pickupTime}
               onChange={setPickupTime}
             />
             <Field
               id="pickup-person-name"
-              label="Pickup person name"
+              label={t("composer.personName")}
               value={pickupPersonName}
               onChange={setPickupPersonName}
             />
             <div className="grid gap-2">
-              <Label>Relationship</Label>
+              <Label>{t("composer.relationship")}</Label>
               <Select
                 value={relationship}
                 onValueChange={(value) =>
@@ -172,7 +174,7 @@ export function PickupComposer() {
                 <SelectContent>
                   {relationships.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {pickupRelationshipLabel(item)}
+                      {t(pickupRelationshipLabelKey(item))}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -181,7 +183,7 @@ export function PickupComposer() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="pickup-note">Note</Label>
+            <Label htmlFor="pickup-note">{t("composer.note")}</Label>
             <Textarea
               id="pickup-note"
               value={note}
@@ -197,7 +199,7 @@ export function PickupComposer() {
             disabled={createMutation.isPending}
           >
             <Send className="h-4 w-4" />
-            Send notice
+            {t("composer.sendNotice")}
           </Button>
         </CardContent>
       </Card>
