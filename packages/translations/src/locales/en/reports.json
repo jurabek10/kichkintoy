@@ -165,6 +165,58 @@
       "lunch": "Lunch",
       "nap": "Nap",
       "activity": "Activity"
+    },
+    "generateWithAI": "Generate with AI",
+    "generating": "Generating…",
+    "replaceNote": "Replace your existing note with AI-generated text?",
+    "dayObservations": "Day Observations",
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "snack": "Afternoon Snack",
+    "nap": "Nap",
+    "mainActivity": "Main Activity",
+    "healthStatus": "Health Status",
+    "healthNoteLabel": "Health details (optional)",
+    "healthNotePlaceholderShort": "Any additional health details…",
+    "aiNoteTitle": "Teacher Note for Parents",
+    "aiNoteDescription": "Fill in the observations above, then click Generate — AI will write a warm note in your app language.",
+    "selectOption": "Select…",
+    "moodOptions": {
+      "happy": "Happy and energetic",
+      "calm": "Calm and content",
+      "tired": "Tired",
+      "sad": "Sad / tearful",
+      "irritable": "Irritable",
+      "excited": "Excited and playful"
+    },
+    "mealOptions": {
+      "all": "Ate everything",
+      "most": "Ate most of it",
+      "half": "Ate about half",
+      "little": "Ate a little",
+      "none": "Didn't eat"
+    },
+    "sleepOptions": {
+      "well_2h": "Slept well (2 hours)",
+      "well_1h30": "Slept well (1.5 hours)",
+      "well_1h": "Slept well (1 hour)",
+      "briefly": "Slept briefly (30 min)",
+      "no_sleep": "Didn't sleep",
+      "restless": "Restless sleep"
+    },
+    "activityOptions": {
+      "very_active": "Very active and enthusiastic",
+      "active": "Active",
+      "moderate": "Moderate participation",
+      "passive": "Watched from sidelines",
+      "solo": "Preferred solo play"
+    },
+    "healthOptions": {
+      "healthy": "No health concerns",
+      "slight_fever": "Slight fever",
+      "cough": "Cough / runny nose",
+      "stomach": "Stomach ache",
+      "unwell": "Generally unwell"
     }
   },
   "participation": {

@@ -165,6 +165,58 @@
       "lunch": "Tushlik",
       "nap": "Uyqu",
       "activity": "Faoliyat"
+    },
+    "generateWithAI": "AI yordamida yozish",
+    "generating": "Yozilmoqda…",
+    "replaceNote": "Mavjud matnni AI yozgan matn bilan almashtirilsinmi?",
+    "dayObservations": "Kun kuzatuvlari",
+    "breakfast": "Nonushta",
+    "lunch": "Tushlik",
+    "snack": "Tushdan keyingi ovqat",
+    "nap": "Kunduzi uxlash",
+    "mainActivity": "Asosiy faoliyat",
+    "healthStatus": "Sog'liq holati",
+    "healthNoteLabel": "Sog'liq tafsilotlari (ixtiyoriy)",
+    "healthNotePlaceholderShort": "Qo'shimcha sog'liq ma'lumotlari…",
+    "aiNoteTitle": "Ota-onalar uchun o'qituvchi izohi",
+    "aiNoteDescription": "Yuqoridagi kuzatuvlarni to'ldiring, so'ng «Yozish» tugmasini bosing — AI ilova tilidagi iliq izoh yozadi.",
+    "selectOption": "Tanlang…",
+    "moodOptions": {
+      "happy": "Xursand va faol",
+      "calm": "Sokin va mamnun",
+      "tired": "Charchagan",
+      "sad": "Xafa / yig'lagan",
+      "irritable": "Asabiy",
+      "excited": "Hayajonli va o'ynoqi"
+    },
+    "mealOptions": {
+      "all": "Hammasini yedi",
+      "most": "Ko'p qismini yedi",
+      "half": "Yarmini yedi",
+      "little": "Ozgina yedi",
+      "none": "Yemadi"
+    },
+    "sleepOptions": {
+      "well_2h": "Yaxshi uxladi (2 soat)",
+      "well_1h30": "Yaxshi uxladi (1.5 soat)",
+      "well_1h": "Yaxshi uxladi (1 soat)",
+      "briefly": "Ozgina uxladi (30 daqiqa)",
+      "no_sleep": "Uxlamadi",
+      "restless": "Bezovta uxladi"
+    },
+    "activityOptions": {
+      "very_active": "Juda faol va ishtiyoqli",
+      "active": "Faol",
+      "moderate": "O'rtacha ishtirok etdi",
+      "passive": "Chetdan kuzatdi",
+      "solo": "Yolg'iz o'ynashni afzal ko'rdi"
+    },
+    "healthOptions": {
+      "healthy": "Sog'liq muammolari yo'q",
+      "slight_fever": "Biroz isitma",
+      "cough": "Yo'tal / burun oqishi",
+      "stomach": "Qorin og'rig'idan shikoyat",
+      "unwell": "Umumiy holsizlik"
     }
   },
   "participation": {
