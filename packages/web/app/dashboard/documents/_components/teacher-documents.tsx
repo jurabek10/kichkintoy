@@ -53,7 +53,7 @@ export function TeacherDocuments({ centerId }: { centerId: string | null }) {
         <CardContent>
           <Select value={childId} onValueChange={setChildId}>
             <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder={t("chooseChild")} />
+              <SelectValue placeholder={t("composer.chooseChild")} />
             </SelectTrigger>
             <SelectContent>
               {children.map((child) => (
