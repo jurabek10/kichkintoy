@@ -4,13 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Paperclip, Plus, Save, Send, Trash2, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Paperclip,
+  Save,
+  Send,
+  Sparkles,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { toast } from "sonner";
-import type {
-  DailyReportItemInput,
-  DailyReportItemType,
-  MediaAsset,
-} from "@kichkintoy/shared";
+import type { MediaAsset } from "@kichkintoy/shared";
 import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -35,7 +40,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import { reportItemTypeLabel } from "@/lib/format";
 import {
   ClassParticipationSection,
   classParticipationRowsToItems,
@@ -43,72 +47,95 @@ import {
 } from "./class-participation-section";
 import { todayIsoDate } from "./report-utils";
 
-const itemTypes: DailyReportItemType[] = [
-  "meal",
-  "sleep",
-  "mood",
-  "temperature",
-  "activity",
-  "health",
-  "custom",
-];
+// ─── Dropdown option keys ────────────────────────────────────────────────────
+
+const moodOptionKeys = ["happy", "calm", "tired", "sad", "irritable", "excited"] as const;
+const mealOptionKeys = ["all", "most", "half", "little", "none"] as const;
+const sleepOptionKeys = ["well_2h", "well_1h30", "well_1h", "briefly", "no_sleep", "restless"] as const;
+const activityOptionKeys = ["very_active", "active", "moderate", "passive", "solo"] as const;
+const healthOptionKeys = ["healthy", "slight_fever", "cough", "stomach", "unwell"] as const;
+
+// ─── State shape ─────────────────────────────────────────────────────────────
+
+type ObservationState = {
+  mood: string;
+  breakfast: string;
+  lunch: string;
+  snack: string;
+  sleep: string;
+  activity: string;
+  healthStatus: string;
+  healthNote: string;
+};
+
+function emptyObservations(): ObservationState {
+  return {
+    mood: "",
+    breakfast: "",
+    lunch: "",
+    snack: "",
+    sleep: "",
+    activity: "",
+    healthStatus: "",
+    healthNote: "",
+  };
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export function ReportComposer({
   childId,
+  childName,
   centerId,
   initialReportDate,
 }: {
   childId: string;
+  childName?: string | null;
   centerId?: string | null;
   initialReportDate?: string | null;
 }) {
-  const { t } = useLayoutTranslation("reports");
+  const { t, i18n } = useLayoutTranslation("reports");
   const router = useRouter();
   const queryClient = useQueryClient();
+
   const [reportDate, setReportDate] = useState(initialReportDate ?? todayIsoDate());
-  const [mood, setMood] = useState("");
-  const [healthNote, setHealthNote] = useState("");
+  const [obs, setObs] = useState<ObservationState>(emptyObservations);
   const [teacherNote, setTeacherNote] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
-  const [classParticipationRows, setClassParticipationRows] = useState<
-    ClassParticipationRow[]
-  >([]);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [classParticipationRows, setClassParticipationRows] = useState<ClassParticipationRow[]>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
-  const [items, setItems] = useState<DailyReportItemInput[]>(() => [
-    {
-      itemType: "meal",
-      title: t("composer.defaultItems.lunch"),
-      value: "",
-      note: "",
-    },
-    {
-      itemType: "sleep",
-      title: t("composer.defaultItems.nap"),
-      value: "",
-      note: "",
-    },
-    {
-      itemType: "activity",
-      title: t("composer.defaultItems.activity"),
-      value: "",
-      note: "",
-    },
-  ]);
   const [error, setError] = useState<string | null>(null);
+
+  function setField<K extends keyof ObservationState>(key: K, value: ObservationState[K]) {
+    setObs((prev) => ({ ...prev, [key]: value }));
+  }
+
+  // Build items array from dropdown state for saving
+  function buildItems() {
+    const items: Array<{ itemType: "meal" | "sleep" | "activity" | "health" | "class_participation"; title?: string; value?: string; note?: string }> = [];
+    if (obs.breakfast) items.push({ itemType: "meal", title: t("composer.breakfast"), value: obs.breakfast });
+    if (obs.lunch)     items.push({ itemType: "meal", title: t("composer.lunch"),     value: obs.lunch });
+    if (obs.snack)     items.push({ itemType: "meal", title: t("composer.snack"),     value: obs.snack });
+    if (obs.sleep)     items.push({ itemType: "sleep", title: t("composer.nap"),      value: obs.sleep });
+    if (obs.activity)  items.push({ itemType: "activity", title: t("composer.mainActivity"), value: obs.activity });
+    if (obs.healthStatus) items.push({ itemType: "health", value: obs.healthStatus, note: obs.healthNote || undefined });
+    for (const raw of classParticipationRowsToItems(classParticipationRows)) {
+      items.push({ itemType: raw.itemType as "class_participation", title: raw.title ?? undefined, value: raw.value ?? undefined, note: raw.note ?? undefined });
+    }
+    return items;
+  }
 
   const createMutation = useMutation({
     mutationFn: (mode: "draft" | "publish" | "schedule") =>
       orpc.reports.create({
         childId,
         reportDate,
-        mood: mood || undefined,
-        healthNote: healthNote || undefined,
+        mood: obs.mood || undefined,
+        healthNote: obs.healthNote || undefined,
         teacherNote: teacherNote || undefined,
-        items: compactItems([
-          ...items,
-          ...classParticipationRowsToItems(classParticipationRows),
-        ]),
-        photoAssetIds: mediaAssets.map((asset) => asset.id),
+        items: buildItems(),
+        photoAssetIds: mediaAssets.map((a) => a.id),
         publish: mode === "publish",
         scheduledAt:
           mode === "schedule" && scheduledAt
@@ -117,7 +144,6 @@ export function ReportComposer({
       }),
     onSuccess: async (created, mode) => {
       toast.success(successMessage(mode, t));
-      // Refresh teacher report lists/statuses before navigating to the new report.
       await queryClient.invalidateQueries({ queryKey: ["teacher"] });
       router.push(`/dashboard/reports/${created.id}`);
     },
@@ -127,32 +153,64 @@ export function ReportComposer({
   const submitting = createMutation.isPending;
 
   function submit(mode: "draft" | "publish" | "schedule") {
-    if (!childId) {
-      setError(t("composer.childIdMissing"));
-      return;
-    }
+    if (!childId) { setError(t("composer.childIdMissing")); return; }
     setError(null);
     createMutation.mutate(mode);
   }
 
-  function updateItem(index: number, patch: Partial<DailyReportItemInput>) {
-    setItems((current) =>
-      current.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, ...patch } : item,
-      ),
-    );
-  }
+  async function generateWithAI() {
+    if (teacherNote.trim() && !window.confirm(t("composer.replaceNote"))) return;
 
-  function removeItem(index: number) {
-    setItems((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    const language = i18n.language === "ru" ? "ru" : "uz";
+    const placeholder = language === "ru" ? "ребёнок" : "bola";
+
+    // Build items with human-readable translated labels for AI context
+    const aiItems: Array<{ itemType: "meal" | "sleep" | "activity" | "health"; title?: string; value?: string }> = [];
+    if (obs.breakfast) aiItems.push({ itemType: "meal", title: t("composer.breakfast"), value: obs.breakfast });
+    if (obs.lunch)     aiItems.push({ itemType: "meal", title: t("composer.lunch"),     value: obs.lunch });
+    if (obs.snack)     aiItems.push({ itemType: "meal", title: t("composer.snack"),     value: obs.snack });
+    if (obs.sleep)     aiItems.push({ itemType: "sleep", title: t("composer.nap"),      value: obs.sleep });
+    if (obs.activity)  aiItems.push({ itemType: "activity", title: t("composer.mainActivity"), value: obs.activity });
+    if (obs.healthStatus) aiItems.push({ itemType: "health", value: obs.healthStatus });
+
+    const participation = classParticipationRows
+      .filter((row) => row.subject.trim() || row.customSubject.trim())
+      .map((row) => ({
+        subject: row.subject === "Other" ? row.customSubject : row.subject,
+        level: row.participation,
+        interest: row.interest,
+        strengths: row.strengths || undefined,
+        needsPractice: row.needsPractice || undefined,
+      }));
+
+    setAiGenerating(true);
+    try {
+      const result = await orpc.reports.generateNote({
+        language,
+        mood: obs.mood || undefined,
+        items: aiItems.length > 0 ? aiItems : undefined,
+        classParticipation: participation.length > 0 ? participation : undefined,
+      });
+      const name = childName?.trim() || placeholder;
+      setTeacherNote(
+        formatGeneratedNote({
+          note: result.teacherNote,
+          placeholder,
+          childName: name,
+          language,
+          hasMedia: mediaAssets.length > 0,
+        }),
+      );
+    } catch (err) {
+      toast.error(toApiError(err).message);
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   async function uploadFiles(files: FileList | null) {
     if (!files) return;
-    if (!centerId) {
-      setError(t("composer.centerIdMissing"));
-      return;
-    }
+    if (!centerId) { setError(t("composer.centerIdMissing")); return; }
     setError(null);
     try {
       const uploaded: MediaAsset[] = [];
@@ -164,433 +222,294 @@ export function ReportComposer({
           sizeBytes: file.size,
           purpose: "daily_report",
         });
-        const response = await fetch(signed.uploadUrl, {
+        const res = await fetch(signed.uploadUrl, {
           method: "PUT",
           headers: { "Content-Type": file.type },
           body: file,
         });
-        if (!response.ok)
-          throw new Error(t("composer.uploadFailedFor", { file: file.name }));
-        const asset = await orpc.media.completeUpload({
-          mediaAssetId: signed.mediaAssetId,
-        });
-        uploaded.push(asset);
+        if (!res.ok) throw new Error(t("composer.uploadFailedFor", { file: file.name }));
+        uploaded.push(await orpc.media.completeUpload({ mediaAssetId: signed.mediaAssetId }));
       }
-      setMediaAssets((current) => [...current, ...uploaded]);
-      if (uploaded.length > 0)
-        toast.success(t("composer.filesUploaded", { count: uploaded.length }));
+      setMediaAssets((cur) => [...cur, ...uploaded]);
+      if (uploaded.length > 0) toast.success(t("composer.filesUploaded", { count: uploaded.length }));
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t("composer.uploadFailed"),
-      );
+      setError(err instanceof Error ? err.message : t("composer.uploadFailed"));
     }
   }
 
-  function removeMedia(assetId: string) {
-    setMediaAssets((current) => current.filter((asset) => asset.id !== assetId));
-  }
+  const hasObservations =
+    !!obs.mood || !!obs.breakfast || !!obs.lunch || !!obs.snack ||
+    !!obs.sleep || !!obs.activity || !!obs.healthStatus ||
+    classParticipationRows.some((r) => r.subject || r.customSubject);
 
   return (
     <form
       className="flex flex-col gap-4"
-      onSubmit={(event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        submit("draft");
-      }}
+      onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); submit("draft"); }}
     >
-      <BackToReports t={t} />
-      <ComposerHeader t={t} />
+      {/* Back link */}
+      <Link
+        href="/dashboard/reports"
+        className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t("back")}
+      </Link>
 
-      {error ? (
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">{t("composer.newReport")}</CardTitle>
+          <CardDescription>{t("composer.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-col gap-2 max-w-xs">
+            <Label htmlFor="report-date">{t("composer.date")}</Label>
+            <DatePicker id="report-date" value={reportDate} onValueChange={setReportDate} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      ) : null}
+      )}
 
-      <ReportBasics
-        healthNote={healthNote}
-        mood={mood}
-        reportDate={reportDate}
-        teacherNote={teacherNote}
-        t={t}
-        onHealthNoteChange={setHealthNote}
-        onMoodChange={setMood}
-        onReportDateChange={setReportDate}
-        onTeacherNoteChange={setTeacherNote}
-      />
+      {/* Day Observations — all dropdowns */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("composer.dayObservations")}</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Mood */}
+          <ObservationDropdown
+            label={t("detail.mood")}
+            value={obs.mood}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("mood", v)}
+            options={moodOptionKeys.map((k) => ({ value: t(`composer.moodOptions.${k}`), label: t(`composer.moodOptions.${k}`) }))}
+          />
+          {/* Breakfast */}
+          <ObservationDropdown
+            label={t("composer.breakfast")}
+            value={obs.breakfast}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("breakfast", v)}
+            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+          />
+          {/* Lunch */}
+          <ObservationDropdown
+            label={t("composer.lunch")}
+            value={obs.lunch}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("lunch", v)}
+            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+          />
+          {/* Snack */}
+          <ObservationDropdown
+            label={t("composer.snack")}
+            value={obs.snack}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("snack", v)}
+            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+          />
+          {/* Sleep */}
+          <ObservationDropdown
+            label={t("composer.nap")}
+            value={obs.sleep}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("sleep", v)}
+            options={sleepOptionKeys.map((k) => ({ value: t(`composer.sleepOptions.${k}`), label: t(`composer.sleepOptions.${k}`) }))}
+          />
+          {/* Activity */}
+          <ObservationDropdown
+            label={t("composer.mainActivity")}
+            value={obs.activity}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("activity", v)}
+            options={activityOptionKeys.map((k) => ({ value: t(`composer.activityOptions.${k}`), label: t(`composer.activityOptions.${k}`) }))}
+          />
+          {/* Health status */}
+          <ObservationDropdown
+            label={t("composer.healthStatus")}
+            value={obs.healthStatus}
+            placeholder={t("composer.selectOption")}
+            onChange={(v) => setField("healthStatus", v)}
+            options={healthOptionKeys.map((k) => ({ value: t(`composer.healthOptions.${k}`), label: t(`composer.healthOptions.${k}`) }))}
+          />
+          {/* Health note — only when there is something to note */}
+          {obs.healthStatus && obs.healthStatus !== t("composer.healthOptions.healthy") && (
+            <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
+              <Label htmlFor="health-note">{t("composer.healthNoteLabel")}</Label>
+              <Textarea
+                id="health-note"
+                value={obs.healthNote}
+                onChange={(e) => setField("healthNote", e.target.value)}
+                placeholder={t("composer.healthNotePlaceholderShort")}
+                rows={2}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <ReportItems
-        items={items}
-        t={t}
-        onAdd={() =>
-          setItems((current) => [
-            ...current,
-            { itemType: "custom", title: "", value: "", note: "" },
-          ])
-        }
-        onRemove={removeItem}
-        onUpdate={updateItem}
-      />
-
+      {/* Class Participation — stays fully manual */}
       <ClassParticipationSection
         rows={classParticipationRows}
         onChange={setClassParticipationRows}
       />
 
-      <ReportMediaUpload
-        disabled={!centerId}
-        mediaAssets={mediaAssets}
-        t={t}
-        onRemove={removeMedia}
-        onUpload={uploadFiles}
-      />
+      {/* Media Upload */}
+      <Card>
+        <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="text-base">{t("composer.photosVideos")}</CardTitle>
+            <CardDescription>{t("composer.mediaDescription")}</CardDescription>
+          </div>
+          <Button type="button" variant="outline" size="sm" disabled={!centerId} asChild>
+            <Label className="cursor-pointer">
+              <Upload className="h-4 w-4" />
+              {t("composer.uploadFiles")}
+              <Input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm,video/quicktime"
+                multiple
+                className="sr-only"
+                onChange={(e) => { uploadFiles(e.target.files); e.currentTarget.value = ""; }}
+              />
+            </Label>
+          </Button>
+        </CardHeader>
+        {mediaAssets.length > 0 && (
+          <CardContent>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {mediaAssets.map((asset) => (
+                <li key={asset.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
+                      {asset.mediaType === "video" ? t("composer.video") : t("composer.photo")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{formatMediaSize(asset.sizeBytes, t)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <Button
+                      type="button" size="icon" variant="ghost"
+                      onClick={() => setMediaAssets((cur) => cur.filter((a) => a.id !== asset.id))}
+                      aria-label={t("composer.removeMedia")}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        )}
+      </Card>
 
-      <ComposerActions
-        scheduledAt={scheduledAt}
-        submitting={submitting}
-        t={t}
-        onSchedule={() => submit("schedule")}
-        onScheduledAtChange={setScheduledAt}
-        onPublish={() => submit("publish")}
-      />
+      {/* ── AI-generated teacher note — LAST content section ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("composer.aiNoteTitle")}</CardTitle>
+          <CardDescription>{t("composer.aiNoteDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Textarea
+            id="teacher-note"
+            value={teacherNote}
+            readOnly={aiGenerating}
+            onChange={(e) => setTeacherNote(e.target.value)}
+            placeholder={t("composer.teacherNotePlaceholder")}
+            rows={6}
+          />
+          <Button
+            type="button"
+            size="lg"
+            className="w-full sm:w-fit"
+            disabled={aiGenerating || !hasObservations}
+            onClick={generateWithAI}
+          >
+            {aiGenerating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Sparkles className="h-5 w-5" />
+            )}
+            {aiGenerating ? t("composer.generating") : t("composer.generateWithAI")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Sticky actions */}
+      <Card className="sticky bottom-4">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="schedule-at">{t("composer.scheduleTime")}</Label>
+            <Input
+              id="schedule-at"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="w-[230px]"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" variant="outline" disabled={submitting}>
+              <Save className="h-4 w-4" />
+              {t("composer.saveDraft")}
+            </Button>
+            <Button type="button" variant="outline" disabled={submitting || !scheduledAt} onClick={() => submit("schedule")}>
+              {t("composer.schedule")}
+            </Button>
+            <Button type="button" disabled={submitting} onClick={() => submit("publish")}>
+              <Send className="h-4 w-4" />
+              {t("composer.publish")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </form>
   );
 }
 
-function ReportMediaUpload({
-  disabled,
-  mediaAssets,
-  onRemove,
-  onUpload,
-  t,
+// ─── Reusable dropdown ────────────────────────────────────────────────────────
+
+function ObservationDropdown({
+  label,
+  value,
+  placeholder,
+  options,
+  onChange,
 }: {
-  disabled: boolean;
-  mediaAssets: MediaAsset[];
-  onRemove: (assetId: string) => void;
-  onUpload: (files: FileList | null) => void;
-  t: TFunction<"reports">;
+  label: string;
+  value: string;
+  placeholder: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
 }) {
   return (
-    <Card>
-      <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <CardTitle className="text-base">{t("composer.photosVideos")}</CardTitle>
-          <CardDescription>{t("composer.mediaDescription")}</CardDescription>
-        </div>
-        <Button type="button" variant="outline" size="sm" disabled={disabled} asChild>
-          <Label className="cursor-pointer">
-            <Upload className="h-4 w-4" />
-            {t("composer.uploadFiles")}
-            <Input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm,video/quicktime"
-              multiple
-              className="sr-only"
-              onChange={(event) => {
-                onUpload(event.target.files);
-                event.currentTarget.value = "";
-              }}
-            />
-          </Label>
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {disabled ? (
-          <p className="text-sm text-muted-foreground">
-            {t("composer.openFromClass")}
-          </p>
-        ) : mediaAssets.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("composer.noMedia")}</p>
-        ) : (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {mediaAssets.map((asset) => (
-              <li
-                key={asset.id}
-                className="flex items-center justify-between gap-3 rounded-lg border p-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">
-                    {asset.mediaType === "video"
-                      ? t("composer.video")
-                      : t("composer.photo")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatMediaSize(asset.sizeBytes, t)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Paperclip className="h-4 w-4 text-muted-foreground" />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => onRemove(asset.id)}
-                    aria-label={t("composer.removeMedia")}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function BackToReports({ t }: { t: TFunction<"reports"> }) {
-  return (
-    <Link
-      href="/dashboard/reports"
-      className="inline-flex w-fit items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground"
-    >
-      <ArrowLeft className="h-4 w-4" />
-      {t("back")}
-    </Link>
-  );
-}
-
-function ComposerHeader({ t }: { t: TFunction<"reports"> }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">{t("composer.newReport")}</CardTitle>
-        <CardDescription>{t("composer.description")}</CardDescription>
-      </CardHeader>
-    </Card>
-  );
-}
-
-function ReportBasics({
-  healthNote,
-  mood,
-  onHealthNoteChange,
-  onMoodChange,
-  onReportDateChange,
-  onTeacherNoteChange,
-  reportDate,
-  teacherNote,
-  t,
-}: {
-  healthNote: string;
-  mood: string;
-  onHealthNoteChange: (value: string) => void;
-  onMoodChange: (value: string) => void;
-  onReportDateChange: (value: string) => void;
-  onTeacherNoteChange: (value: string) => void;
-  reportDate: string;
-  teacherNote: string;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <Card>
-      <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="report-date">{t("composer.date")}</Label>
-          <DatePicker
-            id="report-date"
-            value={reportDate}
-            onValueChange={onReportDateChange}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="mood">{t("detail.mood")}</Label>
-          <Input
-            id="mood"
-            value={mood}
-            onChange={(event) => onMoodChange(event.target.value)}
-            placeholder={t("composer.moodPlaceholder")}
-          />
-        </div>
-        <div className="flex flex-col gap-2 sm:col-span-2">
-          <Label htmlFor="teacher-note">{t("detail.teacherNote")}</Label>
-          <Textarea
-            id="teacher-note"
-            value={teacherNote}
-            onChange={(event) => onTeacherNoteChange(event.target.value)}
-            placeholder={t("composer.teacherNotePlaceholder")}
-            rows={5}
-          />
-        </div>
-        <div className="flex flex-col gap-2 sm:col-span-2">
-          <Label htmlFor="health-note">{t("detail.healthNote")}</Label>
-          <Textarea
-            id="health-note"
-            value={healthNote}
-            onChange={(event) => onHealthNoteChange(event.target.value)}
-            placeholder={t("composer.healthNotePlaceholder")}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ReportItems({
-  items,
-  onAdd,
-  onRemove,
-  onUpdate,
-  t,
-}: {
-  items: DailyReportItemInput[];
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  onUpdate: (index: number, patch: Partial<DailyReportItemInput>) => void;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">{t("composer.items")}</CardTitle>
-        <Button type="button" size="sm" variant="outline" onClick={onAdd}>
-          <Plus className="h-4 w-4" />
-          {t("composer.addItem")}
-        </Button>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        {items.map((item, index) => (
-          <ReportItemEditor
-            key={index}
-            index={index}
-            item={item}
-            t={t}
-            onRemove={onRemove}
-            onUpdate={onUpdate}
-          />
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ReportItemEditor({
-  index,
-  item,
-  onRemove,
-  onUpdate,
-  t,
-}: {
-  index: number;
-  item: DailyReportItemInput;
-  onRemove: (index: number) => void;
-  onUpdate: (index: number, patch: Partial<DailyReportItemInput>) => void;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[160px_1fr_1fr_auto]">
-      <Select
-        value={item.itemType}
-        onValueChange={(value) =>
-          onUpdate(index, { itemType: value as DailyReportItemType })
-        }
-      >
+    <div className="flex flex-col gap-2">
+      <Label>{label}</Label>
+      <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {itemTypes.map((type) => (
-            <SelectItem key={type} value={type}>
-              {t(`itemTypes.${type}`, reportItemTypeLabel(type))}
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <Input
-        value={item.title ?? ""}
-        onChange={(event) => onUpdate(index, { title: event.target.value })}
-        placeholder={t("composer.title")}
-      />
-      <Input
-        value={item.value ?? ""}
-        onChange={(event) => onUpdate(index, { value: event.target.value })}
-        placeholder={t("composer.value")}
-      />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={() => onRemove(index)}
-        aria-label={t("composer.removeItem")}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-      <Textarea
-        className="sm:col-span-4"
-        value={item.note ?? ""}
-        onChange={(event) => onUpdate(index, { note: event.target.value })}
-        placeholder={t("composer.note")}
-      />
     </div>
   );
 }
 
-function ComposerActions({
-  onPublish,
-  onSchedule,
-  onScheduledAtChange,
-  scheduledAt,
-  submitting,
-  t,
-}: {
-  onPublish: () => void;
-  onSchedule: () => void;
-  onScheduledAtChange: (value: string) => void;
-  scheduledAt: string;
-  submitting: boolean;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <Card className="sticky bottom-4">
-      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="schedule-at">{t("composer.scheduleTime")}</Label>
-          <Input
-            id="schedule-at"
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(event) => onScheduledAtChange(event.target.value)}
-            className="w-[230px]"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" variant="outline" disabled={submitting}>
-            <Save className="h-4 w-4" />
-            {t("composer.saveDraft")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={submitting || !scheduledAt}
-            onClick={onSchedule}
-          >
-            {t("composer.schedule")}
-          </Button>
-          <Button type="button" disabled={submitting} onClick={onPublish}>
-            <Send className="h-4 w-4" />
-            {t("composer.publish")}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function compactItems(items: DailyReportItemInput[]) {
-  return items.filter(
-    (item) =>
-      item.title?.trim() ||
-      item.value?.trim() ||
-      item.note?.trim() ||
-      item.itemType === "mood",
-  );
-}
-
-function successMessage(
-  mode: "draft" | "publish" | "schedule",
-  t: TFunction<"reports">,
-) {
+function successMessage(mode: "draft" | "publish" | "schedule", t: TFunction<"reports">) {
   if (mode === "publish") return t("detail.reportPublished");
   if (mode === "schedule") return t("composer.reportScheduled");
   return t("composer.draftSaved");
@@ -598,8 +517,58 @@ function successMessage(
 
 function formatMediaSize(sizeBytes: number | null, t: TFunction<"reports">) {
   if (!sizeBytes) return t("composer.uploaded");
-  if (sizeBytes >= 1024 * 1024) {
-    return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
-  }
+  if (sizeBytes >= 1024 * 1024) return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
   return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
+}
+
+function formatGeneratedNote({
+  note,
+  placeholder,
+  childName,
+  language,
+  hasMedia,
+}: {
+  note: string;
+  placeholder: string;
+  childName: string;
+  language: "uz" | "ru";
+  hasMedia: boolean;
+}) {
+  const personalized = note
+    .trim()
+    .replace(new RegExp(placeholder, "gi"), childName);
+  const greeting = pickVariant(
+    language === "ru"
+      ? [
+          `Здравствуйте, родители ${childName}.`,
+          `Добрый день, семья ${childName}.`,
+          `Здравствуйте, мама и папа ${childName}.`,
+        ]
+      : [
+          `Assalomu alaykum, ${childName}ning ota-onasi. 😊`,
+          `Assalomu alaykum, ${childName}ning aziz yaqinlari. 🌿`,
+          `Assalomu alaykum, ${childName}ning onasi va otasi. 😊`,
+        ],
+  );
+  const mediaNote = hasMedia
+    ? pickVariant(
+        language === "ru"
+          ? [
+              "Сегодняшние фото и видео тоже прикрепляю, чтобы вы могли увидеть моменты дня.",
+              "К отчёту добавила фото и видео с сегодняшнего дня.",
+              "Несколько сегодняшних фото и видео отправляю вместе с отчётом.",
+            ]
+          : [
+              "Bugungi kundan rasm va videolarni ham biriktirdim, ko'rib quvonasiz degan umiddaman. 📷",
+              "Hisobotga bugungi jarayondan bir nechta rasm va videolarni ham qo'shdim. 🎥",
+              "Bugungi kunidan kichik lavhalar sifatida rasm va videolarni ham yuboryapman. 📷",
+            ],
+      )
+    : null;
+
+  return [greeting, personalized, mediaNote].filter(Boolean).join("\n\n");
+}
+
+function pickVariant(values: string[]) {
+  return values[Math.floor(Math.random() * values.length)] ?? values[0] ?? "";
 }

@@ -520,7 +520,12 @@ function ClassReportRow({
         ) : (
           <Button asChild size="sm">
             <Link
-              href={`/dashboard/reports/new?childId=${row.id}&centerId=${row.centerId}&reportDate=${date}`}
+              href={newReportHref({
+                childId: row.id,
+                childName: row.name,
+                centerId: row.centerId,
+                reportDate: date,
+              })}
             >
               <Plus className="h-4 w-4" />
               {t("newReport")}
@@ -530,4 +535,24 @@ function ClassReportRow({
       </div>
     </li>
   );
+}
+
+function newReportHref({
+  childId,
+  childName,
+  centerId,
+  reportDate,
+}: {
+  childId: string;
+  childName: string;
+  centerId: string;
+  reportDate: string;
+}) {
+  const params = new URLSearchParams({
+    childId,
+    childName,
+    centerId,
+    reportDate,
+  });
+  return `/dashboard/reports/new?${params.toString()}`;
 }
