@@ -10,6 +10,7 @@ import {
   dailyReportDetailSchema,
   dailyReportListResponseSchema,
   dailyReportReadSchema,
+  generateReportNoteInputSchema,
   parentChildSummarySchema,
   publishDailyReportRequestSchema,
   updateDailyReportRequestSchema,
@@ -102,4 +103,7 @@ export const reportsContract = {
   deleteComment: oc
     .input(deleteCommentInputSchema)
     .output(successResponseSchema),
+  generateNote: oc
+    .input(generateReportNoteInputSchema)
+    .output(z.object({ teacherNote: z.string() })),
 };

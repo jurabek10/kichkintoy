@@ -246,3 +246,32 @@ export const dailyReportListResponseSchema = z.array(dailyReportSummarySchema);
 export type DailyReportListResponse = z.infer<
   typeof dailyReportListResponseSchema
 >;
+
+export const generateReportNoteInputSchema = z.object({
+  language: z.enum(["uz", "ru"]),
+  mood: z.string().trim().max(80).optional(),
+  items: z
+    .array(
+      z.object({
+        itemType: dailyReportItemTypeSchema,
+        title: z.string().trim().max(80).optional(),
+        value: z.string().trim().max(120).optional(),
+        note: z.string().trim().max(500).optional(),
+      }),
+    )
+    .optional(),
+  classParticipation: z
+    .array(
+      z.object({
+        subject: z.string().trim().max(80),
+        level: classParticipationLevelSchema,
+        interest: classParticipationInterestSchema.optional(),
+        strengths: z.string().trim().max(300).optional(),
+        needsPractice: z.string().trim().max(300).optional(),
+      }),
+    )
+    .optional(),
+});
+export type GenerateReportNoteInput = z.infer<
+  typeof generateReportNoteInputSchema
+>;
