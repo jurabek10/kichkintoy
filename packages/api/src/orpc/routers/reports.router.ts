@@ -134,5 +134,12 @@ export function createReportsRouter(os: ORPCImplementer, deps: ORPCDeps) {
         );
       },
     ),
+    generateNote: os.reports.generateNote.handler(
+      async ({ input, context }) => {
+        await requireUser(deps.prisma, context.req);
+        const teacherNote = await deps.geminiService.generateTeacherNote(input);
+        return { teacherNote };
+      },
+    ),
   };
 }

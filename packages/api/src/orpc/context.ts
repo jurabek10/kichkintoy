@@ -21,6 +21,7 @@ import type { NoticesService } from "../notices/notices.service";
 import type { NotificationsQueryService } from "../notifications/notifications-query.service";
 import type { PickupsService } from "../pickups/pickups.service";
 import type { RealtimeService } from "../realtime/realtime.service";
+import type { GeminiService } from "../reports/gemini.service";
 import type { ReportsService } from "../reports/reports.service";
 import type { StudentDocumentsService } from "../student-documents/student-documents.service";
 import type { TeacherService } from "../teacher/teacher.service";
@@ -51,6 +52,7 @@ export type ORPCDeps = {
   pickupsService: PickupsService;
   realtimeService: RealtimeService;
   reportsService: ReportsService;
+  geminiService: GeminiService;
   studentDocumentsService: StudentDocumentsService;
   teacherService: TeacherService;
 };

@@ -19,6 +19,7 @@ import { NotificationsQueryService } from "../notifications/notifications-query.
 import { PickupsService } from "../pickups/pickups.service";
 import { PrismaService } from "../database/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
+import { GeminiService } from "../reports/gemini.service";
 import { ReportsService } from "../reports/reports.service";
 import { StudentDocumentsService } from "../student-documents/student-documents.service";
 import { TeacherService } from "../teacher/teacher.service";
@@ -65,6 +66,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     prisma: app.get(PrismaService, { strict: false }),
     realtimeService: app.get(RealtimeService, { strict: false }),
     reportsService: app.get(ReportsService, { strict: false }),
+    geminiService: app.get(GeminiService, { strict: false }),
     studentDocumentsService: app.get(StudentDocumentsService, { strict: false }),
     teacherService: app.get(TeacherService, { strict: false }),
   });
