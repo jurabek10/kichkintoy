@@ -4,19 +4,20 @@ import { pendingInvitationSchema } from "@kichkintoy/shared";
 import {
   bearerToken,
   requestContext,
-  requireUser,
   type ORPCDeps,
   type ORPCImplementer,
-} from "../context";
+} from "../orpc/context";
+import { createAccess } from "../orpc/access";
 import {
   acceptInvitationSchema,
   registerSchema,
   submitJoinRequestSchema,
-} from "../../auth/auth.schemas";
+} from "./auth.schemas";
 
 const pendingInvitationsSchema = z.array(pendingInvitationSchema);
 
 export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
+  const access = createAccess(os, deps);
   return {
     sendCode: os.auth.sendCode.handler(({ input, context }) =>
       deps.authService.sendCode(input, requestContext(context.req)),
@@ -47,46 +48,42 @@ export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
         ),
       ),
     ),
-    me: os.auth.me.handler(async ({ context }) => {
-      const user = await requireUser(deps.prisma, context.req);
-      return { user };
-    }),
-    myInvitations: os.auth.myInvitations.handler(async ({ context }) => {
-      const user = await requireUser(deps.prisma, context.req);
-      return pendingInvitationsSchema.parse(
-        await deps.authService.listMyInvitations(user.id),
-      );
-    }),
-    acceptInvitation: os.auth.acceptInvitation.handler(
-      async ({ input, context }) => {
-        const user = await requireUser(deps.prisma, context.req);
-        return deps.authService.acceptInvitation(
-          user.id,
+    me: os.auth.me.use(access.authed).handler(({ context }) => ({
+      user: context.user,
+    })),
+    myInvitations: os.auth.myInvitations
+      .use(access.authed)
+      .handler(async ({ context }) =>
+        pendingInvitationsSchema.parse(
+          await deps.authService.listMyInvitations(context.user.id),
+        ),
+      ),
+    acceptInvitation: os.auth.acceptInvitation
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.authService.acceptInvitation(
+          context.user.id,
           input.id,
           acceptInvitationSchema.parse(input.body).child,
-        );
-      },
-    ),
-    declineInvitation: os.auth.declineInvitation.handler(
-      async ({ input, context }) => {
-        const user = await requireUser(deps.prisma, context.req);
-        return deps.authService.declineInvitation(user.id, input.id);
-      },
-    ),
-    submitJoinRequest: os.auth.submitJoinRequest.handler(
-      async ({ input, context }) => {
-        const user = await requireUser(deps.prisma, context.req);
-        return deps.authService.submitJoinRequest(
-          user.id,
+        ),
+      ),
+    declineInvitation: os.auth.declineInvitation
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.authService.declineInvitation(context.user.id, input.id),
+      ),
+    submitJoinRequest: os.auth.submitJoinRequest
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.authService.submitJoinRequest(
+          context.user.id,
           submitJoinRequestSchema.parse(input),
-        );
-      },
-    ),
-    cancelJoinRequest: os.auth.cancelJoinRequest.handler(
-      async ({ input, context }) => {
-        const user = await requireUser(deps.prisma, context.req);
-        return deps.authService.cancelJoinRequest(user.id, input.id);
-      },
-    ),
+        ),
+      ),
+    cancelJoinRequest: os.auth.cancelJoinRequest
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.authService.cancelJoinRequest(context.user.id, input.id),
+      ),
   };
 }

@@ -25,25 +25,23 @@ import { StudentDocumentsService } from "../student-documents/student-documents.
 import { TeacherService } from "../teacher/teacher.service";
 import type { ORPCContext, ORPCDeps } from "./context";
 import { rpcRateLimit } from "./rate-limit";
-import { createAlbumsRouter } from "./routers/albums.router";
-import { createAttendanceRouter } from "./routers/attendance.router";
-import { createAuthRouter } from "./routers/auth.router";
-import { createCalendarRouter } from "./routers/calendar.router";
-import {
-  createCentersRouter,
-  createGeoRouter,
-  createTeacherRouter,
-} from "./routers/catalog.router";
-import { createDirectorRouter } from "./routers/director.router";
-import { createMediaRouter } from "./routers/media.router";
-import { createMedicationsRouter } from "./routers/medications.router";
-import { createMealsRouter } from "./routers/meals.router";
-import { createNoticesRouter } from "./routers/notices.router";
-import { createNotificationsRouter } from "./routers/notifications.router";
-import { createPickupsRouter } from "./routers/pickups.router";
-import { createRealtimeRouter } from "./routers/realtime.router";
-import { createReportsRouter } from "./routers/reports.router";
-import { createStudentDocumentsRouter } from "./routers/student-documents.router";
+import { createAlbumsRouter } from "../albums/albums.router";
+import { createAttendanceRouter } from "../attendance/attendance.router";
+import { createAuthRouter } from "../auth/auth.router";
+import { createCalendarRouter } from "../calendar/calendar.router";
+import { createCentersRouter } from "../centers/centers.router";
+import { createGeoRouter } from "../geo/geo.router";
+import { createTeacherRouter } from "../teacher/teacher.router";
+import { createDirectorRouter } from "../director/director.router";
+import { createMediaRouter } from "../media/media.router";
+import { createMedicationsRouter } from "../medications/medications.router";
+import { createMealsRouter } from "../meals/meals.router";
+import { createNoticesRouter } from "../notices/notices.router";
+import { createNotificationsRouter } from "../notifications/notifications.router";
+import { createPickupsRouter } from "../pickups/pickups.router";
+import { createRealtimeRouter } from "../realtime/realtime.router";
+import { createReportsRouter } from "../reports/reports.router";
+import { createStudentDocumentsRouter } from "../student-documents/student-documents.router";
 
 export function registerORPCRoutes(app: NestExpressApplication) {
   const router = createORPCRouter({
