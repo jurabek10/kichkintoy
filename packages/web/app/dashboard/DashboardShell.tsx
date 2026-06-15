@@ -42,6 +42,7 @@ import {
 import { CandyTrim, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { NotificationBell } from "./_components/notification-bell";
+import { ParentBottomNav } from "./_components/parent-bottom-nav";
 import { logoutAndClear, readSession, useSession } from "@/lib/session";
 import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
@@ -110,20 +111,20 @@ const navByRole: Record<
 };
 
 const navColors: Record<string, string> = {
-  "/dashboard": "text-coral",
-  "/dashboard/classes": "text-sky",
-  "/dashboard/attendance": "text-mint",
-  "/dashboard/notices": "text-coral",
-  "/dashboard/albums": "text-grape",
-  "/dashboard/calendar": "text-sky",
-  "/dashboard/reports": "text-mint",
-  "/dashboard/meals": "text-sunshine",
-  "/dashboard/medications": "text-bubblegum",
-  "/dashboard/pickups": "text-grape",
-  "/dashboard/documents": "text-sky",
-  "/dashboard/teachers": "text-coral",
-  "/dashboard/requests": "text-mint",
-  "/dashboard/invitations": "text-grape",
+  "/dashboard": "text-coral-ink",
+  "/dashboard/classes": "text-sky-ink",
+  "/dashboard/attendance": "text-mint-ink",
+  "/dashboard/notices": "text-coral-ink",
+  "/dashboard/albums": "text-grape-ink",
+  "/dashboard/calendar": "text-sky-ink",
+  "/dashboard/reports": "text-mint-ink",
+  "/dashboard/meals": "text-sunshine-ink",
+  "/dashboard/medications": "text-bubblegum-ink",
+  "/dashboard/pickups": "text-grape-ink",
+  "/dashboard/documents": "text-sky-ink",
+  "/dashboard/teachers": "text-coral-ink",
+  "/dashboard/requests": "text-mint-ink",
+  "/dashboard/invitations": "text-grape-ink",
 };
 
 const navGroups = [
@@ -175,6 +176,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       : session?.user.role === "teacher"
         ? tCommon("roles.teacher")
         : tCommon("roles.parent");
+
+  // The current page's name, used as the page-level <h1> landmark so every
+  // route has a single proper heading for assistive tech and the document
+  // outline (the visible card titles stay as styled text).
+  const activeNavItem = nav.find(
+    (item) =>
+      pathname === item.href ||
+      (item.href !== "/dashboard" && pathname.startsWith(item.href)),
+  );
+  const pageTitle = activeNavItem
+    ? tNav(activeNavItem.labelKey)
+    : tCommon("dashboard.panel", { role: roleLabel });
 
   useEffect(() => {
     if (loading) return;
@@ -291,7 +304,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <BrandMark href="/dashboard" />
               </div>
               <div className="hidden min-w-0 lg:block">
-                <p className="truncate text-sm font-extrabold">
+                <p className="truncate text-sm font-bold">
                   {tCommon("dashboard.hello", { name: session.user.fullName })}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -323,10 +336,19 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <CandyTrim />
         </header>
 
-        <main className="mx-auto w-full min-w-0 max-w-[1240px] animate-fade-in-up px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main
+          className={cn(
+            "mx-auto w-full min-w-0 max-w-[1240px] animate-fade-in-up px-4 py-6 sm:px-6 lg:px-8 lg:py-8",
+            // room for the mobile bottom tab bar so content isn't covered
+            isParent && "pb-24 lg:pb-8",
+          )}
+        >
+          <h1 className="sr-only">{pageTitle}</h1>
           {children}
         </main>
       </SidebarInset>
+
+      {isParent ? <ParentBottomNav /> : null}
     </SidebarProvider>
   );
 }

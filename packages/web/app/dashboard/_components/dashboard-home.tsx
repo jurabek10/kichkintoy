@@ -17,6 +17,7 @@ import { KidSun, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { ParentHome } from "./parent-home";
 
 const KidsToys3D = dynamic(
   () => import("@/components/kids-3d").then((m) => m.KidsToys3D),
@@ -29,6 +30,11 @@ export function DashboardHome() {
   if (!session) return null;
 
   const role = session.user.role;
+
+  // Parents get the dedicated, feed-first home.
+  if (role === "parent") {
+    return <ParentHome />;
+  }
   const roleTitle =
     role === "director"
       ? t("dashboardHome.directorTitle")
@@ -143,38 +149,6 @@ export function DashboardHome() {
         </div>
       ) : null}
 
-      {role === "parent" ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <ActionCard
-            href="/dashboard/reports"
-            title={t("dashboardHome.dailyReport")}
-            description={t("dashboardHome.dailyReportParentDesc")}
-            Icon={CheckCircle2}
-            openLabel={t("dashboardHome.open")}
-          />
-          <ActionCard
-            href="/dashboard/albums"
-            title={t("dashboardHome.album")}
-            description={t("dashboardHome.albumParentDesc")}
-            Icon={Images}
-            openLabel={t("dashboardHome.open")}
-          />
-          <ActionCard
-            href="/dashboard/notices"
-            title={t("dashboardHome.notices")}
-            description={t("dashboardHome.noticesParentDesc")}
-            Icon={Bell}
-            openLabel={t("dashboardHome.open")}
-          />
-          <ActionCard
-            href="/dashboard/pickups"
-            title={t("dashboardHome.pickup")}
-            description={t("dashboardHome.pickupDesc")}
-            Icon={CalendarDays}
-            openLabel={t("dashboardHome.open")}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -193,7 +167,7 @@ function Metric({
   return (
     <div className="rounded-2xl border border-white/20 bg-white/15 p-4 backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white/25">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold text-white/85">{label}</p>
+        <p className="text-xs font-semibold text-white/85">{label}</p>
         <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90">
           <Icon className={cn("h-4 w-4", accent)} />
         </span>
@@ -244,7 +218,7 @@ function ActionCard({
           >
             <Icon className="h-6 w-6" />
           </span>
-          <h2 className="text-base font-bold">{title}</h2>
+          <h2 className="text-base font-semibold">{title}</h2>
         </div>
         <p className="text-sm text-muted-foreground">{description}</p>
         <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary">
