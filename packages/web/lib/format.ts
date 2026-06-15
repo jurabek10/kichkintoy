@@ -1,163 +1,196 @@
-import type {
-  FacilityType,
-  InvitationKind,
-  JoinRequestKind,
-} from "@kichkintoy/shared";
+import { format } from "date-fns";
+import type { FacilityType } from "@kichkintoy/shared";
+import { fallbackLng } from "@kichkintoy/translations/settings";
+import { dateLocale } from "./date";
+
+/**
+ * Locale-aware labels and dates.
+ *
+ * These are plain functions (called in render, not hooks), so they read the
+ * active language from `<html lang>` — which the language switcher keeps in
+ * sync by reloading the page on change. That avoids threading a `t`/locale
+ * argument through dozens of call sites while still rendering enum labels and
+ * dates in the chosen language (previously everything was hardcoded English /
+ * the runtime default locale).
+ */
+function activeLanguage(): string {
+  if (typeof document !== "undefined" && document.documentElement.lang) {
+    return document.documentElement.lang.slice(0, 2);
+  }
+  return fallbackLng.slice(0, 2);
+}
+
+type LabelMap = Record<string, Record<string, string>>;
+
+function translate(map: LabelMap, value: string, fallback = value): string {
+  const lang = activeLanguage();
+  return map[lang]?.[value] ?? map.en?.[value] ?? fallback;
+}
+
+const facilityType: LabelMap = {
+  en: { kindergarten: "Kindergarten", daycare: "Daycare", academy: "Academy" },
+  ru: { kindergarten: "Детский сад", daycare: "Ясли", academy: "Академия" },
+  uz: { kindergarten: "Bog‘cha", daycare: "Yasli", academy: "Akademiya" },
+};
+
+const assignmentRole: LabelMap = {
+  en: { assistant_teacher: "Assistant", teacher: "Teacher" },
+  ru: { assistant_teacher: "Помощник", teacher: "Воспитатель" },
+  uz: { assistant_teacher: "Yordamchi", teacher: "Tarbiyachi" },
+};
+
+const reportStatus: LabelMap = {
+  en: { published: "Published", scheduled: "Scheduled", draft: "Draft" },
+  ru: { published: "Опубликован", scheduled: "Запланирован", draft: "Черновик" },
+  uz: { published: "E’lon qilingan", scheduled: "Rejalashtirilgan", draft: "Qoralama" },
+};
+
+const attendanceStatus: LabelMap = {
+  en: {
+    not_checked_in: "Not checked in",
+    present: "Present",
+    absent: "Absent",
+    late: "Late",
+    left_early: "Left early",
+    picked_up: "Picked up",
+    excused: "Excused",
+    cancelled: "Cancelled",
+  },
+  ru: {
+    not_checked_in: "Не отмечен",
+    present: "Присутствует",
+    absent: "Отсутствует",
+    late: "Опоздал",
+    left_early: "Ушёл раньше",
+    picked_up: "Забрали",
+    excused: "По уважительной",
+    cancelled: "Отменён",
+  },
+  uz: {
+    not_checked_in: "Belgilanmagan",
+    present: "Hozir",
+    absent: "Yo‘q",
+    late: "Kechikdi",
+    left_early: "Erta ketdi",
+    picked_up: "Olib ketildi",
+    excused: "Sababli",
+    cancelled: "Bekor qilindi",
+  },
+};
+
+const reportItemType: LabelMap = {
+  en: {
+    meal: "Meal",
+    sleep: "Sleep",
+    toilet: "Toilet",
+    mood: "Mood",
+    activity: "Activity",
+    temperature: "Temperature",
+    medication: "Medication",
+    health: "Health",
+    class_participation: "Class participation",
+    custom: "Custom",
+  },
+  ru: {
+    meal: "Питание",
+    sleep: "Сон",
+    toilet: "Туалет",
+    mood: "Настроение",
+    activity: "Занятие",
+    temperature: "Температура",
+    medication: "Лекарство",
+    health: "Здоровье",
+    class_participation: "Участие в занятии",
+    custom: "Другое",
+  },
+  uz: {
+    meal: "Ovqat",
+    sleep: "Uyqu",
+    toilet: "Hojatxona",
+    mood: "Kayfiyat",
+    activity: "Mashg‘ulot",
+    temperature: "Harorat",
+    medication: "Dori",
+    health: "Sog‘liq",
+    class_participation: "Mashg‘ulotdagi ishtirok",
+    custom: "Boshqa",
+  },
+};
+
+const participationLevel: LabelMap = {
+  en: {
+    excellent: "Excellent",
+    good: "Good",
+    needs_support: "Needs support",
+    not_observed: "Not observed",
+    absent: "Absent",
+  },
+  ru: {
+    excellent: "Отлично",
+    good: "Хорошо",
+    needs_support: "Нужна поддержка",
+    not_observed: "Не наблюдалось",
+    absent: "Отсутствовал",
+  },
+  uz: {
+    excellent: "A’lo",
+    good: "Yaxshi",
+    needs_support: "Yordam kerak",
+    not_observed: "Kuzatilmadi",
+    absent: "Qatnashmadi",
+  },
+};
+
+const participationInterest: LabelMap = {
+  en: { high: "High", medium: "Medium", low: "Low", not_observed: "Not observed" },
+  ru: { high: "Высокий", medium: "Средний", low: "Низкий", not_observed: "Не наблюдалось" },
+  uz: { high: "Yuqori", medium: "O‘rta", low: "Past", not_observed: "Kuzatilmadi" },
+};
+
+const gender: LabelMap = {
+  en: { boy: "Boy", girl: "Girl", prefer_not_to_say: "Prefer not to say" },
+  ru: { boy: "Мальчик", girl: "Девочка", prefer_not_to_say: "Не указано" },
+  uz: { boy: "O‘g‘il", girl: "Qiz", prefer_not_to_say: "Aytishni xohlamayman" },
+};
 
 export function facilityTypeLabel(value: FacilityType): string {
-  if (value === "kindergarten") return "Kindergarten";
-  if (value === "daycare") return "Daycare";
-  return "Academy";
-}
-
-export function joinKindLabel(value: JoinRequestKind): string {
-  if (value === "parent") return "Parent";
-  if (value === "teacher") return "Teacher";
-  return "Director";
-}
-
-export function invitationKindLabel(value: InvitationKind): string {
-  return value === "parent" ? "Parent" : "Teacher";
+  return translate(facilityType, value);
 }
 
 export function assignmentRoleLabel(value: string): string {
-  return value === "assistant_teacher" ? "Assistant" : "Teacher";
+  return translate(assignmentRole, value);
 }
 
 export function reportStatusLabel(value: string): string {
-  if (value === "published") return "Published";
-  if (value === "scheduled") return "Scheduled";
-  return "Draft";
-}
-
-export function noticeStatusLabel(value: string): string {
-  if (value === "published") return "Published";
-  if (value === "scheduled") return "Scheduled";
-  return "Draft";
-}
-
-export function noticeAudienceLabel(value: string): string {
-  if (value === "center") return "Whole center";
-  if (value === "class") return "Classes";
-  return "Children";
-}
-
-export function albumVisibilityLabel(value: string): string {
-  if (value === "class") return "Class-wide";
-  if (value === "tagged_children") return "Tagged children";
-  return value;
-}
-
-export function albumStatusLabel(value: string): string {
-  if (value === "published") return "Published";
-  if (value === "draft") return "Draft";
-  return value;
-}
-
-export function mealTypeLabel(value: string): string {
-  if (value === "breakfast") return "Breakfast";
-  if (value === "lunch") return "Lunch";
-  if (value === "snack") return "Snack";
-  if (value === "dinner") return "Dinner";
-  return value;
-}
-
-export function mealAudienceLabel(value: string): string {
-  if (value === "center") return "Whole center";
-  if (value === "class") return "Classes";
-  return value;
-}
-
-export function eatingStatusLabel(value: string): string {
-  if (value === "ate_all") return "All";
-  if (value === "ate_most") return "Most";
-  if (value === "ate_some") return "Some";
-  if (value === "did_not_eat") return "None";
-  return value;
-}
-
-export function medicationStatusLabel(value: string): string {
-  if (value === "pending") return "Pending";
-  if (value === "administered") return "Administered";
-  if (value === "skipped") return "Skipped";
-  if (value === "cancelled") return "Cancelled";
-  return value;
-}
-
-export function pickupStatusLabel(value: string): string {
-  if (value === "submitted") return "Submitted";
-  if (value === "acknowledged") return "Acknowledged";
-  if (value === "changed") return "Changed";
-  if (value === "cancelled") return "Cancelled";
-  return value;
+  return translate(reportStatus, value);
 }
 
 export function attendanceStatusLabel(value: string): string {
-  if (value === "not_checked_in") return "Not checked in";
-  if (value === "present") return "Present";
-  if (value === "absent") return "Absent";
-  if (value === "late") return "Late";
-  if (value === "left_early") return "Left early";
-  if (value === "picked_up") return "Picked up";
-  if (value === "excused") return "Excused";
-  if (value === "cancelled") return "Cancelled";
-  return value;
-}
-
-export function pickupRelationshipLabel(value: string): string {
-  if (value === "mother") return "Mother";
-  if (value === "father") return "Father";
-  if (value === "grandparent") return "Grandparent";
-  if (value === "other") return "Other";
-  return value;
+  return translate(attendanceStatus, value);
 }
 
 export function reportItemTypeLabel(value: string): string {
-  if (value === "meal") return "Meal";
-  if (value === "sleep") return "Sleep";
-  if (value === "toilet") return "Toilet";
-  if (value === "mood") return "Mood";
-  if (value === "activity") return "Activity";
-  if (value === "temperature") return "Temperature";
-  if (value === "medication") return "Medication";
-  if (value === "health") return "Health";
-  if (value === "class_participation") return "Class participation";
-  return "Custom";
+  return translate(reportItemType, value, translate(reportItemType, "custom"));
 }
 
 export function participationLevelLabel(value: string): string {
-  if (value === "excellent") return "Excellent";
-  if (value === "good") return "Good";
-  if (value === "needs_support") return "Needs support";
-  if (value === "not_observed") return "Not observed";
-  if (value === "absent") return "Absent";
-  return value;
+  return translate(participationLevel, value);
 }
 
 export function participationInterestLabel(value: string): string {
-  if (value === "high") return "High";
-  if (value === "medium") return "Medium";
-  if (value === "low") return "Low";
-  if (value === "not_observed") return "Not observed";
-  return value;
+  return translate(participationInterest, value);
 }
 
 export function genderLabel(value: string | null | undefined): string {
-  if (value === "boy") return "Boy";
-  if (value === "girl") return "Girl";
-  if (value === "prefer_not_to_say") return "Prefer not to say";
-  return "—";
+  if (!value) return "—";
+  return translate(gender, value);
 }
 
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  });
+  return format(date, "d MMM yyyy", { locale: dateLocale(activeLanguage()) });
 }
 
 export function formatDateTime(
@@ -166,23 +199,7 @@ export function formatDateTime(
   if (!value) return "—";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+  return format(date, "d MMM yyyy, HH:mm", {
+    locale: dateLocale(activeLanguage()),
   });
-}
-
-export function timeAgo(value: string | Date): string {
-  const date = typeof value === "string" ? new Date(value) : value;
-  const ms = Date.now() - date.getTime();
-  const minutes = Math.round(ms / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
 }
