@@ -73,6 +73,65 @@
     "pickupDesc": "Bugungi olib ketish vaqtini rejalang.",
     "open": "Ochish"
   },
+  "parentHome": {
+    "today": "Bugun",
+    "todaySub": "Farzandingizning kuni shu yerda",
+    "caughtUpTitle": "Hammasi joyida!",
+    "caughtUp": "Yangi yangiliklar paydo bo‘lishi bilan shu yerda ko‘rasiz.",
+    "childClass": "{{name}} guruhi",
+    "quick": {
+      "report": "Hisobot",
+      "photos": "Suratlar",
+      "notices": "E’lonlar",
+      "pickup": "Olib ketish",
+      "meals": "Ovqat",
+      "medication": "Dori"
+    },
+    "report": {
+      "tag": "Kundalik hisobot",
+      "title": "Bugungi hisobot tayyor",
+      "body": "Bugun juda faol bo‘ldi — yaxshi ovqatlandi va tushlikdan keyin tinch uxladi.",
+      "mood": "Kayfiyat",
+      "moodValue": "Quvnoq",
+      "meal": "Ovqat",
+      "mealValue": "Hammasini yedi",
+      "nap": "Uyqu",
+      "napValue": "1s 40d",
+      "cta": "To‘liq hisobotni ko‘rish"
+    },
+    "photos": {
+      "tag": "Yangi albom",
+      "title": "Bog‘da o‘yin vaqti",
+      "caption": "Bugun {{count}} ta yangi surat qo‘shildi",
+      "cta": "Albomni ochish"
+    },
+    "notice": {
+      "tag": "E’lon",
+      "title": "Ertangi sayohat",
+      "body": "Ertaga bog‘ga sayohat qilamiz. Iltimos, farzandingizga qulay kiyim va bosh kiyim kiydiring.",
+      "cta": "Batafsil o‘qish"
+    },
+    "meal": {
+      "tag": "Bugungi menyu",
+      "title": "Tushlik",
+      "body": "Mastava, qaynatilgan tovuq, sabzavotli salat va meva."
+    },
+    "seeAll": "Hammasi",
+    "aside": {
+      "profileTitle": "Profil",
+      "teacher": "Tarbiyachi",
+      "teacherName": "Nodira Karimova",
+      "messageTeacher": "Tarbiyachiga yozish",
+      "upcoming": "Yaqin kunlarda",
+      "viewCalendar": "Taqvimni ochish",
+      "trip": "Bog‘ sayohati",
+      "tripWhen": "Ertaga · 09:00",
+      "meeting": "Ota-onalar yig‘ilishi",
+      "meetingWhen": "Juma · 17:00",
+      "attendanceTitle": "Bu oy davomati",
+      "attendanceValue": "18/20 kun"
+    }
+  },
   "pending": {
     "title": "Direktor tasdig'i kutilmoqda",
     "description": "{{center}} bog'chasiga qo'shilish so'rovingiz yuborildi. Tasdiqlangandan keyin bu yerda va SMS orqali xabar beramiz.",

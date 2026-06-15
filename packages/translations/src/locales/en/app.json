@@ -73,6 +73,65 @@
     "pickupDesc": "Plan today's pickup time.",
     "open": "Open"
   },
+  "parentHome": {
+    "today": "Today",
+    "todaySub": "Your child’s day, all in one place",
+    "caughtUpTitle": "You’re all caught up!",
+    "caughtUp": "New updates will appear here as they happen.",
+    "childClass": "{{name}} class",
+    "quick": {
+      "report": "Report",
+      "photos": "Photos",
+      "notices": "Notices",
+      "pickup": "Pickup",
+      "meals": "Meals",
+      "medication": "Meds"
+    },
+    "report": {
+      "tag": "Daily report",
+      "title": "Today’s report is ready",
+      "body": "Had a very active day — ate well and napped calmly after lunch.",
+      "mood": "Mood",
+      "moodValue": "Happy",
+      "meal": "Meal",
+      "mealValue": "Ate it all",
+      "nap": "Nap",
+      "napValue": "1h 40m",
+      "cta": "Open full report"
+    },
+    "photos": {
+      "tag": "New album",
+      "title": "Playtime in the garden",
+      "caption": "{{count}} new photos added today",
+      "cta": "Open album"
+    },
+    "notice": {
+      "tag": "Notice",
+      "title": "Tomorrow’s field trip",
+      "body": "We are going on a trip to the park tomorrow. Please dress your child comfortably and bring a hat.",
+      "cta": "Read more"
+    },
+    "meal": {
+      "tag": "Today’s menu",
+      "title": "Lunch",
+      "body": "Mastava soup, boiled chicken, vegetable salad and fruit."
+    },
+    "seeAll": "All",
+    "aside": {
+      "profileTitle": "Profile",
+      "teacher": "Teacher",
+      "teacherName": "Nodira Karimova",
+      "messageTeacher": "Message teacher",
+      "upcoming": "Coming up",
+      "viewCalendar": "Open calendar",
+      "trip": "Park field trip",
+      "tripWhen": "Tomorrow · 09:00",
+      "meeting": "Parents’ meeting",
+      "meetingWhen": "Friday · 17:00",
+      "attendanceTitle": "This month attendance",
+      "attendanceValue": "18/20 days"
+    }
+  },
   "pending": {
     "title": "Awaiting director approval",
     "description": "Your request to join {{center}} was sent. We will notify you here and by SMS as soon as it is approved.",
