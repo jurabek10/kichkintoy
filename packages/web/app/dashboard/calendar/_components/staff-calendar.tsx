@@ -13,11 +13,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
-import { Input } from "@/components/ui/input";
+import { MonthPicker } from "@/components/ui/month-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDayMonth } from "@/lib/date";
 import { CalendarMonth } from "./calendar-month";
 import { EventCard } from "./event-card";
 
@@ -27,7 +28,7 @@ export function StaffCalendar({
   centerId: string | null;
   role: string;
 }) {
-  const { t } = useLayoutTranslation("calendar");
+  const { t, i18n } = useLayoutTranslation("calendar");
   const [month, setMonth] = useState(currentMonth());
   const [selectedDate, setSelectedDate] = useState(todayIso());
   const range = monthRange(month);
@@ -72,14 +73,13 @@ export function StaffCalendar({
             <CardDescription>{t("staffDescription")}</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              type="month"
+            <MonthPicker
               value={month}
-              onChange={(event) => {
-                setMonth(event.target.value);
-                setSelectedDate(`${event.target.value}-01`);
+              onValueChange={(value) => {
+                setMonth(value);
+                setSelectedDate(`${value}-01`);
               }}
-              className="w-[155px]"
+              className="w-[180px]"
             />
             <Button asChild>
               <Link href="/dashboard/calendar/new">
@@ -107,7 +107,7 @@ export function StaffCalendar({
       <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-3">
           <h2 className="text-base font-bold">
-            {t("eventsOnDate", { date: selectedDate })}
+            {t("eventsOnDate", { date: formatDayMonth(selectedDate, i18n.language) })}
           </h2>
           {isPending ? (
             <LoadingCard label={t("loading")} />
@@ -148,7 +148,11 @@ function EmptyState({ text }: { text: string }) {
 }
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  // Local date so the default selection lines up with the (local) calendar grid.
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
 }
 
 function currentMonth() {

@@ -91,5 +91,10 @@ function monthDays(month: string) {
 }
 
 function toIsoDate(value: Date) {
-  return value.toISOString().slice(0, 10);
+  // Local date — NOT toISOString(), which shifts to UTC and rolls the day back
+  // a calendar day in positive-offset zones (e.g. Uzbekistan, UTC+5).
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
