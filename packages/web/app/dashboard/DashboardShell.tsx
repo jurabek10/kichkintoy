@@ -20,6 +20,7 @@ import {
   School,
   UserCheck,
   Utensils,
+  X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -38,7 +39,9 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import type { TFunction } from "i18next";
 import { CandyTrim, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { NotificationBell } from "./_components/notification-bell";
@@ -221,12 +224,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider className={isParent ? "font-kids" : undefined}>
       <Sidebar collapsible="icon" variant="sidebar">
-        <SidebarHeader className="gap-3 p-3">
+        <SidebarHeader className="relative gap-3 p-3">
           <div className="flex h-12 items-center px-1">
             <BrandMark
               href="/dashboard"
               className="text-sidebar-foreground group-data-[collapsible=icon]:[&>span:last-child]:hidden"
             />
+            <SidebarMobileClose />
           </div>
           <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
             <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
@@ -248,29 +252,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </SidebarHeader>
 
         <SidebarContent className="px-1">
-          {groupedNav.map((group) => (
-            <SidebarGroup key={group.labelKey}>
-              <SidebarGroupLabel>{tNav(group.labelKey)}</SidebarGroupLabel>
-              <SidebarMenu>
-                {group.items.map(({ href, labelKey, Icon }) => {
-                  const active =
-                    pathname === href ||
-                    (href !== "/dashboard" && pathname.startsWith(href));
-                  const label = tNav(labelKey);
-                  return (
-                    <SidebarMenuItem key={href}>
-                      <SidebarMenuButton asChild isActive={active} tooltip={label}>
-                        <Link href={href}>
-                          <Icon className={navColors[href] ?? "text-primary"} />
-                          <span>{label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroup>
-          ))}
+          <SidebarNavMenu groups={groupedNav} pathname={pathname} tNav={tNav} />
         </SidebarContent>
 
         <SidebarFooter className="p-2">
@@ -350,5 +332,74 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       {isParent ? <ParentBottomNav /> : null}
     </SidebarProvider>
+  );
+}
+
+type NavGroupView = {
+  labelKey: string;
+  items: Array<{ href: string; labelKey: string; Icon: typeof LayoutDashboard }>;
+};
+
+/**
+ * Sidebar navigation. Rendered inside SidebarProvider so it can use
+ * `useSidebar` to dismiss the off-canvas menu after a tap on mobile (otherwise
+ * the sheet stays open over the page you just navigated to).
+ */
+function SidebarNavMenu({
+  groups,
+  pathname,
+  tNav,
+}: {
+  groups: NavGroupView[];
+  pathname: string;
+  tNav: TFunction;
+}) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
+
+  return (
+    <>
+      {groups.map((group) => (
+        <SidebarGroup key={group.labelKey}>
+          <SidebarGroupLabel>{tNav(group.labelKey)}</SidebarGroupLabel>
+          <SidebarMenu>
+            {group.items.map(({ href, labelKey, Icon }) => {
+              const active =
+                pathname === href ||
+                (href !== "/dashboard" && pathname.startsWith(href));
+              const label = tNav(labelKey);
+              return (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton asChild isActive={active} tooltip={label}>
+                    <Link href={href} onClick={closeOnMobile}>
+                      <Icon className={navColors[href] ?? "text-primary"} />
+                      <span>{label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
+  );
+}
+
+/** A close (X) button shown only in the mobile off-canvas sidebar. */
+function SidebarMobileClose() {
+  const { isMobile, setOpenMobile } = useSidebar();
+  if (!isMobile) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => setOpenMobile(false)}
+      aria-label="Close menu"
+      className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-xl text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+    >
+      <X className="h-5 w-5" />
+    </button>
   );
 }
