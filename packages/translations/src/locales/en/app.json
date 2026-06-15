@@ -76,9 +76,11 @@
   "parentHome": {
     "today": "Today",
     "todaySub": "Your child’s day, all in one place",
+    "childClass": "{{name}} class",
     "caughtUpTitle": "You’re all caught up!",
     "caughtUp": "New updates will appear here as they happen.",
-    "childClass": "{{name}} class",
+    "noChildrenTitle": "No children linked yet",
+    "noChildrenBody": "Once your child is added to a center, their day will show up here.",
     "quick": {
       "report": "Report",
       "photos": "Photos",
@@ -90,46 +92,31 @@
     "report": {
       "tag": "Daily report",
       "title": "Today’s report is ready",
-      "body": "Had a very active day — ate well and napped calmly after lunch.",
+      "empty": "Open the report to see the full day.",
       "mood": "Mood",
-      "moodValue": "Happy",
-      "meal": "Meal",
-      "mealValue": "Ate it all",
-      "nap": "Nap",
-      "napValue": "1h 40m",
+      "photos": "Photos",
+      "updates": "Updates",
       "cta": "Open full report"
     },
     "photos": {
       "tag": "New album",
-      "title": "Playtime in the garden",
-      "caption": "{{count}} new photos added today",
+      "caption": "{{count}} new photos",
       "cta": "Open album"
     },
     "notice": {
       "tag": "Notice",
-      "title": "Tomorrow’s field trip",
-      "body": "We are going on a trip to the park tomorrow. Please dress your child comfortably and bring a hat.",
       "cta": "Read more"
     },
-    "meal": {
-      "tag": "Today’s menu",
-      "title": "Lunch",
-      "body": "Mastava soup, boiled chicken, vegetable salad and fruit."
-    },
-    "seeAll": "All",
     "aside": {
-      "profileTitle": "Profile",
+      "center": "Center",
       "teacher": "Teacher",
-      "teacherName": "Nodira Karimova",
       "messageTeacher": "Message teacher",
       "upcoming": "Coming up",
       "viewCalendar": "Open calendar",
-      "trip": "Park field trip",
-      "tripWhen": "Tomorrow · 09:00",
-      "meeting": "Parents’ meeting",
-      "meetingWhen": "Friday · 17:00",
-      "attendanceTitle": "This month attendance",
-      "attendanceValue": "18/20 days"
+      "noUpcoming": "Nothing scheduled yet.",
+      "attendanceTitle": "This month’s attendance",
+      "attendanceValue": "{{attended}} of {{total}} days",
+      "attendanceCaption": "Days attended this month, out of days recorded so far."
     }
   },
   "pending": {

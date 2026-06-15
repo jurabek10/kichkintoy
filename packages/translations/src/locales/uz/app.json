@@ -76,9 +76,11 @@
   "parentHome": {
     "today": "Bugun",
     "todaySub": "Farzandingizning kuni shu yerda",
+    "childClass": "{{name}} guruhi",
     "caughtUpTitle": "Hammasi joyida!",
     "caughtUp": "Yangi yangiliklar paydo bo‘lishi bilan shu yerda ko‘rasiz.",
-    "childClass": "{{name}} guruhi",
+    "noChildrenTitle": "Hali farzand bog‘lanmagan",
+    "noChildrenBody": "Farzandingiz markazga qo‘shilgach, uning kuni shu yerda ko‘rinadi.",
     "quick": {
       "report": "Hisobot",
       "photos": "Suratlar",
@@ -90,46 +92,31 @@
     "report": {
       "tag": "Kundalik hisobot",
       "title": "Bugungi hisobot tayyor",
-      "body": "Bugun juda faol bo‘ldi — yaxshi ovqatlandi va tushlikdan keyin tinch uxladi.",
+      "empty": "To‘liq kunni ko‘rish uchun hisobotni oching.",
       "mood": "Kayfiyat",
-      "moodValue": "Quvnoq",
-      "meal": "Ovqat",
-      "mealValue": "Hammasini yedi",
-      "nap": "Uyqu",
-      "napValue": "1s 40d",
+      "photos": "Suratlar",
+      "updates": "Yozuvlar",
       "cta": "To‘liq hisobotni ko‘rish"
     },
     "photos": {
       "tag": "Yangi albom",
-      "title": "Bog‘da o‘yin vaqti",
-      "caption": "Bugun {{count}} ta yangi surat qo‘shildi",
+      "caption": "{{count}} ta yangi surat",
       "cta": "Albomni ochish"
     },
     "notice": {
       "tag": "E’lon",
-      "title": "Ertangi sayohat",
-      "body": "Ertaga bog‘ga sayohat qilamiz. Iltimos, farzandingizga qulay kiyim va bosh kiyim kiydiring.",
       "cta": "Batafsil o‘qish"
     },
-    "meal": {
-      "tag": "Bugungi menyu",
-      "title": "Tushlik",
-      "body": "Mastava, qaynatilgan tovuq, sabzavotli salat va meva."
-    },
-    "seeAll": "Hammasi",
     "aside": {
-      "profileTitle": "Profil",
+      "center": "Markaz",
       "teacher": "Tarbiyachi",
-      "teacherName": "Nodira Karimova",
       "messageTeacher": "Tarbiyachiga yozish",
       "upcoming": "Yaqin kunlarda",
       "viewCalendar": "Taqvimni ochish",
-      "trip": "Bog‘ sayohati",
-      "tripWhen": "Ertaga · 09:00",
-      "meeting": "Ota-onalar yig‘ilishi",
-      "meetingWhen": "Juma · 17:00",
+      "noUpcoming": "Hozircha reja yo‘q.",
       "attendanceTitle": "Bu oy davomati",
-      "attendanceValue": "18/20 kun"
+      "attendanceValue": "{{total}} kundan {{attended}} kun",
+      "attendanceCaption": "Bu oy belgilangan kunlardan qatnashgan kunlar."
     }
   },
   "pending": {
