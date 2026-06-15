@@ -54,12 +54,30 @@ const config: Config = {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--gold-foreground))",
         },
-        coral: "hsl(var(--coral))",
-        sunshine: "hsl(var(--sunshine))",
-        mint: "hsl(var(--mint))",
-        sky: "hsl(var(--sky))",
-        grape: "hsl(var(--grape))",
-        bubblegum: "hsl(var(--bubblegum))",
+        coral: {
+          DEFAULT: "hsl(var(--coral))",
+          ink: "hsl(var(--coral-ink))",
+        },
+        sunshine: {
+          DEFAULT: "hsl(var(--sunshine))",
+          ink: "hsl(var(--sunshine-ink))",
+        },
+        mint: {
+          DEFAULT: "hsl(var(--mint))",
+          ink: "hsl(var(--mint-ink))",
+        },
+        sky: {
+          DEFAULT: "hsl(var(--sky))",
+          ink: "hsl(var(--sky-ink))",
+        },
+        grape: {
+          DEFAULT: "hsl(var(--grape))",
+          ink: "hsl(var(--grape-ink))",
+        },
+        bubblegum: {
+          DEFAULT: "hsl(var(--bubblegum))",
+          ink: "hsl(var(--bubblegum-ink))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

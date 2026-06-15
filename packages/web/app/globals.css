@@ -16,7 +16,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 211 28% 24%;
 
-    --primary: 186 72% 44%;
+    /* Deepened from 44% → 34% so teal text/links clear WCAG AA (4.5:1) on
+       light surfaces; white-on-primary stays well above AA. */
+    --primary: 188 80% 34%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 39 90% 95%;
@@ -28,13 +30,23 @@
     --accent: 186 62% 93%;
     --accent-foreground: 188 70% 27%;
 
-    /* Candy accents (also exposed as tailwind colors) */
+    /* Candy accents — used for decorative fills (balloons, clouds, sun) and
+       background tints. Bright and playful. */
     --coral: 8 100% 70%;
     --sunshine: 42 100% 62%;
     --mint: 162 64% 53%;
     --sky: 208 92% 64%;
     --grape: 255 88% 73%;
     --bubblegum: 340 100% 78%;
+
+    /* "Ink" variants — deepened candy for text and icons on light surfaces,
+       so colored labels/CTAs clear WCAG AA contrast. */
+    --coral-ink: 8 74% 43%;
+    --sunshine-ink: 36 92% 33%;
+    --mint-ink: 164 78% 29%;
+    --sky-ink: 210 84% 40%;
+    --grape-ink: 256 52% 53%;
+    --bubblegum-ink: 338 70% 46%;
 
     --gold: 42 100% 62%;
     --gold-foreground: 28 60% 22%;
@@ -44,23 +56,24 @@
 
     --border: 38 36% 90%;
     --input: 38 36% 90%;
-    --ring: 186 72% 44%;
+    --ring: 188 80% 34%;
 
-    --success: 162 64% 43%;
-    --warning: 42 100% 56%;
-    --info: 208 92% 60%;
+    /* Deepened so Badge/status text on /10 tints clears AA. */
+    --success: 162 70% 30%;
+    --warning: 36 92% 33%;
+    --info: 210 84% 40%;
 
     --radius: 1.1rem;
 
     /* Sidebar — light, friendly cream (no more serious navy) */
     --sidebar-background: 42 64% 97%;
     --sidebar-foreground: 211 22% 32%;
-    --sidebar-primary: 186 72% 44%;
+    --sidebar-primary: 188 80% 34%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 186 60% 92%;
     --sidebar-accent-foreground: 188 72% 27%;
     --sidebar-border: 40 38% 88%;
-    --sidebar-ring: 186 72% 44%;
+    --sidebar-ring: 188 80% 34%;
   }
 
   * {
