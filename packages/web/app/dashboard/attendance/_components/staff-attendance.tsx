@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
+import { formatTime } from "@/lib/date";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
@@ -455,10 +456,7 @@ function todayIso() {
 
 function formatDateTime(value: string | null) {
   if (!value) return "-";
-  return new Date(value).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatTime(value);
 }
 
 function compareText(left: string | null | undefined, right: string | null | undefined) {

@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { formatDate, reportStatusLabel } from "@/lib/format";
+import { formatTime as formatClock } from "@/lib/date";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function ClassReports({
@@ -438,10 +439,7 @@ function formatTime(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatClock(date);
 }
 
 function ClassReportRows({

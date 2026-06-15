@@ -6,9 +6,10 @@ import type { CalendarEventSummary } from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDayMonth, formatDayMonthTime, formatTime } from "@/lib/date";
 
 export function EventCard({ event }: { event: CalendarEventSummary }) {
-  const { t } = useLayoutTranslation("calendar");
+  const { t, i18n } = useLayoutTranslation("calendar");
   return (
     <Link href={`/dashboard/calendar/${event.id}`} className="block">
       <Card className="h-full transition hover:border-primary/50">
@@ -28,7 +29,7 @@ export function EventCard({ event }: { event: CalendarEventSummary }) {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4" />
-            {formatEventTime(event)}
+            {formatEventTime(event, i18n.language)}
           </p>
           {event.locationText ? (
             <p className="flex items-center gap-2">
@@ -43,21 +44,14 @@ export function EventCard({ event }: { event: CalendarEventSummary }) {
   );
 }
 
-export function formatEventTime(event: CalendarEventSummary) {
-  const start = new Date(event.startsAt);
-  if (event.allDay) return start.toLocaleDateString();
-  const startText = start.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+export function formatEventTime(
+  event: CalendarEventSummary,
+  language: string,
+) {
+  if (event.allDay) return formatDayMonth(event.startsAt, language);
+  const startText = formatDayMonthTime(event.startsAt, language);
   if (!event.endsAt) return startText;
-  const end = new Date(event.endsAt);
-  return `${startText} - ${end.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
+  return `${startText} - ${formatTime(event.endsAt)}`;
 }
 
 export function eventContext(

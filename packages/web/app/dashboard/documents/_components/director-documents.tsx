@@ -17,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatDate } from "@/lib/format";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
@@ -174,7 +175,7 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.updated")} />
         ),
-        cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
+        cell: ({ row }) => formatDate(row.original.updatedAt),
       },
       {
         id: "actions",

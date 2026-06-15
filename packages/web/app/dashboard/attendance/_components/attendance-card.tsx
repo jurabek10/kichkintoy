@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { attendanceStatusLabel } from "@/lib/format";
+import { formatTime } from "@/lib/date";
 import { translateAbsenceReason } from "./absence-reason-form";
 
 export function AttendanceCard({
@@ -61,13 +62,6 @@ function TimeBlock({ label, value }: { label: string; value: string | null }) {
       <p className="font-bold">{value ? formatTime(value) : "-"}</p>
     </div>
   );
-}
-
-function formatTime(value: string) {
-  return new Date(value).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function badgeVariant(status: string) {

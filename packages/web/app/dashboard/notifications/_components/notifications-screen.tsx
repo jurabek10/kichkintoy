@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { routeForNotification } from "@/lib/notification-routes";
 import { queryKeys } from "@/lib/query-keys";
@@ -102,7 +103,7 @@ export function NotificationsScreen() {
                     </p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleString()}
+                    {formatDateTime(notification.createdAt)}
                   </p>
                 </Link>
                 {unread ? (

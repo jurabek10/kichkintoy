@@ -12,14 +12,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { currentDateLocale } from "@/lib/date";
 import { cn } from "@/lib/utils";
-
-// Localised, language-aware display label (respects the browser locale).
-const displayFmt = new Intl.DateTimeFormat(undefined, {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
 
 export interface DatePickerProps {
   id?: string;
@@ -46,6 +40,7 @@ export function DatePicker({
   max,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const locale = currentDateLocale();
 
   const parsed = value ? parseISO(value) : undefined;
   const selected = parsed && isValid(parsed) ? parsed : undefined;
@@ -72,13 +67,14 @@ export function DatePicker({
         >
           <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
           <span className="truncate">
-            {selected ? displayFmt.format(selected) : placeholder}
+            {selected ? format(selected, "d MMM yyyy", { locale }) : placeholder}
           </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start">
         <Calendar
           mode="single"
+          locale={locale}
           selected={selected}
           defaultMonth={selected}
           disabled={disabledDays.length ? disabledDays : undefined}

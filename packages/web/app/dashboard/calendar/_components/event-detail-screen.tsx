@@ -33,7 +33,7 @@ export function EventDetailScreen({
   centerId: string | null;
   role: string;
 }) {
-  const { t } = useLayoutTranslation("calendar");
+  const { t, i18n } = useLayoutTranslation("calendar");
   const queryClient = useQueryClient();
   const [cancellationReason, setCancellationReason] = useState("");
   const isParent = role === "parent";
@@ -156,7 +156,7 @@ export function EventDetailScreen({
         <CardContent className="grid gap-4 text-sm">
           <p className="flex items-center gap-2 text-muted-foreground">
             <CalendarDays className="h-4 w-4" />
-            {formatEventTime(event)}
+            {formatEventTime(event, i18n.language)}
           </p>
           {event.locationText ? (
             <p className="flex items-center gap-2 text-muted-foreground">
