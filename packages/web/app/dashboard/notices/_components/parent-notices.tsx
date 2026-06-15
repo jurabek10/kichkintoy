@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { toApiError } from "@/lib/api/errors";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
@@ -36,9 +37,7 @@ export function ParentNotices() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </Card>
+        <LoadingCard label={t("loading")} />
       ) : notices.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Bell className="h-8 w-8 text-muted-foreground" />

@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { KidsLoader } from "@/components/kids-loader";
 import {
   Select,
   SelectContent,
@@ -181,7 +182,9 @@ export function ParentAttendance() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+        <Card className="p-6">
+          <KidsLoader label={t("loading")} size="sm" />
+        </Card>
       ) : records.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground" />

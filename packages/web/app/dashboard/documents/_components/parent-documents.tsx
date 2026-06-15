@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileCheck2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -29,9 +30,7 @@ export function ParentDocuments() {
       </Card>
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </Card>
+        <LoadingCard label={t("loading")} />
       ) : data.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <FileCheck2 className="h-8 w-8 text-muted-foreground" />

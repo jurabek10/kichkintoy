@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { KidsLoader } from "@/components/kids-loader";
 import {
   Select,
   SelectContent,
@@ -118,8 +119,8 @@ export function ParentCalendar() {
             {t("eventsOnDate", { date: selectedDate })}
           </h2>
           {isPending ? (
-            <Card className="p-6 text-sm text-muted-foreground">
-              {t("loading")}
+            <Card className="p-6">
+              <KidsLoader label={t("loading")} size="sm" />
             </Card>
           ) : selectedEvents.length === 0 ? (
             <EmptyState text={t("noEventsForDate")} />

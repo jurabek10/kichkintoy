@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { formatDate } from "@/lib/format";
@@ -151,7 +152,7 @@ function ParentReportList({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t("loading")}</p>
+          <KidsLoader label={t("loading")} size="sm" />
         ) : reports.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t("noPublishedReports")}

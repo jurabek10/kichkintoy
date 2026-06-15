@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
@@ -63,9 +64,7 @@ export function ParentMedications() {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </Card>
+        <LoadingCard label={t("loading")} />
       ) : requests.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Pill className="h-8 w-8 text-muted-foreground" />
