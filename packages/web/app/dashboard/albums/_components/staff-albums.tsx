@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import {
   Select,
   SelectContent,
@@ -91,9 +92,7 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </Card>
+        <LoadingCard label={t("loading")} />
       ) : posts.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Images className="h-8 w-8 text-muted-foreground" />

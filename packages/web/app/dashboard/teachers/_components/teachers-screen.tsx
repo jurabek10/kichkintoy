@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { Switch } from "@/components/ui/switch";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
@@ -120,8 +121,8 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
 
       {loading ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            {t("loading")}
+          <CardContent className="p-6">
+            <KidsLoader label={t("loading")} size="sm" />
           </CardContent>
         </Card>
       ) : teachers.length === 0 ? (

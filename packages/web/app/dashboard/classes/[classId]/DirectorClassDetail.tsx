@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
@@ -306,9 +307,9 @@ export function DirectorClassDetail({
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </CardContent>
+        <CardContent className="p-6">
+            <KidsLoader label={t("loading")} size="sm" />
+          </CardContent>
       </Card>
     );
   }

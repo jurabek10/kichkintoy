@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
@@ -343,7 +344,7 @@ function DirectorClassReportTable({
         </CardHeader>
         <CardContent className="p-0">
           {attendanceLoading ? (
-            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
+            <KidsLoader label={t("loading")} size="sm" className="p-6" />
           ) : (
             <div className="p-4">
               <DataTable
@@ -458,7 +459,7 @@ function ClassReportRows({
     <Card>
       <CardContent className="p-0">
         {loading ? (
-          <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
+          <KidsLoader label={t("loading")} size="sm" className="p-6" />
         ) : rows.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">
             {t("noChildrenInClass")}

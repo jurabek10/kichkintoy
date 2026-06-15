@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -122,7 +123,7 @@ function StaffClassesCard({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t("loading")}</p>
+          <KidsLoader label={t("loading")} size="sm" />
         ) : classes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t("noClasses")}
@@ -171,7 +172,7 @@ function StaffReportsCard({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">{t("loading")}</p>
+          <KidsLoader label={t("loading")} size="sm" />
         ) : reports.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t("noReportsForDate")}

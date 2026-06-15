@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
@@ -74,7 +75,7 @@ export function NoticeDetailScreen({
 
   if (isPending) {
     return (
-      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+      <LoadingCard label={t("loading")} />
     );
   }
 

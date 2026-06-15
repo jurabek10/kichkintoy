@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,7 +147,7 @@ export function DocumentSubmissionScreen({
 
   if (isPending) {
     return (
-      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+      <LoadingCard label={t("loading")} />
     );
   }
 

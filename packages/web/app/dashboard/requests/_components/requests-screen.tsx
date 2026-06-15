@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import {
   Dialog,
   DialogContent,
@@ -206,7 +207,7 @@ export function RequestsScreen({ centerId }: { centerId: string | null }) {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
+            <KidsLoader label={t("loading")} size="sm" className="p-6" />
           ) : requests.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
               {t("empty", { filter: t(`filters.${filter}`) })}

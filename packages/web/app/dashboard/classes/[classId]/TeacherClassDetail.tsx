@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -53,7 +54,7 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : loading ? (
-            <p className="text-sm text-muted-foreground">{t("loading")}</p>
+            <KidsLoader label={t("loading")} size="sm" />
           ) : children.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {t("noChildrenInClass")}

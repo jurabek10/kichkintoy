@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { queryKeys } from "@/lib/query-keys";
 import { assignmentRoleLabel } from "@/lib/format";
@@ -52,8 +53,8 @@ export function TeacherClasses() {
 
       {loading ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            {t("loading")}
+          <CardContent className="p-6">
+            <KidsLoader label={t("loading")} size="sm" />
           </CardContent>
         </Card>
       ) : classes.length === 0 ? (

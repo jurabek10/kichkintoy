@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toApiError } from "@/lib/api/errors";
@@ -82,7 +83,7 @@ export function EventDetailScreen({
 
   if (isPending) {
     return (
-      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+      <LoadingCard label={t("loading")} />
     );
   }
 

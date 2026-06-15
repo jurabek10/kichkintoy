@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import {
   Dialog,
   DialogContent,
@@ -127,8 +128,8 @@ export function DirectorClasses({
 
       {loading ? (
         <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            {t("loading")}
+          <CardContent className="p-6">
+            <KidsLoader label={t("loading")} size="sm" />
           </CardContent>
         </Card>
       ) : classes.length === 0 ? (

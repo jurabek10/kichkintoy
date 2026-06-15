@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KidsLoader } from "@/components/kids-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -297,7 +298,7 @@ export function InvitationsScreen({ centerId }: { centerId: string | null }) {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <p className="p-6 text-sm text-muted-foreground">{t("loading")}</p>
+            <KidsLoader label={t("loading")} size="sm" className="p-6" />
           ) : rows.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">{t("empty")}</p>
           ) : (

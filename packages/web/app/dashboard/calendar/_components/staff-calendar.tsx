@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { Input } from "@/components/ui/input";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -109,9 +110,7 @@ export function StaffCalendar({
             {t("eventsOnDate", { date: selectedDate })}
           </h2>
           {isPending ? (
-            <Card className="p-6 text-sm text-muted-foreground">
-              {t("loading")}
-            </Card>
+            <LoadingCard label={t("loading")} />
           ) : selectedEvents.length === 0 ? (
             <EmptyState text={t("noEventsForDate")} />
           ) : (

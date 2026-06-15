@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
@@ -220,7 +221,7 @@ export function StaffAttendance({
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+        <LoadingCard label={t("loading")} />
       ) : records.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <ClipboardCheck className="h-8 w-8 text-muted-foreground" />

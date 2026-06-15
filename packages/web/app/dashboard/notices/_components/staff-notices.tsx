@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import {
   Select,
   SelectContent,
@@ -101,9 +102,7 @@ export function StaffNotices({
       ) : null}
 
       {isPending ? (
-        <Card className="p-6 text-sm text-muted-foreground">
-          {t("loading")}
-        </Card>
+        <LoadingCard label={t("loading")} />
       ) : notices.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Bell className="h-8 w-8 text-muted-foreground" />

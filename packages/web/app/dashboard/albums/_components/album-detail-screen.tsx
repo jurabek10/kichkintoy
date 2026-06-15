@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingCard } from "@/components/loading-card";
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
@@ -88,7 +89,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
 
   if (isPending) {
     return (
-      <Card className="p-6 text-sm text-muted-foreground">{t("loading")}</Card>
+      <LoadingCard label={t("loading")} />
     );
   }
 
