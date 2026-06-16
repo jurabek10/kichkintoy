@@ -1,0 +1,14 @@
+{
+  "myInfo": "Мои данные",
+  "addChild": "Добавить ребёнка",
+  "viewMemories": "Воспоминания",
+  "addAffiliation": "Добавить центр",
+  "menu": {
+    "invitations": "Пригласить семью",
+    "notifications": "Уведомления",
+    "language": "Язык",
+    "support": "Поддержка",
+    "help": "Руководство",
+    "signOut": "Выйти"
+  }
+}

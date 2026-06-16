@@ -1,0 +1,14 @@
+{
+  "myInfo": "Ma'lumotlarim",
+  "addChild": "Farzand qo'shish",
+  "viewMemories": "Xotiralar",
+  "addAffiliation": "Markaz qo'shish",
+  "menu": {
+    "invitations": "Oilani taklif qilish",
+    "notifications": "Bildirishnomalar",
+    "language": "Til",
+    "support": "Yordam",
+    "help": "Qo'llanma",
+    "signOut": "Chiqish"
+  }
+}

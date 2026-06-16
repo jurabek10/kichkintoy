@@ -1,0 +1,14 @@
+{
+  "myInfo": "My info",
+  "addChild": "Add child",
+  "viewMemories": "Memories",
+  "addAffiliation": "Add center",
+  "menu": {
+    "invitations": "Family invite",
+    "notifications": "Notifications",
+    "language": "Language",
+    "support": "Support",
+    "help": "Help",
+    "signOut": "Sign out"
+  }
+}
