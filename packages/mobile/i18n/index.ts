@@ -15,22 +15,25 @@ import enAccount from '@kichkintoy/translations/locales/en/account.json';
 import enApp from '@kichkintoy/translations/locales/en/app.json';
 import enCommon from '@kichkintoy/translations/locales/en/common.json';
 import enNav from '@kichkintoy/translations/locales/en/nav.json';
+import enNotices from '@kichkintoy/translations/locales/en/notices.json';
 import enReports from '@kichkintoy/translations/locales/en/reports.json';
 import ruAccount from '@kichkintoy/translations/locales/ru/account.json';
 import ruApp from '@kichkintoy/translations/locales/ru/app.json';
 import ruCommon from '@kichkintoy/translations/locales/ru/common.json';
 import ruNav from '@kichkintoy/translations/locales/ru/nav.json';
+import ruNotices from '@kichkintoy/translations/locales/ru/notices.json';
 import ruReports from '@kichkintoy/translations/locales/ru/reports.json';
 import uzAccount from '@kichkintoy/translations/locales/uz/account.json';
 import uzApp from '@kichkintoy/translations/locales/uz/app.json';
 import uzCommon from '@kichkintoy/translations/locales/uz/common.json';
 import uzNav from '@kichkintoy/translations/locales/uz/nav.json';
+import uzNotices from '@kichkintoy/translations/locales/uz/notices.json';
 import uzReports from '@kichkintoy/translations/locales/uz/reports.json';
 
 const resources = {
-  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports },
-  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports },
-  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports },
+  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices },
+  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices },
+  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices },
 };
 
 const STORAGE_KEY = 'kichkintoy.language';
@@ -46,7 +49,7 @@ void i18n.use(initReactI18next).init({
   lng: deviceLanguage(),
   fallbackLng,
   defaultNS,
-  ns: ['common', 'nav', 'app', 'account', 'reports'],
+  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices'],
   interpolation: { escapeValue: false },
   returnNull: false,
   // Resources are bundled, so we never need to suspend while loading them —

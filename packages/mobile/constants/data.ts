@@ -260,3 +260,110 @@ const reportDetails: Record<string, ReportDetail> = {
 export function getReportDetail(id: string): ReportDetail | null {
   return reportDetails[id] ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Notices (공지사항) — shapes mirror @kichkintoy/shared NoticeSummary /
+// NoticeDetail. Audience is the target type (center/class); pinned, important
+// and requiresConfirmation drive the badges and the confirm action.
+// ---------------------------------------------------------------------------
+export type NoticeAudience = 'center' | 'class';
+
+export type NoticeSummary = {
+  id: string;
+  title: string;
+  bodyPreview: string;
+  authorName: string;
+  centerName: string;
+  audience: NoticeAudience;
+  isPinned: boolean;
+  isImportant: boolean;
+  requiresConfirmation: boolean;
+  allowComments: boolean;
+  publishedDate: string; // ISO date
+  time: string; // "11:13"
+};
+
+export type NoticeDetail = NoticeSummary & {
+  body: string;
+};
+
+const DIRECTOR = 'Kichkintoy director';
+const CENTER = 'Kichkintoy kindergarten';
+
+export const notices: NoticeSummary[] = [
+  {
+    id: 'n-1',
+    title: 'Parent education No. 26-16',
+    bodyPreview: 'Parent education materials for this term.',
+    authorName: DIRECTOR,
+    centerName: CENTER,
+    audience: 'center',
+    isPinned: true,
+    isImportant: true,
+    requiresConfirmation: false,
+    allowComments: true,
+    publishedDate: '2026-06-13',
+    time: '09:20',
+  },
+  {
+    id: 'n-2',
+    title: 'Week 3 family newsletter & home safety guide',
+    bodyPreview:
+      'Hello Kichkintoy parents! This week we’re sharing the family newsletter along with home-safety tips.',
+    authorName: 'Dilnoza Karimova',
+    centerName: CENTER,
+    audience: 'center',
+    isPinned: false,
+    isImportant: false,
+    requiresConfirmation: false,
+    allowComments: true,
+    publishedDate: '2026-06-12',
+    time: '17:31',
+  },
+  {
+    id: 'n-3',
+    title: 'Meal info disclosure for catering support 26-30',
+    bodyPreview: 'Have a pleasant afternoon.',
+    authorName: DIRECTOR,
+    centerName: CENTER,
+    audience: 'center',
+    isPinned: false,
+    isImportant: false,
+    requiresConfirmation: false,
+    allowComments: true,
+    publishedDate: '2026-06-10',
+    time: '14:02',
+  },
+  {
+    id: 'n-4',
+    title: 'Infection prevention guidance',
+    bodyPreview: 'Hello, this is the director. Health guidance for infants and toddlers.',
+    authorName: DIRECTOR,
+    centerName: CENTER,
+    audience: 'center',
+    isPinned: false,
+    isImportant: true,
+    requiresConfirmation: true,
+    allowComments: true,
+    publishedDate: '2026-06-10',
+    time: '11:13',
+  },
+];
+
+const noticeBodies: Record<string, string> = {
+  'n-1': 'Parent education materials for this term are attached. Please take a moment to read through them at home.',
+  'n-2':
+    'Hello Kichkintoy parents!\n\nThis week we’re uploading the family newsletter together with guidance you can use at home.\n\nHome accidents happen often. The health authority prepared a booklet on keeping infants and toddlers safe at home, so please read it through Kichkintoy and check your home as well.',
+  'n-3':
+    'Have a pleasant afternoon.\n\nMeal information for this period is now disclosed as part of the catering environment support program.',
+  'n-4':
+    'Hello, this is the director.\n\nThe health authority has shared guidance regarding infant and toddler health and safety.\n\nPlease review the prevention guidelines and follow them at home for your child’s health and safety. Thank you.',
+};
+
+const noticeDetails: Record<string, NoticeDetail> = Object.fromEntries(
+  notices.map((notice) => [notice.id, { ...notice, body: noticeBodies[notice.id] ?? notice.bodyPreview }]),
+);
+
+export function getNoticeDetail(id: string): NoticeDetail | null {
+  return noticeDetails[id] ?? null;
+}

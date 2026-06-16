@@ -14,7 +14,9 @@ import {
   currentChild,
   documentContacts,
   feed,
+  getNoticeDetail,
   getReportDetail,
+  notices,
   profile,
   reports,
   upcomingEvents,
@@ -68,4 +70,12 @@ export function useChildReports() {
 
 export function useReport(id: string) {
   return ready(getReportDetail(id));
+}
+
+export function useNotices() {
+  return ready(notices);
+}
+
+export function useNotice(id: string) {
+  return ready(getNoticeDetail(id));
 }
