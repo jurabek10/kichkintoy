@@ -10,8 +10,8 @@ import { MOOD_EMOJI } from '@/constants/data';
 import { useReport } from '@/data/parent';
 import { formatLongDate } from '@/lib/date';
 
-import { ReportComments } from './_components/report-comments';
-import { ReportItemsTable } from './_components/report-items-table';
+import { ReportComments } from '@/components/report/report-comments';
+import { ReportItemsTable } from '@/components/report/report-items-table';
 
 const CORAL = '#E8674E';
 

@@ -10,12 +10,12 @@ import {
   useUpcomingEvents,
 } from '@/data/parent';
 
-import { AttendanceCard } from './_components/attendance-card';
-import { CenterCard } from './_components/center-card';
-import { GreetingBanner } from './_components/greeting-banner';
-import { HomeFeed } from './_components/home-feed';
-import { HomeHeader } from './_components/home-header';
-import { UpcomingCard } from './_components/upcoming-card';
+import { AttendanceCard } from '@/components/home/attendance-card';
+import { CenterCard } from '@/components/home/center-card';
+import { GreetingBanner } from '@/components/home/greeting-banner';
+import { HomeFeed } from '@/components/home/home-feed';
+import { HomeHeader } from '@/components/home/home-header';
+import { UpcomingCard } from '@/components/home/upcoming-card';
 
 export default function HomeScreen() {
   const child = useCurrentChild();
