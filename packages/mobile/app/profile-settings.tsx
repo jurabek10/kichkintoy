@@ -51,7 +51,7 @@ export default function ProfileSettingsScreen() {
           {/* Profile form */}
           <View className="flex-row gap-4 bg-card p-4">
             <View className="items-center gap-2">
-              <Avatar uri={child.data.photo} size={72} />
+              <Avatar uri={child.data?.photo} size={72} />
               <Button label={t('signup.uploadPhoto')} />
             </View>
 

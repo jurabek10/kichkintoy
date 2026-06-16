@@ -11,6 +11,7 @@ import { Loader } from '@/components/ui/loader';
 import { account } from '@/constants/data';
 import { colors } from '@/constants/theme';
 import { useChildren } from '@/data/parent';
+import { useAuth } from '@/lib/auth';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -18,8 +19,14 @@ export default function ChildrenScreen() {
   const router = useRouter();
   const { t } = useTranslation(['account', 'nav', 'common', 'app']);
   const { data: children, isPending } = useChildren();
+  const { signOut } = useAuth();
 
   const goToFindCenter = () => router.push('/find-center');
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace('/login');
+  }
 
   const menu: { key: string; label: string; icon: IoniconName; onPress?: () => void }[] = [
     { key: 'invitations', label: t('menu.invitations'), icon: 'person-add-outline' },
@@ -27,7 +34,7 @@ export default function ChildrenScreen() {
     { key: 'language', label: t('menu.language'), icon: 'language-outline', onPress: () => router.push('/language') },
     { key: 'support', label: t('menu.support'), icon: 'chatbubble-ellipses-outline' },
     { key: 'help', label: t('menu.help'), icon: 'headset-outline' },
-    { key: 'signOut', label: t('menu.signOut'), icon: 'log-out-outline' },
+    { key: 'signOut', label: t('menu.signOut'), icon: 'log-out-outline', onPress: handleSignOut },
   ];
 
   return (
@@ -53,39 +60,32 @@ export default function ChildrenScreen() {
         </View>
       ) : (
         <ScrollView className="flex-1 bg-background" contentContainerClassName="pt-4">
-          <ChildRow
-            child={children[0]}
-            avatarAction="gear"
-            memoriesLabel={t('viewMemories')}
-            addLabel={t('addAffiliation')}
-            onAddAffiliation={goToFindCenter}
-          />
-          <Link href="/(tabs)" asChild>
-            <Pressable className="mx-4 mb-2 mt-1 flex-row items-center justify-between rounded-md bg-[#79B6F7] px-4 py-3">
-              <View>
-                <Text className="text-base font-bold text-white">Kichkintoy</Text>
-                <Text className="mt-0.5 text-[13px] text-white/95">
-                  {t('childClass', { ns: 'app', name: children[0].className })}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
-            </Pressable>
-          </Link>
-
-          <ChildRow
-            child={children[1]}
-            avatarAction="minus"
-            memoriesLabel={t('viewMemories')}
-            addLabel={t('addAffiliation')}
-            onAddAffiliation={goToFindCenter}
-          />
-          <ChildRow
-            child={children[2]}
-            avatarAction="none"
-            memoriesLabel={t('viewMemories')}
-            addLabel={t('addAffiliation')}
-            onAddAffiliation={goToFindCenter}
-          />
+          {children.map((child, index) => (
+            <View key={child.id}>
+              <ChildRow
+                child={child}
+                avatarAction={index === 0 ? 'gear' : 'none'}
+                memoriesLabel={t('viewMemories')}
+                addLabel={t('addAffiliation')}
+                onAddAffiliation={goToFindCenter}
+              />
+              {child.className ? (
+                <Link href="/(tabs)" asChild>
+                  <Pressable className="mx-4 mb-2 mt-1 flex-row items-center justify-between rounded-md bg-[#79B6F7] px-4 py-3">
+                    <View>
+                      <Text className="text-base font-bold text-white">
+                        {child.centerName ?? ''}
+                      </Text>
+                      <Text className="mt-0.5 text-[13px] text-white/95">
+                        {t('childClass', { ns: 'app', name: child.className })}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+                  </Pressable>
+                </Link>
+              ) : null}
+            </View>
+          ))}
         </ScrollView>
       )}
 
