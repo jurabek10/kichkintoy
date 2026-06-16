@@ -367,3 +367,107 @@ const noticeDetails: Record<string, NoticeDetail> = Object.fromEntries(
 export function getNoticeDetail(id: string): NoticeDetail | null {
   return noticeDetails[id] ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Albums (앨범) — shapes mirror @kichkintoy/shared AlbumPostSummary /
+// AlbumPostDetail. `caption` holds the title on its first line and the body
+// after it; `photos` is the media set (summary uses the first few as cover).
+// ---------------------------------------------------------------------------
+export type Album = {
+  id: string;
+  caption: string; // first line = title, rest = body
+  authorName: string;
+  className: string;
+  taggedFamilies: number; // "+N families" beyond the first
+  heartCount: number;
+  commentCount: number;
+  mediaCount: number;
+  publishedDate: string; // ISO date
+  time: string;
+  photos: string[];
+};
+
+export type AlbumComment = {
+  id: string;
+  authorName: string;
+  body: string;
+  dateLabel: string;
+};
+
+export type AlbumDetail = Album & {
+  comments: AlbumComment[];
+  allowComments: boolean;
+};
+
+/** Split a caption into its title (first line) and body (the rest). */
+export function splitCaption(caption: string): { title: string; body: string } {
+  const [title, ...rest] = caption.split('\n');
+  return { title: title.trim(), body: rest.join('\n').trim() };
+}
+
+function photoSet(ids: number[]): string[] {
+  return ids.map((id) => `https://picsum.photos/id/${id}/500`);
+}
+
+export const albums: Album[] = [
+  {
+    id: 'al-1',
+    caption: 'Soccer class @ outdoor walk\n\nHere are our friends in action. Enjoy the photos together!',
+    authorName: 'Dilnoza Karimova',
+    className: 'Quyoshcha',
+    taggedFamilies: 6,
+    heartCount: 2,
+    commentCount: 0,
+    mediaCount: 100,
+    publishedDate: '2026-06-11',
+    time: '14:16',
+    photos: photoSet([1011, 1025, 1062, 1080, 1084, 1074, 109, 110, 111, 112]),
+  },
+  {
+    id: 'al-2',
+    caption: 'We visited the memorial park~\n\nA calm morning walk among the trees with our friends.',
+    authorName: 'Dilnoza Karimova',
+    className: 'Quyoshcha',
+    taggedFamilies: 5,
+    heartCount: 1,
+    commentCount: 1,
+    mediaCount: 48,
+    publishedDate: '2026-06-02',
+    time: '10:05',
+    photos: photoSet([1043, 1039, 1027, 1035, 1044, 1050]),
+  },
+  {
+    id: 'al-3',
+    caption: 'Fun snack museum~~\n\nWe explored, tasted and played all morning.',
+    authorName: 'Dilnoza Karimova',
+    className: 'Quyoshcha',
+    taggedFamilies: 4,
+    heartCount: 3,
+    commentCount: 2,
+    mediaCount: 32,
+    publishedDate: '2026-04-30',
+    time: '11:40',
+    photos: photoSet([1060, 1069, 1070, 1071, 1059, 1057]),
+  },
+];
+
+const albumDetails: Record<string, AlbumDetail> = {
+  'al-1': { ...albums[0], allowComments: true, comments: [] },
+  'al-2': {
+    ...albums[1],
+    allowComments: true,
+    comments: [{ id: 'ac1', authorName: 'Eda’s mom', body: 'So lovely, thank you! 🌳', dateLabel: '2 Jun' }],
+  },
+  'al-3': {
+    ...albums[2],
+    allowComments: true,
+    comments: [
+      { id: 'ac2', authorName: 'Eda’s dad', body: 'Looks like so much fun!', dateLabel: '30 Apr' },
+      { id: 'ac3', authorName: 'Amir’s mom', body: 'Great photos 💕', dateLabel: '30 Apr' },
+    ],
+  },
+};
+
+export function getAlbumDetail(id: string): AlbumDetail | null {
+  return albumDetails[id] ?? null;
+}

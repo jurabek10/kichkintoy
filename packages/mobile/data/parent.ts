@@ -8,12 +8,14 @@
  * layer — see queryKeys factory) is a body-only change with zero screen edits.
  */
 import {
+  albums,
   attendance,
   center,
   children,
   currentChild,
   documentContacts,
   feed,
+  getAlbumDetail,
   getNoticeDetail,
   getReportDetail,
   notices,
@@ -78,4 +80,12 @@ export function useNotices() {
 
 export function useNotice(id: string) {
   return ready(getNoticeDetail(id));
+}
+
+export function useAlbums() {
+  return ready(albums);
+}
+
+export function useAlbum(id: string) {
+  return ready(getAlbumDetail(id));
 }
