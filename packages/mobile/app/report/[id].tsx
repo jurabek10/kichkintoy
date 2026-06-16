@@ -1,23 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CommentBar } from '@/components/comment-bar';
 import { Avatar } from '@/components/ui/avatar';
 import { MOOD_EMOJI } from '@/constants/data';
-import { colors } from '@/constants/theme';
 import { useReport } from '@/data/parent';
 import { formatLongDate } from '@/lib/date';
 
@@ -39,61 +28,6 @@ function Header({ title, mood }: { title: string; mood?: string }) {
         {mood ? <Text className="text-xl">{mood}</Text> : <View className="w-6" />}
       </View>
     </SafeAreaView>
-  );
-}
-
-/** Track keyboard visibility so the input drops its safe-area inset while open. */
-function useKeyboardVisible() {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const show = Keyboard.addListener(showEvent, () => setVisible(true));
-    const hide = Keyboard.addListener(hideEvent, () => setVisible(false));
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
-  return visible;
-}
-
-function CommentBar() {
-  const { t } = useTranslation('reports');
-  const insets = useSafeAreaInsets();
-  const keyboardVisible = useKeyboardVisible();
-  const [text, setText] = useState('');
-
-  // Enabled once there's something to send (a comment, or — later — an upload).
-  const canSend = text.trim().length > 0;
-
-  return (
-    <View
-      className="border-t border-border bg-card px-4 pt-2"
-      style={{ paddingBottom: keyboardVisible ? 8 : Math.max(insets.bottom, 8) }}>
-      <TextInput
-        className="py-2 text-[15px] text-foreground"
-        placeholder={t('detail.writeComment')}
-        placeholderTextColor={colors.textMuted}
-        value={text}
-        onChangeText={setText}
-        multiline
-      />
-      <View className="flex-row items-center gap-4 pt-1">
-        <Ionicons name="time-outline" size={22} color={colors.textSecondary} />
-        <Ionicons name="image-outline" size={22} color={colors.textSecondary} />
-        <Ionicons name="videocam-outline" size={22} color={colors.textSecondary} />
-        <Ionicons name="attach" size={22} color={colors.textSecondary} />
-        <View className="flex-1" />
-        <Pressable
-          hitSlop={8}
-          disabled={!canSend}
-          accessibilityState={{ disabled: !canSend }}
-          onPress={() => setText('')}>
-          <Ionicons name="send" size={22} color={canSend ? CORAL : colors.textMuted} />
-        </Pressable>
-      </View>
-    </View>
   );
 }
 
@@ -158,7 +92,7 @@ export default function ReportDetailScreen() {
           <View className="h-6" />
         </ScrollView>
 
-        <CommentBar />
+        <CommentBar placeholder={t('detail.writeComment')} accentColor={CORAL} />
       </KeyboardAvoidingView>
     </View>
   );
