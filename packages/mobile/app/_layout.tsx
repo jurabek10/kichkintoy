@@ -16,6 +16,7 @@ export default function RootLayout() {
         <Stack.Screen name="language" options={{ presentation: 'modal' }} />
         <Stack.Screen name="feature/[key]" />
         <Stack.Screen name="report/[id]" />
+        <Stack.Screen name="notice/[id]" />
       </Stack>
       <StatusBar style="dark" />
     </>

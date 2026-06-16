@@ -1,0 +1,107 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { CommentBar } from '@/components/comment-bar';
+import { Avatar } from '@/components/ui/avatar';
+import { useNotice } from '@/data/parent';
+import { formatLongDate } from '@/lib/date';
+import { cn } from '@/lib/utils';
+
+const SKY = '#3E8FE0';
+
+/** Sky identity header — the notice feature colour, with its own status inset. */
+function Header({ title, pinned }: { title: string; pinned?: boolean }) {
+  const router = useRouter();
+  return (
+    <SafeAreaView edges={['top']} className="bg-sky-ink">
+      <View className="flex-row items-center px-4 py-3">
+        <Pressable onPress={() => router.back()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+        </Pressable>
+        <Text className="flex-1 text-center text-lg font-bold text-white">{title}</Text>
+        {pinned ? <Ionicons name="bookmark" size={20} color="#FFFFFF" /> : <View className="w-6" />}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function ConfirmCard() {
+  const { t } = useTranslation('notices');
+  const [confirmed, setConfirmed] = useState(false);
+  return (
+    <View className="mx-4 mt-5 items-center gap-3 rounded-lg border border-border bg-card p-4">
+      <Text className="text-center text-sm text-muted">{t('detail.confirmPrompt')}</Text>
+      <Pressable
+        onPress={() => setConfirmed(true)}
+        disabled={confirmed}
+        className={cn('flex-row items-center gap-1 rounded-full px-6 py-2', confirmed ? 'bg-segment' : 'bg-sky-ink')}>
+        {confirmed ? <Ionicons name="checkmark" size={16} color="#8A8F99" /> : null}
+        <Text className={cn('text-sm font-bold', confirmed ? 'text-muted' : 'text-white')}>
+          {confirmed ? t('badges.confirmed') : t('detail.confirm')}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+export default function NoticeDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { t, i18n } = useTranslation('notices');
+  const { data: notice } = useNotice(String(id));
+
+  if (!notice) {
+    return (
+      <View className="flex-1 bg-background">
+        <Header title={t('title')} />
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-sm text-muted">{t('detail.notFound')}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background">
+      <Header title={t('title')} pinned={notice.isPinned} />
+
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {/* Author */}
+          <View className="flex-row items-center gap-3 px-4 py-4">
+            <Avatar size={40} />
+            <View className="flex-1">
+              <Text className="text-sm font-bold text-foreground">{notice.authorName}</Text>
+              <Text className="text-xs text-muted">
+                {formatLongDate(notice.publishedDate, i18n.language)} · {notice.time}
+              </Text>
+            </View>
+          </View>
+
+          {/* Title */}
+          <View className="border-b border-border px-4 pb-4">
+            <Text className="text-lg font-bold leading-6 text-foreground">{notice.title}</Text>
+          </View>
+
+          {/* Body */}
+          <Text className="px-4 pt-4 text-[15px] leading-6 text-foreground">{notice.body}</Text>
+
+          {/* Confirmation (project's equivalent of a reaction CTA) */}
+          {notice.requiresConfirmation ? <ConfirmCard /> : null}
+
+          <View className="h-6" />
+        </ScrollView>
+
+        {notice.allowComments ? (
+          <CommentBar placeholder={t('detail.writeComment', { ns: 'reports' })} accentColor={SKY} />
+        ) : null}
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
