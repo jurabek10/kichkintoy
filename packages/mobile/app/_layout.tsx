@@ -17,6 +17,7 @@ export default function RootLayout() {
         <Stack.Screen name="feature/[key]" />
         <Stack.Screen name="report/[id]" />
         <Stack.Screen name="notice/[id]" />
+        <Stack.Screen name="album/[id]" />
       </Stack>
       <StatusBar style="dark" />
     </>
