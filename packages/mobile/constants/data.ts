@@ -77,7 +77,7 @@ export const features: Feature[] = [
   { key: 'notices', navKey: 'items.notices', route: '/(tabs)/notices', icon: 'megaphone', bg: '#E1F0FF', fg: '#4D9FEC' },
   { key: 'albums', navKey: 'items.albums', route: '/(tabs)/albums', icon: 'images', bg: '#FFF1CF', fg: '#F4A621' },
   { key: 'calendar', navKey: 'items.calendar', route: '/feature/calendar', icon: 'calendar', bg: '#FFE2DD', fg: '#F05A47' },
-  { key: 'meals', navKey: 'items.meals', route: '/feature/meals', icon: 'restaurant', bg: '#FFF6D4', fg: '#EFB019' },
+  { key: 'meals', navKey: 'items.meals', route: '/meals', icon: 'restaurant', bg: '#FFF6D4', fg: '#EFB019' },
   { key: 'medications', navKey: 'items.medications', route: '/feature/medications', icon: 'medkit', bg: '#FFE0E0', fg: '#F0594C' },
   { key: 'pickups', navKey: 'items.pickups', route: '/(tabs)/pickups', icon: 'walk', bg: '#DBECFF', fg: '#4D9FEC' },
   { key: 'documents', navKey: 'items.documents', route: '/feature/documents', icon: 'document-text', bg: '#DCF2E3', fg: '#46B06A', isNew: true },
@@ -470,4 +470,97 @@ const albumDetails: Record<string, AlbumDetail> = {
 
 export function getAlbumDetail(id: string): AlbumDetail | null {
   return albumDetails[id] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Meals (식단표) — shapes mirror @kichkintoy/shared MealPostSummary. Uzbek
+// kindergartens serve three meals a day, so each date carries breakfast,
+// lunch and snack. `eatingStatus` is the active child's status for that meal.
+// ---------------------------------------------------------------------------
+export type MealType = 'breakfast' | 'lunch' | 'snack';
+export type MealEatingStatus = 'ateAll' | 'ateMost' | 'ateSome' | 'didNotEat' | 'notRecorded';
+
+/** Display order for a day's meals. */
+export const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack'];
+
+export type Meal = {
+  id: string;
+  mealDate: string; // ISO date
+  mealType: MealType;
+  menuText: string;
+  allergyNote: string | null;
+  eatingStatus: MealEatingStatus;
+  photos: string[];
+};
+
+function mealPhotos(ids: number[]): string[] {
+  return ids.map((id) => `https://picsum.photos/id/${id}/600/450`);
+}
+
+export const meals: Meal[] = [
+  {
+    id: 'm-12-b',
+    mealDate: '2026-06-12',
+    mealType: 'breakfast',
+    menuText: 'Milk porridge, bread with butter, fruit tea',
+    allergyNote: 'Contains milk, gluten',
+    eatingStatus: 'ateAll',
+    photos: mealPhotos([1080]),
+  },
+  {
+    id: 'm-12-l',
+    mealDate: '2026-06-12',
+    mealType: 'lunch',
+    menuText: 'Steamed rice, grilled fish, sautéed spinach, kimchi, yogurt drink',
+    allergyNote: 'Contains fish, milk',
+    eatingStatus: 'ateMost',
+    photos: mealPhotos([1084, 292]),
+  },
+  {
+    id: 'm-12-s',
+    mealDate: '2026-06-12',
+    mealType: 'snack',
+    menuText: 'Banana, oat cookies, warm milk',
+    allergyNote: 'Contains gluten, milk',
+    eatingStatus: 'ateAll',
+    photos: mealPhotos([1060]),
+  },
+  {
+    id: 'm-11-b',
+    mealDate: '2026-06-11',
+    mealType: 'breakfast',
+    menuText: 'Buckwheat porridge, cheese, herbal tea',
+    allergyNote: 'Contains milk',
+    eatingStatus: 'ateSome',
+    photos: mealPhotos([1025]),
+  },
+  {
+    id: 'm-11-l',
+    mealDate: '2026-06-11',
+    mealType: 'lunch',
+    menuText: 'Steamed rice, beef bulgogi, seasoned greens, kimchi, watermelon',
+    allergyNote: null,
+    eatingStatus: 'ateAll',
+    photos: mealPhotos([1078, 312]),
+  },
+  {
+    id: 'm-11-s',
+    mealDate: '2026-06-11',
+    mealType: 'snack',
+    menuText: 'Apple slices, rice crackers',
+    allergyNote: null,
+    eatingStatus: 'notRecorded',
+    photos: mealPhotos([1069]),
+  },
+];
+
+/** Meals grouped by date (newest first), with each day's meals in order. */
+export function mealsByDate(): { date: string; meals: Meal[] }[] {
+  const dates = [...new Set(meals.map((m) => m.mealDate))].sort((a, b) => b.localeCompare(a));
+  return dates.map((date) => ({
+    date,
+    meals: meals
+      .filter((m) => m.mealDate === date)
+      .sort((a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)),
+  }));
 }

@@ -10,6 +10,12 @@ const WEEKDAYS_SHORT: Record<Language, string[]> = {
   uz: ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'],
 };
 
+const WEEKDAYS_LONG: Record<Language, string[]> = {
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  ru: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+  uz: ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'],
+};
+
 const MONTHS: Record<Language, string[]> = {
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
@@ -29,6 +35,10 @@ export function parseIsoDate(iso: string) {
 
 export function weekdayShort(iso: string, code: string) {
   return WEEKDAYS_SHORT[lang(code)][parseIsoDate(iso).weekday];
+}
+
+export function weekdayLong(iso: string, code: string) {
+  return WEEKDAYS_LONG[lang(code)][parseIsoDate(iso).weekday];
 }
 
 export function monthName(monthIndex: number, code: string) {

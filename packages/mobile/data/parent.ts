@@ -18,6 +18,7 @@ import {
   getAlbumDetail,
   getNoticeDetail,
   getReportDetail,
+  mealsByDate,
   notices,
   profile,
   reports,
@@ -88,4 +89,8 @@ export function useAlbums() {
 
 export function useAlbum(id: string) {
   return ready(getAlbumDetail(id));
+}
+
+export function useMealsByDate() {
+  return ready(mealsByDate());
 }
