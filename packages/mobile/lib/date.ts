@@ -55,3 +55,20 @@ export function formatLongDate(iso: string, code: string) {
   const { day, monthIndex, year } = parseIsoDate(iso);
   return `${day} ${monthName(monthIndex, code)} ${year}`;
 }
+
+/** "12 Jun" — compact date for feed timestamps (ISO date or datetime). */
+export function formatDayMonth(iso: string, code: string) {
+  const dateOnly = iso.slice(0, 10);
+  const { day, monthIndex } = parseIsoDate(dateOnly);
+  return `${day} ${monthName(monthIndex, code).slice(0, 3)}`;
+}
+
+/** Compact age from a date of birth, e.g. "2y 6m". */
+export function ageLabel(iso: string): string {
+  const { year, monthIndex, day } = parseIsoDate(iso);
+  const now = new Date();
+  let months = (now.getFullYear() - year) * 12 + (now.getMonth() - monthIndex);
+  if (now.getDate() < day) months -= 1;
+  if (months < 0) months = 0;
+  return `${Math.floor(months / 12)}y ${months % 12}m`;
+}

@@ -27,6 +27,7 @@ export type Child = {
   ageLabel: string;
   photo: string | null;
   className?: string;
+  centerName?: string;
 };
 
 export const children: Child[] = [
