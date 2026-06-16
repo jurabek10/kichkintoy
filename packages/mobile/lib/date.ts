@@ -1,0 +1,47 @@
+import type { Language } from '@kichkintoy/translations/settings';
+
+/**
+ * Tiny locale-aware date formatting for uz/ru/en. We hand-roll the names
+ * instead of relying on `Intl`, which is only partially implemented in Hermes.
+ */
+const WEEKDAYS_SHORT: Record<Language, string[]> = {
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+  uz: ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'],
+};
+
+const MONTHS: Record<Language, string[]> = {
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+  uz: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'],
+};
+
+function lang(code: string): Language {
+  return code in WEEKDAYS_SHORT ? (code as Language) : 'en';
+}
+
+/** Parse an ISO date ("2026-06-12") in local time (no UTC shift). */
+export function parseIsoDate(iso: string) {
+  const [year, month, day] = iso.split('-').map(Number);
+  const date = new Date(year!, month! - 1, day!);
+  return { year: year!, monthIndex: month! - 1, day: day!, weekday: date.getDay() };
+}
+
+export function weekdayShort(iso: string, code: string) {
+  return WEEKDAYS_SHORT[lang(code)][parseIsoDate(iso).weekday];
+}
+
+export function monthName(monthIndex: number, code: string) {
+  return MONTHS[lang(code)][monthIndex];
+}
+
+/** "June 2026" (English) / "Iyun 2026" / "Июнь 2026". */
+export function formatMonthYear(year: number, monthIndex: number, code: string) {
+  return `${monthName(monthIndex, code)} ${year}`;
+}
+
+/** "12 June 2026" — long-ish date for the report detail header. */
+export function formatLongDate(iso: string, code: string) {
+  const { day, monthIndex, year } = parseIsoDate(iso);
+  return `${day} ${monthName(monthIndex, code)} ${year}`;
+}
