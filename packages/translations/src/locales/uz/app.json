@@ -96,16 +96,19 @@
       "mood": "Kayfiyat",
       "photos": "Suratlar",
       "updates": "Yozuvlar",
-      "cta": "To‘liq hisobotni ko‘rish"
+      "cta": "To‘liq hisobotni ko‘rish",
+      "none": "Bugun uchun hisobot hali yo‘q"
     },
     "photos": {
       "tag": "Yangi albom",
       "caption": "{{count}} ta yangi surat",
-      "cta": "Albomni ochish"
+      "cta": "Albomni ochish",
+      "none": "Hali yangi albom yo‘q"
     },
     "notice": {
       "tag": "E’lon",
-      "cta": "Batafsil o‘qish"
+      "cta": "Batafsil o‘qish",
+      "none": "Hali e’lonlar yo‘q"
     },
     "aside": {
       "center": "Markaz",

@@ -96,16 +96,19 @@
       "mood": "Mood",
       "photos": "Photos",
       "updates": "Updates",
-      "cta": "Open full report"
+      "cta": "Open full report",
+      "none": "No daily report for today yet"
     },
     "photos": {
       "tag": "New album",
       "caption": "{{count}} new photos",
-      "cta": "Open album"
+      "cta": "Open album",
+      "none": "No new album yet"
     },
     "notice": {
       "tag": "Notice",
-      "cta": "Read more"
+      "cta": "Read more",
+      "none": "No notices yet"
     },
     "aside": {
       "center": "Center",

@@ -9,7 +9,8 @@ import { colors } from '@/constants/theme';
 /** The kinds of "what happened today" entries a parent can see. */
 export type FeedKind = 'report' | 'album' | 'notice';
 
-const KIND_TOKENS: Record<
+/** Per-kind icon + accent tokens, shared with the empty-state card. */
+export const FEED_KIND_TOKENS: Record<
   FeedKind,
   {
     icon: ComponentProps<typeof Ionicons>['name'];
@@ -40,7 +41,7 @@ type FeedCardProps = {
  * live here so a new feed kind is one map entry.
  */
 export function FeedCard({ kind, tag, time, title, body, cta, onPress, children }: FeedCardProps) {
-  const token = KIND_TOKENS[kind];
+  const token = FEED_KIND_TOKENS[kind];
   return (
     <Pressable onPress={onPress}>
       <Card>
