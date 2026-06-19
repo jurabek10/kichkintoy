@@ -33,6 +33,15 @@ export default function ReportsScreen() {
         return formatMonthYear(year, monthIndex, i18n.language);
       })()
     : '';
+  const visibleReports = reports.length
+    ? (() => {
+        const first = parseIsoDate(reports[0].reportDate);
+        return reports.filter((report) => {
+          const date = parseIsoDate(report.reportDate);
+          return date.year === first.year && date.monthIndex === first.monthIndex;
+        });
+      })()
+    : [];
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -63,7 +72,7 @@ export default function ReportsScreen() {
           </View>
 
           {/* Timeline */}
-          {reports.map((report) => (
+          {visibleReports.map((report) => (
             <ReportListItem key={report.id} report={report} />
           ))}
         </ScrollView>

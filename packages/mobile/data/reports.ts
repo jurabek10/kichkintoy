@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentChild, type Query } from '@/data/parent';
 import i18n from '@/i18n';
 import { useAuth } from '@/lib/auth';
-import { formatDayMonth } from '@/lib/date';
+import { formatDayMonthTime } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -86,7 +86,7 @@ function toReportDetail(report: ApiReportDetail): ReportDetail {
         id: comment.id,
         authorName: comment.authorName,
         body: comment.body,
-        dateLabel: formatDayMonth(comment.createdAt, lang),
+        dateLabel: formatDayMonthTime(comment.createdAt, lang),
       })),
   };
 }

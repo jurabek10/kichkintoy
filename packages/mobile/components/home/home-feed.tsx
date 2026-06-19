@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -32,6 +33,7 @@ function Stat({
  *  slot always renders — its content, or a "nothing yet" placeholder. */
 export function HomeFeed({ feed }: { feed: HomeFeedData }) {
   const { t } = useTranslation('app');
+  const router = useRouter();
 
   return (
     <>
@@ -47,7 +49,8 @@ export function HomeFeed({ feed }: { feed: HomeFeedData }) {
             time={feed.report.dateLabel}
             title={t('parentHome.report.title')}
             body={feed.report.note || t('parentHome.report.empty')}
-            cta={t('parentHome.report.cta')}>
+            cta={t('parentHome.report.cta')}
+            onPress={() => router.push({ pathname: '/report/[id]', params: { id: feed.report!.id } })}>
             <View className="mt-3 flex-row gap-2">
               <Stat icon="happy-outline" label={t('parentHome.report.mood')} value={feed.report.mood} />
               <Stat

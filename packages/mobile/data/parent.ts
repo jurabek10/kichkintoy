@@ -78,7 +78,7 @@ export function useCenter(): Query<{ name: string }> {
 // --- Home feed ------------------------------------------------------------
 
 export type HomeFeed = {
-  report: { note: string; mood: string; photoCount: number; updateCount: number; dateLabel: string } | null;
+  report: { id: string; note: string; mood: string; photoCount: number; updateCount: number; dateLabel: string } | null;
   album: { caption: string; photoCount: number; dateLabel: string } | null;
   notice: { title: string; body: string; dateLabel: string } | null;
 };
@@ -126,6 +126,7 @@ export function useHomeFeed(): Query<HomeFeed> {
   const data: HomeFeed = {
     report: latestReport
       ? {
+          id: latestReport.id,
           note: latestReport.teacherNote ?? '',
           mood: latestReport.mood ?? '—',
           photoCount: latestReport.photoCount,

@@ -76,6 +76,15 @@ export function formatDayMonth(iso: string, code: string) {
   return `${day} ${monthName(monthIndex, code).slice(0, 3)}`;
 }
 
+/** "12 Jun · 14:05" — compact timestamp for comments and activity rows. */
+export function formatDayMonthTime(iso: string, code: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return formatDayMonth(iso, code);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${formatDayMonth(iso, code)} · ${hours}:${minutes}`;
+}
+
 /** Compact age from a date of birth, e.g. "2y 6m". */
 export function ageLabel(iso: string): string {
   const { year, monthIndex, day } = parseIsoDate(iso);
