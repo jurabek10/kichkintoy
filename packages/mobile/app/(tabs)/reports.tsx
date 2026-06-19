@@ -1,18 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReportListItem } from '@/components/report-list-item';
 import { ScreenHeader } from '@/components/screen-header';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';
-import { useChildReports } from '@/data/parent';
+import { useChildReports } from '@/data/reports';
 import { formatMonthYear, parseIsoDate } from '@/lib/date';
 
 export default function ReportsScreen() {
   const { t, i18n } = useTranslation(['nav', 'reports']);
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
   const { data: reports, isPending } = useChildReports();
+
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ refetchType: 'active' });
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const monthLabel = reports.length
     ? (() => {
@@ -27,7 +40,12 @@ export default function ReportsScreen() {
       {isPending ? (
         <Loader />
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-6">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerClassName="pb-6"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          }>
           {/* Month selector */}
           <View className="px-4 py-3">
             <Pressable className="flex-row items-center gap-1 self-start">
