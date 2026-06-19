@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { MOOD_EMOJI, type ReportSummary } from '@/constants/data';
 import { colors } from '@/constants/theme';
+import { moodEmoji, type ReportSummary } from '@/data/reports';
 import { parseIsoDate, weekdayShort } from '@/lib/date';
 
 function Counter({ icon, n }: { icon: ComponentProps<typeof Ionicons>['name']; n: number }) {
@@ -28,7 +28,7 @@ export function ReportListItem({ report }: { report: ReportSummary }) {
         <View className="w-10 items-center">
           <Text className="text-2xl font-extrabold text-foreground">{day}</Text>
           <Text className="text-[11px] text-muted">{weekdayShort(report.reportDate, i18n.language)}</Text>
-          <Text className="mt-1 text-lg">{MOOD_EMOJI[report.mood]}</Text>
+          <Text className="mt-1 text-lg">{moodEmoji(report.mood)}</Text>
         </View>
 
         <View className="flex-1">
@@ -43,10 +43,6 @@ export function ReportListItem({ report }: { report: ReportSummary }) {
             </View>
           ) : null}
         </View>
-
-        {report.coverPhoto ? (
-          <Image source={{ uri: report.coverPhoto }} className="h-16 w-16 rounded-md bg-segment" />
-        ) : null}
       </Pressable>
     </Link>
   );

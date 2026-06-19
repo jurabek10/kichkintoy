@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/avatar';
-import type { ReportComment } from '@/constants/data';
+import type { ReportComment } from '@/data/reports';
 
 /** Comment thread under a report. */
 export function ReportComments({ comments }: { comments: ReportComment[] }) {

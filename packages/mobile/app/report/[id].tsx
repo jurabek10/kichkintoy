@@ -1,17 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CommentBar } from '@/components/comment-bar';
-import { Avatar } from '@/components/ui/avatar';
-import { MOOD_EMOJI } from '@/constants/data';
-import { useReport } from '@/data/parent';
-import { formatLongDate } from '@/lib/date';
-
 import { ReportComments } from '@/components/report/report-comments';
 import { ReportItemsTable } from '@/components/report/report-items-table';
+import { SignedReportMedia } from '@/components/report/signed-report-media';
+import { Avatar } from '@/components/ui/avatar';
+import { Loader } from '@/components/ui/loader';
+import { moodEmoji, useAddReportComment, useReport } from '@/data/reports';
+import { formatLongDate } from '@/lib/date';
 
 const CORAL = '#E8674E';
 
@@ -34,7 +34,17 @@ function Header({ title, mood }: { title: string; mood?: string }) {
 export default function ReportDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation('reports');
-  const { data: report } = useReport(String(id));
+  const { data: report, isPending } = useReport(String(id));
+  const addComment = useAddReportComment(String(id));
+
+  if (isPending) {
+    return (
+      <View className="flex-1 bg-background">
+        <Header title={t('detail.report')} />
+        <Loader />
+      </View>
+    );
+  }
 
   if (!report) {
     return (
@@ -49,7 +59,7 @@ export default function ReportDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Header title={t('detail.report')} mood={MOOD_EMOJI[report.mood]} />
+      <Header title={t('detail.report')} mood={moodEmoji(report.mood)} />
 
       <KeyboardAvoidingView
         className="flex-1"
@@ -76,7 +86,7 @@ export default function ReportDetailScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerClassName="gap-2 p-4">
               {report.photos.map((photo) => (
-                <Image key={photo} source={{ uri: photo }} className="h-56 w-72 rounded-lg bg-segment" />
+                <SignedReportMedia key={photo.id} media={photo} />
               ))}
             </ScrollView>
           ) : null}
@@ -92,7 +102,13 @@ export default function ReportDetailScreen() {
           <View className="h-6" />
         </ScrollView>
 
-        <CommentBar placeholder={t('detail.writeComment')} accentColor={CORAL} />
+        <CommentBar
+          placeholder={t('detail.writeComment')}
+          accentColor={CORAL}
+          onSubmit={async (text) => {
+            await addComment.mutateAsync(text);
+          }}
+        />
       </KeyboardAvoidingView>
     </View>
   );

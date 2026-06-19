@@ -4,6 +4,12 @@ export const queryKeys = {
     children: ['parent', 'children'] as const,
     childReports: (childId: string) => ['parent', 'reports', childId] as const,
   },
+  reports: {
+    detail: (reportId: string) => ['reports', 'detail', reportId] as const,
+  },
+  media: {
+    download: (mediaAssetId: string) => ['media', 'download', mediaAssetId] as const,
+  },
   albums: {
     parentList: (childId: string) => ['albums', 'parent', childId] as const,
   },

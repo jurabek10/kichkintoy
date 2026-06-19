@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
-import type { ReportItem } from '@/constants/data';
+import type { ReportItem } from '@/data/reports';
 import { cn } from '@/lib/utils';
 
 /** "Day at a glance" — the report's structured items as a label/value table. */
@@ -10,19 +10,28 @@ export function ReportItemsTable({ items }: { items: ReportItem[] }) {
 
   return (
     <View className="mx-4 mt-4 overflow-hidden rounded-lg border border-border bg-card">
-      {items.map((item, index) => (
-        <View
-          key={item.id}
-          className={cn(
-            'flex-row items-center justify-between px-4 py-3',
-            index > 0 && 'border-t border-border',
-          )}>
-          <Text className="text-sm text-muted">{t(`itemTypes.${item.itemType}`)}</Text>
-          <Text className="text-sm font-semibold text-foreground">
-            {item.valueKey ? t(`composer.${item.valueKey}`) : item.value}
-          </Text>
-        </View>
-      ))}
+      {items.map((item, index) => {
+        const typeLabel = t(`itemTypes.${item.itemType}`, { defaultValue: item.itemType });
+        const label = item.title || typeLabel;
+        return (
+          <View
+            key={item.id}
+            className={cn(
+              'flex-row items-center justify-between gap-4 px-4 py-3',
+              index > 0 && 'border-t border-border',
+            )}>
+            <View className="min-w-0 flex-1">
+              <Text numberOfLines={1} className="text-sm font-semibold text-foreground">
+                {label}
+              </Text>
+              {item.title ? <Text className="mt-0.5 text-xs text-muted">{typeLabel}</Text> : null}
+            </View>
+            <Text numberOfLines={2} className="max-w-[52%] text-right text-sm font-semibold text-foreground">
+              {item.value}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }

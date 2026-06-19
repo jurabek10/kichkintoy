@@ -25,6 +25,8 @@ type CommentBarProps = {
   placeholder: string;
   /** Colour of the active send icon (the feature's accent). */
   accentColor: string;
+  /** Called with the trimmed text when the send button is tapped. */
+  onSubmit?: (text: string) => void | Promise<void>;
 };
 
 /**
@@ -32,12 +34,25 @@ type CommentBarProps = {
  * input + attachment actions, with a send button that stays disabled until
  * there's text. Pair it with a `KeyboardAvoidingView` so it rides the keyboard.
  */
-export function CommentBar({ placeholder, accentColor }: CommentBarProps) {
+export function CommentBar({ placeholder, accentColor, onSubmit }: CommentBarProps) {
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardVisible();
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const canSend = text.trim().length > 0;
+  const canSend = text.trim().length > 0 && !sending;
+
+  async function handleSend() {
+    const value = text.trim();
+    if (!value) return;
+    try {
+      setSending(true);
+      await onSubmit?.(value);
+      setText('');
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <View
@@ -61,7 +76,7 @@ export function CommentBar({ placeholder, accentColor }: CommentBarProps) {
           hitSlop={8}
           disabled={!canSend}
           accessibilityState={{ disabled: !canSend }}
-          onPress={() => setText('')}>
+          onPress={handleSend}>
           <Ionicons name="send" size={22} color={canSend ? accentColor : colors.textMuted} />
         </Pressable>
       </View>
