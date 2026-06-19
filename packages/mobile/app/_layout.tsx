@@ -9,11 +9,13 @@ import '@/i18n';
 import { Loader } from '@/components/ui/loader';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { queryClient } from '@/lib/query';
+import { useRealtimeNotifications } from '@/lib/use-realtime-notifications';
 
 function RootNavigator() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  useRealtimeNotifications(session);
 
   // Redirect between the auth screen and the app based on the session.
   useEffect(() => {
