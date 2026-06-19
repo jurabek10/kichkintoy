@@ -1,4 +1,8 @@
-import { serverRealtimeMessageSchema, type RealtimeQueryInvalidationHint } from '@kichkintoy/shared';
+import {
+  safeJsonParse,
+  serverRealtimeMessageSchema,
+  type RealtimeQueryInvalidationHint,
+} from '@kichkintoy/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
@@ -102,12 +106,4 @@ function mobileQueryGroupsFromHint(hint: RealtimeQueryInvalidationHint): Array<r
   if (hint.group === 'director') return [queryKeys.parent.children];
   if (hint.group === 'notifications') return [queryKeys.notifications.all];
   return [];
-}
-
-function safeJsonParse(value: string): unknown {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
 }
