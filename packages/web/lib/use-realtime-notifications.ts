@@ -2,11 +2,16 @@
 
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { serverRealtimeMessageSchema } from "@kichkintoy/shared";
+import {
+  isAttendanceNotification,
+  queryGroupFromHint,
+  safeJsonParse,
+  serverRealtimeMessageSchema,
+} from "@kichkintoy/shared";
 import { toast } from "sonner";
 import { orpc } from "./orpc";
 import { queryKeys } from "./query-keys";
-import { queryGroupFromHint, routeForNotification } from "./notification-routes";
+import { routeForNotification } from "./notification-routes";
 import type { StoredSession } from "./session";
 
 const reconnectBaseDelayMs = 1_000;
@@ -68,10 +73,7 @@ export function useRealtimeNotifications(session: StoredSession | null) {
                 queryKey: queryGroupFromHint(hint),
               });
             }
-            if (
-              payload.notificationType.includes("attendance") ||
-              payload.entityType === "attendance_record"
-            ) {
+            if (isAttendanceNotification(payload)) {
               void queryClient.invalidateQueries({
                 queryKey: queryKeys.attendance.all(),
               });
@@ -120,12 +122,4 @@ export function useRealtimeNotifications(session: StoredSession | null) {
       socket?.close(1000, "Dashboard unmounted.");
     };
   }, [queryClient, session]);
-}
-
-function safeJsonParse(value: string): unknown {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
 }
