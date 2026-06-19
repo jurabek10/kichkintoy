@@ -20,13 +20,14 @@ export class MinioStorageService {
 
   constructor() {
     const endpoint = requireEnv("MINIO_ENDPOINT");
+    const publicEndpoint = process.env.MINIO_PUBLIC_ENDPOINT?.trim() || endpoint;
     this.bucket = requireEnv("MINIO_BUCKET");
     this.uploadTtlSeconds = numberEnv("MINIO_UPLOAD_URL_TTL_SECONDS", 300);
     this.downloadTtlSeconds = numberEnv("MINIO_DOWNLOAD_URL_TTL_SECONDS", 300);
 
     this.client = new S3Client({
       region: process.env.MINIO_REGION ?? "us-east-1",
-      endpoint,
+      endpoint: publicEndpoint,
       forcePathStyle: true,
       credentials: {
         accessKeyId: requireEnv("MINIO_ACCESS_KEY"),
