@@ -12,7 +12,14 @@ export function ReportItemsTable({ items }: { items: ReportItem[] }) {
     <View className="mx-4 mt-4 overflow-hidden rounded-lg border border-border bg-card">
       {items.map((item, index) => {
         const typeLabel = t(`itemTypes.${item.itemType}`, { defaultValue: item.itemType });
-        const label = item.title || typeLabel;
+        const label =
+          item.itemType === 'class_participation'
+            ? classParticipationLabel(item.title, typeLabel, t)
+            : item.title || typeLabel;
+        const value =
+          item.itemType === 'class_participation'
+            ? t(`participationLevels.${item.value}`, { defaultValue: item.value })
+            : item.value;
         return (
           <View
             key={item.id}
@@ -27,11 +34,22 @@ export function ReportItemsTable({ items }: { items: ReportItem[] }) {
               {item.title ? <Text className="mt-0.5 text-xs text-muted">{typeLabel}</Text> : null}
             </View>
             <Text numberOfLines={2} className="max-w-[52%] text-right text-sm font-semibold text-foreground">
-              {item.value}
+              {value}
             </Text>
           </View>
         );
       })}
     </View>
   );
+}
+
+function classParticipationLabel(
+  title: string | null,
+  fallback: string,
+  t: ReturnType<typeof useTranslation<'reports'>>['t'],
+) {
+  if (!title) return fallback;
+  const normalized = title.trim().toLowerCase();
+  if (normalized === 'class attendance' || normalized === 'class participation') return fallback;
+  return t(`participation.subjects.${title}`, { defaultValue: title });
 }

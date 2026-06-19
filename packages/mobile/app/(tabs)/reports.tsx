@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReportListItem } from '@/components/report-list-item';
@@ -27,21 +27,24 @@ export default function ReportsScreen() {
     }
   }
 
-  const monthLabel = reports.length
-    ? (() => {
-        const { year, monthIndex } = parseIsoDate(reports[0].reportDate);
-        return formatMonthYear(year, monthIndex, i18n.language);
-      })()
-    : '';
-  const visibleReports = reports.length
-    ? (() => {
-        const first = parseIsoDate(reports[0].reportDate);
-        return reports.filter((report) => {
-          const date = parseIsoDate(report.reportDate);
-          return date.year === first.year && date.monthIndex === first.monthIndex;
+  const reportGroups = reports.reduce<{ key: string; label: string; reports: typeof reports }[]>(
+    (groups, report) => {
+      const { year, monthIndex } = parseIsoDate(report.reportDate);
+      const key = `${year}-${monthIndex}`;
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup?.key === key) {
+        lastGroup.reports.push(report);
+      } else {
+        groups.push({
+          key,
+          label: formatMonthYear(year, monthIndex, i18n.language),
+          reports: [report],
         });
-      })()
-    : [];
+      }
+      return groups;
+    },
+    [],
+  );
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -55,16 +58,8 @@ export default function ReportsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
           }>
-          {/* Month selector */}
-          <View className="px-4 py-3">
-            <Pressable className="flex-row items-center gap-1 self-start">
-              <Text className="text-base font-bold text-foreground">{monthLabel}</Text>
-              <Ionicons name="chevron-down" size={18} color={colors.textPrimary} />
-            </Pressable>
-          </View>
-
           {/* Prompt banner */}
-          <View className="mx-4 mb-2 flex-row items-center gap-3 rounded-lg bg-coral px-4 py-3">
+          <View className="mx-4 my-3 flex-row items-center gap-3 rounded-lg bg-coral px-4 py-3">
             <Ionicons name="heart" size={18} color="#E8674E" />
             <Text className="flex-1 text-sm font-semibold text-coral-ink">
               {t('parentDescription', { ns: 'reports' })}
@@ -72,8 +67,15 @@ export default function ReportsScreen() {
           </View>
 
           {/* Timeline */}
-          {visibleReports.map((report) => (
-            <ReportListItem key={report.id} report={report} />
+          {reportGroups.map((group) => (
+            <View key={group.key}>
+              <View className="bg-background px-4 py-3">
+                <Text className="text-base font-bold text-foreground">{group.label}</Text>
+              </View>
+              {group.reports.map((report) => (
+                <ReportListItem key={report.id} report={report} />
+              ))}
+            </View>
           ))}
         </ScrollView>
       )}

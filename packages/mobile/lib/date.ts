@@ -73,7 +73,8 @@ export function formatLongDate(iso: string, code: string) {
 export function formatDayMonth(iso: string, code: string) {
   const dateOnly = iso.slice(0, 10);
   const { day, monthIndex } = parseIsoDate(dateOnly);
-  return `${day} ${monthName(monthIndex, code).slice(0, 3)}`;
+  const name = monthName(monthIndex, code);
+  return `${day} ${lang(code) === 'uz' ? name : name.slice(0, 3)}`;
 }
 
 /** "12 Jun · 14:05" — compact timestamp for comments and activity rows. */
