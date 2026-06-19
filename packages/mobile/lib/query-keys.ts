@@ -10,6 +10,11 @@ export const queryKeys = {
   media: {
     download: (mediaAssetId: string) => ['media', 'download', mediaAssetId] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    list: (input?: Record<string, unknown>) => ['notifications', 'list', input ?? {}] as const,
+    unreadCount: ['notifications', 'unread-count'] as const,
+  },
   albums: {
     parentList: (childId: string) => ['albums', 'parent', childId] as const,
   },

@@ -45,6 +45,7 @@ function RootNavigator() {
       <Stack.Screen name="language" options={{ presentation: 'modal' }} />
       <Stack.Screen name="feature/[key]" />
       <Stack.Screen name="report/[id]" />
+      <Stack.Screen name="notifications" />
       <Stack.Screen name="notice/[id]" />
       <Stack.Screen name="album/[id]" />
       <Stack.Screen name="meals" />

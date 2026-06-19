@@ -52,9 +52,16 @@ export function useRealtimeNotifications(session: StoredSession | null) {
           if (!parsed.success) return;
 
           if (parsed.data.type === 'notification.created') {
+            void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
             for (const hint of parsed.data.payload.queryKeys) {
               invalidateFromHint(hint);
             }
+          }
+
+          if (parsed.data.type === 'notification.count_updated') {
+            queryClient.setQueryData(queryKeys.notifications.unreadCount, {
+              count: parsed.data.payload.unreadCount,
+            });
           }
         };
 
@@ -93,6 +100,7 @@ function mobileQueryGroupsFromHint(hint: RealtimeQueryInvalidationHint): Array<r
   if (hint.group === 'meals') return [['meals'] as const];
   if (hint.group === 'studentDocuments') return [['studentDocuments'] as const];
   if (hint.group === 'director') return [queryKeys.parent.children];
+  if (hint.group === 'notifications') return [queryKeys.notifications.all];
   return [];
 }
 
