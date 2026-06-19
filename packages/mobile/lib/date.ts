@@ -26,6 +26,19 @@ function lang(code: string): Language {
   return code in WEEKDAYS_SHORT ? (code as Language) : 'en';
 }
 
+/** Today's date as a local "YYYY-MM-DD". */
+export function todayIsoDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** The local calendar date ("YYYY-MM-DD") of an ISO date or datetime. */
+export function localIsoDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /** Parse an ISO date ("2026-06-12") in local time (no UTC shift). */
 export function parseIsoDate(iso: string) {
   const [year, month, day] = iso.split('-').map(Number);

@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import i18n from '@/i18n';
-import { ageLabel, formatDayMonth, formatLongDate } from '@/lib/date';
+import { ageLabel, formatDayMonth, formatLongDate, localIsoDate, todayIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 import {
@@ -18,11 +18,9 @@ import {
   documentContacts,
   getAlbumDetail,
   getNoticeDetail,
-  getReportDetail,
   mealsByDate,
   notices,
   profile,
-  reports,
   type Child,
 } from '@/constants/data';
 
@@ -98,6 +96,9 @@ export function useHomeFeed(): Query<HomeFeed> {
     queryKey: queryKeys.parent.childReports(childId),
     queryFn: () => orpc.reports.parentList({ childId }),
     enabled: !!childId,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
   const albumsQuery = useQuery({
     queryKey: queryKeys.albums.parentList(childId),
@@ -109,15 +110,18 @@ export function useHomeFeed(): Query<HomeFeed> {
     queryFn: () => orpc.notices.parentList({}),
   });
 
+  // The home "Today" section only surfaces items from today — otherwise each
+  // slot shows its "nothing yet" card rather than a stale older entry.
+  const today = todayIsoDate();
   const latestReport = [...(reportsQuery.data ?? [])]
-    .filter((report) => report.status === 'published')
+    .filter((report) => report.status === 'published' && report.reportDate === today)
     .sort((a, b) => byDateDesc(a.reportDate, b.reportDate))[0];
-  const latestAlbum = [...(albumsQuery.data ?? [])].sort((a, b) =>
-    byDateDesc(a.publishedAt, b.publishedAt),
-  )[0];
-  const latestNotice = [...(noticesQuery.data ?? [])].sort((a, b) =>
-    byDateDesc(a.publishedAt, b.publishedAt),
-  )[0];
+  const latestAlbum = [...(albumsQuery.data ?? [])]
+    .filter((album) => album.publishedAt && localIsoDate(album.publishedAt) === today)
+    .sort((a, b) => byDateDesc(a.publishedAt, b.publishedAt))[0];
+  const latestNotice = [...(noticesQuery.data ?? [])]
+    .filter((notice) => notice.publishedAt && localIsoDate(notice.publishedAt) === today)
+    .sort((a, b) => byDateDesc(a.publishedAt, b.publishedAt))[0];
 
   const data: HomeFeed = {
     report: latestReport
@@ -216,14 +220,6 @@ export function useChildProfile() {
 
 export function useDocumentContacts() {
   return ready(documentContacts);
-}
-
-export function useChildReports() {
-  return ready(reports);
-}
-
-export function useReport(id: string) {
-  return ready(getReportDetail(id));
 }
 
 export function useNotices() {

@@ -1,4 +1,11 @@
-import { QueryClient } from '@tanstack/react-query';
+import { focusManager, QueryClient } from '@tanstack/react-query';
+import { AppState } from 'react-native';
+
+// Refetch stale queries when the app returns to the foreground, so freshly
+// created content (e.g. a teacher's new report) shows up on return.
+AppState.addEventListener('change', (status) => {
+  focusManager.setFocused(status === 'active');
+});
 
 /**
  * Single QueryClient for the app. Tuned for Uzbekistan's slow/intermittent
