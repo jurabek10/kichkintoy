@@ -633,6 +633,7 @@ export class AlbumsService {
       classes: post.classes.map((item) => item.class),
       children: post.children.map((item) => toTaggedChild(item.child)),
       coverMedia: media[0] ?? null,
+      previewMedia: media.slice(0, 3),
       mediaCount: media.length,
       commentCount: activeComments.length,
       reactionSummary: this.reactionSummary(post, userId),

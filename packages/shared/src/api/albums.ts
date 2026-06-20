@@ -95,6 +95,7 @@ export const albumPostSummarySchema = z.object({
   classes: z.array(albumClassSchema),
   children: z.array(albumChildSchema),
   coverMedia: albumMediaSchema.nullable(),
+  previewMedia: z.array(albumMediaSchema),
   mediaCount: z.number().int(),
   commentCount: z.number().int(),
   reactionSummary: albumReactionSummarySchema,
