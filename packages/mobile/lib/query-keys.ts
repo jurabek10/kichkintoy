@@ -17,9 +17,11 @@ export const queryKeys = {
   },
   albums: {
     parentList: (childId: string) => ['albums', 'parent', childId] as const,
+    detail: (postId: string) => ['albums', 'detail', postId] as const,
   },
   notices: {
     parentList: ['notices', 'parent'] as const,
+    detail: (noticeId: string) => ['notices', 'detail', noticeId] as const,
   },
   calendar: {
     upcoming: (childId: string) => ['calendar', 'upcoming', childId] as const,

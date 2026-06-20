@@ -3,9 +3,10 @@
  * and "how a screen renders it".
  *
  * The home hooks now call the real oRPC API via TanStack Query and map the
- * responses into the shapes the screens already consume. The content-section
- * hooks (reports/notices/albums/meals lists + details) are still hardcoded and
- * will be wired the same way in a follow-up.
+ * responses into the shapes the screens already consume. Reports, notices and
+ * albums have their own data modules (data/reports.ts, data/notices.ts,
+ * data/albums.ts); the remaining content-section hooks (meals) are still
+ * hardcoded and will be wired the same way in a follow-up.
  */
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,16 +14,7 @@ import i18n from '@/i18n';
 import { ageLabel, formatDayMonth, formatLongDate, localIsoDate, todayIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
-import {
-  albums,
-  documentContacts,
-  getAlbumDetail,
-  getNoticeDetail,
-  mealsByDate,
-  notices,
-  profile,
-  type Child,
-} from '@/constants/data';
+import { documentContacts, mealsByDate, profile, type Child } from '@/constants/data';
 
 export type Query<T> = {
   data: T;
@@ -221,22 +213,6 @@ export function useChildProfile() {
 
 export function useDocumentContacts() {
   return ready(documentContacts);
-}
-
-export function useNotices() {
-  return ready(notices);
-}
-
-export function useNotice(id: string) {
-  return ready(getNoticeDetail(id));
-}
-
-export function useAlbums() {
-  return ready(albums);
-}
-
-export function useAlbum(id: string) {
-  return ready(getAlbumDetail(id));
 }
 
 export function useMealsByDate() {
