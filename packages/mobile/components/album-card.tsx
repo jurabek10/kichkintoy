@@ -1,30 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { type Album, splitCaption } from '@/constants/data';
+import { SignedAlbumImage } from '@/components/album/signed-album-image';
+import { type AlbumSummary, splitCaption } from '@/data/albums';
 import { formatLongDate } from '@/lib/date';
 
 const LIKE = '#FF5C7A';
 
-/** Kidsnote-style preview: one large photo + two stacked, the last carrying a
- *  "+N" overlay for the remaining media. */
-function Mosaic({ photos, mediaCount }: { photos: string[]; mediaCount: number }) {
-  const [big, ...rest] = photos;
+/** Kidsnote-style preview: one large photo + two stacked, with +N on the last. */
+function Mosaic({ album }: { album: AlbumSummary }) {
+  const [big, ...rest] = album.previewMedia;
   const small = rest.slice(0, 2);
-  const remaining = mediaCount - (1 + small.length);
+  const visibleCount = big ? 1 + small.length : 0;
+  const remaining = album.mediaCount - visibleCount;
 
   if (!big) return null;
 
   return (
     <View className="h-44 flex-row gap-1">
-      <Image source={{ uri: big }} className="flex-1 rounded-md bg-segment" />
+      <SignedAlbumImage media={big} className="flex-1 rounded-md" />
       {small.length > 0 ? (
         <View className="flex-1 gap-1">
-          {small.map((photo, index) => (
-            <View key={photo} className="flex-1">
-              <Image source={{ uri: photo }} className="h-full w-full rounded-md bg-segment" />
+          {small.map((media, index) => (
+            <View key={media.id} className="flex-1">
+              <SignedAlbumImage media={media} className="h-full w-full rounded-md" />
               {index === small.length - 1 && remaining > 0 ? (
                 <View className="absolute inset-0 items-center justify-center rounded-md bg-black/45">
                   <Text className="text-base font-bold text-white">+{remaining}</Text>
@@ -38,7 +39,7 @@ function Mosaic({ photos, mediaCount }: { photos: string[]; mediaCount: number }
   );
 }
 
-export function AlbumCard({ album }: { album: Album }) {
+export function AlbumCard({ album }: { album: AlbumSummary }) {
   const { i18n } = useTranslation('albums');
   const { title } = splitCaption(album.caption);
 
@@ -66,9 +67,11 @@ export function AlbumCard({ album }: { album: Album }) {
           </View>
         </View>
 
-        <View className="mt-3">
-          <Mosaic photos={album.photos} mediaCount={album.mediaCount} />
-        </View>
+        {album.previewMedia.length > 0 ? (
+          <View className="mt-3">
+            <Mosaic album={album} />
+          </View>
+        ) : null}
       </Pressable>
     </Link>
   );

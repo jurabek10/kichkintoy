@@ -47,9 +47,11 @@ export function PhotoViewer({ photos, index, onClose }: PhotoViewerProps) {
             showsHorizontalScrollIndicator={false}
             contentOffset={{ x: index * width, y: 0 }}
             onMomentumScrollEnd={onScrollEnd}>
-            {photos.map((photo) => (
-              <View key={photo} style={{ width }} className="flex-1 items-center justify-center">
-                <Image source={{ uri: photo }} className="h-full w-full" resizeMode="contain" />
+            {photos.map((photo, photoIndex) => (
+              <View key={photoIndex} style={{ width }} className="flex-1 items-center justify-center">
+                {photo ? (
+                  <Image source={{ uri: photo }} className="h-full w-full" resizeMode="contain" />
+                ) : null}
               </View>
             ))}
           </ScrollView>
