@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
-import type { NoticeSummary } from '@/constants/data';
+import type { NoticeSummary } from '@/data/notices';
 import { formatLongDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 

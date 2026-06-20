@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CommentBar } from '@/components/comment-bar';
 import { Avatar } from '@/components/ui/avatar';
-import { useNotice } from '@/data/parent';
+import { Loader } from '@/components/ui/loader';
+import { useConfirmNotice, useNotice } from '@/data/notices';
 import { formatLongDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
@@ -29,19 +29,20 @@ function Header({ title, pinned }: { title: string; pinned?: boolean }) {
   );
 }
 
-function ConfirmCard() {
+function ConfirmCard({ noticeId, confirmed }: { noticeId: string; confirmed: boolean }) {
   const { t } = useTranslation('notices');
-  const [confirmed, setConfirmed] = useState(false);
+  const confirm = useConfirmNotice(noticeId);
+  const isConfirmed = confirmed || confirm.isPending;
   return (
     <View className="mx-4 mt-5 items-center gap-3 rounded-lg border border-border bg-card p-4">
       <Text className="text-center text-sm text-muted">{t('detail.confirmPrompt')}</Text>
       <Pressable
-        onPress={() => setConfirmed(true)}
-        disabled={confirmed}
-        className={cn('flex-row items-center gap-1 rounded-full px-6 py-2', confirmed ? 'bg-segment' : 'bg-sky-ink')}>
-        {confirmed ? <Ionicons name="checkmark" size={16} color="#8A8F99" /> : null}
-        <Text className={cn('text-sm font-bold', confirmed ? 'text-muted' : 'text-white')}>
-          {confirmed ? t('badges.confirmed') : t('detail.confirm')}
+        onPress={() => confirm.mutate()}
+        disabled={isConfirmed}
+        className={cn('flex-row items-center gap-1 rounded-full px-6 py-2', isConfirmed ? 'bg-segment' : 'bg-sky-ink')}>
+        {isConfirmed ? <Ionicons name="checkmark" size={16} color="#8A8F99" /> : null}
+        <Text className={cn('text-sm font-bold', isConfirmed ? 'text-muted' : 'text-white')}>
+          {isConfirmed ? t('badges.confirmed') : t('detail.confirm')}
         </Text>
       </Pressable>
     </View>
@@ -51,7 +52,16 @@ function ConfirmCard() {
 export default function NoticeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation('notices');
-  const { data: notice } = useNotice(String(id));
+  const { data: notice, isPending } = useNotice(String(id));
+
+  if (isPending) {
+    return (
+      <View className="flex-1 bg-background">
+        <Header title={t('title')} />
+        <Loader />
+      </View>
+    );
+  }
 
   if (!notice) {
     return (
@@ -93,7 +103,9 @@ export default function NoticeDetailScreen() {
           <Text className="px-4 pt-4 text-[15px] leading-6 text-foreground">{notice.body}</Text>
 
           {/* Confirmation (project's equivalent of a reaction CTA) */}
-          {notice.requiresConfirmation ? <ConfirmCard /> : null}
+          {notice.requiresConfirmation ? (
+            <ConfirmCard noticeId={notice.id} confirmed={notice.isConfirmed} />
+          ) : null}
 
           <View className="h-6" />
         </ScrollView>
