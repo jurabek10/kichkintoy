@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import type { FacilityType } from "@kichkintoy/shared";
 import { fallbackLng } from "@kichkintoy/translations/settings";
-import { dateLocale } from "./date";
+import { dateLocale, toUzbekistanDate } from "./date";
 
 /**
  * Locale-aware labels and dates.
@@ -188,7 +188,7 @@ export function genderLabel(value: string | null | undefined): string {
 
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
-  const date = typeof value === "string" ? new Date(value) : value;
+  const date = toUzbekistanDate(value);
   if (Number.isNaN(date.getTime())) return "—";
   return format(date, "d MMM yyyy", { locale: dateLocale(activeLanguage()) });
 }
@@ -197,7 +197,7 @@ export function formatDateTime(
   value: string | Date | null | undefined,
 ): string {
   if (!value) return "—";
-  const date = typeof value === "string" ? new Date(value) : value;
+  const date = toUzbekistanDate(value);
   if (Number.isNaN(date.getTime())) return "—";
   return format(date, "d MMM yyyy, HH:mm", {
     locale: dateLocale(activeLanguage()),

@@ -26,17 +26,45 @@ function lang(code: string): Language {
   return code in WEEKDAYS_SHORT ? (code as Language) : 'en';
 }
 
-/** Today's date as a local "YYYY-MM-DD". */
-export function todayIsoDate(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * Uzbekistan runs on a fixed UTC+5 (no DST). The kindergarten is in Uzbekistan,
+ * so every timestamp is shown in Tashkent wall-clock time regardless of the
+ * device timezone — otherwise an instant renders in whatever zone the phone or
+ * emulator happens to be set to (e.g. Korea, UTC+9).
+ */
+const UZ_OFFSET_MIN = 5 * 60;
+
+/**
+ * Wall-clock parts of an instant in Uzbekistan time. We shift the epoch by the
+ * fixed offset and read the UTC fields, which is device-timezone independent.
+ * A date-only string ("2026-06-12") is UTC midnight, so +5h keeps the same
+ * calendar day — pure dates are never shifted.
+ */
+function uzParts(value: string) {
+  const uz = new Date(new Date(value).getTime() + UZ_OFFSET_MIN * 60_000);
+  return {
+    year: uz.getUTCFullYear(),
+    monthIndex: uz.getUTCMonth(),
+    day: uz.getUTCDate(),
+    hours: uz.getUTCHours(),
+    minutes: uz.getUTCMinutes(),
+    weekday: uz.getUTCDay(),
+  };
 }
 
-/** The local calendar date ("YYYY-MM-DD") of an ISO date or datetime. */
+/** Today's date in Uzbekistan as "YYYY-MM-DD". */
+export function todayIsoDate(): string {
+  const { year, monthIndex, day } = uzParts(new Date().toISOString());
+  return `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
+}
+
+/** The Uzbekistan calendar date ("YYYY-MM-DD") of an ISO date or datetime. */
 export function localIsoDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  if (Number.isNaN(new Date(iso).getTime())) return iso.slice(0, 10);
+  const { year, monthIndex, day } = uzParts(iso);
+  return `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
 }
 
 /** Parse an ISO date ("2026-06-12") in local time (no UTC shift). */
@@ -69,21 +97,24 @@ export function formatLongDate(iso: string, code: string) {
   return `${day} ${monthName(monthIndex, code)} ${year}`;
 }
 
-/** "12 Jun" — compact date for feed timestamps (ISO date or datetime). */
+/** "12 Jun" — compact date for feed timestamps (ISO date or datetime), in UZ time. */
 export function formatDayMonth(iso: string, code: string) {
-  const dateOnly = iso.slice(0, 10);
-  const { day, monthIndex } = parseIsoDate(dateOnly);
+  const { day, monthIndex } = uzParts(iso);
   const name = monthName(monthIndex, code);
   return `${day} ${lang(code) === 'uz' ? name : name.slice(0, 3)}`;
 }
 
-/** "12 Jun · 14:05" — compact timestamp for comments and activity rows. */
+/** "14:05" — 24-hour time of an instant in Uzbekistan time. */
+export function formatTime(iso: string) {
+  if (Number.isNaN(new Date(iso).getTime())) return '';
+  const { hours, minutes } = uzParts(iso);
+  return `${pad(hours)}:${pad(minutes)}`;
+}
+
+/** "12 Jun · 14:05" — compact timestamp for comments and activity rows, in UZ time. */
 export function formatDayMonthTime(iso: string, code: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return formatDayMonth(iso, code);
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${formatDayMonth(iso, code)} · ${hours}:${minutes}`;
+  if (Number.isNaN(new Date(iso).getTime())) return formatDayMonth(iso, code);
+  return `${formatDayMonth(iso, code)} · ${formatTime(iso)}`;
 }
 
 /** Compact age from a date of birth, e.g. "2y 6m". */

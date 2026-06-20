@@ -25,28 +25,56 @@ export function currentDateLocale(): Locale {
   return dateLocale(lang);
 }
 
+const UZ_OFFSET_MIN = 5 * 60;
+const ISO_DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
 function toDate(value: string | Date): Date {
-  return typeof value === "string" ? new Date(value) : value;
+  if (typeof value !== "string") return value;
+  if (ISO_DATE_ONLY.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year!, month! - 1, day!);
+  }
+  return new Date(value);
+}
+
+/**
+ * Uzbekistan is fixed UTC+5. Convert an instant into a Date whose local fields
+ * match Tashkent wall-clock time, so formatting is stable on Korea/US devices.
+ */
+export function toUzbekistanDate(value: string | Date): Date {
+  if (typeof value === "string" && ISO_DATE_ONLY.test(value)) return toDate(value);
+  const date = toDate(value);
+  if (Number.isNaN(date.getTime())) return date;
+  const uz = new Date(date.getTime() + UZ_OFFSET_MIN * 60_000);
+  return new Date(
+    uz.getUTCFullYear(),
+    uz.getUTCMonth(),
+    uz.getUTCDate(),
+    uz.getUTCHours(),
+    uz.getUTCMinutes(),
+    uz.getUTCSeconds(),
+    uz.getUTCMilliseconds(),
+  );
 }
 
 /** "Dushanba, 15-iyun" — weekday + day + month. */
 export function formatWeekdayLong(value: string | Date, language: string): string {
-  return format(toDate(value), "EEEE, d MMMM", { locale: dateLocale(language) });
+  return format(toUzbekistanDate(value), "EEEE, d MMMM", { locale: dateLocale(language) });
 }
 
 /** "15-iyun" — day + month, no weekday. */
 export function formatDayMonth(value: string | Date, language: string): string {
-  return format(toDate(value), "d MMMM", { locale: dateLocale(language) });
+  return format(toUzbekistanDate(value), "d MMMM", { locale: dateLocale(language) });
 }
 
 /** "15-iyun, 16:30" — day, month, 24h time. */
 export function formatDayMonthTime(value: string | Date, language: string): string {
-  return format(toDate(value), "d MMMM, HH:mm", { locale: dateLocale(language) });
+  return format(toUzbekistanDate(value), "d MMMM, HH:mm", { locale: dateLocale(language) });
 }
 
 /** "16:30" — 24-hour time. */
 export function formatTime(value: string | Date): string {
-  return format(toDate(value), "HH:mm");
+  return format(toUzbekistanDate(value), "HH:mm");
 }
 
 /** "2 soat oldin" — short relative time in the active language. */
