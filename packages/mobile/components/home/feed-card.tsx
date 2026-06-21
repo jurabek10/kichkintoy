@@ -29,7 +29,7 @@ type FeedCardProps = {
   tag: string;
   time: string;
   title: string;
-  body: string;
+  body?: string;
   cta?: string;
   onPress?: () => void;
   children?: ReactNode;
@@ -56,9 +56,11 @@ export function FeedCard({ kind, tag, time, title, body, cta, onPress, children 
           {time ? <Text className="text-xs font-semibold text-muted">{time}</Text> : null}
         </View>
         <Text className="mt-3 text-base font-bold text-foreground">{title}</Text>
-        <Text numberOfLines={3} className="mt-1 text-sm leading-5 text-muted">
-          {body}
-        </Text>
+        {body ? (
+          <Text numberOfLines={3} className="mt-1 text-sm leading-5 text-muted">
+            {body}
+          </Text>
+        ) : null}
         {children}
         {cta ? (
           <View className="mt-3 flex-row items-center gap-1">

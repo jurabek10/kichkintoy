@@ -3,41 +3,11 @@ import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
-import { SignedAlbumImage } from '@/components/album/signed-album-image';
+import { AlbumMosaic } from '@/components/album/album-mosaic';
 import { type AlbumSummary, splitCaption } from '@/data/albums';
 import { formatLongDate } from '@/lib/date';
 
 const LIKE = '#FF5C7A';
-
-/** Kidsnote-style preview: one large photo + two stacked, with +N on the last. */
-function Mosaic({ album }: { album: AlbumSummary }) {
-  const [big, ...rest] = album.previewMedia;
-  const small = rest.slice(0, 2);
-  const visibleCount = big ? 1 + small.length : 0;
-  const remaining = album.mediaCount - visibleCount;
-
-  if (!big) return null;
-
-  return (
-    <View className="h-44 flex-row gap-1">
-      <SignedAlbumImage media={big} className="flex-1 rounded-md" />
-      {small.length > 0 ? (
-        <View className="flex-1 gap-1">
-          {small.map((media, index) => (
-            <View key={media.id} className="flex-1">
-              <SignedAlbumImage media={media} className="h-full w-full rounded-md" />
-              {index === small.length - 1 && remaining > 0 ? (
-                <View className="absolute inset-0 items-center justify-center rounded-md bg-black/45">
-                  <Text className="text-base font-bold text-white">+{remaining}</Text>
-                </View>
-              ) : null}
-            </View>
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
-}
 
 export function AlbumCard({ album }: { album: AlbumSummary }) {
   const { i18n } = useTranslation('albums');
@@ -68,8 +38,8 @@ export function AlbumCard({ album }: { album: AlbumSummary }) {
         </View>
 
         {album.previewMedia.length > 0 ? (
-          <View className="mt-3">
-            <Mosaic album={album} />
+          <View className="mt-3 h-44">
+            <AlbumMosaic previewMedia={album.previewMedia} mediaCount={album.mediaCount} />
           </View>
         ) : null}
       </Pressable>

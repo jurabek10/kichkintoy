@@ -70,7 +70,13 @@ export function useCenter(): Query<{ name: string }> {
 
 export type HomeFeed = {
   report: { id: string; note: string; mood: string; photoCount: number; updateCount: number; dateLabel: string } | null;
-  album: { caption: string; photoCount: number; dateLabel: string } | null;
+  album: {
+    id: string;
+    caption: string;
+    photoCount: number;
+    dateLabel: string;
+    previewMedia: { id: string; assetId: string; mediaType: string }[];
+  } | null;
   notice: { title: string; body: string; dateLabel: string } | null;
 };
 
@@ -127,9 +133,13 @@ export function useHomeFeed(): Query<HomeFeed> {
       : null,
     album: latestAlbum
       ? {
+          id: latestAlbum.id,
           caption: latestAlbum.caption.split('\n')[0] || '',
           photoCount: latestAlbum.mediaCount,
           dateLabel: latestAlbum.publishedAt ? formatDayMonth(latestAlbum.publishedAt, lang) : '',
+          previewMedia: (
+            latestAlbum.previewMedia ?? (latestAlbum.coverMedia ? [latestAlbum.coverMedia] : [])
+          ).map((media) => ({ id: media.id, assetId: media.assetId, mediaType: media.mediaType })),
         }
       : null,
     notice: latestNotice

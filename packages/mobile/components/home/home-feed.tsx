@@ -4,6 +4,7 @@ import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
+import { AlbumMosaic } from '@/components/album/album-mosaic';
 import { FeedCard } from '@/components/home/feed-card';
 import { EmptyFeedCard } from '@/components/home/empty-feed-card';
 import { colors } from '@/constants/theme';
@@ -80,9 +81,14 @@ export function HomeFeed({ feed }: { feed: HomeFeedData }) {
             tag={t('parentHome.photos.tag')}
             time={feed.album.dateLabel}
             title={feed.album.caption || t('parentHome.photos.tag')}
-            body={t('parentHome.photos.caption', { count: feed.album.photoCount })}
             cta={t('parentHome.photos.cta')}
-          />
+            onPress={() => router.push({ pathname: '/album/[id]', params: { id: feed.album!.id } })}>
+            {feed.album.previewMedia.length > 0 ? (
+              <View className="mt-3 h-44">
+                <AlbumMosaic previewMedia={feed.album.previewMedia} mediaCount={feed.album.photoCount} />
+              </View>
+            ) : null}
+          </FeedCard>
         ) : (
           <EmptyFeedCard
             kind="album"
