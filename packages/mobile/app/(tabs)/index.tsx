@@ -7,16 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
-import {
-  useAttendanceSummary,
-  useCenter,
-  useCurrentChild,
-  useHomeFeed,
-  useUpcomingEvents,
-} from '@/data/parent';
+import { useCenter, useCurrentChild, useHomeFeed, useUpcomingEvents } from '@/data/parent';
 import { useAuth } from '@/lib/auth';
 
-import { AttendanceCard } from '@/components/home/attendance-card';
+import { AttendanceCalendar } from '@/components/home/attendance-calendar';
 import { CenterCard } from '@/components/home/center-card';
 import { GreetingBanner } from '@/components/home/greeting-banner';
 import { HomeFeed } from '@/components/home/home-feed';
@@ -33,7 +27,6 @@ export default function HomeScreen() {
   const child = useCurrentChild();
   const center = useCenter();
   const homeFeed = useHomeFeed();
-  const summary = useAttendanceSummary();
   const upcoming = useUpcomingEvents();
 
   async function onRefresh() {
@@ -85,7 +78,7 @@ export default function HomeScreen() {
         <GreetingBanner />
         <CenterCard centerName={center.data.name} childClassName={child.data.className} />
         <HomeFeed feed={homeFeed.data} />
-        <AttendanceCard attended={summary.data.attended} total={summary.data.total} />
+        <AttendanceCalendar />
         <UpcomingCard events={upcoming.data} />
       </ScrollView>
     </SafeAreaView>

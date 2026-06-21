@@ -159,36 +159,7 @@ export function useHomeFeed(): Query<HomeFeed> {
   return { data, isPending };
 }
 
-// --- Attendance summary ---------------------------------------------------
-
-const ATTENDED = new Set(['present', 'late', 'left_early', 'picked_up']);
-
-function monthRange() {
-  const now = new Date();
-  const iso = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  return { from: iso(new Date(now.getFullYear(), now.getMonth(), 1)), to: iso(now) };
-}
-
-export function useAttendanceSummary(): Query<{ attended: number; total: number }> {
-  const child = useCurrentChild();
-  const childId = child.data?.id ?? '';
-  const { from, to } = monthRange();
-
-  const query = useQuery({
-    queryKey: queryKeys.attendance.parentList(childId, from, to),
-    queryFn: () => orpc.attendance.parentList({ childId, from, to }),
-    enabled: !!childId,
-  });
-
-  const records = query.data ?? [];
-  const attended = records.filter((record) => ATTENDED.has(record.status)).length;
-
-  return {
-    data: { attended, total: records.length },
-    isPending: child.isPending || (!!childId && query.isPending),
-  };
-}
+// Monthly attendance now lives in data/attendance.ts (the home calendar).
 
 // --- Upcoming events ------------------------------------------------------
 
