@@ -23,6 +23,9 @@ export const queryKeys = {
     parentList: ['notices', 'parent'] as const,
     detail: (noticeId: string) => ['notices', 'detail', noticeId] as const,
   },
+  meals: {
+    parentList: (childId: string) => ['meals', 'parent', childId] as const,
+  },
   calendar: {
     upcoming: (childId: string) => ['calendar', 'upcoming', childId] as const,
   },
