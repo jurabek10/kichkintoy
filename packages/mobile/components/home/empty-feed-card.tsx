@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
-import { FEED_KIND_TOKENS, type FeedKind } from '@/components/feed-card';
+import { FEED_KIND_TOKENS, type FeedKind } from '@/components/home/feed-card';
 import { Card } from '@/components/ui/card';
 import { Tag } from '@/components/ui/tag';
 import { cn } from '@/lib/utils';

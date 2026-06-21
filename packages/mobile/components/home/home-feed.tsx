@@ -4,7 +4,7 @@ import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
-import { FeedCard } from '@/components/feed-card';
+import { FeedCard } from '@/components/home/feed-card';
 import { EmptyFeedCard } from '@/components/home/empty-feed-card';
 import { colors } from '@/constants/theme';
 import type { HomeFeed as HomeFeedData } from '@/data/parent';
