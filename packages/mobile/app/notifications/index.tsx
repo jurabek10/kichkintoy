@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/screen-header';
+import { ScreenHeader } from '@/components/common/screen-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LanguageSwitch } from '@/components/language-switch';
+import { LanguageSwitch } from '@/components/common/language-switch';
 import { colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { orpc } from '@/lib/orpc';

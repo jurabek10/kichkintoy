@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { StackHeader } from '@/components/stack-header';
+import { StackHeader } from '@/components/common/stack-header';
 import { account } from '@/constants/data';
 import { colors } from '@/constants/theme';
 

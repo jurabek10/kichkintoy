@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LanguageSwitch } from '@/components/language-switch';
+import { LanguageSwitch } from '@/components/common/language-switch';
 import { AccountStep } from '@/components/signup/account-step';
 import { CenterStep } from '@/components/signup/center-step';
 import { ChildStep } from '@/components/signup/child-step';

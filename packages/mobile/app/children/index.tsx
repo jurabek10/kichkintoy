@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ChildRow } from '@/components/child-row';
-import { StackHeader } from '@/components/stack-header';
+import { ChildRow } from '@/components/common/child-row';
+import { StackHeader } from '@/components/common/stack-header';
 import { Loader } from '@/components/ui/loader';
 import { account } from '@/constants/data';
 import { colors } from '@/constants/theme';
