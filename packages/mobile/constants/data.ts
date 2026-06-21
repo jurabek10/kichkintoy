@@ -78,6 +78,7 @@ export const features: Feature[] = [
   { key: 'notices', navKey: 'items.notices', route: '/(tabs)/notices', icon: 'megaphone', bg: '#E1F0FF', fg: '#4D9FEC' },
   { key: 'albums', navKey: 'items.albums', route: '/(tabs)/albums', icon: 'images', bg: '#FFF1CF', fg: '#F4A621' },
   { key: 'calendar', navKey: 'items.calendar', route: '/feature/calendar', icon: 'calendar', bg: '#FFE2DD', fg: '#F05A47' },
+  { key: 'attendance', navKey: 'items.attendance', route: '/attendance', icon: 'calendar-number', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'meals', navKey: 'items.meals', route: '/meals', icon: 'restaurant', bg: '#FFF6D4', fg: '#EFB019' },
   { key: 'medications', navKey: 'items.medications', route: '/feature/medications', icon: 'medkit', bg: '#FFE0E0', fg: '#F0594C' },
   { key: 'pickups', navKey: 'items.pickups', route: '/(tabs)/pickups', icon: 'walk', bg: '#DBECFF', fg: '#4D9FEC' },

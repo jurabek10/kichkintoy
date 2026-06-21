@@ -16,6 +16,9 @@ const MINT = '#46B06A';
 const CORAL = '#E8674E';
 const SUN = '#F4A621';
 const MUTED = '#8A8F99';
+const PRIMARY = '#3B8FF3';
+
+type CalendarMonth = { year: number; monthIndex: number };
 
 /** Status → cell fill (static classes so NativeWind picks them up). Days with no
  *  record keep the plain card surface so every day reads as the same tile. */
@@ -103,16 +106,28 @@ function LegendItem({ icon, color, label }: { icon: IconName; color: string; lab
 /** Monthly attendance calendar for the active child: a day grid where each cell
  *  carries the attendance status and the recorded check-in/out times, with
  *  absences highlighted. Replaces the old one-line attendance summary. */
-export function AttendanceCalendar() {
+export function AttendanceCalendar({
+  value,
+  onChange,
+  onPressMore,
+}: {
+  /** Controlled selected month; omit for self-managed state (home card). */
+  value?: CalendarMonth;
+  onChange?: (month: CalendarMonth) => void;
+  /** When set, renders a "Full attendance" link (home card → attendance page). */
+  onPressMore?: () => void;
+} = {}) {
   const { t, i18n } = useTranslation('app');
   const lang = i18n.language;
   const today = todayIsoDate();
   const todayParts = parseIsoDate(today);
 
-  const [view, setView] = useState(() => ({
+  const [internal, setInternal] = useState<CalendarMonth>(() => ({
     year: todayParts.year,
     monthIndex: todayParts.monthIndex,
   }));
+  const view = value ?? internal;
+  const setView = (month: CalendarMonth) => (onChange ? onChange(month) : setInternal(month));
 
   const { data: days } = useAttendanceCalendar(view.year, view.monthIndex);
 
@@ -225,6 +240,13 @@ export function AttendanceCalendar() {
       <Text className="mt-2 text-[11px] leading-4 text-muted">
         {t('parentHome.calendar.note')}
       </Text>
+
+      {onPressMore ? (
+        <Pressable onPress={onPressMore} className="mt-3 flex-row items-center gap-1">
+          <Text className="text-sm font-bold text-primary">{t('parentHome.calendar.more')}</Text>
+          <Ionicons name="arrow-forward" size={14} color={PRIMARY} />
+        </Pressable>
+      ) : null}
     </Card>
   );
 }
