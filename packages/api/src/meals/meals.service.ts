@@ -144,19 +144,21 @@ export class MealsService {
 
   async listForParent(userId: string, childId?: string, date?: string) {
     const access = await this.parentAccess(userId, childId);
-    const targetDate = parseDate(date ?? todayIso());
+    // A specific date returns that single day (used by the web date picker);
+    // omitting it returns the full published history, newest first, so the
+    // mobile screen can group every day's meals like the daily reports list.
     const posts = await this.prisma.mealPost.findMany({
       where: {
         deletedAt: null,
         status: "published",
-        mealDate: targetDate,
+        ...(date ? { mealDate: parseDate(date) } : {}),
         OR: [
           { audienceType: "center", centerId: { in: access.centerIds } },
           { classes: { some: { classId: { in: access.classIds } } } },
         ],
       },
       include: mealInclude,
-      orderBy: { mealType: "asc" },
+      orderBy: [{ mealDate: "desc" }, { mealType: "asc" }],
     });
     return mealListResponseSchema.parse(
       posts.map((post) => this.toSummary(post, userId, access.childIds)),
@@ -719,10 +721,6 @@ function parseDate(value: string) {
 
 function toIsoDate(value: Date) {
   return value.toISOString().slice(0, 10);
-}
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 function toChild(child: MealPayload["childStatuses"][number]["child"]) {
