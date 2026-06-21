@@ -210,6 +210,8 @@ export class AttendanceService {
           checkInByUserId: userId,
           checkOutAt: null,
           checkOutByUserId: null,
+          pickedUpBy: null,
+          pickedUpRelationship: null,
           absenceReason: null,
           ...(input.staffNote !== undefined
             ? { note: emptyToNull(input.staffNote) }
@@ -265,6 +267,19 @@ export class AttendanceService {
           "Absent or excused children cannot be checked out without correction.",
         );
       }
+      const plannedPickup = await this.findPlannedPickup(
+        tx,
+        input.childId,
+        attendanceDate,
+      );
+      const pickedUpBy =
+        input.pickedUpBy !== undefined
+          ? emptyToNull(input.pickedUpBy)
+          : plannedPickup?.pickupPersonName;
+      const pickedUpRelationship =
+        input.pickedUpRelationship !== undefined
+          ? emptyToNull(input.pickedUpRelationship)
+          : plannedPickup?.relationship;
       const updated = await tx.attendanceRecord.upsert({
         where: {
           childId_attendanceDate: {
@@ -280,6 +295,8 @@ export class AttendanceService {
           status: input.leftEarly ? "left_early" : "picked_up",
           checkOutAt: checkedOutAt,
           checkOutByUserId: userId,
+          pickedUpBy: pickedUpBy ?? null,
+          pickedUpRelationship: pickedUpRelationship ?? null,
           note: emptyToNull(input.staffNote),
           parentVisibleNote: emptyToNull(input.parentVisibleNote),
         },
@@ -287,6 +304,8 @@ export class AttendanceService {
           status: input.leftEarly ? "left_early" : "picked_up",
           checkOutAt: checkedOutAt,
           checkOutByUserId: userId,
+          ...(pickedUpBy !== undefined ? { pickedUpBy } : {}),
+          ...(pickedUpRelationship !== undefined ? { pickedUpRelationship } : {}),
           ...(input.staffNote !== undefined
             ? { note: emptyToNull(input.staffNote) }
             : {}),
@@ -363,6 +382,8 @@ export class AttendanceService {
                 checkInByUserId: null,
                 checkOutAt: null,
                 checkOutByUserId: null,
+                pickedUpBy: null,
+                pickedUpRelationship: null,
               }
             : {}),
           ...(input.staffNote !== undefined
@@ -451,6 +472,8 @@ export class AttendanceService {
           checkInByUserId: null,
           checkOutAt: null,
           checkOutByUserId: null,
+          pickedUpBy: null,
+          pickedUpRelationship: null,
           absenceReason,
           parentVisibleNote: emptyToNull(input.parentVisibleNote),
         },
@@ -671,6 +694,22 @@ export class AttendanceService {
     );
   }
 
+  private async findPlannedPickup(
+    tx: Tx,
+    childId: string,
+    pickupDate: Date,
+  ) {
+    return tx.pickupTimeNotice.findFirst({
+      where: {
+        childId,
+        pickupDate,
+        status: { not: "cancelled" },
+      },
+      select: { pickupPersonName: true, relationship: true },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    });
+  }
+
   private async notifyStaffAbsenceSubmitted(tx: Tx, record: AttendancePayload) {
     const directorRoles = await tx.userRole.findMany({
       where: {
@@ -740,6 +779,8 @@ export class AttendanceService {
       checkedInAt: record.checkInAt?.toISOString() ?? null,
       checkedOutAt: record.checkOutAt?.toISOString() ?? null,
       absenceReason: record.absenceReason,
+      pickedUpBy: record.pickedUpBy,
+      pickedUpRelationship: record.pickedUpRelationship,
       staffNote: options.hideStaffNote ? null : record.note,
       parentVisibleNote: record.parentVisibleNote,
       recordedBy: record.checkInByUser ?? null,
@@ -772,6 +813,8 @@ export class AttendanceService {
       checkedInAt: null,
       checkedOutAt: null,
       absenceReason: null,
+      pickedUpBy: null,
+      pickedUpRelationship: null,
       staffNote: null,
       parentVisibleNote: null,
       recordedBy: null,

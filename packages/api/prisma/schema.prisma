@@ -1235,21 +1235,23 @@ model ReturnHomeRequest {
 }
 
 model AttendanceRecord {
-  id                String    @id @default(uuid()) @db.Uuid
-  centerId          String    @map("center_id") @db.Uuid
-  classId           String    @map("class_id") @db.Uuid
-  childId           String    @map("child_id") @db.Uuid
-  attendanceDate    DateTime  @map("attendance_date") @db.Date
-  status            String
-  checkInAt         DateTime? @map("check_in_at") @db.Timestamptz(6)
-  checkOutAt        DateTime? @map("check_out_at") @db.Timestamptz(6)
-  checkInByUserId   String?   @map("check_in_by_user_id") @db.Uuid
-  checkOutByUserId  String?   @map("check_out_by_user_id") @db.Uuid
-  absenceReason     String?   @map("absence_reason")
-  parentVisibleNote String?   @map("parent_visible_note")
-  note              String?
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String    @id @default(uuid()) @db.Uuid
+  centerId             String    @map("center_id") @db.Uuid
+  classId              String    @map("class_id") @db.Uuid
+  childId              String    @map("child_id") @db.Uuid
+  attendanceDate       DateTime  @map("attendance_date") @db.Date
+  status               String
+  checkInAt            DateTime? @map("check_in_at") @db.Timestamptz(6)
+  checkOutAt           DateTime? @map("check_out_at") @db.Timestamptz(6)
+  checkInByUserId      String?   @map("check_in_by_user_id") @db.Uuid
+  checkOutByUserId     String?   @map("check_out_by_user_id") @db.Uuid
+  absenceReason        String?   @map("absence_reason")
+  pickedUpBy           String?   @map("picked_up_by")
+  pickedUpRelationship String?   @map("picked_up_relationship")
+  parentVisibleNote    String?   @map("parent_visible_note")
+  note                 String?
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   center         Center @relation(fields: [centerId], references: [id])
   checkInByUser  User?  @relation("AttendanceCheckInBy", fields: [checkInByUserId], references: [id])

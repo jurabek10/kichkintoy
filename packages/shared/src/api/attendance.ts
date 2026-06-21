@@ -41,6 +41,8 @@ export const attendanceRecordSummarySchema = z.object({
   checkedInAt: isoDateTimeSchema.nullable(),
   checkedOutAt: isoDateTimeSchema.nullable(),
   absenceReason: z.string().nullable(),
+  pickedUpBy: z.string().nullable(),
+  pickedUpRelationship: z.string().nullable(),
   staffNote: z.string().nullable(),
   parentVisibleNote: z.string().nullable(),
   recordedBy: attendanceStaffSchema.nullable(),
@@ -106,6 +108,8 @@ export const recordAttendanceCheckOutInputSchema = z.object({
   attendanceDate: isoDateSchema,
   checkedOutAt: isoDateTimeSchema.optional(),
   leftEarly: z.boolean().optional(),
+  pickedUpBy: z.string().trim().max(200).optional(),
+  pickedUpRelationship: z.string().trim().max(100).optional(),
   staffNote: z.string().trim().max(500).optional(),
   parentVisibleNote: z.string().trim().max(500).optional(),
 });
