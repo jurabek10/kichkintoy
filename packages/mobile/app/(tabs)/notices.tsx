@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { NoticeListItem } from '@/components/notice-list-item';
+import { NoticeListItem } from '@/components/notice/notice-list-item';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';

@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ReportListItem } from '@/components/report-list-item';
-import { ScreenHeader } from '@/components/screen-header';
+import { ReportListItem } from '@/components/report/report-list-item';
+import { ScreenHeader } from '@/components/common/screen-header';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';
 import { useChildReports } from '@/data/reports';

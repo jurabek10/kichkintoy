@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AlbumCard } from '@/components/album-card';
-import { ScreenHeader } from '@/components/screen-header';
+import { AlbumCard } from '@/components/album/album-card';
+import { ScreenHeader } from '@/components/common/screen-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';
