@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/empty-state';
-import { ScreenHeader } from '@/components/screen-header';
+import { ScreenHeader } from '@/components/common/screen-header';
 
 export default function PickupsScreen() {
   const { t } = useTranslation(['nav', 'app']);

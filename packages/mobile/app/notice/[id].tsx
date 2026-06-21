@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CommentBar } from '@/components/comment-bar';
+import { CommentBar } from '@/components/common/comment-bar';
 import { Avatar } from '@/components/ui/avatar';
 import { Loader } from '@/components/ui/loader';
 import { useConfirmNotice, useNotice } from '@/data/notices';

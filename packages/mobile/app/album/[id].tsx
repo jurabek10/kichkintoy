@@ -6,9 +6,9 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SignedAlbumImage } from '@/components/album/signed-album-image';
-import { CommentBar } from '@/components/comment-bar';
-import { CommentList } from '@/components/comment-list';
-import { PhotoViewer } from '@/components/photo-viewer';
+import { CommentBar } from '@/components/common/comment-bar';
+import { CommentList } from '@/components/common/comment-list';
+import { PhotoViewer } from '@/components/common/photo-viewer';
 import { Avatar } from '@/components/ui/avatar';
 import { Loader } from '@/components/ui/loader';
 import {

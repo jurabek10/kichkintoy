@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/screen-header';
+import { ScreenHeader } from '@/components/common/screen-header';
 import { EmptyState } from '@/components/ui/empty-state';
 
 const ICONS: Record<string, ComponentProps<typeof Ionicons>['name']> = {
