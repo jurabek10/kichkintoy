@@ -78,6 +78,11 @@ export function weekdayShort(iso: string, code: string) {
   return WEEKDAYS_SHORT[lang(code)][parseIsoDate(iso).weekday];
 }
 
+/** The seven short weekday labels, Sunday-first, for a calendar header row. */
+export function weekdayShortNames(code: string): string[] {
+  return WEEKDAYS_SHORT[lang(code)];
+}
+
 export function weekdayLong(iso: string, code: string) {
   return WEEKDAYS_LONG[lang(code)][parseIsoDate(iso).weekday];
 }

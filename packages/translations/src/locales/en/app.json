@@ -120,6 +120,14 @@
       "attendanceTitle": "This month’s attendance",
       "attendanceValue": "{{attended}} of {{total}} days",
       "attendanceCaption": "Days attended this month, out of days recorded so far."
+    },
+    "calendar": {
+      "tag": "Attendance",
+      "today": "Today",
+      "present": "Present",
+      "excused": "Excused",
+      "absent": "Absent",
+      "note": "Attendance is shown after the center records it. Excused absences for illness or emergencies count as attendance."
     }
   },
   "pending": {

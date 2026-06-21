@@ -120,6 +120,14 @@
       "attendanceTitle": "Bu oy davomati",
       "attendanceValue": "{{total}} kundan {{attended}} kun",
       "attendanceCaption": "Bu oy belgilangan kunlardan qatnashgan kunlar."
+    },
+    "calendar": {
+      "tag": "Davomat",
+      "today": "Bugun",
+      "present": "Kelgan",
+      "excused": "Sababli",
+      "absent": "Kelmagan",
+      "note": "Davomat markaz uni belgilagandan so‘ng ko‘rinadi. Kasallik yoki favqulodda holatlar bo‘yicha sababli kelmaganlik qatnashish deb hisoblanadi."
     }
   },
   "pending": {
