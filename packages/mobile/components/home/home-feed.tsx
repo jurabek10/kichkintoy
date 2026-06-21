@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { AlbumMosaic } from '@/components/album/album-mosaic';
+import { AttendanceCalendar } from '@/components/home/attendance-calendar';
 import { FeedCard } from '@/components/home/feed-card';
 import { EmptyFeedCard } from '@/components/home/empty-feed-card';
 import { colors } from '@/constants/theme';
@@ -97,6 +98,8 @@ export function HomeFeed({ feed }: { feed: HomeFeedData }) {
             subtitle={t('parentHome.caughtUp')}
           />
         )}
+
+        <AttendanceCalendar onPressMore={() => router.push('/attendance')} />
 
         {feed.notice ? (
           <FeedCard

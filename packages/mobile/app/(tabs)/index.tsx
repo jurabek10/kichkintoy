@@ -10,7 +10,6 @@ import { Loader } from '@/components/ui/loader';
 import { useCenter, useCurrentChild, useHomeFeed, useUpcomingEvents } from '@/data/parent';
 import { useAuth } from '@/lib/auth';
 
-import { AttendanceCalendar } from '@/components/home/attendance-calendar';
 import { CenterCard } from '@/components/home/center-card';
 import { GreetingBanner } from '@/components/home/greeting-banner';
 import { HomeFeed } from '@/components/home/home-feed';
@@ -78,7 +77,6 @@ export default function HomeScreen() {
         <GreetingBanner />
         <CenterCard centerName={center.data.name} childClassName={child.data.className} />
         <HomeFeed feed={homeFeed.data} />
-        <AttendanceCalendar />
         <UpcomingCard events={upcoming.data} />
       </ScrollView>
     </SafeAreaView>
