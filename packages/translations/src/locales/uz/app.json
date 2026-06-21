@@ -127,6 +127,23 @@
       "present": "Kelgan",
       "excused": "Sababli",
       "absent": "Kelmagan",
+      "late": "Kech qoldi",
+      "leftEarly": "Erta ketdi",
+      "pickedUp": "Olib ketildi",
+      "pickedUpBy": "Olib ketgan",
+      "recorded": "Davomat yozuvi",
+      "relationship": {
+        "mother": "Ona",
+        "father": "Ota",
+        "grandparent": "Buvi/bobo",
+        "other": "Boshqa"
+      },
+      "checkIn": "Keldi",
+      "checkOut": "Ketdi",
+      "reason": "Sabab",
+      "more": "To‘liq davomat",
+      "empty": "Hozircha ma'lumot yo‘q",
+      "emptyBody": "Bu oydagi yozuvlar shu yerda ko‘rinadi.",
       "note": "Davomat markaz uni belgilagandan so‘ng ko‘rinadi. Kasallik yoki favqulodda holatlar bo‘yicha sababli kelmaganlik qatnashish deb hisoblanadi."
     }
   },

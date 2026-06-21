@@ -27,6 +27,9 @@ export type AttendanceDay = {
   checkInLabel: string; // "" or "09:12" (Uzbekistan time)
   checkOutLabel: string; // "" or "16:30"
   absenceReason: string | null;
+  pickedUpBy: string | null; // who collected the child at check-out
+  pickedUpRelationship: string | null; // relationship label key/value from pickup notice
+  note: string | null; // parent-visible note
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -50,7 +53,18 @@ function toDay(record: ApiAttendanceRecord): AttendanceDay {
     checkInLabel: record.checkedInAt ? formatTime(record.checkedInAt) : '',
     checkOutLabel: record.checkedOutAt ? formatTime(record.checkedOutAt) : '',
     absenceReason: record.absenceReason,
+    pickedUpBy: record.pickedUpBy,
+    pickedUpRelationship: record.pickedUpRelationship,
+    note: record.parentVisibleNote,
   };
+}
+
+/** The month's recorded days, newest first (today on top), skipping days with
+ *  no check-in recorded. For the full attendance screen. */
+export function monthDayList(days: Map<string, AttendanceDay>): AttendanceDay[] {
+  return [...days.values()]
+    .filter((day) => day.status !== 'not_checked_in')
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 // --- Hook -----------------------------------------------------------------

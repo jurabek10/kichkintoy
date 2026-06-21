@@ -127,6 +127,23 @@
       "present": "Present",
       "excused": "Excused",
       "absent": "Absent",
+      "late": "Late",
+      "leftEarly": "Left early",
+      "pickedUp": "Picked up",
+      "pickedUpBy": "Picked up by",
+      "recorded": "Recorded attendance",
+      "relationship": {
+        "mother": "Mother",
+        "father": "Father",
+        "grandparent": "Grandparent",
+        "other": "Other"
+      },
+      "checkIn": "In",
+      "checkOut": "Out",
+      "reason": "Reason",
+      "more": "Full attendance",
+      "empty": "No attendance yet",
+      "emptyBody": "Records for this month will appear here.",
       "note": "Attendance is shown after the center records it. Excused absences for illness or emergencies count as attendance."
     }
   },
