@@ -64,11 +64,13 @@ void i18n.use(initReactI18next).init({
 });
 
 // Restore a previously chosen language (async, after the sync init above).
-void AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-  if (stored && isSupportedLanguage(stored) && stored !== i18n.language) {
-    void i18n.changeLanguage(stored);
-  }
-});
+if (typeof window !== 'undefined') {
+  void AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+    if (stored && isSupportedLanguage(stored) && stored !== i18n.language) {
+      void i18n.changeLanguage(stored);
+    }
+  });
+}
 
 /** Change the active language and remember it across launches. */
 export async function setLanguage(language: Language) {
