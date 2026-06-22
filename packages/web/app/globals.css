@@ -76,6 +76,80 @@
     --sidebar-ring: 188 80% 34%;
   }
 
+  /* Director — an operations console. Where the parent/teacher world is cream
+     and candy, the director's surface is a cool steel-blue instrument: deep
+     ink type, a single authoritative blue, an ink-navy command rail, and a
+     restrained ledger palette (emerald = collected, amber/clay = owed). The
+     candy accent tokens are remapped to this calmer family so any inherited
+     component falls in line automatically. */
+  [data-theme="director"] {
+    --background: 214 30% 97%;
+    --foreground: 216 48% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 216 48% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 48% 16%;
+
+    --primary: 211 66% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 214 28% 93%;
+    --secondary-foreground: 216 40% 24%;
+
+    --muted: 214 26% 95%;
+    --muted-foreground: 214 16% 43%;
+
+    --accent: 211 56% 93%;
+    --accent-foreground: 211 66% 28%;
+
+    --destructive: 2 64% 47%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders carry more weight here than in the kids theme — a cooler,
+       darker hairline so white cards separate cleanly from the tinted ground. */
+    --border: 214 20% 82%;
+    --input: 214 20% 82%;
+    --ring: 211 66% 32%;
+
+    --success: 160 60% 28%;
+    --warning: 36 71% 38%;
+    --info: 211 66% 38%;
+
+    --gold: 36 64% 46%;
+    --gold-foreground: 35 60% 20%;
+
+    /* Remapped accents — a coordinated data-viz family, not candy. */
+    --coral: 14 58% 52%;
+    --sunshine: 36 64% 50%;
+    --mint: 162 48% 40%;
+    --sky: 211 64% 46%;
+    --grape: 226 30% 52%;
+    --bubblegum: 345 44% 56%;
+
+    --coral-ink: 12 62% 40%;
+    --sunshine-ink: 35 70% 34%;
+    --mint-ink: 160 58% 27%;
+    --sky-ink: 211 66% 34%;
+    --grape-ink: 226 34% 42%;
+    --bubblegum-ink: 345 48% 44%;
+
+    --radius: 0.55rem;
+
+    /* The command rail — a softer blue-slate (not near-black), light labels,
+       and an active pill in the mobile app's blue (#3B8FF3). Dark enough to
+       read as a serious console, light enough to feel calm. */
+    --sidebar-background: 213 26% 30%;
+    --sidebar-foreground: 213 20% 83%;
+    --sidebar-primary: 211 80% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 23% 38%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 213 18% 41%;
+    --sidebar-ring: 211 80% 52%;
+  }
+
   * {
     @apply border-border;
   }
@@ -121,6 +195,26 @@
       );
     background-size: 64px 64px, 64px 64px, 64px 64px;
     background-position: 0 0, 32px 18px, 18px 44px;
+  }
+
+  /* Director console ground — a faint cool blueprint grid instead of the
+     kids' confetti dots. Reads as an operator's surface, stays barely there. */
+  .bg-director-grid {
+    background-color: hsl(var(--background));
+    background-image: linear-gradient(
+        to right,
+        hsl(216 30% 50% / 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, hsl(216 30% 50% / 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Tabular figures for the console's numbers — money, counts, percentages
+     stay column-aligned, the way an instrument reads. */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv11" 1;
   }
 
   /* Candy rainbow strip used under headers — happy, not historical. */

@@ -203,6 +203,22 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     }
   }, [loading, session, router]);
 
+  // The director gets a serious "operations console" skin via a scoped token
+  // set. It's applied at the document root so Radix portals (the mobile rail,
+  // dialogs, popovers) inherit it too. Parents/teachers keep the candy theme.
+  const role = session?.user.role;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (role === "director") {
+      root.dataset.theme = "director";
+    } else {
+      delete root.dataset.theme;
+    }
+    return () => {
+      delete root.dataset.theme;
+    };
+  }, [role]);
+
   if (loading || !session) {
     return (
       <main className="grid min-h-screen place-items-center bg-kids-dots px-6">
@@ -220,9 +236,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   const isParent = session.user.role === "parent";
+  const isDirector = session.user.role === "director";
 
   return (
-    <SidebarProvider className={isParent ? "font-kids" : undefined}>
+    <SidebarProvider
+      className={isParent ? "font-kids" : undefined}
+    >
       <Sidebar collapsible="icon" variant="sidebar">
         <SidebarHeader className="relative gap-3 p-3">
           <div className="flex h-12 items-center px-1">
@@ -232,35 +251,61 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             />
             <SidebarMobileClose />
           </div>
-          <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
-            <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
-            <div className="relative flex items-center gap-2.5">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary via-sky to-grape text-white">
-                <School className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
-                  {tCommon("dashboard.panel", { role: roleLabel })}
-                </p>
-                <p className="truncate text-sm font-bold text-sidebar-foreground">
-                  {session.membership.centerName ||
-                    tCommon("dashboard.defaultCenter")}
-                </p>
+          {isDirector ? (
+            <div className="rounded-md border border-sidebar-border bg-sidebar-accent/60 p-3 group-data-[collapsible=icon]:hidden">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+                  <School className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/60">
+                    {tCommon("dashboard.panel", { role: roleLabel })}
+                  </p>
+                  <p className="truncate text-sm font-bold text-sidebar-accent-foreground">
+                    {session.membership.centerName ||
+                      tCommon("dashboard.defaultCenter")}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
+              <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
+              <div className="relative flex items-center gap-2.5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary via-sky to-grape text-white">
+                  <School className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                    {tCommon("dashboard.panel", { role: roleLabel })}
+                  </p>
+                  <p className="truncate text-sm font-bold text-sidebar-foreground">
+                    {session.membership.centerName ||
+                      tCommon("dashboard.defaultCenter")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </SidebarHeader>
 
         <SidebarContent className="px-1">
-          <SidebarNavMenu groups={groupedNav} pathname={pathname} tNav={tNav} />
+          <SidebarNavMenu
+            groups={groupedNav}
+            pathname={pathname}
+            tNav={tNav}
+            serious={isDirector}
+          />
         </SidebarContent>
 
         <SidebarFooter className="p-2">
-          <div className="relative mb-1 flex items-center justify-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-r from-sky/15 via-mint/15 to-coral/15 py-2 group-data-[collapsible=icon]:hidden">
-            <KidBalloon className="h-9 w-6 animate-float text-coral" />
-            <KidBalloon className="h-7 w-5 animate-float-slow text-sky" />
-            <KidBalloon className="h-8 w-5 animate-float text-grape" />
-          </div>
+          {isDirector ? null : (
+            <div className="relative mb-1 flex items-center justify-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-r from-sky/15 via-mint/15 to-coral/15 py-2 group-data-[collapsible=icon]:hidden">
+              <KidBalloon className="h-9 w-6 animate-float text-coral" />
+              <KidBalloon className="h-7 w-5 animate-float-slow text-sky" />
+              <KidBalloon className="h-8 w-5 animate-float text-grape" />
+            </div>
+          )}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -277,7 +322,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset className="min-w-0 bg-kids-dots">
+      <SidebarInset
+        className={cn("min-w-0", isDirector ? "bg-director-grid" : "bg-kids-dots")}
+      >
         <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-2">
@@ -315,7 +362,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               </Button>
             </div>
           </div>
-          <CandyTrim />
+          {isDirector ? (
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          ) : (
+            <CandyTrim />
+          )}
         </header>
 
         <main
@@ -349,10 +400,12 @@ function SidebarNavMenu({
   groups,
   pathname,
   tNav,
+  serious,
 }: {
   groups: NavGroupView[];
   pathname: string;
   tNav: TFunction;
+  serious?: boolean;
 }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const closeOnMobile = () => {
@@ -374,7 +427,13 @@ function SidebarNavMenu({
                 <SidebarMenuItem key={href}>
                   <SidebarMenuButton asChild isActive={active} tooltip={label}>
                     <Link href={href} onClick={closeOnMobile}>
-                      <Icon className={navColors[href] ?? "text-primary"} />
+                      <Icon
+                        className={
+                          serious
+                            ? "text-sidebar-foreground/70"
+                            : (navColors[href] ?? "text-primary")
+                        }
+                      />
                       <span>{label}</span>
                     </Link>
                   </SidebarMenuButton>
