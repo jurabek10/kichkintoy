@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { directorHomeSummarySchema } from "@kichkintoy/shared";
 import { randomBytes } from "node:crypto";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
@@ -22,6 +23,9 @@ import type { DirectorAccessLevel } from "./director.guard";
 type Tx = Prisma.TransactionClient;
 
 const INVITATION_LINK_BASE = "https://app.kichkintoy.uz/invite";
+const DEFAULT_MONTHLY_TUITION_UZS = 1_000_000;
+const PAID_INVOICE_STATUSES = new Set(["paid"]);
+const SUCCESSFUL_PAYMENT_STATUSES = new Set(["paid", "success", "completed"]);
 
 @Injectable()
 export class DirectorService {
@@ -31,6 +35,227 @@ export class DirectorService {
     private readonly memberships: MembershipsService,
     private readonly notifications: NotificationsService,
   ) {}
+
+  async getHomeSummary(centerId: string) {
+    const month = currentTashkentMonth();
+
+    const [
+      classes,
+      activeEnrollments,
+      teacherRoles,
+      pendingRequests,
+      missingDocuments,
+    ] = await Promise.all([
+      this.prisma.class.findMany({
+        where: { centerId, status: "active" },
+        orderBy: { name: "asc" },
+        include: {
+          teacherClassAssignments: {
+            where: { endedAt: null },
+            include: {
+              teacherUser: { select: { id: true, fullName: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.childEnrollment.findMany({
+        where: {
+          centerId,
+          enrollmentStatus: "active",
+          child: { status: "active" },
+        },
+        select: {
+          childId: true,
+          classId: true,
+        },
+      }),
+      this.prisma.userRole.findMany({
+        where: {
+          centerId,
+          role: { name: "teacher" },
+          user: { status: "active" },
+        },
+        select: { userId: true },
+      }),
+      this.prisma.centerJoinRequest.findMany({
+        where: { centerId, status: "pending" },
+        select: { kind: true },
+      }),
+      this.prisma.studentDocumentSubmission.count({
+        where: {
+          centerId,
+          status: { not: "accepted" },
+        },
+      }),
+    ]);
+
+    const activeChildIds = [...new Set(activeEnrollments.map((item) => item.childId))];
+    const invoices =
+      activeChildIds.length === 0
+        ? []
+        : await this.prisma.invoice.findMany({
+            where: {
+              centerId,
+              childId: { in: activeChildIds },
+              OR: [
+                {
+                  periodStart: {
+                    gte: month.periodStartDate,
+                    lt: month.nextPeriodStartDate,
+                  },
+                },
+                {
+                  periodEnd: {
+                    gte: month.periodStartDate,
+                    lt: month.nextPeriodStartDate,
+                  },
+                },
+                {
+                  AND: [
+                    { periodStart: { lte: month.periodStartDate } },
+                    { periodEnd: { gte: month.periodStartDate } },
+                  ],
+                },
+                {
+                  dueDate: {
+                    gte: month.periodStartDate,
+                    lt: month.nextPeriodStartDate,
+                  },
+                },
+              ],
+            },
+            include: { payments: true },
+          });
+
+    const paidByChild = new Map<string, number>();
+    for (const invoice of invoices) {
+      const successfulPayments = invoice.payments
+        .filter((payment) =>
+          SUCCESSFUL_PAYMENT_STATUSES.has(payment.status.toLowerCase()),
+        )
+        .reduce((sum, payment) => sum + Number(payment.amount), 0);
+      const invoiceAmount = Number(invoice.amount);
+      const invoicePaidAmount = PAID_INVOICE_STATUSES.has(
+        invoice.status.toLowerCase(),
+      )
+        ? Math.max(invoiceAmount, successfulPayments)
+        : successfulPayments;
+      paidByChild.set(
+        invoice.childId,
+        (paidByChild.get(invoice.childId) ?? 0) + invoicePaidAmount,
+      );
+    }
+
+    const monthlyTuitionAmount = DEFAULT_MONTHLY_TUITION_UZS;
+    const childPaymentState = new Map<
+      string,
+      { paidAmount: number; unpaidAmount: number; paid: boolean }
+    >();
+    for (const childId of activeChildIds) {
+      const paidAmount = Math.min(
+        monthlyTuitionAmount,
+        paidByChild.get(childId) ?? 0,
+      );
+      childPaymentState.set(childId, {
+        paidAmount,
+        unpaidAmount: Math.max(0, monthlyTuitionAmount - paidAmount),
+        paid: paidAmount >= monthlyTuitionAmount,
+      });
+    }
+
+    const enrollmentsByClass = new Map<string, string[]>();
+    for (const enrollment of activeEnrollments) {
+      if (!enrollment.classId) continue;
+      const childIds = enrollmentsByClass.get(enrollment.classId) ?? [];
+      if (!childIds.includes(enrollment.childId)) childIds.push(enrollment.childId);
+      enrollmentsByClass.set(enrollment.classId, childIds);
+    }
+
+    const classRows = classes.map((klass) => {
+      const childIds = enrollmentsByClass.get(klass.id) ?? [];
+      const paidChildren = childIds.filter(
+        (childId) => childPaymentState.get(childId)?.paid,
+      ).length;
+      const paidAmount = childIds.reduce(
+        (sum, childId) => sum + (childPaymentState.get(childId)?.paidAmount ?? 0),
+        0,
+      );
+      const expectedAmount = childIds.length * monthlyTuitionAmount;
+      const maxChildren = normalizeClassCapacity(klass.maxChildren);
+      const teacherNames = klass.teacherClassAssignments.map(
+        (assignment) => assignment.teacherUser.fullName,
+      );
+
+      return {
+        id: klass.id,
+        name: klass.name,
+        childCount: childIds.length,
+        maxChildren,
+        emptySeats:
+          maxChildren === null ? null : Math.max(0, maxChildren - childIds.length),
+        occupancyPercent:
+          maxChildren === null
+            ? null
+            : Math.min(100, Math.round((childIds.length / maxChildren) * 100)),
+        teacherNames,
+        expectedAmount,
+        paidAmount,
+        unpaidAmount: Math.max(0, expectedAmount - paidAmount),
+        paidChildren,
+        unpaidChildren: Math.max(0, childIds.length - paidChildren),
+      };
+    });
+
+    const paidChildren = activeChildIds.filter(
+      (childId) => childPaymentState.get(childId)?.paid,
+    ).length;
+    const paidAmount = activeChildIds.reduce(
+      (sum, childId) => sum + (childPaymentState.get(childId)?.paidAmount ?? 0),
+      0,
+    );
+    const expectedAmount = activeChildIds.length * monthlyTuitionAmount;
+    const pendingParentRequests = pendingRequests.filter(
+      (request) => request.kind === "parent",
+    ).length;
+    const pendingTeacherRequests = pendingRequests.filter(
+      (request) => request.kind === "teacher",
+    ).length;
+    const classesWithoutTeacher = classRows.filter(
+      (klass) => klass.teacherNames.length === 0,
+    ).length;
+
+    return directorHomeSummarySchema.parse({
+      centerId,
+      currency: "UZS",
+      month: {
+        periodStart: dateOnly(month.periodStartDate),
+        periodEnd: dateOnly(month.periodEndDate),
+        label: month.label,
+      },
+      totals: {
+        children: activeChildIds.length,
+        classes: classes.length,
+        teachers: new Set(teacherRoles.map((role) => role.userId)).size,
+        pendingRequests: pendingRequests.length,
+      },
+      money: {
+        monthlyTuitionAmount,
+        expectedAmount,
+        paidAmount,
+        unpaidAmount: Math.max(0, expectedAmount - paidAmount),
+        paidChildren,
+        unpaidChildren: Math.max(0, activeChildIds.length - paidChildren),
+      },
+      classes: classRows,
+      actionsNeeded: {
+        pendingParentRequests,
+        pendingTeacherRequests,
+        classesWithoutTeacher,
+        unpaidChildren: Math.max(0, activeChildIds.length - paidChildren),
+        missingDocuments,
+      },
+    });
+  }
 
   async listJoinRequests(centerId: string, query: ListJoinRequestsQuery) {
     const status = query.status ?? "pending";
@@ -601,6 +826,46 @@ export class DirectorService {
 
 function buildApprovedSms(centerName: string) {
   return `Kichkintoy: your request to join ${centerName} was approved. Open the app to see your child.`;
+}
+
+function currentTashkentMonth() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const periodStartDate = new Date(Date.UTC(year, month - 1, 1));
+  const nextPeriodStartDate = new Date(Date.UTC(year, month, 1));
+  const periodEndDate = new Date(nextPeriodStartDate);
+  periodEndDate.setUTCDate(periodEndDate.getUTCDate() - 1);
+
+  return {
+    periodStartDate,
+    nextPeriodStartDate,
+    periodEndDate,
+    label: `${year}-${String(month).padStart(2, "0")}`,
+  };
+}
+
+function dateOnly(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function normalizeClassCapacity(value: number | null) {
+  if (
+    value === 5 ||
+    value === 10 ||
+    value === 15 ||
+    value === 20 ||
+    value === 25 ||
+    value === 30 ||
+    value === 35
+  ) {
+    return value;
+  }
+  return null;
 }
 
 function buildRejectedSms(centerName: string) {

@@ -15,6 +15,11 @@ import {
 export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
   const access = createAccess(os, deps);
   return {
+    homeSummary: os.director.homeSummary
+      .use(access.directorOnly)
+      .handler(async ({ input }) =>
+        deps.directorService.getHomeSummary(input.centerId),
+      ),
     joinRequests: os.director.joinRequests
       .use(access.centerMember)
       .handler(async ({ input }) =>

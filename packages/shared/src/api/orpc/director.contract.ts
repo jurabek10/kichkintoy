@@ -13,6 +13,7 @@ import {
 } from "../../lib/validators.js";
 import {
   assignTeacherRequestSchema,
+  classCapacitySchema,
   centerTeachersResponseSchema,
   classDetailSchema,
   classListResponseSchema,
@@ -143,7 +144,56 @@ const updateTeacherResponseSchema = z.object({
   canApproveMembers: z.boolean(),
 });
 
+export const directorHomeSummarySchema = z.object({
+  centerId: uuidSchema,
+  currency: z.literal("UZS"),
+  month: z.object({
+    periodStart: z.string(),
+    periodEnd: z.string(),
+    label: z.string(),
+  }),
+  totals: z.object({
+    children: z.number().int().nonnegative(),
+    classes: z.number().int().nonnegative(),
+    teachers: z.number().int().nonnegative(),
+    pendingRequests: z.number().int().nonnegative(),
+  }),
+  money: z.object({
+    monthlyTuitionAmount: z.number().nonnegative(),
+    expectedAmount: z.number().nonnegative(),
+    paidAmount: z.number().nonnegative(),
+    unpaidAmount: z.number().nonnegative(),
+    paidChildren: z.number().int().nonnegative(),
+    unpaidChildren: z.number().int().nonnegative(),
+  }),
+  classes: z.array(
+    z.object({
+      id: uuidSchema,
+      name: z.string(),
+      childCount: z.number().int().nonnegative(),
+      maxChildren: classCapacitySchema.nullable(),
+      emptySeats: z.number().int().nonnegative().nullable(),
+      occupancyPercent: z.number().int().min(0).max(100).nullable(),
+      teacherNames: z.array(z.string()),
+      expectedAmount: z.number().nonnegative(),
+      paidAmount: z.number().nonnegative(),
+      unpaidAmount: z.number().nonnegative(),
+      paidChildren: z.number().int().nonnegative(),
+      unpaidChildren: z.number().int().nonnegative(),
+    }),
+  ),
+  actionsNeeded: z.object({
+    pendingParentRequests: z.number().int().nonnegative(),
+    pendingTeacherRequests: z.number().int().nonnegative(),
+    classesWithoutTeacher: z.number().int().nonnegative(),
+    unpaidChildren: z.number().int().nonnegative(),
+    missingDocuments: z.number().int().nonnegative(),
+  }),
+});
+export type DirectorHomeSummary = z.infer<typeof directorHomeSummarySchema>;
+
 export const directorContract = {
+  homeSummary: oc.input(centerIdInputSchema).output(directorHomeSummarySchema),
   joinRequests: oc
     .input(listJoinRequestsInputSchema)
     .output(z.array(joinRequestRowSchema)),
