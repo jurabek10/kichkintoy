@@ -9,7 +9,6 @@ import { ScreenHeader } from '@/components/common/screen-header';
 import { EmptyState } from '@/components/ui/empty-state';
 
 const ICONS: Record<string, ComponentProps<typeof Ionicons>['name']> = {
-  calendar: 'calendar-outline',
   meals: 'restaurant-outline',
   medications: 'medkit-outline',
   documents: 'document-text-outline',

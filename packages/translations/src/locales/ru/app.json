@@ -313,5 +313,31 @@
     "activeInvited": "Сразу активен (приглашен)",
     "pendingApproval": "Ожидает одобрения директора",
     "roleTeacher": "Воспитатель"
+  },
+  "schedule": {
+    "allDay": "Весь день",
+    "birthday": "День рождения {{name}}",
+    "turns": "Исполняется {{age}}",
+    "yourChild": "Ваш ребенок",
+    "cancelled": "Отменено",
+    "legendBirthday": "День рождения",
+    "legendEvent": "Событие",
+    "empty": "Пока ничего не запланировано",
+    "emptyBody": "Здесь появятся события и дни рождения на год вперед.",
+    "detail": {
+      "title": "Событие",
+      "notFound": "Это событие больше недоступно.",
+      "when": "Когда",
+      "time": "Время",
+      "location": "Место",
+      "audience": "Для кого",
+      "organizer": "Организатор",
+      "wholeCenter": "Весь сад",
+      "detailsLabel": "Подробности",
+      "completed": "Завершено",
+      "cancelledTitle": "Причина отмены",
+      "gotIt": "Понятно",
+      "seen": "Просмотрено"
+    }
   }
 }

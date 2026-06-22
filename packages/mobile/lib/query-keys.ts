@@ -28,6 +28,11 @@ export const queryKeys = {
   },
   calendar: {
     upcoming: (childId: string) => ['calendar', 'upcoming', childId] as const,
+    parentList: (childId: string, from: string, to: string) =>
+      ['calendar', 'parent', childId, from, to] as const,
+    birthdays: (childId: string, from: string, to: string) =>
+      ['calendar', 'birthdays', childId, from, to] as const,
+    detail: (eventId: string) => ['calendar', 'detail', eventId] as const,
   },
   attendance: {
     parentList: (childId: string, from: string, to: string) =>

@@ -313,5 +313,31 @@
     "activeInvited": "Darhol faol (taklif qilingan)",
     "pendingApproval": "Direktor tasdig'ini kutmoqda",
     "roleTeacher": "Tarbiyachi"
+  },
+  "schedule": {
+    "allDay": "Kun bo'yi",
+    "birthday": "{{name}}ning tug'ilgan kuni",
+    "turns": "{{age}} yoshga to'ladi",
+    "yourChild": "Sizning farzandingiz",
+    "cancelled": "Bekor qilingan",
+    "legendBirthday": "Tug'ilgan kun",
+    "legendEvent": "Tadbir",
+    "empty": "Hozircha rejalar yo'q",
+    "emptyBody": "Kelgusi yilning tadbirlari va tug'ilgan kunlari shu yerda ko'rinadi.",
+    "detail": {
+      "title": "Tadbir",
+      "notFound": "Bu tadbir endi mavjud emas.",
+      "when": "Qachon",
+      "time": "Vaqti",
+      "location": "Manzil",
+      "audience": "Kimlar uchun",
+      "organizer": "Tashkilotchi",
+      "wholeCenter": "Butun bog'cha",
+      "detailsLabel": "Tafsilotlar",
+      "completed": "Yakunlangan",
+      "cancelledTitle": "Bekor qilinish sababi",
+      "gotIt": "Tushunarli",
+      "seen": "Ko'rildi"
+    }
   }
 }

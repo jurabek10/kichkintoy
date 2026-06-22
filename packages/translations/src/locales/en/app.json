@@ -313,5 +313,31 @@
     "activeInvited": "Active immediately (invited)",
     "pendingApproval": "Pending director approval",
     "roleTeacher": "Teacher"
+  },
+  "schedule": {
+    "allDay": "All day",
+    "birthday": "{{name}}'s birthday",
+    "turns": "Turns {{age}}",
+    "yourChild": "Your child",
+    "cancelled": "Cancelled",
+    "legendBirthday": "Birthday",
+    "legendEvent": "Event",
+    "empty": "Nothing scheduled yet",
+    "emptyBody": "Events and birthdays for the year ahead will show up here.",
+    "detail": {
+      "title": "Event",
+      "notFound": "This event isn't available anymore.",
+      "when": "When",
+      "time": "Time",
+      "location": "Location",
+      "audience": "For",
+      "organizer": "Organizer",
+      "wholeCenter": "Whole center",
+      "detailsLabel": "Details",
+      "completed": "Finished",
+      "cancelledTitle": "Why it was cancelled",
+      "gotIt": "Got it",
+      "seen": "Seen"
+    }
   }
 }
