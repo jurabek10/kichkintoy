@@ -7,10 +7,11 @@
  * (a child's name, a notice body) is sample data that would arrive from the API.
  */
 import type { ComponentProps } from 'react';
-import type { Ionicons } from '@expo/vector-icons';
+import type { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Href } from 'expo-router';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
+type MaterialCommunityName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export const account = {
   username: 'eda23',
@@ -68,6 +69,9 @@ export type Feature = {
   navKey: string;
   route: Href;
   icon: IoniconName;
+  /** Optional override when an Ionicon can't express the tile (e.g. a parent
+   *  and child for pickup). Rendered from MaterialCommunityIcons instead. */
+  mciIcon?: MaterialCommunityName;
   bg: string;
   fg: string;
   isNew?: boolean;
@@ -81,7 +85,7 @@ export const features: Feature[] = [
   { key: 'attendance', navKey: 'items.attendance', route: '/attendance', icon: 'calendar-number', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'meals', navKey: 'items.meals', route: '/meals', icon: 'restaurant', bg: '#FFF6D4', fg: '#EFB019' },
   { key: 'medications', navKey: 'items.medications', route: '/medications', icon: 'medkit', bg: '#FFE0E0', fg: '#F0594C' },
-  { key: 'pickups', navKey: 'items.pickups', route: '/(tabs)/pickups', icon: 'walk', bg: '#DBECFF', fg: '#4D9FEC' },
+  { key: 'pickups', navKey: 'items.pickups', route: '/(tabs)/pickups', icon: 'walk', mciIcon: 'human-male-child', bg: '#DBECFF', fg: '#4D9FEC' },
   { key: 'documents', navKey: 'items.documents', route: '/feature/documents', icon: 'document-text', bg: '#DCF2E3', fg: '#46B06A' },
 ];
 

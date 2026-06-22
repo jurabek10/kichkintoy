@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,11 @@ function FeatureTile({ feature, label }: { feature: Feature; label: string }) {
       <View
         style={{ backgroundColor: feature.bg }}
         className="h-14 w-14 items-center justify-center rounded-2xl">
-        <Ionicons name={feature.icon} size={26} color={feature.fg} />
+        {feature.mciIcon ? (
+          <MaterialCommunityIcons name={feature.mciIcon} size={30} color={feature.fg} />
+        ) : (
+          <Ionicons name={feature.icon} size={26} color={feature.fg} />
+        )}
         {feature.isNew ? <NewBadge /> : null}
       </View>
       <Text numberOfLines={1} className="px-0.5 text-[11px] text-foreground">

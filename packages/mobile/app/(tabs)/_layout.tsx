@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,13 +7,21 @@ import { StyleSheet } from 'react-native';
 import { colors } from '@/constants/theme';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
+type MaterialCommunityName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-const TABS: { name: string; navKey: string; icon: IoniconName; iconActive: IoniconName }[] = [
+const TABS: {
+  name: string;
+  navKey: string;
+  icon: IoniconName;
+  iconActive: IoniconName;
+  /** Override with a MaterialCommunityIcons glyph (e.g. parent + child for pickup). */
+  mciIcon?: MaterialCommunityName;
+}[] = [
   { name: 'index', navKey: 'items.dashboard', icon: 'home-outline', iconActive: 'home' },
   { name: 'reports', navKey: 'items.reports', icon: 'document-text-outline', iconActive: 'document-text' },
   { name: 'albums', navKey: 'items.albums', icon: 'images-outline', iconActive: 'images' },
   { name: 'notices', navKey: 'items.notices', icon: 'megaphone-outline', iconActive: 'megaphone' },
-  { name: 'pickups', navKey: 'items.pickups', icon: 'walk-outline', iconActive: 'walk' },
+  { name: 'pickups', navKey: 'items.pickups', icon: 'walk-outline', iconActive: 'walk', mciIcon: 'human-male-child' },
 ];
 
 export default function TabsLayout() {
@@ -34,9 +42,12 @@ export default function TabsLayout() {
           name={tab.name}
           options={{
             title: t(tab.navKey),
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? tab.iconActive : tab.icon} size={24} color={color} />
-            ),
+            tabBarIcon: ({ color, focused }) =>
+              tab.mciIcon ? (
+                <MaterialCommunityIcons name={tab.mciIcon} size={26} color={color} />
+              ) : (
+                <Ionicons name={focused ? tab.iconActive : tab.icon} size={24} color={color} />
+              ),
           }}
         />
       ))}
