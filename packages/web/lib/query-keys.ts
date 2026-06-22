@@ -142,6 +142,8 @@ export const queryKeys = {
       ["parent", "children", childId, "reports"] as const,
   },
   director: {
+    homeSummary: (centerId: string) =>
+      ["director", centerId, "home-summary"] as const,
     classes: (centerId: string) => ["director", centerId, "classes"] as const,
     classDetail: (centerId: string, classId: string) =>
       ["director", centerId, "classes", classId] as const,

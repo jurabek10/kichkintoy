@@ -71,7 +71,75 @@
     "noticesParentDesc": "Important messages from the teacher.",
     "pickup": "Pickup",
     "pickupDesc": "Plan today's pickup time.",
-    "open": "Open"
+    "open": "Open",
+    "director": {
+      "eyebrow": "Kindergarten dashboard",
+      "subtitle": "{{center}} · {{month}} management, tuition, and decisions.",
+      "centerFallback": "your kindergarten",
+      "collectionRate": "Collection rate",
+      "noCenter": "No kindergarten is linked to this director account yet.",
+      "loadFailed": "Could not load the director dashboard.",
+      "stats": {
+        "children": "Total children",
+        "classes": "Total classes",
+        "teachers": "Total teachers",
+        "pending": "Pending requests",
+        "expected": "Expected this month",
+        "unpaid": "Unpaid amount"
+      },
+      "money": {
+        "title": "Monthly tuition snapshot",
+        "description": "Every active child is counted at {{amount}} per month.",
+        "expected": "Expected",
+        "paid": "Paid",
+        "unpaid": "Unpaid",
+        "paymentLine": "Children payment status",
+        "paidChildren_one": "{{count}} child paid",
+        "paidChildren_other": "{{count}} children paid",
+        "unpaidChildren_one": "{{count}} child unpaid",
+        "unpaidChildren_other": "{{count}} children unpaid"
+      },
+      "actions": {
+        "title": "Needs director action",
+        "description": "Decisions and management gaps that should not be buried.",
+        "parentRequests": "Parent requests waiting",
+        "teacherRequests": "Teacher requests waiting",
+        "classesWithoutTeacher": "Classes without teacher",
+        "unpaidChildren": "Unpaid children",
+        "missingDocuments": "Missing documents"
+      },
+      "classes": {
+        "title": "Class overview",
+        "description": "Children, teachers, and tuition status by class.",
+        "emptyTitle": "No classes yet",
+        "emptyBody": "Create the first class to start managing children and tuition.",
+        "class": "Class",
+        "children": "Children",
+        "seats": "Seats",
+        "emptySeats": "Empty seats",
+        "teacher": "Teacher",
+        "expected": "Expected",
+        "paid": "Paid",
+        "unpaid": "Unpaid",
+        "noTeacher": "No teacher",
+        "full": "Full",
+        "emptyCount_one": "{{count}} empty",
+        "emptyCount_other": "{{count}} empty",
+        "paidCount_one": "{{count}} paid",
+        "paidCount_other": "{{count}} paid",
+        "unpaidCount_one": "{{count}} unpaid",
+        "unpaidCount_other": "{{count}} unpaid"
+      },
+      "quick": {
+        "title": "Quick actions",
+        "approveRequests": "Approve requests",
+        "addClass": "Add class",
+        "inviteTeacher": "Invite teacher",
+        "inviteParent": "Invite parent",
+        "sendNotice": "Send announcement",
+        "paymentsSoon": "Open payments · Coming soon"
+      }
+    }
   },
   "parentHome": {
     "today": "Today",

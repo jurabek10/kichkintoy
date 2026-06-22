@@ -71,7 +71,75 @@
     "noticesParentDesc": "Tarbiyachidan muhim xabarlar.",
     "pickup": "Olib ketish",
     "pickupDesc": "Bugungi olib ketish vaqtini rejalang.",
-    "open": "Ochish"
+    "open": "Ochish",
+    "director": {
+      "eyebrow": "Bog'cha boshqaruvi",
+      "subtitle": "{{center}} · {{month}} boshqaruv, oylik to'lov va qarorlar.",
+      "centerFallback": "bog'changiz",
+      "collectionRate": "To'lov yig'imi",
+      "noCenter": "Bu direktor hisobiga hali bog'cha biriktirilmagan.",
+      "loadFailed": "Direktor panelini yuklab bo'lmadi.",
+      "stats": {
+        "children": "Jami bolalar",
+        "classes": "Jami guruhlar",
+        "teachers": "Jami tarbiyachilar",
+        "pending": "Kutilayotgan so'rovlar",
+        "expected": "Bu oy kutilayotgan",
+        "unpaid": "To'lanmagan summa"
+      },
+      "money": {
+        "title": "Oylik to'lov holati",
+        "description": "Har bir faol bola oyiga {{amount}} deb hisoblanadi.",
+        "expected": "Kutilayotgan",
+        "paid": "To'langan",
+        "unpaid": "To'lanmagan",
+        "paymentLine": "Bolalar to'lov holati",
+        "paidChildren_one": "{{count}} bola to'lagan",
+        "paidChildren_other": "{{count}} bola to'lagan",
+        "unpaidChildren_one": "{{count}} bola to'lamagan",
+        "unpaidChildren_other": "{{count}} bola to'lamagan"
+      },
+      "actions": {
+        "title": "Direktor qarorini kutmoqda",
+        "description": "Qidirib yurmaslik uchun muhim boshqaruv ishlari shu yerda.",
+        "parentRequests": "Ota-ona so'rovlari kutilmoqda",
+        "teacherRequests": "Tarbiyachi so'rovlari kutilmoqda",
+        "classesWithoutTeacher": "Tarbiyachisiz guruhlar",
+        "unpaidChildren": "To'lov qilmagan bolalar",
+        "missingDocuments": "Yetishmayotgan hujjatlar"
+      },
+      "classes": {
+        "title": "Guruhlar bo'yicha ko'rinish",
+        "description": "Har bir guruhdagi bola, tarbiyachi va to'lov holati.",
+        "emptyTitle": "Hali guruh yo'q",
+        "emptyBody": "Bolalar va to'lovlarni boshqarish uchun birinchi guruhni yarating.",
+        "class": "Guruh",
+        "children": "Bolalar",
+        "seats": "Joylar",
+        "emptySeats": "Bo'sh joy",
+        "teacher": "Tarbiyachi",
+        "expected": "Kutilayotgan",
+        "paid": "To'langan",
+        "unpaid": "To'lanmagan",
+        "noTeacher": "Tarbiyachi yo'q",
+        "full": "To'la",
+        "emptyCount_one": "{{count}} bo'sh",
+        "emptyCount_other": "{{count}} bo'sh",
+        "paidCount_one": "{{count}} to'lagan",
+        "paidCount_other": "{{count}} to'lagan",
+        "unpaidCount_one": "{{count}} to'lamagan",
+        "unpaidCount_other": "{{count}} to'lamagan"
+      },
+      "quick": {
+        "title": "Tezkor amallar",
+        "approveRequests": "So'rovlarni tasdiqlash",
+        "addClass": "Guruh qo'shish",
+        "inviteTeacher": "Tarbiyachi taklif qilish",
+        "inviteParent": "Ota-ona taklif qilish",
+        "sendNotice": "E'lon yuborish",
+        "paymentsSoon": "To'lovlarni ochish · Tez orada"
+      }
+    }
   },
   "parentHome": {
     "today": "Bugun",
