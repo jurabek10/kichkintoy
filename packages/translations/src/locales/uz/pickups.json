@@ -67,7 +67,21 @@
     "noClass": "Sinf yo'q",
     "editTitle": "Olib ketish xabarini o'zgartirish",
     "saveChanges": "O'zgarishlarni saqlash",
+    "changeDetails": "Ma'lumotlarni o'zgartirish",
+    "discardEdit": "O'zgarishlarni bekor qilish",
+    "pendingAck": "Markaz tasdiqlashini kutmoqda.",
     "staffConfirmation": "Xodim tasdig'i",
     "acknowledge": "Tasdiqlash"
+  },
+  "cancelConfirm": {
+    "title": "Ushbu xabarni bekor qilasizmi?",
+    "body": "Markaz uni bekor qilingan deb ko'radi. Buni qaytarib bo'lmaydi.",
+    "yes": "Ha, bekor qilish",
+    "no": "Qoldirish"
+  },
+  "timePicker": {
+    "title": "Olib ketish vaqti",
+    "quick": "Odatdagi vaqtlar",
+    "done": "Vaqtni belgilash"
   }
 }

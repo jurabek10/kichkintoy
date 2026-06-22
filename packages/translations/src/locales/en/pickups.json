@@ -67,7 +67,21 @@
     "noClass": "No class",
     "editTitle": "Change pickup notice",
     "saveChanges": "Save changes",
+    "changeDetails": "Change details",
+    "discardEdit": "Discard changes",
+    "pendingAck": "Waiting for the center to confirm.",
     "staffConfirmation": "Staff confirmation",
     "acknowledge": "Acknowledge"
+  },
+  "cancelConfirm": {
+    "title": "Cancel this notice?",
+    "body": "The center will see it cancelled. This can't be undone.",
+    "yes": "Yes, cancel",
+    "no": "Keep it"
+  },
+  "timePicker": {
+    "title": "Pickup time",
+    "quick": "Common times",
+    "done": "Set time"
   }
 }
