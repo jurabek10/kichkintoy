@@ -11,6 +11,18 @@
   "upcoming": "Yaqinlashayotgan",
   "noEventsForDate": "Bu sana uchun tadbir yo'q",
   "noUpcomingEvents": "Yaqinlashayotgan tadbir yo'q",
+  "noEventsThisMonth": "Bu oyda tadbir yo'q",
+  "searchEvents": "Tadbirlarni qidirish",
+  "showWholeMonth": "Butun oyni ko'rsatish",
+  "open": "Ochish",
+  "allDay": "Kun bo'yi",
+  "table": {
+    "when": "Qachon",
+    "event": "Tadbir",
+    "audience": "Kim uchun",
+    "location": "Joy",
+    "status": "Holat"
+  },
   "weekdays": {
     "sun": "Yak",
     "mon": "Dush",

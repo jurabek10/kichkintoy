@@ -11,6 +11,18 @@
   "upcoming": "Upcoming",
   "noEventsForDate": "No events for this date",
   "noUpcomingEvents": "No upcoming events",
+  "noEventsThisMonth": "No events this month",
+  "searchEvents": "Search events",
+  "showWholeMonth": "Show whole month",
+  "open": "Open",
+  "allDay": "All day",
+  "table": {
+    "when": "When",
+    "event": "Event",
+    "audience": "For",
+    "location": "Location",
+    "status": "Status"
+  },
   "weekdays": {
     "sun": "Sun",
     "mon": "Mon",

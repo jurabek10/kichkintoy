@@ -11,6 +11,18 @@
   "upcoming": "Ближайшие",
   "noEventsForDate": "На эту дату событий нет",
   "noUpcomingEvents": "Ближайших событий нет",
+  "noEventsThisMonth": "В этом месяце событий нет",
+  "searchEvents": "Поиск событий",
+  "showWholeMonth": "Показать весь месяц",
+  "open": "Открыть",
+  "allDay": "Весь день",
+  "table": {
+    "when": "Когда",
+    "event": "Событие",
+    "audience": "Для кого",
+    "location": "Место",
+    "status": "Статус"
+  },
   "weekdays": {
     "sun": "Вс",
     "mon": "Пн",
