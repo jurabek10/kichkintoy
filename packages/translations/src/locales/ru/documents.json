@@ -41,6 +41,15 @@
     "accepted": "Принято",
     "closed": "Закрыто"
   },
+  "requestStatus": {
+    "draft": "Черновик",
+    "sent": "Отправлено",
+    "closed": "Закрыто",
+    "archived": "В архиве"
+  },
+  "actions": {
+    "newRequest": "Запросить документы"
+  },
   "filters": {
     "childPlaceholder": "Фильтр по детям..."
   },
@@ -57,6 +66,7 @@
     "createTemplate": "Создать медицинский шаблон",
     "template": "Шаблон",
     "chooseTemplate": "Выберите шаблон",
+    "noTemplate": "Шаблонов пока нет — создайте ниже.",
     "target": "Кому",
     "class": "Группа",
     "child": "Ребенок",
@@ -64,7 +74,8 @@
     "chooseChild": "Выберите ребенка",
     "dueDate": "Срок",
     "instructions": "Инструкции",
-    "sendRequest": "Отправить запрос"
+    "sendRequest": "Отправить запрос",
+    "cancel": "Отмена"
   },
   "target": {
     "center": "Весь центр",
@@ -74,7 +85,9 @@
   "requests": {
     "title": "Открытые запросы",
     "empty": "Запросов на документы пока нет.",
-    "acceptedCount": "Принято: {{accepted}}/{{total}}"
+    "acceptedCount": "Принято: {{accepted}}/{{total}}",
+    "due": "Срок {{date}}",
+    "noDue": "Без срока"
   },
   "submissions": {
     "title": "Отправленные",

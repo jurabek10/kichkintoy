@@ -41,6 +41,15 @@
     "accepted": "Qabul qilingan",
     "closed": "Yopilgan"
   },
+  "requestStatus": {
+    "draft": "Qoralama",
+    "sent": "Yuborilgan",
+    "closed": "Yopilgan",
+    "archived": "Arxivlangan"
+  },
+  "actions": {
+    "newRequest": "Hujjat so'rash"
+  },
   "filters": {
     "childPlaceholder": "Bolalarni filtrlash..."
   },
@@ -57,6 +66,7 @@
     "createTemplate": "Tibbiy shablon yaratish",
     "template": "Shablon",
     "chooseTemplate": "Shablonni tanlang",
+    "noTemplate": "Hozircha shablon yo'q — quyida yarating.",
     "target": "Maqsad",
     "class": "Sinf",
     "child": "Bola",
@@ -64,7 +74,8 @@
     "chooseChild": "Bolani tanlang",
     "dueDate": "Topshirish muddati",
     "instructions": "Ko'rsatmalar",
-    "sendRequest": "So'rov yuborish"
+    "sendRequest": "So'rov yuborish",
+    "cancel": "Bekor qilish"
   },
   "target": {
     "center": "Butun markaz",
@@ -74,7 +85,9 @@
   "requests": {
     "title": "Ochiq so'rovlar",
     "empty": "Hozircha hujjat so'rovlari yo'q.",
-    "acceptedCount": "{{accepted}}/{{total}} qabul qilingan"
+    "acceptedCount": "{{accepted}}/{{total}} qabul qilingan",
+    "due": "Muddat {{date}}",
+    "noDue": "Muddatsiz"
   },
   "submissions": {
     "title": "Topshiriqlar",

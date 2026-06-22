@@ -41,6 +41,15 @@
     "accepted": "Accepted",
     "closed": "Closed"
   },
+  "requestStatus": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "closed": "Closed",
+    "archived": "Archived"
+  },
+  "actions": {
+    "newRequest": "Request documents"
+  },
   "filters": {
     "childPlaceholder": "Filter children..."
   },
@@ -57,6 +66,7 @@
     "createTemplate": "Create medical template",
     "template": "Template",
     "chooseTemplate": "Choose template",
+    "noTemplate": "No templates yet — create one below.",
     "target": "Target",
     "class": "Class",
     "child": "Child",
@@ -64,7 +74,8 @@
     "chooseChild": "Choose child",
     "dueDate": "Due date",
     "instructions": "Instructions",
-    "sendRequest": "Send request"
+    "sendRequest": "Send request",
+    "cancel": "Cancel"
   },
   "target": {
     "center": "Whole center",
@@ -74,7 +85,9 @@
   "requests": {
     "title": "Open requests",
     "empty": "No document requests yet.",
-    "acceptedCount": "{{accepted}}/{{total}} accepted"
+    "acceptedCount": "{{accepted}}/{{total}} accepted",
+    "due": "Due {{date}}",
+    "noDue": "No due date"
   },
   "submissions": {
     "title": "Submissions",
