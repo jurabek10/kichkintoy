@@ -200,27 +200,54 @@ function DirectorHome({
     );
   }
 
+  const collectionRate = percent(
+    summary.money.paidAmount,
+    summary.money.expectedAmount,
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <section className="relative overflow-hidden rounded-2xl border bg-card shadow-card">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-sky to-mint" />
-        <div className="p-5 lg:p-6">
-          <p className="text-xs font-bold uppercase tracking-wide text-primary">
-            {t("dashboardHome.director.eyebrow")}
-          </p>
-          <h1 className="mt-2 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
-            {t("dashboardHome.hello", { name: directorName })}
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            {t("dashboardHome.director.subtitle", {
-              center: centerName ?? t("dashboardHome.director.centerFallback"),
-              month: summary.month.label,
-            })}
-          </p>
+      {/* Console header — a blue-slate slab that echoes the command rail. The
+          thesis is the center's tuition pulse, stated as a single large figure
+          with a slim segmented meter, the way an operator reads an instrument. */}
+      <section className="overflow-hidden rounded-lg bg-[hsl(var(--sidebar-background))] text-background shadow-card">
+        <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-10">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-background/55">
+              {t("dashboardHome.director.eyebrow")} · {summary.month.label}
+            </p>
+            <h1 className="mt-2 truncate text-2xl font-bold tracking-tight sm:text-3xl">
+              {centerName ?? t("dashboardHome.director.centerFallback")}
+            </h1>
+            <p className="mt-1.5 text-sm text-background/65">
+              {t("dashboardHome.hello", { name: directorName })}
+            </p>
+          </div>
+
+          <div className="w-full lg:w-72">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/55">
+                {t("dashboardHome.director.collectionRate")}
+              </span>
+              <span className="nums text-3xl font-bold leading-none">
+                {collectionRate}%
+              </span>
+            </div>
+            <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-background/15">
+              <div
+                className="bg-mint"
+                style={{ width: `${collectionRate}%` }}
+              />
+            </div>
+            <p className="nums mt-2 text-xs text-background/60">
+              {t("dashboardHome.director.money.paymentLine")} ·{" "}
+              {summary.money.paidChildren}/{summary.totals.children}
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="grid gap-3 sm:grid-cols-3">
         <StatCard
           label={t("dashboardHome.director.stats.children")}
           value={summary.totals.children}
@@ -239,12 +266,11 @@ function DirectorHome({
           Icon={GraduationCap}
           tone="coral"
         />
-        <StatCard
-          label={t("dashboardHome.director.stats.pending")}
-          value={summary.totals.pendingRequests}
-          Icon={Inbox}
-          tone="grape"
-        />
+      </section>
+
+      {/* Money KPIs get their own wider row so the full dotted sums
+          (e.g. 250.000.000 soʻm) read clearly without clipping. */}
+      <section className="grid gap-3 sm:grid-cols-2">
         <StatCard
           label={t("dashboardHome.director.stats.expected")}
           value={formatMoney(summary.money.expectedAmount, i18n.language)}
@@ -270,11 +296,14 @@ function DirectorHome({
 function StatCard({
   label,
   value,
+  title,
   Icon,
   tone,
 }: {
   label: string;
   value: number | string;
+  /** Full, unabbreviated value shown on hover when `value` is compacted. */
+  title?: string;
   Icon: LucideIcon;
   tone: "sky" | "mint" | "coral" | "grape" | "sun" | "warning";
 }) {
@@ -298,7 +327,10 @@ function StatCard({
             <Icon className="h-4 w-4" />
           </span>
         </div>
-        <p className="mt-3 truncate text-2xl font-black text-foreground">
+        <p
+          className="nums mt-3 truncate text-2xl font-bold tracking-tight text-foreground"
+          title={title}
+        >
           {value}
         </p>
       </CardContent>
@@ -324,82 +356,193 @@ function MoneySnapshot({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="border-b bg-muted/25">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle className="text-lg">
-              {t("dashboardHome.director.money.title")}
-            </CardTitle>
-            <CardDescription>
-              {t("dashboardHome.director.money.description", {
-                amount: formatMoney(summary.money.monthlyTuitionAmount, language),
-              })}
-            </CardDescription>
-          </div>
-          <div className="rounded-xl border bg-card px-4 py-3 text-right">
-            <p className="text-xs font-semibold text-muted-foreground">
-              {t("dashboardHome.director.collectionRate")}
-            </p>
-            <p className="mt-1 text-3xl font-black text-foreground">
-              {paidPercent}%
-            </p>
-          </div>
-        </div>
+        <CardTitle className="text-lg">
+          {t("dashboardHome.director.money.title")}
+        </CardTitle>
+        <CardDescription>
+          {t("dashboardHome.director.money.description", {
+            amount: formatMoney(summary.money.monthlyTuitionAmount, language),
+          })}
+        </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4 p-5 sm:p-6">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <MoneyFigure
-            label={t("dashboardHome.director.money.expected")}
-            value={formatMoney(summary.money.expectedAmount, language)}
-          />
-          <MoneyFigure
-            label={t("dashboardHome.director.money.paid")}
-            value={formatMoney(summary.money.paidAmount, language)}
-            positive
-          />
-          <MoneyFigure
-            label={t("dashboardHome.director.money.unpaid")}
-            value={formatMoney(summary.money.unpaidAmount, language)}
-            warning
-          />
-        </div>
-        <div className="rounded-xl border bg-muted/30 p-4">
-          <div className="mb-3 flex items-center justify-between gap-3 text-sm">
-            <span className="font-semibold">
-              {t("dashboardHome.director.money.paymentLine")}
-            </span>
-            <span className="text-muted-foreground">
-              {summary.money.paidChildren} / {summary.totals.children}
-            </span>
-          </div>
-          <div className="flex h-4 overflow-hidden rounded-full bg-white">
-            <div
-              className="bg-mint"
-              style={{ width: `${paidPercent}%` }}
-              title={`${paidPercent}%`}
+      <CardContent className="p-5 sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-[160px_1fr] lg:items-center lg:gap-8">
+          {/* Collection donut — paid vs unpaid share of the expected total. */}
+          <div className="mx-auto flex flex-col items-center gap-3 lg:mx-0">
+            <Donut
+              segments={[
+                { value: summary.money.paidAmount, className: "stroke-mint" },
+                { value: summary.money.unpaidAmount, className: "stroke-coral" },
+              ]}
+              centerTop={`${paidPercent}%`}
+              centerBottom={t("dashboardHome.director.collectionRate")}
             />
-            <div
-              className="bg-coral"
-              style={{ width: `${unpaidPercent}%` }}
-              title={`${unpaidPercent}%`}
-            />
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-mint" />
+                {t("dashboardHome.director.money.paid")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-coral" />
+                {t("dashboardHome.director.money.unpaid")}
+              </span>
+            </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-mint" />
-              {t("dashboardHome.director.money.paidChildren", {
-                count: summary.money.paidChildren,
-              })}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-coral" />
-              {t("dashboardHome.director.money.unpaidChildren", {
-                count: summary.money.unpaidChildren,
-              })}
-            </span>
+
+          <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MoneyFigure
+                label={t("dashboardHome.director.money.expected")}
+                value={formatMoney(summary.money.expectedAmount, language)}
+              />
+              <MoneyFigure
+                label={t("dashboardHome.director.money.paid")}
+                value={formatMoney(summary.money.paidAmount, language)}
+                positive
+              />
+              <MoneyFigure
+                label={t("dashboardHome.director.money.unpaid")}
+                value={formatMoney(summary.money.unpaidAmount, language)}
+                warning
+              />
+            </div>
+            <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="mb-2.5 flex items-center justify-between gap-3 text-sm">
+                <span className="font-semibold">
+                  {t("dashboardHome.director.money.paymentLine")}
+                </span>
+                <span className="nums text-muted-foreground">
+                  {summary.money.paidChildren} / {summary.totals.children}
+                </span>
+              </div>
+              <SegmentedBar
+                segments={[
+                  { value: paidPercent, className: "bg-mint" },
+                  { value: unpaidPercent, className: "bg-coral" },
+                ]}
+              />
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-mint" />
+                  {t("dashboardHome.director.money.paidChildren", {
+                    count: summary.money.paidChildren,
+                  })}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-coral" />
+                  {t("dashboardHome.director.money.unpaidChildren", {
+                    count: summary.money.unpaidChildren,
+                  })}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * A compact SVG donut for part-to-whole shares (e.g. paid vs unpaid amount).
+ * Segments are drawn clockwise from the top; the center holds a headline
+ * figure and a small caption.
+ */
+function Donut({
+  segments,
+  centerTop,
+  centerBottom,
+  size = 132,
+  stroke = 13,
+}: {
+  segments: Array<{ value: number; className: string }>;
+  centerTop: string;
+  centerBottom: string;
+  size?: number;
+  stroke?: number;
+}) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  let offset = 0;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        role="img"
+        aria-label={`${centerBottom}: ${centerTop}`}
+      >
+        <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            strokeWidth={stroke}
+            className="stroke-muted"
+          />
+          {total > 0 &&
+            segments.map((segment, i) => {
+              const length = (segment.value / total) * circumference;
+              const dash = (
+                <circle
+                  key={i}
+                  cx={size / 2}
+                  cy={size / 2}
+                  r={radius}
+                  fill="none"
+                  strokeWidth={stroke}
+                  strokeLinecap="butt"
+                  className={segment.className}
+                  strokeDasharray={`${length} ${circumference - length}`}
+                  strokeDashoffset={-offset}
+                />
+              );
+              offset += length;
+              return dash;
+            })}
+        </g>
+      </svg>
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="text-center">
+          <p className="nums text-2xl font-bold leading-none tracking-tight text-foreground">
+            {centerTop}
+          </p>
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            {centerBottom}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A horizontal stacked meter. Segment values are percentages (0–100). */
+function SegmentedBar({
+  segments,
+  className,
+}: {
+  segments: Array<{ value: number; className: string }>;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex h-3 overflow-hidden rounded-full bg-muted",
+        className,
+      )}
+    >
+      {segments.map((segment, i) => (
+        <div
+          key={i}
+          className={segment.className}
+          style={{ width: `${segment.value}%` }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -419,7 +562,7 @@ function MoneyFigure({
       <p className="text-xs font-semibold text-muted-foreground">{label}</p>
       <p
         className={cn(
-          "mt-2 text-xl font-black",
+          "nums mt-2 text-xl font-bold tracking-tight",
           positive ? "text-mint-ink" : null,
           warning ? "text-coral-ink" : null,
         )}
@@ -515,15 +658,44 @@ function ClassOverview({
   language: string;
   t: ReturnType<typeof useLayoutTranslation>["t"];
 }) {
+  // Center-wide capacity, drawn only from classes that declare a cap.
+  const capped = summary.classes.filter((k) => k.maxChildren != null);
+  const totalSeats = capped.reduce((sum, k) => sum + (k.maxChildren ?? 0), 0);
+  const filledSeats = capped.reduce((sum, k) => sum + k.childCount, 0);
+  const centerOccupancy = percent(filledSeats, totalSeats);
+
   return (
     <Card className="min-w-0">
       <CardHeader>
-        <CardTitle className="text-lg">
-          {t("dashboardHome.director.classes.title")}
-        </CardTitle>
-        <CardDescription>
-          {t("dashboardHome.director.classes.description")}
-        </CardDescription>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <CardTitle className="text-lg">
+              {t("dashboardHome.director.classes.title")}
+            </CardTitle>
+            <CardDescription>
+              {t("dashboardHome.director.classes.description")}
+            </CardDescription>
+          </div>
+          {totalSeats > 0 ? (
+            <div className="w-full shrink-0 sm:w-56">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {t("dashboardHome.director.classes.capacity")}
+                </span>
+                <span className="nums text-sm font-bold">{centerOccupancy}%</span>
+              </div>
+              <SegmentedBar
+                segments={[{ value: centerOccupancy, className: "bg-sky" }]}
+              />
+              <p className="nums mt-1.5 text-xs text-muted-foreground">
+                {t("dashboardHome.director.classes.ofSeats", {
+                  filled: filledSeats,
+                  total: totalSeats,
+                })}
+              </p>
+            </div>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent>
         {summary.classes.length === 0 ? (
@@ -536,91 +708,114 @@ function ClassOverview({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="py-3 pr-4 font-bold">
+          <div className="-mx-2 overflow-x-auto px-2">
+            <table className="nums w-full min-w-[760px] text-left text-sm">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                  <th className="border-b py-2.5 pr-4 font-semibold">
                     {t("dashboardHome.director.classes.class")}
                   </th>
-                  <th className="px-4 py-3 text-right font-bold">
-                    {t("dashboardHome.director.classes.children")}
+                  <th className="border-b px-4 py-2.5 font-semibold">
+                    {t("dashboardHome.director.classes.occupancy")}
                   </th>
-                  <th className="px-4 py-3 text-right font-bold">
-                    {t("dashboardHome.director.classes.seats")}
-                  </th>
-                  <th className="px-4 py-3 text-right font-bold">
-                    {t("dashboardHome.director.classes.emptySeats")}
-                  </th>
-                  <th className="px-4 py-3 font-bold">
+                  <th className="border-b px-4 py-2.5 font-semibold">
                     {t("dashboardHome.director.classes.teacher")}
                   </th>
-                  <th className="px-4 py-3 text-right font-bold">
+                  <th className="border-b px-4 py-2.5 text-right font-semibold">
                     {t("dashboardHome.director.classes.expected")}
                   </th>
-                  <th className="px-4 py-3 text-right font-bold">
-                    {t("dashboardHome.director.classes.paid")}
-                  </th>
-                  <th className="py-3 pl-4 text-right font-bold">
-                    {t("dashboardHome.director.classes.unpaid")}
+                  <th className="border-b py-2.5 pl-4 font-semibold">
+                    {t("dashboardHome.director.classes.collection")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
-                {summary.classes.map((klass) => (
-                  <tr key={klass.id}>
-                    <td className="py-3 pr-4 font-bold">{klass.name}</td>
-                    <td className="px-4 py-3 text-right">{klass.childCount}</td>
-                    <td className="px-4 py-3 text-right">
-                      {klass.maxChildren ? (
-                        <span className="font-semibold">
-                          {klass.childCount} / {klass.maxChildren}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {klass.emptySeats === null ? (
-                        "—"
-                      ) : klass.emptySeats === 0 ? (
-                        <Badge variant="warning">
-                          {t("dashboardHome.director.classes.full")}
-                        </Badge>
-                      ) : (
-                        <span className="text-mint-ink">
-                          {t("dashboardHome.director.classes.emptyCount", {
-                            count: klass.emptySeats,
-                          })}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {klass.teacherNames.length > 0 ? (
-                        <span className="text-muted-foreground">
-                          {klass.teacherNames.join(", ")}
-                        </span>
-                      ) : (
-                        <Badge variant="warning">
-                          {t("dashboardHome.director.classes.noTeacher")}
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold">
-                      {formatMoney(klass.expectedAmount, language)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-mint-ink">
-                      {t("dashboardHome.director.classes.paidCount", {
-                        count: klass.paidChildren,
-                      })}
-                    </td>
-                    <td className="py-3 pl-4 text-right text-coral-ink">
-                      {t("dashboardHome.director.classes.unpaidCount", {
-                        count: klass.unpaidChildren,
-                      })}
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-border/70">
+                {summary.classes.map((klass) => {
+                  const collectionPercent = percent(
+                    klass.paidChildren,
+                    klass.childCount,
+                  );
+                  const isFull = klass.emptySeats === 0;
+                  const occupancyColor = isFull
+                    ? "bg-warning"
+                    : (klass.occupancyPercent ?? 0) < 50
+                      ? "bg-sky/55"
+                      : "bg-sky";
+
+                  return (
+                    <tr
+                      key={klass.id}
+                      className="transition-colors hover:bg-muted/40"
+                    >
+                      <td className="py-3 pr-4 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-accent text-xs font-bold text-accent-foreground">
+                            {klass.name.trim().charAt(0).toUpperCase() || "—"}
+                          </span>
+                          <span className="font-semibold">{klass.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <SegmentedBar
+                            className="h-2 w-20"
+                            segments={[
+                              {
+                                value: klass.occupancyPercent ?? 0,
+                                className: occupancyColor,
+                              },
+                            ]}
+                          />
+                          {isFull ? (
+                            <Badge variant="warning">
+                              {t("dashboardHome.director.classes.full")}
+                            </Badge>
+                          ) : (
+                            <span className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
+                              {klass.maxChildren != null
+                                ? `${klass.childCount}/${klass.maxChildren}`
+                                : klass.childCount}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        {klass.teacherNames.length > 0 ? (
+                          <span className="text-muted-foreground">
+                            {klass.teacherNames.join(", ")}
+                          </span>
+                        ) : (
+                          <Badge variant="warning">
+                            {t("dashboardHome.director.classes.noTeacher")}
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right align-middle font-semibold">
+                        {formatMoney(klass.expectedAmount, language)}
+                      </td>
+                      <td className="py-3 pl-4 align-middle">
+                        <div className="flex items-center gap-2.5">
+                          <SegmentedBar
+                            className="h-2 w-24"
+                            segments={[
+                              { value: collectionPercent, className: "bg-mint" },
+                              {
+                                value:
+                                  klass.childCount > 0
+                                    ? 100 - collectionPercent
+                                    : 0,
+                                className: "bg-coral",
+                              },
+                            ]}
+                          />
+                          <span className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
+                            {klass.paidChildren}/{klass.childCount}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -769,8 +964,15 @@ function percent(part: number, total: number) {
   return Math.min(100, Math.max(0, Math.round((part / total) * 100)));
 }
 
-function formatMoney(amount: number, language: string) {
-  return `${new Intl.NumberFormat(language === "uz" ? "uz-UZ" : "en-US", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(amount))} soʻm`;
+/**
+ * Tuition sums in UZS, grouped with dots so large numbers stay readable at a
+ * glance — e.g. 250000000 → "250.000.000 soʻm". The dot grouping is applied
+ * directly (not locale-dependent) since directors asked for this exact style.
+ */
+function formatMoney(amount: number, _language: string) {
+  const rounded = Math.round(amount);
+  const grouped = Math.abs(rounded)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${rounded < 0 ? "-" : ""}${grouped} soʻm`;
 }
