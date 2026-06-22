@@ -45,7 +45,18 @@
     "photoCaption": "Photo caption",
     "parentSignature": "Parent signature",
     "consent": "I confirm these medication instructions are accurate and authorize the center to administer this medication as requested.",
-    "saveRequest": "Send request"
+    "saveRequest": "Send request",
+    "addPhoto": "Add medicine photo",
+    "changePhoto": "Change photo",
+    "uploading": "Uploading…",
+    "tapToSign": "Tap to sign",
+    "reSign": "Sign again"
+  },
+  "signature": {
+    "title": "Sign here",
+    "hint": "Sign with your finger to authorize this request.",
+    "clear": "Clear",
+    "save": "Save"
   },
   "validation": {
     "childRequired": "Choose a child.",
@@ -58,7 +69,28 @@
     "consentRequired": "Consent is required.",
     "chooseChildBeforeUpload": "Choose a child before uploading a photo.",
     "uploadFailed": "Upload failed.",
-    "uploadFailedForFile": "Upload failed for {{file}}."
+    "uploadFailedForFile": "Upload failed for {{file}}.",
+    "requestFailed": "Couldn't send the request. Please try again.",
+    "signatureRequired": "Please add your signature.",
+    "photoPermission": "Allow photo access to attach a medicine photo."
+  },
+  "sections": {
+    "who": "Child & date",
+    "medicine": "Medicine",
+    "notes": "Notes (optional)",
+    "authorize": "Authorize"
+  },
+  "confirm": {
+    "title": "Submit this request?",
+    "body": "You confirm the center may give this medicine as written.",
+    "yes": "Yes, submit",
+    "no": "No"
+  },
+  "cancelConfirm": {
+    "title": "Cancel this request?",
+    "body": "The center won't give this medicine. This can't be undone.",
+    "yes": "Yes, cancel",
+    "no": "Keep it"
   },
   "toast": {
     "requestSent": "Medication request sent.",

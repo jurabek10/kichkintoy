@@ -45,7 +45,18 @@
     "photoCaption": "Rasm sarlavhasi",
     "parentSignature": "Ota-ona imzosi",
     "consent": "Men ushbu dori ko'rsatmalari to'g'ri ekanini tasdiqlayman va markazga ushbu dorini berishga ruxsat beraman.",
-    "saveRequest": "So'rov yuborish"
+    "saveRequest": "So'rov yuborish",
+    "addPhoto": "Dori rasmini qo'shish",
+    "changePhoto": "Rasmni almashtirish",
+    "uploading": "Yuklanmoqda…",
+    "tapToSign": "Imzo qo'yish uchun bosing",
+    "reSign": "Qayta imzolash"
+  },
+  "signature": {
+    "title": "Shu yerga imzo qo'ying",
+    "hint": "So'rovni tasdiqlash uchun barmog'ingiz bilan imzolang.",
+    "clear": "Tozalash",
+    "save": "Saqlash"
   },
   "validation": {
     "childRequired": "Bolani tanlang.",
@@ -58,7 +69,28 @@
     "consentRequired": "Rozilik majburiy.",
     "chooseChildBeforeUpload": "Rasm yuklashdan oldin bolani tanlang.",
     "uploadFailed": "Yuklash amalga oshmadi.",
-    "uploadFailedForFile": "{{file}} fayli yuklanmadi."
+    "uploadFailedForFile": "{{file}} fayli yuklanmadi.",
+    "requestFailed": "So'rovni yuborib bo'lmadi. Qayta urinib ko'ring.",
+    "signatureRequired": "Iltimos, imzoingizni qo'shing.",
+    "photoPermission": "Dori rasmini biriktirish uchun rasmlarga ruxsat bering."
+  },
+  "sections": {
+    "who": "Bola va sana",
+    "medicine": "Dori",
+    "notes": "Eslatmalar (ixtiyoriy)",
+    "authorize": "Tasdiqlash"
+  },
+  "confirm": {
+    "title": "So'rov yuborilsinmi?",
+    "body": "Bog'cha ushbu dorini yozilganidek berishiga rozilik bildirasiz.",
+    "yes": "Ha, yuborish",
+    "no": "Yo'q"
+  },
+  "cancelConfirm": {
+    "title": "So'rov bekor qilinsinmi?",
+    "body": "Bog'cha bu dorini bermaydi. Buni qaytarib bo'lmaydi.",
+    "yes": "Ha, bekor qilish",
+    "no": "Qoldirish"
   },
   "toast": {
     "requestSent": "Dori so'rovi yuborildi.",
