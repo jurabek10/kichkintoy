@@ -1,0 +1,52 @@
+{
+  "title": "Notifications",
+  "badges": {
+    "new": "New"
+  },
+  "priority": {
+    "normal": "Normal",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "actions": {
+    "markRead": "Mark read",
+    "markAllRead": "Mark all read"
+  },
+  "empty": {
+    "title": "No notifications yet",
+    "body": "New reports, notices, albums, meals, medication, and pickup updates will appear here."
+  },
+  "types": {
+    "album_post.comment_created": "New album comment",
+    "album_post.published": "New album photos",
+    "attendance.checked_in": "Child checked in",
+    "attendance.checked_out": "Child checked out",
+    "attendance.parent_absence_submitted": "Absence reason submitted",
+    "calendar_event.created": "New calendar event",
+    "calendar_event.updated": "Calendar event updated",
+    "daily_report.comment_created": "New report comment",
+    "daily_report.published": "New daily report",
+    "invitation.accepted": "Invitation accepted",
+    "invitation.declined": "Invitation declined",
+    "join_request.approved": "Your request was approved",
+    "join_request.cancelled": "A join request was cancelled",
+    "join_request.rejected": "Your request was not approved",
+    "join_request.submitted": "New join request",
+    "meal_post.published": "Today's meal menu",
+    "medication_request.created": "New medication request",
+    "medication_request.administered": "Medication given",
+    "medication_request.cancelled": "Medication request cancelled",
+    "medication_request.rejected": "Medication request rejected",
+    "medication_request.skipped": "Medication skipped",
+    "notice.published": "New notice",
+    "notice.confirmation_required": "Notice needs confirmation",
+    "pickup_notice.acknowledged": "Pickup notice confirmed",
+    "pickup_notice.changed": "Pickup notice changed",
+    "pickup_notice.created": "New pickup notice",
+    "pickup_notice.cancelled": "Pickup notice cancelled",
+    "student_document.accepted": "Document accepted",
+    "student_document.rejected": "Document needs changes",
+    "student_document.request_sent": "New document request",
+    "student_document.submitted": "Document submitted"
+  }
+}

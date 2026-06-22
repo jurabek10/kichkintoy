@@ -23,7 +23,10 @@ function toNotificationItem(notification: NotificationSummary): NotificationItem
   return {
     id: notification.id,
     notificationType: notification.notificationType,
-    title: notification.title,
+    title: i18n.t(`types.${notification.notificationType}`, {
+      ns: 'notifications',
+      defaultValue: notification.title,
+    }),
     body: notification.body,
     entityType: notification.entityType,
     entityId: notification.entityId,

@@ -1,0 +1,52 @@
+{
+  "title": "Уведомления",
+  "badges": {
+    "new": "Новое"
+  },
+  "priority": {
+    "normal": "Обычный",
+    "high": "Важный",
+    "urgent": "Срочный"
+  },
+  "actions": {
+    "markRead": "Прочитано",
+    "markAllRead": "Отметить все"
+  },
+  "empty": {
+    "title": "Пока нет уведомлений",
+    "body": "Здесь появятся новые отчёты, объявления, альбомы, меню, лекарства и обновления по встрече ребёнка."
+  },
+  "types": {
+    "album_post.comment_created": "Новый комментарий к альбому",
+    "album_post.published": "Новые фото в альбоме",
+    "attendance.checked_in": "Ребёнок пришёл",
+    "attendance.checked_out": "Ребёнка забрали",
+    "attendance.parent_absence_submitted": "Отправлена причина отсутствия",
+    "calendar_event.created": "Новое событие календаря",
+    "calendar_event.updated": "Событие календаря обновлено",
+    "daily_report.comment_created": "Новый комментарий к отчёту",
+    "daily_report.published": "Новый дневной отчёт",
+    "invitation.accepted": "Приглашение принято",
+    "invitation.declined": "Приглашение отклонено",
+    "join_request.approved": "Ваш запрос одобрен",
+    "join_request.cancelled": "Запрос на присоединение отменён",
+    "join_request.rejected": "Ваш запрос не одобрен",
+    "join_request.submitted": "Новый запрос на присоединение",
+    "meal_post.published": "Сегодняшнее меню",
+    "medication_request.created": "Новый запрос на лекарство",
+    "medication_request.administered": "Лекарство дано",
+    "medication_request.cancelled": "Запрос на лекарство отменён",
+    "medication_request.rejected": "Запрос на лекарство отклонён",
+    "medication_request.skipped": "Лекарство пропущено",
+    "notice.published": "Новое объявление",
+    "notice.confirmation_required": "Объявление требует подтверждения",
+    "pickup_notice.acknowledged": "Встреча ребёнка подтверждена",
+    "pickup_notice.changed": "Встреча ребёнка изменена",
+    "pickup_notice.created": "Новая заявка на встречу ребёнка",
+    "pickup_notice.cancelled": "Заявка на встречу ребёнка отменена",
+    "student_document.accepted": "Документ принят",
+    "student_document.rejected": "Документ требует исправлений",
+    "student_document.request_sent": "Новый запрос документов",
+    "student_document.submitted": "Документ отправлен"
+  }
+}

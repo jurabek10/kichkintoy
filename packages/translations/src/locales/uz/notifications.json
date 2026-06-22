@@ -1,0 +1,52 @@
+{
+  "title": "Bildirishnomalar",
+  "badges": {
+    "new": "Yangi"
+  },
+  "priority": {
+    "normal": "Oddiy",
+    "high": "Muhim",
+    "urgent": "Shoshilinch"
+  },
+  "actions": {
+    "markRead": "O‘qildi",
+    "markAllRead": "Hammasini o‘qildi"
+  },
+  "empty": {
+    "title": "Hozircha bildirishnoma yo‘q",
+    "body": "Yangi hisobotlar, e'lonlar, albomlar, taomlar, dori so‘rovlari va olib ketish yangiliklari shu yerda ko‘rinadi."
+  },
+  "types": {
+    "album_post.comment_created": "Albomga yangi izoh",
+    "album_post.published": "Albomda yangi rasmlar",
+    "attendance.checked_in": "Bola keldi",
+    "attendance.checked_out": "Bola olib ketildi",
+    "attendance.parent_absence_submitted": "Kelmaslik sababi yuborildi",
+    "calendar_event.created": "Yangi kalendar voqeasi",
+    "calendar_event.updated": "Kalendar voqeasi yangilandi",
+    "daily_report.comment_created": "Hisobotga yangi izoh",
+    "daily_report.published": "Yangi kunlik hisobot",
+    "invitation.accepted": "Taklif qabul qilindi",
+    "invitation.declined": "Taklif rad etildi",
+    "join_request.approved": "So‘rovingiz tasdiqlandi",
+    "join_request.cancelled": "Qo‘shilish so‘rovi bekor qilindi",
+    "join_request.rejected": "So‘rovingiz tasdiqlanmadi",
+    "join_request.submitted": "Yangi qo‘shilish so‘rovi",
+    "meal_post.published": "Bugungi taomnoma",
+    "medication_request.created": "Yangi dori so‘rovi",
+    "medication_request.administered": "Dori berildi",
+    "medication_request.cancelled": "Dori so‘rovi bekor qilindi",
+    "medication_request.rejected": "Dori so‘rovi rad etildi",
+    "medication_request.skipped": "Dori berilmadi",
+    "notice.published": "Yangi e'lon",
+    "notice.confirmation_required": "E'lon tasdiq talab qiladi",
+    "pickup_notice.acknowledged": "Olib ketish tasdiqlandi",
+    "pickup_notice.changed": "Olib ketish o‘zgartirildi",
+    "pickup_notice.created": "Yangi olib ketish xabari",
+    "pickup_notice.cancelled": "Olib ketish xabari bekor qilindi",
+    "student_document.accepted": "Hujjat qabul qilindi",
+    "student_document.rejected": "Hujjatga tuzatish kerak",
+    "student_document.request_sent": "Yangi hujjat so‘rovi",
+    "student_document.submitted": "Hujjat yuborildi"
+  }
+}

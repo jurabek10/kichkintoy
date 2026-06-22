@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,6 +39,7 @@ function NotificationRow({
   onPress: () => void;
   onMarkRead: () => void;
 }) {
+  const { t } = useTranslation('notifications');
   const unread = !notification.readAt;
 
   return (
@@ -51,8 +53,10 @@ function NotificationRow({
         <View className="min-w-0 flex-1">
           <View className="flex-row flex-wrap items-center gap-2">
             <Text className="flex-shrink text-[15px] font-bold text-foreground">{notification.title}</Text>
-            {unread ? <Badge label="New" /> : null}
-            {notification.priority !== 'normal' ? <Badge label={notification.priority} tone="warning" /> : null}
+            {unread ? <Badge label={t('badges.new')} /> : null}
+            {notification.priority !== 'normal' ? (
+              <Badge label={t(`priority.${notification.priority}`)} tone="warning" />
+            ) : null}
           </View>
           {notification.body ? (
             <Text numberOfLines={2} className="mt-1 text-sm leading-5 text-muted">
@@ -68,7 +72,7 @@ function NotificationRow({
                   event.stopPropagation();
                   onMarkRead();
                 }}>
-                <Text className="text-xs font-extrabold text-primary">Mark read</Text>
+                <Text className="text-xs font-extrabold text-primary">{t('actions.markRead')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -79,6 +83,7 @@ function NotificationRow({
 }
 
 export default function NotificationsScreen() {
+  const { t } = useTranslation('notifications');
   const router = useRouter();
   const queryClient = useQueryClient();
   const notifications = useNotifications();
@@ -106,14 +111,14 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="flex-row items-center justify-between pr-4">
-        <ScreenHeader title="Notifications" back />
+        <ScreenHeader title={t('title')} back />
         <Pressable
           disabled={!hasNotifications || markAllRead.isPending}
           onPress={() => markAllRead.mutate()}
           className={cn('flex-row items-center gap-1 rounded-full px-3 py-1.5', hasNotifications ? 'bg-sky' : 'bg-segment')}>
           <Ionicons name="checkmark-done" size={15} color={hasNotifications ? '#3E8FE0' : colors.textMuted} />
           <Text className={cn('text-xs font-extrabold', hasNotifications ? 'text-sky-ink' : 'text-muted')}>
-            Mark all read
+            {t('actions.markAllRead')}
           </Text>
         </Pressable>
       </View>
@@ -131,8 +136,8 @@ export default function NotificationsScreen() {
             <View className="p-4">
               <EmptyState
                 icon="notifications-outline"
-                title="No notifications yet"
-                body="New reports, notices, albums, meals, medication, and pickup updates will appear here."
+                title={t('empty.title')}
+                body={t('empty.body')}
               />
             </View>
           ) : (
