@@ -31,6 +31,8 @@ const parentPickupListInputSchema = z
 const staffPickupListInputSchema = z.object({
   centerId: uuidSchema,
   date: isoDateSchema.optional(),
+  from: isoDateSchema.optional(),
+  to: isoDateSchema.optional(),
   status: pickupNoticeStatusSchema.optional(),
   classId: uuidSchema.optional(),
 });

@@ -23,6 +23,8 @@ const parentListInputSchema = z
 const staffListInputSchema = z.object({
   centerId: uuidSchema,
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   status: medicationStatusSchema.optional(),
 });
 
