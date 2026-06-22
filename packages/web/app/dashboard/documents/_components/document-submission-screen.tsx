@@ -24,6 +24,7 @@ import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
+import { SignedMedicationImage } from "../../medications/_components/signed-medication-image";
 import { submissionStatusKey } from "./document-utils";
 
 export function DocumentSubmissionScreen({
@@ -355,6 +356,17 @@ function FieldEditor({
               {t("detail.uploading")}
             </span>
           ) : null}
+        </div>
+      ) : field.type === "signature" && Array.isArray(value) && value.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {value.filter(isString).map((id) => (
+            <div key={id} className="overflow-hidden rounded-md border bg-white">
+              <SignedMedicationImage
+                mediaAssetId={id}
+                className="h-24 w-auto object-contain"
+              />
+            </div>
+          ))}
         </div>
       ) : (
         <Input
