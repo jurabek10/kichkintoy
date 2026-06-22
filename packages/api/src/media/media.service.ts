@@ -359,7 +359,13 @@ export class MediaService {
     }
 
     const medicationRequest = await this.prisma.medicationRequest.findFirst({
-      where: { photoMediaAssetId: mediaAssetId },
+      where: {
+        OR: [
+          { photoMediaAssetId: mediaAssetId },
+          // The parent signature is stored as the string `media:<assetId>`.
+          { parentSignature: `media:${mediaAssetId}` },
+        ],
+      },
     });
     if (medicationRequest) {
       if (medicationRequest.parentUserId === userId) return true;

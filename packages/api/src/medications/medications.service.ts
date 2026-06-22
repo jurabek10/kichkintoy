@@ -308,7 +308,13 @@ export class MedicationsService {
 
   async canAccessMedia(userId: string, mediaAssetId: string) {
     const request = await this.prisma.medicationRequest.findFirst({
-      where: { photoMediaAssetId: mediaAssetId },
+      where: {
+        OR: [
+          { photoMediaAssetId: mediaAssetId },
+          // The parent signature is stored as the string `media:<assetId>`.
+          { parentSignature: `media:${mediaAssetId}` },
+        ],
+      },
       include: medicationInclude,
     });
     return request ? this.canView(userId, request) : false;
