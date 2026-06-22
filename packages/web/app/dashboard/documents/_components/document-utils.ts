@@ -14,6 +14,13 @@ export function templateTypeKey(type: StudentDocumentTemplateType | string) {
   return "templateType.custom";
 }
 
+export function requestStatusKey(status: string) {
+  if (status === "draft") return "requestStatus.draft";
+  if (status === "sent") return "requestStatus.sent";
+  if (status === "archived") return "requestStatus.archived";
+  return "requestStatus.closed";
+}
+
 export function submissionStatusKey(
   status: StudentDocumentSubmissionStatus | string,
 ) {
