@@ -4,7 +4,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { classDetailSchema } from "@kichkintoy/shared";
+import {
+  childDetailSchema,
+  classDetailSchema,
+  type UpdateChildRequest,
+} from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import type {
@@ -68,6 +72,13 @@ export class ClassService {
                 photoUrl: true,
                 dob: true,
                 gender: true,
+                childGuardians: {
+                  orderBy: { createdAt: "asc" },
+                  select: {
+                    relationship: true,
+                    user: { select: { fullName: true, phone: true } },
+                  },
+                },
               },
             },
           },
@@ -82,16 +93,27 @@ export class ClassService {
 
     return classDetailSchema.parse({
       ...this.toClassListItem(klass),
-      children: klass.childEnrollments.map((enrollment) => ({
-        childId: enrollment.child.id,
-        name: [enrollment.child.firstName, enrollment.child.lastName]
-          .filter(Boolean)
-          .join(" "),
-        photoUrl: enrollment.child.photoUrl,
-        dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
-        joinedAt: enrollment.startedAt.toISOString().slice(0, 10),
-        gender: normalizeChildGender(enrollment.child.gender),
-      })),
+      children: klass.childEnrollments.map((enrollment) => {
+        // Guardians are ordered oldest-first, so the parent who registered the
+        // child first wins. Prefer the earliest one that has a phone on file,
+        // otherwise fall back to the earliest guardian.
+        const guardians = enrollment.child.childGuardians;
+        const guardian =
+          guardians.find((entry) => entry.user.phone) ?? guardians[0];
+        return {
+          childId: enrollment.child.id,
+          name: [enrollment.child.firstName, enrollment.child.lastName]
+            .filter(Boolean)
+            .join(" "),
+          photoUrl: enrollment.child.photoUrl,
+          dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
+          joinedAt: enrollment.startedAt.toISOString().slice(0, 10),
+          gender: normalizeChildGender(enrollment.child.gender),
+          guardianPhone: guardian?.user.phone ?? null,
+          guardianName: guardian?.user.fullName ?? null,
+          guardianRelation: guardian?.relationship ?? null,
+        };
+      }),
     });
   }
 
@@ -210,6 +232,144 @@ export class ClassService {
     });
 
     return this.getClass(args.centerId, klass.id);
+  }
+
+  // --- Children ---
+
+  async getChild(centerId: string, childId: string) {
+    const child = await this.prisma.child.findUnique({
+      where: { id: childId },
+      include: {
+        childGuardians: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            userId: true,
+            isPrimary: true,
+            relationship: true,
+            user: { select: { fullName: true, phone: true } },
+          },
+        },
+        childEnrollments: {
+          where: { centerId },
+          orderBy: { startedAt: "desc" },
+          include: { class: { select: { id: true, name: true } } },
+        },
+      },
+    });
+
+    // A child "belongs" to the center only if they have an enrollment there.
+    if (!child || child.childEnrollments.length === 0) {
+      throw new NotFoundException("Child not found.");
+    }
+
+    const enrollment =
+      child.childEnrollments.find(
+        (entry) => entry.enrollmentStatus === "active",
+      ) ?? child.childEnrollments[0];
+
+    return childDetailSchema.parse({
+      id: child.id,
+      firstName: child.firstName,
+      lastName: child.lastName,
+      name: [child.firstName, child.lastName].filter(Boolean).join(" "),
+      dateOfBirth: child.dob.toISOString().slice(0, 10),
+      gender: normalizeChildGender(child.gender),
+      photoUrl: child.photoUrl,
+      status: child.status,
+      allergies: child.allergies,
+      medicalNotes: child.medicalNotes,
+      enrollment: enrollment
+        ? {
+            classId: enrollment.classId,
+            className: enrollment.class?.name ?? null,
+            status: enrollment.enrollmentStatus,
+            startedAt: enrollment.startedAt.toISOString().slice(0, 10),
+          }
+        : null,
+      guardians: child.childGuardians.map((guardian) => ({
+        userId: guardian.userId,
+        fullName: guardian.user.fullName,
+        phone: guardian.user.phone,
+        relationship: guardian.relationship,
+        isPrimary: guardian.isPrimary,
+      })),
+    });
+  }
+
+  async updateChild(args: {
+    centerId: string;
+    childId: string;
+    actorUserId: string;
+    input: UpdateChildRequest;
+  }) {
+    await this.requireChildInCenter(args.centerId, args.childId);
+
+    await this.prisma.child.update({
+      where: { id: args.childId },
+      data: {
+        firstName: args.input.firstName.trim(),
+        lastName: args.input.lastName?.trim() || null,
+        dob: new Date(args.input.dateOfBirth),
+        gender: args.input.gender,
+        allergies: args.input.allergies?.trim() || null,
+        medicalNotes: args.input.medicalNotes?.trim() || null,
+      },
+    });
+
+    await this.audit.log({
+      centerId: args.centerId,
+      actorUserId: args.actorUserId,
+      action: "child.updated",
+      entityType: "child",
+      entityId: args.childId,
+    });
+
+    return this.getChild(args.centerId, args.childId);
+  }
+
+  async deleteChild(args: {
+    centerId: string;
+    childId: string;
+    actorUserId: string;
+  }) {
+    await this.requireChildInCenter(args.centerId, args.childId);
+
+    // Soft delete: withdraw the child from active classes (so they leave every
+    // roster) and mark them inactive. Their history and related records stay.
+    await this.prisma.$transaction([
+      this.prisma.childEnrollment.updateMany({
+        where: {
+          childId: args.childId,
+          centerId: args.centerId,
+          enrollmentStatus: "active",
+        },
+        data: { enrollmentStatus: "withdrawn", endedAt: new Date() },
+      }),
+      this.prisma.child.update({
+        where: { id: args.childId },
+        data: { status: "inactive" },
+      }),
+    ]);
+
+    await this.audit.log({
+      centerId: args.centerId,
+      actorUserId: args.actorUserId,
+      action: "child.removed",
+      entityType: "child",
+      entityId: args.childId,
+    });
+
+    return { success: true as const };
+  }
+
+  private async requireChildInCenter(centerId: string, childId: string) {
+    const enrollment = await this.prisma.childEnrollment.findFirst({
+      where: { childId, centerId },
+      select: { id: true },
+    });
+    if (!enrollment) {
+      throw new NotFoundException("Child not found.");
+    }
   }
 
   // --- Teachers ---

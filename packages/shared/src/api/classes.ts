@@ -53,6 +53,12 @@ export const classRosterChildSchema = z.object({
   dateOfBirth: isoDateSchema.nullable(),
   joinedAt: isoDateSchema.nullable(),
   gender: childGenderSchema.nullable(),
+  // The guardian who registered the child first (mom/dad/other) and their
+  // contact details from signup. Only the director roster populates these;
+  // teacher-facing rosters omit them.
+  guardianPhone: z.string().nullable().optional(),
+  guardianName: z.string().nullable().optional(),
+  guardianRelation: z.string().nullable().optional(),
 });
 export type ClassRosterChild = z.infer<typeof classRosterChildSchema>;
 
@@ -63,6 +69,51 @@ export type ClassDetail = z.infer<typeof classDetailSchema>;
 
 export const classListResponseSchema = z.array(classListItemSchema);
 export type ClassListResponse = z.infer<typeof classListResponseSchema>;
+
+// --- Child detail (director) ---
+
+export const childGuardianContactSchema = z.object({
+  userId: uuidSchema,
+  fullName: z.string(),
+  phone: z.string().nullable(),
+  relationship: z.string().nullable(),
+  isPrimary: z.boolean(),
+});
+export type ChildGuardianContact = z.infer<typeof childGuardianContactSchema>;
+
+export const childEnrollmentRefSchema = z.object({
+  classId: uuidSchema.nullable(),
+  className: z.string().nullable(),
+  status: z.string(),
+  startedAt: isoDateSchema.nullable(),
+});
+export type ChildEnrollmentRef = z.infer<typeof childEnrollmentRefSchema>;
+
+export const childDetailSchema = z.object({
+  id: uuidSchema,
+  firstName: z.string(),
+  lastName: z.string().nullable(),
+  name: z.string(),
+  dateOfBirth: isoDateSchema.nullable(),
+  gender: childGenderSchema.nullable(),
+  photoUrl: z.string().nullable(),
+  status: z.string(),
+  allergies: z.string().nullable(),
+  medicalNotes: z.string().nullable(),
+  enrollment: childEnrollmentRefSchema.nullable(),
+  guardians: z.array(childGuardianContactSchema),
+});
+export type ChildDetail = z.infer<typeof childDetailSchema>;
+
+export const updateChildRequestSchema = z.object({
+  firstName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().max(80).nullable(),
+  dateOfBirth: isoDateSchema,
+  gender: childGenderSchema.nullable(),
+  allergies: z.string().trim().max(500).nullable(),
+  medicalNotes: z.string().trim().max(2000).nullable(),
+});
+export type UpdateChildRequest = z.infer<typeof updateChildRequestSchema>;
 
 // --- Class mutations ---
 

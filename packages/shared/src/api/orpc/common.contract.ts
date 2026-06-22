@@ -9,4 +9,8 @@ export const centerClassInputSchema = z.object({
   centerId: uuidSchema,
   classId: uuidSchema,
 });
+export const centerChildInputSchema = z.object({
+  centerId: uuidSchema,
+  childId: uuidSchema,
+});
 export const reportIdInputSchema = z.object({ reportId: uuidSchema });

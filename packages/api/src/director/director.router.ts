@@ -146,6 +146,30 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
           actorUserId: context.user.id,
         }),
       ),
+    child: os.director.child
+      .use(access.centerMember)
+      .handler(({ input }) =>
+        deps.classService.getChild(input.centerId, input.childId),
+      ),
+    updateChild: os.director.updateChild
+      .use(access.directorOnly)
+      .handler(({ input, context }) =>
+        deps.classService.updateChild({
+          centerId: input.centerId,
+          childId: input.childId,
+          actorUserId: context.user.id,
+          input: input.body,
+        }),
+      ),
+    deleteChild: os.director.deleteChild
+      .use(access.directorOnly)
+      .handler(({ input, context }) =>
+        deps.classService.deleteChild({
+          centerId: input.centerId,
+          childId: input.childId,
+          actorUserId: context.user.id,
+        }),
+      ),
     teachers: os.director.teachers
       .use(access.directorOnly)
       .handler(async ({ input }) =>

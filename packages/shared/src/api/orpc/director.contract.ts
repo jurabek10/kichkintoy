@@ -15,13 +15,16 @@ import {
   assignTeacherRequestSchema,
   classCapacitySchema,
   centerTeachersResponseSchema,
+  childDetailSchema,
   classDetailSchema,
   classListResponseSchema,
   createClassRequestSchema,
+  updateChildRequestSchema,
   updateClassRequestSchema,
   updateTeacherPermissionsRequestSchema,
 } from "../classes.js";
 import {
+  centerChildInputSchema,
   centerClassInputSchema,
   centerIdInputSchema,
   successResponseSchema,
@@ -225,6 +228,11 @@ export const directorContract = {
     .output(classDetailSchema),
   archiveClass: oc.input(centerClassInputSchema).output(classDetailSchema),
   restoreClass: oc.input(centerClassInputSchema).output(classDetailSchema),
+  child: oc.input(centerChildInputSchema).output(childDetailSchema),
+  updateChild: oc
+    .input(centerChildInputSchema.extend({ body: updateChildRequestSchema }))
+    .output(childDetailSchema),
+  deleteChild: oc.input(centerChildInputSchema).output(successResponseSchema),
   teachers: oc.input(centerIdInputSchema).output(centerTeachersResponseSchema),
   assignTeacher: oc
     .input(centerClassInputSchema.extend({ body: assignTeacherRequestSchema }))
