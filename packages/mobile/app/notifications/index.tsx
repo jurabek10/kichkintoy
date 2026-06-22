@@ -110,17 +110,22 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between pr-4">
+      <View className="border-b border-border bg-card">
         <ScreenHeader title={t('title')} back />
-        <Pressable
-          disabled={!hasNotifications || markAllRead.isPending}
-          onPress={() => markAllRead.mutate()}
-          className={cn('flex-row items-center gap-1 rounded-full px-3 py-1.5', hasNotifications ? 'bg-sky' : 'bg-segment')}>
-          <Ionicons name="checkmark-done" size={15} color={hasNotifications ? '#3E8FE0' : colors.textMuted} />
-          <Text className={cn('text-xs font-extrabold', hasNotifications ? 'text-sky-ink' : 'text-muted')}>
-            {t('actions.markAllRead')}
-          </Text>
-        </Pressable>
+        <View className="items-end px-4 pb-3">
+          <Pressable
+            disabled={!hasNotifications || markAllRead.isPending}
+            onPress={() => markAllRead.mutate()}
+            className={cn(
+              'flex-row items-center gap-1.5 rounded-full px-3 py-2',
+              hasNotifications ? 'bg-sky' : 'bg-segment',
+            )}>
+            <Ionicons name="checkmark-done" size={16} color={hasNotifications ? '#3E8FE0' : colors.textMuted} />
+            <Text className={cn('text-xs font-extrabold', hasNotifications ? 'text-sky-ink' : 'text-muted')}>
+              {t('actions.markAllRead')}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       {notifications.isPending ? (
