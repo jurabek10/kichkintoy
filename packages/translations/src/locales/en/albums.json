@@ -23,6 +23,8 @@
   "empty": {
     "staffTitle": "No album posts yet",
     "staffBody": "Publish class photos when you are ready.",
+    "filterTitle": "Nothing here",
+    "filterBody": "No albums match this filter.",
     "parentTitle": "No photos yet",
     "parentBody": "Class album photos will appear here."
   },

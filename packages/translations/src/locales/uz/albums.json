@@ -23,6 +23,8 @@
   "empty": {
     "staffTitle": "Hali albom posti yo'q",
     "staffBody": "Tayyor bo'lganda sinf rasmlarini e'lon qiling.",
+    "filterTitle": "Bu yerda hech narsa yo'q",
+    "filterBody": "Bu filtrga mos albom yo'q.",
     "parentTitle": "Hali rasm yo'q",
     "parentBody": "Sinf albomi rasmlari shu yerda ko'rinadi."
   },
