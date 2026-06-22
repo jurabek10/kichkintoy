@@ -9,14 +9,18 @@
   "allStatuses": "All statuses",
   "allChildren": "All children",
   "selectChild": "Select child",
+  "search": "Search child",
   "summary": {
     "total": "Total",
     "present": "Present",
     "absent": "Absent",
-    "pickedUp": "Picked up"
+    "pickedUp": "Picked up",
+    "rate": "Present rate"
   },
   "emptyTitle": "No children match this filter",
   "emptyDescription": "Attendance records will appear here.",
+  "noMatchesTitle": "No children match",
+  "noMatchesDescription": "Try a different status or clear the search.",
   "parentEmptyTitle": "No attendance records",
   "parentEmptyDescription": "Check-in and check-out records will appear here.",
   "checkIn": "Check in",
@@ -37,7 +41,9 @@
     "checkIn": "Check-in",
     "checkOut": "Check-out",
     "absentReason": "Absent reason",
-    "note": "Note"
+    "note": "Note",
+    "count_one": "{{count}} child",
+    "count_other": "{{count}} children"
   },
   "reason": "Reason",
   "shortNote": "Short note",

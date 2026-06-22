@@ -9,14 +9,18 @@
   "allStatuses": "Все статусы",
   "allChildren": "Все дети",
   "selectChild": "Выберите ребенка",
+  "search": "Поиск ребенка",
   "summary": {
     "total": "Всего",
     "present": "Пришли",
     "absent": "Отсутствуют",
-    "pickedUp": "Забрали"
+    "pickedUp": "Забрали",
+    "rate": "Посещаемость"
   },
   "emptyTitle": "Нет детей по этому фильтру",
   "emptyDescription": "Записи посещаемости появятся здесь.",
+  "noMatchesTitle": "Совпадений нет",
+  "noMatchesDescription": "Выберите другой статус или очистите поиск.",
   "parentEmptyTitle": "Нет записей посещаемости",
   "parentEmptyDescription": "Записи прихода и ухода появятся здесь.",
   "checkIn": "Пришел",
@@ -37,7 +41,11 @@
     "checkIn": "Приход",
     "checkOut": "Уход",
     "absentReason": "Причина отсутствия",
-    "note": "Заметка"
+    "note": "Заметка",
+    "count_one": "{{count}} ребенок",
+    "count_few": "{{count}} ребенка",
+    "count_many": "{{count}} детей",
+    "count_other": "{{count}} детей"
   },
   "reason": "Причина",
   "shortNote": "Короткая заметка",

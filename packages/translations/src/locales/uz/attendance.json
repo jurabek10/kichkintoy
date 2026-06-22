@@ -9,14 +9,18 @@
   "allStatuses": "Barcha holatlar",
   "allChildren": "Barcha bolalar",
   "selectChild": "Bolani tanlang",
+  "search": "Bolani qidirish",
   "summary": {
     "total": "Jami",
     "present": "Kelgan",
     "absent": "Kelmagan",
-    "pickedUp": "Olib ketilgan"
+    "pickedUp": "Olib ketilgan",
+    "rate": "Davomat darajasi"
   },
   "emptyTitle": "Bu filtrga mos bola yo'q",
   "emptyDescription": "Davomat yozuvlari shu yerda ko'rinadi.",
+  "noMatchesTitle": "Mos bola topilmadi",
+  "noMatchesDescription": "Boshqa holatni tanlang yoki qidiruvni tozalang.",
   "parentEmptyTitle": "Davomat yozuvlari yo'q",
   "parentEmptyDescription": "Kelish va ketish yozuvlari shu yerda ko'rinadi.",
   "checkIn": "Keldi",
@@ -37,7 +41,9 @@
     "checkIn": "Kelish",
     "checkOut": "Ketish",
     "absentReason": "Kelmaganlik sababi",
-    "note": "Izoh"
+    "note": "Izoh",
+    "count_one": "{{count}} bola",
+    "count_other": "{{count}} bola"
   },
   "reason": "Sabab",
   "shortNote": "Qisqa izoh",
