@@ -6,6 +6,19 @@
   "back": "Olib ketish sahifasiga qaytish",
   "loading": "Yuklanmoqda...",
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "todaySection": "Bugun",
+  "thisMonth": "Shu oy",
+  "noToday": "Bugunga olib ketish yo'q.",
+  "table": {
+    "child": "Bola",
+    "class": "Sinf",
+    "person": "Olib ketuvchi",
+    "time": "Vaqt",
+    "date": "Sana",
+    "status": "Holat",
+    "search": "Bolani qidirish…",
+    "empty": "Bu oyda olib ketish yo'q."
+  },
   "filters": {
     "all": "Barcha holatlar"
   },
