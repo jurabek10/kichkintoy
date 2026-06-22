@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AttendanceDayRow } from '@/components/attendance/attendance-day-row';
@@ -26,9 +26,16 @@ export default function AttendanceScreen() {
         {/* Shared calendar, controlled so the list below tracks the same month. */}
         <AttendanceCalendar value={month} onChange={setMonth} />
 
-        <Text className="mt-1 px-1 text-base font-bold text-foreground">
-          {formatMonthYear(month.year, month.monthIndex, i18n.language)}
-        </Text>
+        <View className="mt-1 flex-row items-center justify-between px-1">
+          <Text className="text-lg font-extrabold text-foreground">
+            {formatMonthYear(month.year, month.monthIndex, i18n.language)}
+          </Text>
+          {list.length > 0 ? (
+            <View className="rounded-full bg-pill px-2.5 py-1">
+              <Text className="text-xs font-bold text-muted">{list.length}</Text>
+            </View>
+          ) : null}
+        </View>
 
         {isPending ? (
           <Loader />
