@@ -1,7 +1,6 @@
 "use client";
 
 import type { CalendarEventSummary } from "@kichkintoy/shared";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
@@ -24,11 +23,12 @@ export function CalendarMonth({
 }: {
   month: string;
   events: CalendarEventSummary[];
-  selectedDate: string;
+  selectedDate: string | null;
   onSelectDate: (date: string) => void;
 }) {
   const { t } = useLayoutTranslation("calendar");
   const days = monthDays(month);
+  const today = toIsoDate(new Date());
   const eventCounts = new Map<string, number>();
   for (const event of events) {
     const key = event.startsAt.slice(0, 10);
@@ -36,40 +36,67 @@ export function CalendarMonth({
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="grid grid-cols-7 border-b bg-muted/50 text-center text-xs font-semibold text-muted-foreground">
+    <Card className="overflow-hidden p-0">
+      <div className="grid grid-cols-7 border-b bg-muted/40 text-center text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
         {weekdays.map((day) => (
-          <div key={day} className="px-2 py-3">
+          <div key={day} className="px-2 py-2.5">
             {t(day)}
           </div>
         ))}
       </div>
       <div className="grid grid-cols-7">
-        {days.map((day, index) =>
-          day ? (
-            <Button
+        {days.map((day, index) => {
+          if (!day) {
+            return (
+              <div
+                key={`empty-${index}`}
+                className="h-20 border-b border-r bg-muted/20 last:border-r-0 sm:h-24"
+              />
+            );
+          }
+          const count = eventCounts.get(day) ?? 0;
+          const isSelected = selectedDate === day;
+          const isToday = day === today;
+          return (
+            <button
               key={day}
               type="button"
-              variant="ghost"
-              className={cn(
-                "h-20 rounded-none border-b border-r p-2 text-left align-top",
-                selectedDate === day && "bg-accent text-accent-foreground",
-              )}
               onClick={() => onSelectDate(day)}
+              aria-pressed={isSelected}
+              className={cn(
+                "group flex h-20 flex-col items-stretch gap-1 border-b border-r p-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:h-24 sm:p-2",
+                "[&:nth-child(7n)]:border-r-0",
+                isSelected ? "bg-primary/10" : "hover:bg-muted/50",
+              )}
             >
-              <span className="flex h-full w-full flex-col items-start justify-between">
-                <span className="font-semibold">{Number(day.slice(8, 10))}</span>
-                {eventCounts.get(day) ? (
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
-                    {eventCounts.get(day)}
-                  </span>
-                ) : null}
+              <span
+                className={cn(
+                  "grid h-7 w-7 place-items-center rounded-full text-sm font-bold tabular-nums",
+                  isToday && !isSelected && "bg-primary text-primary-foreground",
+                  isSelected && "text-primary",
+                  !isToday && !isSelected && "text-foreground",
+                )}
+              >
+                {Number(day.slice(8, 10))}
               </span>
-            </Button>
-          ) : (
-            <div key={`empty-${index}`} className="h-20 border-b border-r" />
-          ),
-        )}
+              {count > 0 ? (
+                <span className="mt-auto flex items-center gap-1 px-0.5">
+                  {Array.from({ length: Math.min(count, 3) }).map((_, dot) => (
+                    <span
+                      key={dot}
+                      className="h-1.5 w-1.5 rounded-full bg-primary"
+                    />
+                  ))}
+                  {count > 3 ? (
+                    <span className="text-[10px] font-bold text-primary">
+                      +{count - 3}
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
     </Card>
   );

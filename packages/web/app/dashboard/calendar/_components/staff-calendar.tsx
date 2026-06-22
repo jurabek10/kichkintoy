@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,9 +18,9 @@ import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
-import { formatDayMonth } from "@/lib/date";
+import { formatDayMonth, formatMonthYear } from "@/lib/date";
 import { CalendarMonth } from "./calendar-month";
-import { EventCard } from "./event-card";
+import { CalendarEventTable } from "./calendar-event-table";
 
 export function StaffCalendar({
   centerId,
@@ -30,7 +30,8 @@ export function StaffCalendar({
 }) {
   const { t, i18n } = useLayoutTranslation("calendar");
   const [month, setMonth] = useState(currentMonth());
-  const [selectedDate, setSelectedDate] = useState(todayIso());
+  // null = whole month; a date filters the table to that single day.
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const range = monthRange(month);
   const input = {
     centerId: centerId ?? "",
@@ -44,15 +45,11 @@ export function StaffCalendar({
     enabled: !!centerId,
   });
 
-  const { data: upcoming = [] } = useQuery({
-    queryKey: queryKeys.calendar.upcoming({ centerId: centerId ?? "" }),
-    queryFn: () =>
-      orpc.calendar.upcoming({ centerId: centerId ?? "", limit: 6 }),
-    enabled: !!centerId,
-  });
-
-  const selectedEvents = useMemo(
-    () => events.filter((event) => event.startsAt.slice(0, 10) === selectedDate),
+  const visibleEvents = useMemo(
+    () =>
+      selectedDate
+        ? events.filter((event) => event.startsAt.slice(0, 10) === selectedDate)
+        : events,
     [events, selectedDate],
   );
 
@@ -77,7 +74,7 @@ export function StaffCalendar({
               value={month}
               onValueChange={(value) => {
                 setMonth(value);
-                setSelectedDate(`${value}-01`);
+                setSelectedDate(null);
               }}
               className="w-[180px]"
             />
@@ -101,54 +98,45 @@ export function StaffCalendar({
         month={month}
         events={events}
         selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
+        onSelectDate={(date) =>
+          setSelectedDate((current) => (current === date ? null : date))
+        }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold">
-            {t("eventsOnDate", { date: formatDayMonth(selectedDate, i18n.language) })}
+            {selectedDate
+              ? t("eventsOnDate", {
+                  date: formatDayMonth(selectedDate, i18n.language),
+                })
+              : formatMonthYear(month, i18n.language)}
           </h2>
-          {isPending ? (
-            <LoadingCard label={t("loading")} />
-          ) : selectedEvents.length === 0 ? (
-            <EmptyState text={t("noEventsForDate")} />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {selectedEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
+          {selectedDate ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-muted-foreground"
+              onClick={() => setSelectedDate(null)}
+            >
+              <X className="h-3.5 w-3.5" />
+              {t("showWholeMonth")}
+            </Button>
+          ) : null}
         </div>
-        <div className="flex flex-col gap-3">
-          <h2 className="text-base font-bold">{t("upcoming")}</h2>
-          {upcoming.length === 0 ? (
-            <EmptyState text={t("noUpcomingEvents")} />
-          ) : (
-            <div className="grid gap-3">
-              {upcoming.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
-        </div>
+        {isPending ? (
+          <LoadingCard label={t("loading")} />
+        ) : (
+          <CalendarEventTable events={visibleEvents} />
+        )}
       </section>
     </div>
   );
 }
 
-function EmptyState({ text }: { text: string }) {
-  return (
-    <Card className="grid place-items-center gap-2 p-8 text-center">
-      <CalendarDays className="h-8 w-8 text-muted-foreground" />
-      <p className="font-semibold">{text}</p>
-    </Card>
-  );
-}
-
 function todayIso() {
-  // Local date so the default selection lines up with the (local) calendar grid.
+  // Local date so the default month lines up with the (local) calendar grid.
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
     d.getDate(),
