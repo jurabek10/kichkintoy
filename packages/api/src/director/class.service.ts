@@ -108,6 +108,7 @@ export class ClassService {
         name: args.input.name.trim(),
         ageGroup: args.input.ageGroup?.trim() || null,
         academicYear: args.input.academicYear?.trim() || null,
+        maxChildren: args.input.maxChildren,
         status: "active",
       },
     });
@@ -139,6 +140,8 @@ export class ClassService {
       data.ageGroup = args.input.ageGroup?.trim() || null;
     if (args.input.academicYear !== undefined)
       data.academicYear = args.input.academicYear?.trim() || null;
+    if (args.input.maxChildren !== undefined)
+      data.maxChildren = args.input.maxChildren;
 
     await this.prisma.class.update({ where: { id: klass.id }, data });
 
@@ -358,6 +361,7 @@ export class ClassService {
     name: string;
     ageGroup: string | null;
     academicYear: string | null;
+    maxChildren: number | null;
     status: string;
     _count: { childEnrollments: number };
     teacherClassAssignments: Array<{
@@ -370,6 +374,7 @@ export class ClassService {
       name: klass.name,
       ageGroup: klass.ageGroup,
       academicYear: klass.academicYear,
+      maxChildren: normalizeClassCapacity(klass.maxChildren),
       status: klass.status,
       childCount: klass._count.childEnrollments,
       teacherCount: klass.teacherClassAssignments.length,
@@ -411,4 +416,19 @@ function normalizeChildGender(gender: string | null) {
   if (gender === "male") return "boy";
   if (gender === "female") return "girl";
   return "prefer_not_to_say";
+}
+
+function normalizeClassCapacity(value: number | null) {
+  if (
+    value === 5 ||
+    value === 10 ||
+    value === 15 ||
+    value === 20 ||
+    value === 25 ||
+    value === 30 ||
+    value === 35
+  ) {
+    return value;
+  }
+  return null;
 }
