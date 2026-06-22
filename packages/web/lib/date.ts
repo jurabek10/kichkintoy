@@ -67,6 +67,19 @@ export function formatDayMonth(value: string | Date, language: string): string {
   return format(toUzbekistanDate(value), "d MMMM", { locale: dateLocale(language) });
 }
 
+/** "Du" — short weekday, for compact date anchors. */
+export function formatWeekdayShort(value: string | Date, language: string): string {
+  return format(toUzbekistanDate(value), "EEE", { locale: dateLocale(language) });
+}
+
+/** "iyun 2026" — month + year, for calendar headers. Takes a "YYYY-MM" string. */
+export function formatMonthYear(month: string, language: string): string {
+  const [year, monthIndex] = month.split("-").map(Number);
+  return format(new Date(year!, monthIndex! - 1, 1), "LLLL yyyy", {
+    locale: dateLocale(language),
+  });
+}
+
 /** "15-iyun, 16:30" — day, month, 24h time. */
 export function formatDayMonthTime(value: string | Date, language: string): string {
   return format(toUzbekistanDate(value), "d MMMM, HH:mm", { locale: dateLocale(language) });

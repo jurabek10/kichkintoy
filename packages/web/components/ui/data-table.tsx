@@ -38,6 +38,10 @@ interface DataTableProps<TData, TValue> {
   /** Builds the "Page X of Y" label for i18n. */
   pageLabel?: (page: number, total: number) => string;
   toolbar?: (table: TableInstance<TData>) => React.ReactNode;
+  /** Navigates / acts on a row when clicked; also adds pointer affordances. */
+  onRowClick?: (row: TData) => void;
+  /** Extra classes per row, e.g. to dim past entries. */
+  rowClassName?: (row: TData) => string | undefined;
   className?: string;
 }
 
@@ -48,6 +52,8 @@ export function DataTable<TData, TValue>({
   emptyMessage = "No results.",
   pageLabel,
   toolbar,
+  onRowClick,
+  rowClassName,
   className,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -99,6 +105,13 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={
+                    onRowClick ? () => onRowClick(row.original) : undefined
+                  }
+                  className={cn(
+                    onRowClick && "cursor-pointer",
+                    rowClassName?.(row.original),
+                  )}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
