@@ -29,6 +29,16 @@
     "published": "Опубликованные отчеты",
     "missing": "Нет отчетов"
   },
+  "overview": {
+    "reportsSent": "Отчеты отправлены",
+    "draftsPending": "Черновики",
+    "sentLabel": "Отправлено",
+    "sent": "{{sent}}/{{total}} отправлено",
+    "sentSoFar": "{{count}} отправлено",
+    "drafts": "{{count}} в черновике",
+    "noReports": "Отчетов пока нет",
+    "allSent": "Все отправлены"
+  },
   "directorTable": {
     "title": "Пришедшие дети",
     "description": "Показаны только дети, пришедшие {{date}}.",

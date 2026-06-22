@@ -29,6 +29,16 @@
     "published": "Reports published",
     "missing": "Missing reports"
   },
+  "overview": {
+    "reportsSent": "Reports sent",
+    "draftsPending": "Drafts pending",
+    "sentLabel": "Sent",
+    "sent": "{{sent}}/{{total}} sent",
+    "sentSoFar": "{{count}} sent",
+    "drafts": "{{count}} in draft",
+    "noReports": "No reports yet",
+    "allSent": "All sent"
+  },
   "directorTable": {
     "title": "Checked-in children",
     "description": "Only children checked in on {{date}} are shown.",

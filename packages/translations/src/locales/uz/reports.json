@@ -29,6 +29,16 @@
     "published": "E'lon qilingan hisobotlar",
     "missing": "Yetishmayotgan hisobotlar"
   },
+  "overview": {
+    "reportsSent": "Yuborilgan hisobotlar",
+    "draftsPending": "Qoralamalar",
+    "sentLabel": "Yuborildi",
+    "sent": "{{sent}}/{{total}} yuborildi",
+    "sentSoFar": "{{count}} yuborildi",
+    "drafts": "{{count}} qoralamada",
+    "noReports": "Hali hisobot yo'q",
+    "allSent": "Barchasi yuborildi"
+  },
   "directorTable": {
     "title": "Kelgan bolalar",
     "description": "Faqat {{date}} kuni kelgan bolalar ko'rsatiladi.",
