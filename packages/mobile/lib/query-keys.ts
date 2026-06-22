@@ -38,4 +38,9 @@ export const queryKeys = {
     parentList: (childId: string, from: string, to: string) =>
       ['attendance', 'parent', childId, from, to] as const,
   },
+  medications: {
+    children: ['medications', 'children'] as const,
+    parentList: ['medications', 'parent'] as const,
+    detail: (requestId: string) => ['medications', 'detail', requestId] as const,
+  },
 };
