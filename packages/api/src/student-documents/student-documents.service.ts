@@ -764,11 +764,16 @@ export class StudentDocumentsService {
     for (const asset of assets) {
       if (
         asset.mimeType &&
-        !["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(
-          asset.mimeType,
-        )
+        ![
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ].includes(asset.mimeType)
       ) {
-        throw new BadRequestException("Documents must be images or PDFs.");
+        throw new BadRequestException("Documents must be images, PDFs, or Word files.");
       }
       if (asset.sizeBytes && Number(asset.sizeBytes) > 10 * 1024 * 1024) {
         throw new BadRequestException("Document file is too large.");
@@ -1022,18 +1027,24 @@ function mediaByFieldKey(
   answers: StudentDocumentAnswers,
   fallbackMediaAssetIds?: string[],
 ) {
-  const fileFields = fields.filter((field) => field.type === "file");
+  // File fields and drawn signatures both store media-asset ids; a typed-name
+  // signature stays a plain string and is skipped here. Signatures cap at one.
+  const mediaFields = fields.filter(
+    (field) => field.type === "file" || field.type === "signature",
+  );
   const result: Record<string, string[]> = {};
-  for (const field of fileFields) {
+  for (const field of mediaFields) {
     const value = answers[field.key];
     if (Array.isArray(value)) {
       result[field.key] = value.filter(isUuidLike);
-      if (field.maxFiles && result[field.key].length > field.maxFiles) {
+      const cap = field.type === "signature" ? 1 : field.maxFiles;
+      if (cap && result[field.key].length > cap) {
         throw new BadRequestException(`${field.label} has too many files.`);
       }
     }
   }
   if (fallbackMediaAssetIds?.length) {
+    const fileFields = fields.filter((field) => field.type === "file");
     const fieldKey = fileFields[0]?.key ?? "attachments";
     result[fieldKey] = unique([...(result[fieldKey] ?? []), ...fallbackMediaAssetIds]);
   }

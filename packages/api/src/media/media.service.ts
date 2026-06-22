@@ -22,11 +22,17 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/heif",
 ]);
 const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+// Office documents parents commonly attach alongside images and PDFs.
+const ALLOWED_OFFICE_TYPES = new Set([
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
 const ALLOWED_DOCUMENT_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "application/pdf",
+  ...ALLOWED_OFFICE_TYPES,
 ]);
 const DEFAULT_UPLOAD_LIMIT_BYTES = 25 * 1024 * 1024;
 const DAILY_REPORT_VIDEO_LIMIT_BYTES = 100 * 1024 * 1024;
@@ -445,8 +451,10 @@ export class MediaService {
 function mediaTypeForMime(mimeType: string) {
   if (ALLOWED_IMAGE_TYPES.has(mimeType)) return "image";
   if (ALLOWED_VIDEO_TYPES.has(mimeType)) return "video";
-  if (mimeType === "application/pdf") return "document";
-  throw new BadRequestException("Only image, video, and PDF uploads are allowed.");
+  if (mimeType === "application/pdf" || ALLOWED_OFFICE_TYPES.has(mimeType)) {
+    return "document";
+  }
+  throw new BadRequestException("Only image, video, and document uploads are allowed.");
 }
 
 function safeExtension(fileName: string, mimeType: string) {
@@ -457,6 +465,13 @@ function safeExtension(fileName: string, mimeType: string) {
   if (mimeType === "image/webp") return ".webp";
   if (mimeType === "video/mp4") return ".mp4";
   if (mimeType === "application/pdf") return ".pdf";
+  if (mimeType === "application/msword") return ".doc";
+  if (
+    mimeType ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    return ".docx";
+  }
   return "";
 }
 
