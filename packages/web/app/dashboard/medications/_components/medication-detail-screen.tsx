@@ -168,10 +168,25 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
               [t("detail.storage"), request.storageMethod ?? "—"],
               [t("detail.instructions"), request.instructions ?? "—"],
               [t("detail.specialNote"), request.specialNote ?? "—"],
-              [t("detail.signature"), request.parentSignature],
               [t("detail.submitted"), formatDateTime(request.createdAt)],
             ]}
           />
+
+          <div className="grid gap-1.5">
+            <p className="text-sm font-medium">{t("detail.signature")}</p>
+            {request.parentSignature.startsWith("media:") ? (
+              <div className="w-fit overflow-hidden rounded-md border bg-white">
+                <SignedMedicationImage
+                  mediaAssetId={request.parentSignature.slice("media:".length)}
+                  className="h-28 w-auto object-contain"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {request.parentSignature || "—"}
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
