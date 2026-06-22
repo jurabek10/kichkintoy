@@ -8,6 +8,9 @@
   "updatedAt": "Обновлено {{date}}",
   "readCount": "{{read}}/{{total}} прочитали",
   "confirmedCount": "{{confirmed}}/{{total}} подтвердили",
+  "reads": "Прочтения",
+  "scheduledFor": "Выйдет {{date}}",
+  "draftNotSent": "Черновик — ещё не отправлено",
   "filters": {
     "all": "Все",
     "drafts": "Черновики"
@@ -26,11 +29,14 @@
     "pinned": "Закреплено",
     "actionNeeded": "Нужно действие",
     "confirmed": "Подтверждено",
-    "confirmation": "Подтверждение"
+    "confirmation": "Подтверждение",
+    "important": "Важно"
   },
   "empty": {
     "staffTitle": "Объявлений пока нет",
     "staffBody": "Создайте первое объявление для связи между центром и домом.",
+    "filterTitle": "Здесь пусто",
+    "filterBody": "Нет объявлений для этого фильтра.",
     "parentTitle": "Объявлений пока нет",
     "parentBody": "Важные обновления от центра появятся здесь."
   },

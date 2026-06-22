@@ -8,6 +8,9 @@
   "updatedAt": "Yangilangan: {{date}}",
   "readCount": "{{read}}/{{total}} o'qidi",
   "confirmedCount": "{{confirmed}}/{{total}} tasdiqladi",
+  "reads": "O'qishlar",
+  "scheduledFor": "{{date}} da chiqadi",
+  "draftNotSent": "Qoralama — hali yuborilmagan",
   "filters": {
     "all": "Barchasi",
     "drafts": "Qoralamalar"
@@ -26,11 +29,14 @@
     "pinned": "Mahkamlangan",
     "actionNeeded": "Harakat kerak",
     "confirmed": "Tasdiqlangan",
-    "confirmation": "Tasdiqlash"
+    "confirmation": "Tasdiqlash",
+    "important": "Muhim"
   },
   "empty": {
     "staffTitle": "Hali e'lon yo'q",
     "staffBody": "Markaz va uy orasidagi birinchi e'loningizni yarating.",
+    "filterTitle": "Bu yerda hech narsa yo'q",
+    "filterBody": "Bu filtrga mos e'lon yo'q.",
     "parentTitle": "Hali e'lon yo'q",
     "parentBody": "Muhim markaz yangiliklari shu yerda ko'rinadi."
   },

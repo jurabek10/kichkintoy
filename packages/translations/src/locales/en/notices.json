@@ -8,6 +8,9 @@
   "updatedAt": "Updated {{date}}",
   "readCount": "{{read}}/{{total}} read",
   "confirmedCount": "{{confirmed}}/{{total}} confirmed",
+  "reads": "Reads",
+  "scheduledFor": "Goes out {{date}}",
+  "draftNotSent": "Draft — not sent yet",
   "filters": {
     "all": "All",
     "drafts": "Drafts"
@@ -26,11 +29,14 @@
     "pinned": "Pinned",
     "actionNeeded": "Action needed",
     "confirmed": "Confirmed",
-    "confirmation": "Confirmation"
+    "confirmation": "Confirmation",
+    "important": "Important"
   },
   "empty": {
     "staffTitle": "No notices yet",
     "staffBody": "Create your first center-home announcement.",
+    "filterTitle": "Nothing here",
+    "filterBody": "No notices match this filter.",
     "parentTitle": "No notices yet",
     "parentBody": "Important center updates will appear here."
   },
