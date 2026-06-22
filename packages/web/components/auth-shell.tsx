@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { Building2, GraduationCap, HeartHandshake } from "lucide-react";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
