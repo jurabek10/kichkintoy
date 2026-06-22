@@ -28,9 +28,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+
+const CAPACITY_OPTIONS = [5, 10, 15, 20, 25, 30, 35] as const;
 
 export function DirectorClasses({
   centerId,
@@ -45,6 +54,7 @@ export function DirectorClasses({
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [academicYear, setAcademicYear] = useState("");
+  const [maxChildren, setMaxChildren] = useState("20");
 
   const {
     data: classes = [],
@@ -61,6 +71,7 @@ export function DirectorClasses({
       name: string;
       ageGroup?: string;
       academicYear?: string;
+      maxChildren: 5 | 10 | 15 | 20 | 25 | 30 | 35;
     }) => orpc.director.createClass({ centerId: centerId!, body }),
     onSuccess: async () => {
       toast.success(t("classCreated", { name: name.trim() }));
@@ -68,6 +79,7 @@ export function DirectorClasses({
       setName("");
       setAgeGroup("");
       setAcademicYear("");
+      setMaxChildren("20");
       await queryClient.invalidateQueries({
         queryKey: queryKeys.director.classes(centerId ?? ""),
       });
@@ -91,6 +103,7 @@ export function DirectorClasses({
       name: name.trim(),
       ageGroup: ageGroup.trim() || undefined,
       academicYear: academicYear.trim() || undefined,
+      maxChildren: Number(maxChildren) as 5 | 10 | 15 | 20 | 25 | 30 | 35,
     });
   }
 
@@ -209,6 +222,21 @@ export function DirectorClasses({
                 />
               </div>
             </div>
+            <div className="flex flex-col gap-2">
+              <Label>{t("maxChildren")}</Label>
+              <Select value={maxChildren} onValueChange={setMaxChildren}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CAPACITY_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {t("capacityOption", { count: value })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <DialogFooter>
               <Button
                 type="button"
@@ -264,6 +292,9 @@ function ClassCard({
             {t("childCount", { count: klass.childCount })}
           </span>
           <span>{t("teacherCount", { count: klass.teacherCount })}</span>
+          {klass.maxChildren ? (
+            <span>{t("seatsUsed", { used: klass.childCount, total: klass.maxChildren })}</span>
+          ) : null}
         </div>
         {klass.teachers.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">

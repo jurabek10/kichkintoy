@@ -44,6 +44,8 @@ import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { assignmentRoleLabel, formatDate, genderLabel } from "@/lib/format";
 
+const CAPACITY_OPTIONS = [5, 10, 15, 20, 25, 30, 35] as const;
+
 export function DirectorClassDetail({
   centerId,
   classId,
@@ -60,6 +62,7 @@ export function DirectorClassDetail({
   const [name, setName] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [academicYear, setAcademicYear] = useState("");
+  const [maxChildren, setMaxChildren] = useState("20");
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [teacherToAssign, setTeacherToAssign] = useState("");
@@ -100,6 +103,7 @@ export function DirectorClassDetail({
       setName(detail.name);
       setAgeGroup(detail.ageGroup ?? "");
       setAcademicYear(detail.academicYear ?? "");
+      setMaxChildren(String(detail.maxChildren ?? 20));
     }
     setActionError(null);
     setEditOpen(true);
@@ -114,6 +118,7 @@ export function DirectorClassDetail({
           name: name.trim(),
           ageGroup: ageGroup.trim() || null,
           academicYear: academicYear.trim() || null,
+          maxChildren: Number(maxChildren) as 5 | 10 | 15 | 20 | 25 | 30 | 35,
         },
       }),
     onSuccess: async () => {
@@ -347,7 +352,16 @@ export function DirectorClassDetail({
               ) : null}
             </div>
             <CardDescription>
-              {[detail.ageGroup, detail.academicYear].filter(Boolean).join(" · ") ||
+              {[
+                detail.ageGroup,
+                detail.academicYear,
+                detail.maxChildren
+                  ? t("seatsUsed", {
+                      used: detail.childCount,
+                      total: detail.maxChildren,
+                    })
+                  : null,
+              ].filter(Boolean).join(" · ") ||
                 t("noAgeGroupOrYear")}
             </CardDescription>
           </div>
@@ -487,6 +501,21 @@ export function DirectorClassDetail({
                   onChange={(event) => setAcademicYear(event.target.value)}
                 />
               </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>{t("maxChildren")}</Label>
+              <Select value={maxChildren} onValueChange={setMaxChildren}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CAPACITY_OPTIONS.map((value) => (
+                    <SelectItem key={value} value={String(value)}>
+                      {t("capacityOption", { count: value })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button
