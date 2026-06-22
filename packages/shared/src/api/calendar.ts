@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
+import { isoDateSchema, isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 
 export const calendarAudienceTypeValues = ["center", "class", "child"] as const;
 export const calendarAudienceTypeSchema = z.enum(calendarAudienceTypeValues);
@@ -187,6 +187,45 @@ export type CalendarUpcomingInput = z.infer<
 export const calendarEventIdInputSchema = z.object({
   eventId: uuidSchema,
 });
+
+// --- Birthdays ------------------------------------------------------------
+// Derived (non-persisted) classmate birthdays for the parent's calendar. A
+// child's date of birth is reduced to the occurrence date + the age reached,
+// so raw DOB is never exposed across the class.
+
+export const calendarBirthdaysInputSchema = z.object({
+  centerId: uuidSchema.optional(),
+  childId: uuidSchema.optional(),
+  from: isoDateSchema,
+  to: isoDateSchema,
+});
+export type CalendarBirthdaysInput = z.infer<
+  typeof calendarBirthdaysInputSchema
+>;
+
+export const calendarBirthdayEntrySchema = z.object({
+  childId: uuidSchema,
+  childName: z.string(),
+  photoUrl: z.string().nullable(),
+  classId: uuidSchema.nullable(),
+  className: z.string().nullable(),
+  /** The birthday's occurrence inside the requested range ("YYYY-MM-DD"). */
+  date: isoDateSchema,
+  /** Age the child reaches on `date`. */
+  turningAge: z.number().int().min(0),
+  /** True when this is one of the requesting parent's own children. */
+  isOwnChild: z.boolean(),
+});
+export type CalendarBirthdayEntry = z.infer<
+  typeof calendarBirthdayEntrySchema
+>;
+
+export const calendarBirthdayListResponseSchema = z.array(
+  calendarBirthdayEntrySchema,
+);
+export type CalendarBirthdayListResponse = z.infer<
+  typeof calendarBirthdayListResponseSchema
+>;
 
 export const calendarReminderPublishInputSchema = z
   .object({

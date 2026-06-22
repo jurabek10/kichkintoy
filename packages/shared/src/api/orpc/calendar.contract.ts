@@ -1,5 +1,7 @@
 import { oc } from "@orpc/contract";
 import {
+  calendarBirthdayListResponseSchema,
+  calendarBirthdaysInputSchema,
   calendarEventIdInputSchema,
   calendarEventListResponseSchema,
   calendarEventSummarySchema,
@@ -22,6 +24,9 @@ export const calendarContract = {
   upcoming: oc
     .input(calendarUpcomingInputSchema)
     .output(calendarEventListResponseSchema),
+  birthdays: oc
+    .input(calendarBirthdaysInputSchema)
+    .output(calendarBirthdayListResponseSchema),
   detail: oc.input(calendarEventIdInputSchema).output(calendarEventSummarySchema),
   create: oc
     .input(createCalendarEventInputSchema)

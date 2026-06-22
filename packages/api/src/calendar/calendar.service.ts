@@ -6,11 +6,13 @@ import {
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import {
+  calendarBirthdayListResponseSchema,
   calendarEventListResponseSchema,
   calendarEventStatusSchema,
   calendarEventSummarySchema,
   calendarReminderPublishResponseSchema,
   type CalendarAudienceType,
+  type CalendarBirthdayEntry,
   type CalendarEventStatus,
   type CalendarEventSummary,
   type CancelCalendarEventInput,
@@ -171,6 +173,73 @@ export class CalendarService {
     return calendarEventListResponseSchema.parse(
       events.slice(0, input.limit ?? 10),
     );
+  }
+
+  /**
+   * Classmate birthdays for a parent, within [from, to] (date-only). Birthdays
+   * are derived from each child's date of birth — not calendar events — and are
+   * scoped to the parent's own child's class(es): a parent sees birthdays for
+   * children actively enrolled in the same class, never the whole center.
+   */
+  async birthdaysForParent(
+    userId: string,
+    filters: { centerId?: string; childId?: string; from: string; to: string },
+  ) {
+    const access = await this.parentAccess(userId, filters.childId);
+    const enrollments = access.enrollments.filter((enrollment) =>
+      filters.centerId ? enrollment.centerId === filters.centerId : true,
+    );
+    const classIds = unique(
+      enrollments.flatMap((item) => (item.classId ? [item.classId] : [])),
+    );
+    if (classIds.length === 0) {
+      return calendarBirthdayListResponseSchema.parse([]);
+    }
+    const ownChildIds = new Set(access.childIds);
+
+    const classmates = await this.prisma.childEnrollment.findMany({
+      where: { enrollmentStatus: "active", classId: { in: classIds } },
+      include: {
+        child: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            dob: true,
+            photoUrl: true,
+          },
+        },
+        class: { select: { id: true, name: true } },
+      },
+    });
+
+    // De-duplicate by child (a child could match more than one of the parent's
+    // classes), keeping the first enrollment we saw.
+    const seen = new Set<string>();
+    const entries: CalendarBirthdayEntry[] = [];
+    for (const enrollment of classmates) {
+      if (seen.has(enrollment.child.id)) continue;
+      seen.add(enrollment.child.id);
+      for (const occurrence of birthdayOccurrences(
+        enrollment.child.dob,
+        filters.from,
+        filters.to,
+      )) {
+        entries.push({
+          childId: enrollment.child.id,
+          childName: childName(enrollment.child),
+          photoUrl: enrollment.child.photoUrl,
+          classId: enrollment.class?.id ?? null,
+          className: enrollment.class?.name ?? null,
+          date: occurrence.date,
+          turningAge: occurrence.turningAge,
+          isOwnChild: ownChildIds.has(enrollment.child.id),
+        });
+      }
+    }
+
+    entries.sort((a, b) => a.date.localeCompare(b.date));
+    return calendarBirthdayListResponseSchema.parse(entries);
   }
 
   async get(userId: string, eventId: string) {
@@ -733,6 +802,39 @@ export class CalendarService {
 
 function unique(values: string[]) {
   return [...new Set(values)];
+}
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
+function isLeapYear(year: number) {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/**
+ * Every yearly recurrence of a date of birth that lands within [from, to]
+ * (date-only "YYYY-MM-DD"). Feb 29 birthdays fall back to Feb 28 in non-leap
+ * years so they always appear once a year.
+ */
+function birthdayOccurrences(
+  dob: Date,
+  from: string,
+  to: string,
+): { date: string; turningAge: number }[] {
+  const birthYear = dob.getUTCFullYear();
+  const birthMonth = dob.getUTCMonth() + 1; // 1-12
+  const birthDay = dob.getUTCDate();
+  const fromYear = Number(from.slice(0, 4));
+  const toYear = Number(to.slice(0, 4));
+  const results: { date: string; turningAge: number }[] = [];
+  for (let year = fromYear; year <= toYear; year += 1) {
+    const day =
+      birthMonth === 2 && birthDay === 29 && !isLeapYear(year) ? 28 : birthDay;
+    const date = `${year}-${pad(birthMonth)}-${pad(day)}`;
+    if (date >= from && date <= to) {
+      results.push({ date, turningAge: Math.max(0, year - birthYear) });
+    }
+  }
+  return results;
 }
 
 function clean(value: string) {
