@@ -129,15 +129,13 @@ export class MedicationsService {
   async listForStaff(
     userId: string,
     centerId: string,
-    filters: { date?: string; status?: string } = {},
+    filters: { date?: string; from?: string; to?: string; status?: string } = {},
   ) {
     const scope = await this.requireStaffScope(userId, centerId);
     const requests = await this.prisma.medicationRequest.findMany({
       where: {
         centerId,
-        ...(filters.date
-          ? { requestedForDate: parseDate(filters.date) }
-          : {}),
+        ...dateWhere("requestedForDate", filters),
         ...(filters.status ? { status: filters.status } : {}),
         ...(scope.director ? {} : { classId: { in: scope.classIds } }),
       },
@@ -593,6 +591,22 @@ function emptyToNull(value?: string | null) {
 
 function parseDate(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
+}
+
+/** A single-day match, or an inclusive [from, to] range when both are given. */
+function dateWhere(
+  field: string,
+  filters: { date?: string; from?: string; to?: string },
+) {
+  if (filters.from && filters.to) {
+    return {
+      [field]: { gte: parseDate(filters.from), lte: parseDate(filters.to) },
+    };
+  }
+  if (filters.date) {
+    return { [field]: parseDate(filters.date) };
+  }
+  return {};
 }
 
 function toIsoDate(value: Date) {

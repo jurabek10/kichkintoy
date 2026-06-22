@@ -17,6 +17,8 @@ export function createPickupsRouter(os: ORPCImplementer, deps: ORPCDeps) {
     staffList: os.pickups.staffList.use(access.authed).handler(async ({ input, context }) => {
       return deps.pickupsService.listForStaff(context.user.id, input.centerId, {
         date: input.date,
+        from: input.from,
+        to: input.to,
         status: input.status,
         classId: input.classId,
       });

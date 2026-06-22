@@ -124,7 +124,13 @@ export class PickupsService {
   async listForStaff(
     userId: string,
     centerId: string,
-    filters: { date?: string; status?: string; classId?: string } = {},
+    filters: {
+      date?: string;
+      from?: string;
+      to?: string;
+      status?: string;
+      classId?: string;
+    } = {},
   ) {
     const scope = await this.requireStaffScope(userId, centerId);
     if (
@@ -137,7 +143,7 @@ export class PickupsService {
     const notices = await this.prisma.pickupTimeNotice.findMany({
       where: {
         centerId,
-        ...(filters.date ? { pickupDate: parseDate(filters.date) } : {}),
+        ...dateWhere("pickupDate", filters),
         ...(filters.status ? { status: filters.status } : {}),
         ...(filters.classId
           ? { classId: filters.classId }
@@ -553,6 +559,22 @@ function emptyToNull(value?: string | null) {
 
 function parseDate(value: string) {
   return new Date(`${value}T00:00:00.000Z`);
+}
+
+/** A single-day match, or an inclusive [from, to] range when both are given. */
+function dateWhere(
+  field: string,
+  filters: { date?: string; from?: string; to?: string },
+) {
+  if (filters.from && filters.to) {
+    return {
+      [field]: { gte: parseDate(filters.from), lte: parseDate(filters.to) },
+    };
+  }
+  if (filters.date) {
+    return { [field]: parseDate(filters.date) };
+  }
+  return {};
 }
 
 function toIsoDate(value: Date) {

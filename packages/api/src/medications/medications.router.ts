@@ -17,6 +17,8 @@ export function createMedicationsRouter(os: ORPCImplementer, deps: ORPCDeps) {
     staffList: os.medications.staffList.use(access.authed).handler(async ({ input, context }) => {
       return deps.medicationsService.listForStaff(context.user.id, input.centerId, {
         date: input.date,
+        from: input.from,
+        to: input.to,
         status: input.status,
       });
     }),
