@@ -147,6 +147,8 @@ export const queryKeys = {
     classes: (centerId: string) => ["director", centerId, "classes"] as const,
     classDetail: (centerId: string, classId: string) =>
       ["director", centerId, "classes", classId] as const,
+    childDetail: (centerId: string, childId: string) =>
+      ["director", centerId, "children", childId] as const,
     teachers: (centerId: string) => ["director", centerId, "teachers"] as const,
     joinRequests: (centerId: string, status?: string) =>
       ["director", centerId, "join-requests", status ?? ""] as const,

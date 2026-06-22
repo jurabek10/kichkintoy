@@ -193,6 +193,16 @@ export function formatDate(value: string | Date | null | undefined): string {
   return format(date, "d MMM yyyy", { locale: dateLocale(activeLanguage()) });
 }
 
+/** Numeric, language-neutral date — e.g. "25.06.2026". */
+export function formatDateNumeric(
+  value: string | Date | null | undefined,
+): string {
+  if (!value) return "—";
+  const date = toUzbekistanDate(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return format(date, "dd.MM.yyyy");
+}
+
 export function formatDateTime(
   value: string | Date | null | undefined,
 ): string {

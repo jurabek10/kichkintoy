@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
+import { ArrowLeft, Eye, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 import type { TFunction } from "i18next";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -26,6 +26,7 @@ import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -42,7 +43,11 @@ import {
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import { assignmentRoleLabel, formatDate, genderLabel } from "@/lib/format";
+import {
+  assignmentRoleLabel,
+  formatDateNumeric,
+  genderLabel,
+} from "@/lib/format";
 
 const CAPACITY_OPTIONS = [5, 10, 15, 20, 25, 30, 35] as const;
 
@@ -67,6 +72,11 @@ export function DirectorClassDetail({
   const [assignOpen, setAssignOpen] = useState(false);
   const [teacherToAssign, setTeacherToAssign] = useState("");
   const [assignRole, setAssignRole] = useState("teacher");
+
+  const [childToDelete, setChildToDelete] = useState<{
+    childId: string;
+    name: string;
+  } | null>(null);
 
   const base = centerId
     ? `/director/centers/${centerId}/classes/${classId}`
@@ -163,6 +173,17 @@ export function DirectorClassDetail({
     onError: (err) => setActionError(toApiError(err).message),
   });
 
+  const deleteChildMutation = useMutation({
+    mutationFn: (childId: string) =>
+      orpc.director.deleteChild({ centerId: centerId!, childId }),
+    onSuccess: async () => {
+      toast.success(t("childDetail.childRemoved"));
+      setChildToDelete(null);
+      await invalidateAll();
+    },
+    onError: (err) => setActionError(toApiError(err).message),
+  });
+
   const archiveMutation = useMutation({
     mutationFn: (status: string) =>
       status === "archived"
@@ -185,17 +206,6 @@ export function DirectorClassDetail({
   const childColumns = useMemo<ColumnDef<ClassRosterChild>[]>(
     () => [
       {
-        id: "image",
-        header: t("childrenTable.image"),
-        enableSorting: false,
-        cell: ({ row }) => (
-          <ChildAvatar
-            name={row.original.name}
-            photoUrl={row.original.photoUrl}
-          />
-        ),
-      },
-      {
         accessorKey: "name",
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -204,13 +214,60 @@ export function DirectorClassDetail({
           />
         ),
         cell: ({ row }) => (
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{row.original.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {translatedGender(row.original.gender, t)}
-            </p>
+          <div className="flex min-w-0 items-center gap-3">
+            <ChildAvatar
+              name={row.original.name}
+              photoUrl={row.original.photoUrl}
+            />
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{row.original.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {translatedGender(row.original.gender, t)}
+              </p>
+            </div>
           </div>
         ),
+      },
+      {
+        id: "phone",
+        accessorFn: (child) => child.guardianPhone ?? "",
+        enableSorting: false,
+        header: t("childrenTable.parent"),
+        cell: ({ row }) => {
+          const { guardianPhone, guardianName, guardianRelation } = row.original;
+          const relationLabel = guardianRelation
+            ? tApp(`signup.relationshipOptions.${guardianRelation}`, {
+                defaultValue: guardianRelation,
+              })
+            : null;
+          return (
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-semibold text-foreground">
+                  {guardianName ?? "—"}
+                </span>
+                {relationLabel ? (
+                  <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">
+                    {relationLabel}
+                  </span>
+                ) : null}
+              </div>
+              {guardianPhone ? (
+                <a
+                  href={`tel:${guardianPhone}`}
+                  dir="ltr"
+                  className="nums mt-0.5 block w-fit text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
+                >
+                  {guardianPhone}
+                </a>
+              ) : (
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  {t("childrenTable.noPhone")}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "dateOfBirth",
@@ -220,7 +277,11 @@ export function DirectorClassDetail({
             title={t("childrenTable.birthday")}
           />
         ),
-        cell: ({ row }) => formatDate(row.original.dateOfBirth),
+        cell: ({ row }) => (
+          <span className="nums tabular-nums text-muted-foreground">
+            {formatDateNumeric(row.original.dateOfBirth)}
+          </span>
+        ),
       },
       {
         accessorKey: "joinedAt",
@@ -230,7 +291,11 @@ export function DirectorClassDetail({
             title={t("childrenTable.joined")}
           />
         ),
-        cell: ({ row }) => formatDate(row.original.joinedAt),
+        cell: ({ row }) => (
+          <span className="nums tabular-nums text-muted-foreground">
+            {formatDateNumeric(row.original.joinedAt)}
+          </span>
+        ),
       },
       {
         id: "paymentStatus",
@@ -247,32 +312,45 @@ export function DirectorClassDetail({
       },
       {
         id: "actions",
-        header: t("childrenTable.actions"),
+        header: () => (
+          <span className="block text-right">{t("childrenTable.actions")}</span>
+        ),
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm" variant="outline">
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              asChild
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
+            >
               <Link href={`/dashboard/children/${row.original.childId}`}>
-                <Pencil className="h-4 w-4" />
-                {t("edit")}
+                <Eye className="h-4 w-4" />
+                {t("childrenTable.viewProfile")}
               </Link>
             </Button>
             <Button
               type="button"
-              size="sm"
-              variant="outline"
-              disabled
-              title={t("childrenTable.deleteComingSoon")}
+              size="icon"
+              variant="ghost"
+              aria-label={t("childDetail.delete")}
+              title={t("childDetail.delete")}
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={() =>
+                setChildToDelete({
+                  childId: row.original.childId,
+                  name: row.original.name,
+                })
+              }
             >
               <Trash2 className="h-4 w-4" />
-              {t("childrenTable.delete")}
             </Button>
           </div>
         ),
       },
     ],
-    [t],
+    [t, tApp],
   );
 
   function saveEdit(event: FormEvent<HTMLFormElement>) {
@@ -586,6 +664,45 @@ export function DirectorClassDetail({
           </form>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={!!childToDelete}
+        onOpenChange={(open) => {
+          if (!open) setChildToDelete(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("childDetail.deleteTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("childDetail.deleteBody", { name: childToDelete?.name ?? "" })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setChildToDelete(null)}
+            >
+              {tApp("actions.cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteChildMutation.isPending}
+              onClick={() => {
+                if (childToDelete) {
+                  deleteChildMutation.mutate(childToDelete.childId);
+                }
+              }}
+            >
+              {deleteChildMutation.isPending
+                ? t("childDetail.deleting")
+                : t("childDetail.deleteConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -598,7 +715,7 @@ function ChildAvatar({
   photoUrl: string | null;
 }) {
   return (
-    <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
+    <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-accent text-xs font-bold text-accent-foreground">
       {photoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
