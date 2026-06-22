@@ -114,5 +114,27 @@
     "emergencyContact": "Emergency contact",
     "parentSignature": "Parent signature",
     "supportingDocument": "Supporting document"
+  },
+  "group": {
+    "attention": "Needs your attention",
+    "submitted": "Submitted"
+  },
+  "form": {
+    "progress": "{{done}} of {{total}} done",
+    "optional": "Optional",
+    "choose": "Choose one",
+    "selectMany": "Select all that apply",
+    "signedHint": "Type your full name as your signature.",
+    "datePlaceholder": "Choose a date",
+    "tapToSign": "Tap to sign",
+    "reSign": "Sign again",
+    "addPhoto": "Add photo",
+    "addFile": "Add file",
+    "removeFile": "Remove",
+    "uploading": "Uploading…",
+    "correctionTitle": "Needs a fix",
+    "lockedNote": "You have submitted this. Staff will review it.",
+    "requiredError": "{{label}} is required.",
+    "fileRequiredError": "{{label}} needs at least one file."
   }
 }

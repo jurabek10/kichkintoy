@@ -48,4 +48,8 @@ export const queryKeys = {
     parentList: ['pickups', 'parent'] as const,
     detail: (noticeId: string) => ['pickups', 'detail', noticeId] as const,
   },
+  documents: {
+    parentList: ['studentDocuments', 'parent'] as const,
+    detail: (submissionId: string) => ['studentDocuments', 'detail', submissionId] as const,
+  },
 };

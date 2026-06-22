@@ -114,5 +114,27 @@
     "emergencyContact": "Favqulodda aloqa",
     "parentSignature": "Ota-ona imzosi",
     "supportingDocument": "Qo'shimcha hujjat"
+  },
+  "group": {
+    "attention": "E'tiboringiz kerak",
+    "submitted": "Yuborilgan"
+  },
+  "form": {
+    "progress": "{{total}} tadan {{done}} ta bajarildi",
+    "optional": "Ixtiyoriy",
+    "choose": "Bittasini tanlang",
+    "selectMany": "Mos keladiganlarini tanlang",
+    "signedHint": "Imzo sifatida to'liq ismingizni yozing.",
+    "datePlaceholder": "Sanani tanlang",
+    "tapToSign": "Imzo qo'yish uchun bosing",
+    "reSign": "Qayta imzolash",
+    "addPhoto": "Rasm qo'shish",
+    "addFile": "Fayl qo'shish",
+    "removeFile": "O'chirish",
+    "uploading": "Yuklanmoqda…",
+    "correctionTitle": "Tuzatish kerak",
+    "lockedNote": "Siz buni yubordingiz. Xodimlar ko'rib chiqadi.",
+    "requiredError": "{{label}} majburiy.",
+    "fileRequiredError": "{{label}} uchun kamida bitta fayl kerak."
   }
 }

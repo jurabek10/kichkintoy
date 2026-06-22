@@ -12,15 +12,19 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 import { orpc } from '@/lib/orpc';
 
+type UploadPurpose = Parameters<typeof orpc.media.createUploadUrl>[0]['purpose'];
+
 export type UploadParams = {
   uri: string;
   centerId: string;
   mimeType: string;
   fileName: string;
+  /** Where the asset belongs — gates access on the server. Defaults to medication. */
+  purpose?: UploadPurpose;
 };
 
 /** Upload a local file to storage and return the completed media asset id. */
-export async function uploadMedication(params: UploadParams): Promise<string> {
+export async function uploadMedia(params: UploadParams): Promise<string> {
   const info = await FileSystem.getInfoAsync(params.uri);
   const sizeBytes = info.exists && info.size ? info.size : 1;
 
@@ -29,7 +33,7 @@ export async function uploadMedication(params: UploadParams): Promise<string> {
     fileName: params.fileName,
     mimeType: params.mimeType,
     sizeBytes,
-    purpose: 'medication',
+    purpose: params.purpose ?? 'medication',
   });
 
   const result = await FileSystem.uploadAsync(signed.uploadUrl, params.uri, {
@@ -44,6 +48,9 @@ export async function uploadMedication(params: UploadParams): Promise<string> {
   const asset = await orpc.media.completeUpload({ mediaAssetId: signed.mediaAssetId });
   return asset.id;
 }
+
+/** Back-compat alias — the medication composer uploads with the default purpose. */
+export const uploadMedication = uploadMedia;
 
 /** Write a base64 PNG (e.g. a captured signature) to a temp file for upload. */
 export async function writeBase64Png(base64: string): Promise<string> {

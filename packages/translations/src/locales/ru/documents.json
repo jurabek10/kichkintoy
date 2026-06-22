@@ -114,5 +114,27 @@
     "emergencyContact": "Экстренный контакт",
     "parentSignature": "Подпись родителя",
     "supportingDocument": "Подтверждающий документ"
+  },
+  "group": {
+    "attention": "Требует вашего внимания",
+    "submitted": "Отправлено"
+  },
+  "form": {
+    "progress": "{{done}} из {{total}} готово",
+    "optional": "Необязательно",
+    "choose": "Выберите один",
+    "selectMany": "Выберите все подходящие",
+    "signedHint": "Введите полное имя в качестве подписи.",
+    "datePlaceholder": "Выберите дату",
+    "tapToSign": "Нажмите, чтобы подписать",
+    "reSign": "Подписать заново",
+    "addPhoto": "Добавить фото",
+    "addFile": "Добавить файл",
+    "removeFile": "Удалить",
+    "uploading": "Загрузка…",
+    "correctionTitle": "Нужна правка",
+    "lockedNote": "Вы отправили это. Персонал проверит.",
+    "requiredError": "Поле «{{label}}» обязательно.",
+    "fileRequiredError": "«{{label}}» требует хотя бы один файл."
   }
 }

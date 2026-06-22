@@ -15,6 +15,7 @@ import enAccount from '@kichkintoy/translations/locales/en/account.json';
 import enAlbums from '@kichkintoy/translations/locales/en/albums.json';
 import enApp from '@kichkintoy/translations/locales/en/app.json';
 import enCommon from '@kichkintoy/translations/locales/en/common.json';
+import enDocuments from '@kichkintoy/translations/locales/en/documents.json';
 import enMeals from '@kichkintoy/translations/locales/en/meals.json';
 import enMedications from '@kichkintoy/translations/locales/en/medications.json';
 import enNav from '@kichkintoy/translations/locales/en/nav.json';
@@ -25,6 +26,7 @@ import ruAccount from '@kichkintoy/translations/locales/ru/account.json';
 import ruAlbums from '@kichkintoy/translations/locales/ru/albums.json';
 import ruApp from '@kichkintoy/translations/locales/ru/app.json';
 import ruCommon from '@kichkintoy/translations/locales/ru/common.json';
+import ruDocuments from '@kichkintoy/translations/locales/ru/documents.json';
 import ruMeals from '@kichkintoy/translations/locales/ru/meals.json';
 import ruMedications from '@kichkintoy/translations/locales/ru/medications.json';
 import ruNav from '@kichkintoy/translations/locales/ru/nav.json';
@@ -35,6 +37,7 @@ import uzAccount from '@kichkintoy/translations/locales/uz/account.json';
 import uzAlbums from '@kichkintoy/translations/locales/uz/albums.json';
 import uzApp from '@kichkintoy/translations/locales/uz/app.json';
 import uzCommon from '@kichkintoy/translations/locales/uz/common.json';
+import uzDocuments from '@kichkintoy/translations/locales/uz/documents.json';
 import uzMeals from '@kichkintoy/translations/locales/uz/meals.json';
 import uzMedications from '@kichkintoy/translations/locales/uz/medications.json';
 import uzNav from '@kichkintoy/translations/locales/uz/nav.json';
@@ -43,9 +46,9 @@ import uzPickups from '@kichkintoy/translations/locales/uz/pickups.json';
 import uzReports from '@kichkintoy/translations/locales/uz/reports.json';
 
 const resources = {
-  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, albums: uzAlbums, meals: uzMeals, medications: uzMedications, pickups: uzPickups },
-  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, albums: enAlbums, meals: enMeals, medications: enMedications, pickups: enPickups },
-  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, albums: ruAlbums, meals: ruMeals, medications: ruMedications, pickups: ruPickups },
+  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, albums: uzAlbums, meals: uzMeals, medications: uzMedications, pickups: uzPickups, documents: uzDocuments },
+  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, albums: enAlbums, meals: enMeals, medications: enMedications, pickups: enPickups, documents: enDocuments },
+  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, albums: ruAlbums, meals: ruMeals, medications: ruMedications, pickups: ruPickups, documents: ruDocuments },
 };
 
 const STORAGE_KEY = 'kichkintoy.language';
@@ -61,7 +64,7 @@ void i18n.use(initReactI18next).init({
   lng: deviceLanguage(),
   fallbackLng,
   defaultNS,
-  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'albums', 'meals', 'medications', 'pickups'],
+  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'albums', 'meals', 'medications', 'pickups', 'documents'],
   interpolation: { escapeValue: false },
   returnNull: false,
   // Resources are bundled, so we never need to suspend while loading them —
