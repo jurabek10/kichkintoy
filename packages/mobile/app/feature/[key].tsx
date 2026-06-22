@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 
 const ICONS: Record<string, ComponentProps<typeof Ionicons>['name']> = {
   meals: 'restaurant-outline',
-  documents: 'document-text-outline',
 };
 
 export default function FeatureScreen() {

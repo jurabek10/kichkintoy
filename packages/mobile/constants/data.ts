@@ -86,7 +86,7 @@ export const features: Feature[] = [
   { key: 'meals', navKey: 'items.meals', route: '/meals', icon: 'restaurant', bg: '#FFF6D4', fg: '#EFB019' },
   { key: 'medications', navKey: 'items.medications', route: '/medications', icon: 'medkit', bg: '#FFE0E0', fg: '#F0594C' },
   { key: 'pickups', navKey: 'items.pickups', route: '/(tabs)/pickups', icon: 'walk', mciIcon: 'human-male-child', bg: '#DBECFF', fg: '#4D9FEC' },
-  { key: 'documents', navKey: 'items.documents', route: '/feature/documents', icon: 'document-text', bg: '#DCF2E3', fg: '#46B06A' },
+  { key: 'documents', navKey: 'items.documents', route: '/documents', icon: 'document-text', bg: '#DCF2E3', fg: '#46B06A' },
 ];
 
 /** Latest "what happened today" feed items for the home screen. */
