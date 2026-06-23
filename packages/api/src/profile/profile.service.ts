@@ -1,20 +1,27 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import {
   appLanguageSchema,
+  childGenderValues,
   notificationSettingsSchema,
+  parentChildSchema,
   profileViewSchema,
   type NotificationSettings,
+  type ParentChild,
   type ProfileView,
+  type UpdateChildRequest,
   type UpdateNotificationSettingsInput,
   type UpdateProfileInput,
   type UserRole,
 } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
+
+const CHILD_GENDERS = new Set<string>(childGenderValues);
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -176,6 +183,173 @@ export class ProfileService {
 
     return toNotificationSettings(settings);
   }
+
+  // --- Parent: children ---
+
+  async listChildren(userId: string): Promise<ParentChild[]> {
+    const guardians = await this.prisma.childGuardian.findMany({
+      where: { userId },
+      include: { child: { include: ENROLLMENT_INCLUDE } },
+      orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+    });
+
+    return guardians.map((guardian) =>
+      toParentChild(guardian.child, guardian.relationship, guardian.isPrimary),
+    );
+  }
+
+  async updateChild(
+    userId: string,
+    childId: string,
+    input: UpdateChildRequest,
+  ): Promise<ParentChild> {
+    await this.requireGuardian(userId, childId);
+
+    await this.prisma.child.update({
+      where: { id: childId },
+      data: {
+        firstName: input.firstName.trim(),
+        lastName: input.lastName?.trim() || null,
+        dob: new Date(input.dateOfBirth),
+        gender: input.gender,
+        allergies: input.allergies?.trim() || null,
+        medicalNotes: input.medicalNotes?.trim() || null,
+      },
+    });
+
+    return this.getGuardedChild(userId, childId);
+  }
+
+  async updateChildPhoto(
+    userId: string,
+    childId: string,
+    mediaAssetId: string,
+  ): Promise<ParentChild> {
+    await this.requireGuardian(userId, childId);
+
+    const asset = await this.prisma.mediaAsset.findUnique({
+      where: { id: mediaAssetId },
+      select: { id: true, uploaderUserId: true, fileUrl: true },
+    });
+
+    if (!asset || asset.uploaderUserId !== userId) {
+      throw new NotFoundException("Photo not found.");
+    }
+    if (purposeFromObjectKey(asset.fileUrl) !== "child_profile") {
+      throw new BadRequestException("That file cannot be used as a photo.");
+    }
+
+    await this.prisma.child.update({
+      where: { id: childId },
+      data: { photoUrl: mediaAssetId },
+    });
+
+    return this.getGuardedChild(userId, childId);
+  }
+
+  async removeChildPhoto(
+    userId: string,
+    childId: string,
+  ): Promise<ParentChild> {
+    await this.requireGuardian(userId, childId);
+    await this.prisma.child.update({
+      where: { id: childId },
+      data: { photoUrl: null },
+    });
+    return this.getGuardedChild(userId, childId);
+  }
+
+  private async requireGuardian(userId: string, childId: string) {
+    const guardian = await this.prisma.childGuardian.findUnique({
+      where: { childId_userId: { childId, userId } },
+      select: { id: true },
+    });
+    if (!guardian) {
+      throw new ForbiddenException("You are not a guardian of this child.");
+    }
+  }
+
+  private async getGuardedChild(
+    userId: string,
+    childId: string,
+  ): Promise<ParentChild> {
+    const guardian = await this.prisma.childGuardian.findUnique({
+      where: { childId_userId: { childId, userId } },
+      include: { child: { include: ENROLLMENT_INCLUDE } },
+    });
+    if (!guardian) {
+      throw new ForbiddenException("You are not a guardian of this child.");
+    }
+    return toParentChild(
+      guardian.child,
+      guardian.relationship,
+      guardian.isPrimary,
+    );
+  }
+}
+
+const ENROLLMENT_INCLUDE = {
+  childEnrollments: {
+    where: { enrollmentStatus: "active" as const },
+    include: { class: true, center: true },
+    orderBy: { startedAt: "desc" as const },
+    take: 1,
+  },
+} as const;
+
+type GuardedChild = {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  dob: Date;
+  gender: string | null;
+  photoUrl: string | null;
+  allergies: string | null;
+  medicalNotes: string | null;
+  childEnrollments: Array<{
+    centerId: string;
+    class: { name: string } | null;
+    center: { name: string } | null;
+  }>;
+};
+
+function toParentChild(
+  child: GuardedChild,
+  relationship: string | null,
+  isPrimary: boolean,
+): ParentChild {
+  const enrollment = child.childEnrollments[0] ?? null;
+  const fullName = [child.firstName, child.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return parentChildSchema.parse({
+    id: child.id,
+    firstName: child.firstName,
+    lastName: child.lastName,
+    name: fullName || child.firstName,
+    dateOfBirth: child.dob.toISOString().slice(0, 10),
+    gender: toChildGender(child.gender),
+    photoMediaAssetId: toMediaAssetId(child.photoUrl),
+    photoUrl: toLegacyPhotoUrl(child.photoUrl),
+    allergies: child.allergies,
+    medicalNotes: child.medicalNotes,
+    centerId: enrollment?.centerId ?? null,
+    centerName: enrollment?.center?.name ?? null,
+    className: enrollment?.class?.name ?? null,
+    relationship,
+    isPrimary,
+  });
+}
+
+function toChildGender(value: string | null) {
+  return value && CHILD_GENDERS.has(value) ? value : null;
+}
+
+/** A media-asset id is stored as a UUID; anything else is a legacy direct URL. */
+function toLegacyPhotoUrl(value: string | null) {
+  return value && !UUID_PATTERN.test(value) ? value : null;
 }
 
 function primaryRole(

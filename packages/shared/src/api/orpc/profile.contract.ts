@@ -1,9 +1,14 @@
 import { oc } from "@orpc/contract";
+import { z } from "zod";
 import {
   changePasswordInputSchema,
+  childIdInputSchema,
   notificationSettingsSchema,
+  parentChildSchema,
+  parentUpdateChildInputSchema,
   profileViewSchema,
   updateAvatarInputSchema,
+  updateChildPhotoInputSchema,
   updateNotificationSettingsInputSchema,
   updatePhoneInputSchema,
   updateProfileInputSchema,
@@ -28,4 +33,14 @@ export const profileContract = {
   updateNotificationSettings: oc
     .input(updateNotificationSettingsInputSchema)
     .output(notificationSettingsSchema),
+  listChildren: oc
+    .input(emptyInputSchema)
+    .output(z.array(parentChildSchema)),
+  updateChild: oc
+    .input(parentUpdateChildInputSchema)
+    .output(parentChildSchema),
+  updateChildPhoto: oc
+    .input(updateChildPhotoInputSchema)
+    .output(parentChildSchema),
+  removeChildPhoto: oc.input(childIdInputSchema).output(parentChildSchema),
 };

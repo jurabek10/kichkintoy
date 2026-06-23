@@ -64,5 +64,37 @@ export function createProfileRouter(os: ORPCImplementer, deps: ORPCDeps) {
       .handler(({ input, context }) =>
         deps.profileService.updateNotificationSettings(context.user.id, input),
       ),
+
+    listChildren: os.profile.listChildren
+      .use(access.authed)
+      .handler(({ context }) =>
+        deps.profileService.listChildren(context.user.id),
+      ),
+
+    updateChild: os.profile.updateChild
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.profileService.updateChild(
+          context.user.id,
+          input.childId,
+          input.body,
+        ),
+      ),
+
+    updateChildPhoto: os.profile.updateChildPhoto
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.profileService.updateChildPhoto(
+          context.user.id,
+          input.childId,
+          input.mediaAssetId,
+        ),
+      ),
+
+    removeChildPhoto: os.profile.removeChildPhoto
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.profileService.removeChildPhoto(context.user.id, input.childId),
+      ),
   };
 }

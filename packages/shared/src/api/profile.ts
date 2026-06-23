@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { userRoleSchema } from "../auth/roles.js";
+import { childGenderSchema } from "../child/gender.js";
 import { appLanguageSchema } from "../lib/language.js";
-import { phoneNumberSchema, uuidSchema } from "../lib/validators.js";
+import {
+  isoDateSchema,
+  phoneNumberSchema,
+  uuidSchema,
+} from "../lib/validators.js";
+import { updateChildRequestSchema } from "./classes.js";
 
 /** "HH:mm" (24-hour). Used for notification quiet hours. */
 export const timeOfDaySchema = z
@@ -92,3 +98,44 @@ export const updateNotificationSettingsInputSchema = z.object({
 export type UpdateNotificationSettingsInput = z.infer<
   typeof updateNotificationSettingsInputSchema
 >;
+
+// --- Parent: children ---
+
+/** A child the signed-in parent guards, with editable fields + read-only context. */
+export const parentChildSchema = z.object({
+  id: uuidSchema,
+  firstName: z.string(),
+  lastName: z.string().nullable(),
+  name: z.string(),
+  dateOfBirth: isoDateSchema.nullable(),
+  gender: childGenderSchema.nullable(),
+  // Resolve to a signed URL via media.getDownloadUrl when present...
+  photoMediaAssetId: uuidSchema.nullable(),
+  // ...otherwise fall back to a legacy direct URL stored at signup.
+  photoUrl: z.string().nullable(),
+  allergies: z.string().nullable(),
+  medicalNotes: z.string().nullable(),
+  centerId: uuidSchema.nullable(),
+  centerName: z.string().nullable(),
+  className: z.string().nullable(),
+  relationship: z.string().nullable(),
+  isPrimary: z.boolean(),
+});
+export type ParentChild = z.infer<typeof parentChildSchema>;
+
+export const parentUpdateChildInputSchema = z.object({
+  childId: uuidSchema,
+  body: updateChildRequestSchema,
+});
+export type ParentUpdateChildInput = z.infer<
+  typeof parentUpdateChildInputSchema
+>;
+
+export const updateChildPhotoInputSchema = z.object({
+  childId: uuidSchema,
+  mediaAssetId: uuidSchema,
+});
+export type UpdateChildPhotoInput = z.infer<typeof updateChildPhotoInputSchema>;
+
+export const childIdInputSchema = z.object({ childId: uuidSchema });
+export type ChildIdInput = z.infer<typeof childIdInputSchema>;
