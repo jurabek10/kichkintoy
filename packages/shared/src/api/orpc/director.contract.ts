@@ -19,9 +19,11 @@ import {
   classDetailSchema,
   classListResponseSchema,
   createClassRequestSchema,
+  teacherDetailSchema,
   updateChildRequestSchema,
   updateClassRequestSchema,
   updateTeacherPermissionsRequestSchema,
+  updateTeacherProfileRequestSchema,
 } from "../classes.js";
 import {
   centerChildInputSchema,
@@ -234,6 +236,20 @@ export const directorContract = {
     .output(childDetailSchema),
   deleteChild: oc.input(centerChildInputSchema).output(successResponseSchema),
   teachers: oc.input(centerIdInputSchema).output(centerTeachersResponseSchema),
+  teacher: oc
+    .input(centerIdInputSchema.extend({ userId: uuidSchema }))
+    .output(teacherDetailSchema),
+  updateTeacherProfile: oc
+    .input(
+      centerIdInputSchema.extend({
+        userId: uuidSchema,
+        body: updateTeacherProfileRequestSchema,
+      }),
+    )
+    .output(teacherDetailSchema),
+  removeTeacher: oc
+    .input(centerIdInputSchema.extend({ userId: uuidSchema }))
+    .output(successResponseSchema),
   assignTeacher: oc
     .input(centerClassInputSchema.extend({ body: assignTeacherRequestSchema }))
     .output(assignTeacherResponseSchema),

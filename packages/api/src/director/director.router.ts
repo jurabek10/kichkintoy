@@ -10,6 +10,7 @@ import {
   joinRequestRowSchema,
   resendInvitationResponseSchema,
   revokeInvitationResponseSchema,
+  teacherDetailSchema,
 } from "@kichkintoy/shared";
 
 export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
@@ -176,6 +177,34 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         centerTeachersResponseSchema.parse(
           await deps.classService.listTeachers(input.centerId),
         ),
+      ),
+    teacher: os.director.teacher
+      .use(access.directorOnly)
+      .handler(async ({ input }) =>
+        teacherDetailSchema.parse(
+          await deps.classService.getTeacher(input.centerId, input.userId),
+        ),
+      ),
+    updateTeacherProfile: os.director.updateTeacherProfile
+      .use(access.directorOnly)
+      .handler(async ({ input, context }) =>
+        teacherDetailSchema.parse(
+          await deps.classService.updateTeacherProfile({
+            centerId: input.centerId,
+            teacherUserId: input.userId,
+            actorUserId: context.user.id,
+            input: input.body,
+          }),
+        ),
+      ),
+    removeTeacher: os.director.removeTeacher
+      .use(access.directorOnly)
+      .handler(({ input, context }) =>
+        deps.classService.removeTeacher({
+          centerId: input.centerId,
+          teacherUserId: input.userId,
+          actorUserId: context.user.id,
+        }),
       ),
     assignTeacher: os.director.assignTeacher
       .use(access.directorOnly)

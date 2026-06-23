@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { childGenderSchema } from "../child/gender.js";
-import { isoDateSchema, uuidSchema } from "../lib/validators.js";
+import {
+  isoDateSchema,
+  isoDateTimeSchema,
+  phoneNumberSchema,
+  uuidSchema,
+} from "../lib/validators.js";
 
 // --- Enums ---
 
@@ -149,7 +154,13 @@ export const centerTeacherSchema = z.object({
   fullName: z.string(),
   phoneNumber: z.string().nullable(),
   username: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  status: z.string(),
   canApproveMembers: z.boolean(),
+  // joinedAt = when the teacher's account was created (joined the platform).
+  // approvedAt = when they were granted the teacher role at this center.
+  joinedAt: isoDateTimeSchema.nullable(),
+  approvedAt: isoDateTimeSchema.nullable(),
   assignments: z.array(centerTeacherAssignmentSchema),
 });
 export type CenterTeacher = z.infer<typeof centerTeacherSchema>;
@@ -157,6 +168,21 @@ export type CenterTeacher = z.infer<typeof centerTeacherSchema>;
 export const centerTeachersResponseSchema = z.array(centerTeacherSchema);
 export type CenterTeachersResponse = z.infer<
   typeof centerTeachersResponseSchema
+>;
+
+export const teacherDetailSchema = centerTeacherSchema.extend({
+  email: z.string().nullable(),
+  lastLoginAt: isoDateTimeSchema.nullable(),
+});
+export type TeacherDetail = z.infer<typeof teacherDetailSchema>;
+
+export const updateTeacherProfileRequestSchema = z.object({
+  fullName: z.string().trim().min(1).max(120),
+  phoneNumber: phoneNumberSchema.nullable(),
+  canApproveMembers: z.boolean(),
+});
+export type UpdateTeacherProfileRequest = z.infer<
+  typeof updateTeacherProfileRequestSchema
 >;
 
 export const assignTeacherRequestSchema = z.object({

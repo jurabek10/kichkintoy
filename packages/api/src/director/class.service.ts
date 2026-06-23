@@ -8,6 +8,7 @@ import {
   childDetailSchema,
   classDetailSchema,
   type UpdateChildRequest,
+  type UpdateTeacherProfileRequest,
 } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
@@ -377,6 +378,7 @@ export class ClassService {
   async listTeachers(centerId: string) {
     const teacherRoles = await this.prisma.userRole.findMany({
       where: { centerId, role: { name: "teacher" } },
+      orderBy: { createdAt: "asc" },
       include: {
         user: {
           select: {
@@ -384,6 +386,9 @@ export class ClassService {
             fullName: true,
             phone: true,
             username: true,
+            avatarUrl: true,
+            status: true,
+            createdAt: true,
           },
         },
       },
@@ -419,9 +424,142 @@ export class ClassService {
       fullName: role.user.fullName,
       phoneNumber: role.user.phone,
       username: role.user.username,
+      avatarUrl: role.user.avatarUrl,
+      status: role.user.status,
       canApproveMembers: role.canApproveMembers,
+      joinedAt: role.user.createdAt.toISOString(),
+      approvedAt: role.createdAt.toISOString(),
       assignments: assignmentsByUser.get(role.userId) ?? [],
     }));
+  }
+
+  private async requireTeacherRole(centerId: string, teacherUserId: string) {
+    const role = await this.prisma.userRole.findFirst({
+      where: { centerId, userId: teacherUserId, role: { name: "teacher" } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            username: true,
+            email: true,
+            avatarUrl: true,
+            status: true,
+            createdAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    });
+    if (!role) {
+      throw new NotFoundException("Teacher not found at this center.");
+    }
+    return role;
+  }
+
+  async getTeacher(centerId: string, teacherUserId: string) {
+    const role = await this.requireTeacherRole(centerId, teacherUserId);
+
+    const assignments = await this.prisma.teacherClassAssignment.findMany({
+      where: {
+        teacherUserId,
+        endedAt: null,
+        class: { centerId },
+      },
+      include: { class: { select: { id: true, name: true } } },
+    });
+
+    return {
+      userId: role.user.id,
+      fullName: role.user.fullName,
+      phoneNumber: role.user.phone,
+      username: role.user.username,
+      email: role.user.email,
+      avatarUrl: role.user.avatarUrl,
+      status: role.user.status,
+      canApproveMembers: role.canApproveMembers,
+      joinedAt: role.user.createdAt.toISOString(),
+      approvedAt: role.createdAt.toISOString(),
+      lastLoginAt: role.user.lastLoginAt?.toISOString() ?? null,
+      assignments: assignments.map((assignment) => ({
+        classId: assignment.class.id,
+        className: assignment.class.name,
+        assignmentRole: assignment.assignmentRole,
+      })),
+    };
+  }
+
+  async updateTeacherProfile(args: {
+    centerId: string;
+    teacherUserId: string;
+    actorUserId: string;
+    input: UpdateTeacherProfileRequest;
+  }) {
+    const role = await this.requireTeacherRole(
+      args.centerId,
+      args.teacherUserId,
+    );
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: args.teacherUserId },
+        data: {
+          fullName: args.input.fullName.trim(),
+          phone: args.input.phoneNumber?.trim() || null,
+        },
+      }),
+      this.prisma.userRole.update({
+        where: { id: role.id },
+        data: { canApproveMembers: args.input.canApproveMembers },
+      }),
+    ]);
+
+    await this.audit.log({
+      centerId: args.centerId,
+      actorUserId: args.actorUserId,
+      action: "teacher.updated",
+      entityType: "user",
+      entityId: args.teacherUserId,
+    });
+
+    return this.getTeacher(args.centerId, args.teacherUserId);
+  }
+
+  async removeTeacher(args: {
+    centerId: string;
+    teacherUserId: string;
+    actorUserId: string;
+  }) {
+    const role = await this.requireTeacherRole(
+      args.centerId,
+      args.teacherUserId,
+    );
+
+    // Remove the teacher from this center: end every active class assignment so
+    // they leave each roster, then drop their teacher role here. The user
+    // account itself stays — they can be re-invited or belong to other centers.
+    await this.prisma.$transaction([
+      this.prisma.teacherClassAssignment.updateMany({
+        where: {
+          teacherUserId: args.teacherUserId,
+          endedAt: null,
+          class: { centerId: args.centerId },
+        },
+        data: { endedAt: new Date() },
+      }),
+      this.prisma.userRole.delete({ where: { id: role.id } }),
+    ]);
+
+    await this.audit.log({
+      centerId: args.centerId,
+      actorUserId: args.actorUserId,
+      action: "teacher.removed",
+      entityType: "user",
+      entityId: args.teacherUserId,
+    });
+
+    return { success: true as const };
   }
 
   async assignTeacher(args: {
