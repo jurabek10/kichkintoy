@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { childGenderSchema } from "../child/gender.js";
 import { isoDateSchema, isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 
 export const attendanceStatusValues = [
@@ -16,6 +17,7 @@ export type AttendanceStatus = z.infer<typeof attendanceStatusSchema>;
 export const attendanceChildSchema = z.object({
   id: uuidSchema,
   name: z.string(),
+  gender: childGenderSchema.nullable(),
   centerId: uuidSchema,
   centerName: z.string(),
   classId: uuidSchema.nullable(),

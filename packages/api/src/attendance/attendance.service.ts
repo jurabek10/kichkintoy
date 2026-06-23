@@ -13,6 +13,7 @@ import {
   staffAttendanceListResponseSchema,
   type AttendanceRecordSummary,
   type AttendanceStatus,
+  type ChildGender,
   type MarkAttendanceStatusInput,
   type ParentSubmitAttendanceAbsenceInput,
   type RecordAttendanceCheckInInput,
@@ -27,7 +28,7 @@ type Tx = Prisma.TransactionClient;
 const attendanceInclude = {
   center: { select: { id: true, name: true, organizationId: true } },
   class: { select: { id: true, name: true } },
-  child: { select: { id: true, firstName: true, lastName: true } },
+  child: { select: { id: true, firstName: true, lastName: true, gender: true } },
   checkInByUser: { select: { id: true, fullName: true } },
   checkOutByUser: { select: { id: true, fullName: true } },
 } satisfies Prisma.AttendanceRecordInclude;
@@ -39,6 +40,7 @@ type AttendancePayload = Prisma.AttendanceRecordGetPayload<{
 type EnrollmentSummary = {
   childId: string;
   childName: string;
+  childGender: ChildGender | null;
   centerId: string;
   centerName: string;
   organizationId: string;
@@ -65,6 +67,7 @@ export class AttendanceService {
         children: enrollments.map((enrollment) => ({
           id: enrollment.childId,
           name: enrollment.childName,
+          gender: enrollment.childGender,
           centerId: enrollment.centerId,
           centerName: enrollment.centerName,
           classId: enrollment.classId,
@@ -80,6 +83,7 @@ export class AttendanceService {
         .map((enrollment) => ({
           id: enrollment.childId,
           name: enrollment.childName,
+          gender: enrollment.childGender,
           centerId: enrollment.centerId,
           centerName: enrollment.centerName,
           classId: enrollment.classId,
@@ -580,7 +584,7 @@ export class AttendanceService {
       },
       include: {
         center: { select: { name: true, organizationId: true } },
-        child: { select: { id: true, firstName: true, lastName: true } },
+        child: { select: { id: true, firstName: true, lastName: true, gender: true } },
         class: { select: { id: true, name: true } },
       },
       orderBy: [{ class: { name: "asc" } }, { child: { firstName: "asc" } }],
@@ -633,7 +637,7 @@ export class AttendanceService {
       where: { childId, enrollmentStatus: "active" },
       include: {
         center: { select: { name: true, organizationId: true } },
-        child: { select: { id: true, firstName: true, lastName: true } },
+        child: { select: { id: true, firstName: true, lastName: true, gender: true } },
         class: { select: { id: true, name: true } },
       },
       orderBy: { startedAt: "desc" },
@@ -769,6 +773,7 @@ export class AttendanceService {
       child: {
         id: record.child.id,
         name: childName(record.child),
+        gender: normalizeChildGender(record.child.gender),
         centerId: record.centerId,
         centerName: record.center.name,
         classId: record.classId,
@@ -803,6 +808,7 @@ export class AttendanceService {
       child: {
         id: enrollment.childId,
         name: enrollment.childName,
+        gender: enrollment.childGender,
         centerId: enrollment.centerId,
         centerName: enrollment.centerName,
         classId: enrollment.classId,
@@ -868,17 +874,34 @@ function toEnrollment(row: {
   classId: string | null;
   center: { name: string; organizationId: string };
   class: { id: string; name: string } | null;
-  child: { id: string; firstName: string; lastName: string | null };
+  child: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    gender: string | null;
+  };
 }): EnrollmentSummary {
   return {
     childId: row.childId,
     childName: childName(row.child),
+    childGender: normalizeChildGender(row.child.gender),
     centerId: row.centerId,
     centerName: row.center.name,
     organizationId: row.center.organizationId,
     classId: row.classId,
     className: row.class?.name ?? null,
   };
+}
+
+/** Map any stored gender onto the three values the UI knows, or null. */
+function normalizeChildGender(gender: string | null): ChildGender | null {
+  if (!gender) return null;
+  if (gender === "boy" || gender === "girl" || gender === "prefer_not_to_say") {
+    return gender;
+  }
+  if (gender === "male") return "boy";
+  if (gender === "female") return "girl";
+  return "prefer_not_to_say";
 }
 
 function requireClassId(enrollment: EnrollmentSummary) {

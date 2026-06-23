@@ -43,7 +43,14 @@
     "absentReason": "Absent reason",
     "note": "Note",
     "count_one": "{{count}} child",
-    "count_other": "{{count}} children"
+    "count_other": "{{count}} children",
+    "number": "#",
+    "gender": "Sex",
+    "times": "Times",
+    "inShort": "In",
+    "outShort": "Out",
+    "pickedUp": "Picked up by",
+    "actions": "Actions"
   },
   "reason": "Reason",
   "shortNote": "Short note",
@@ -63,5 +70,12 @@
     "doctorVisit": "Doctor visit",
     "familyReason": "Family reason",
     "travel": "Travel"
+  },
+  "allGenders": "All",
+  "markAbsentFor": "Mark {{name}} absent",
+  "gender": {
+    "boy": "Boy",
+    "girl": "Girl",
+    "prefer_not_to_say": "Prefer not to say"
   }
 }

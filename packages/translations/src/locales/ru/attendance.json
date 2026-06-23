@@ -45,7 +45,14 @@
     "count_one": "{{count}} ребенок",
     "count_few": "{{count}} ребенка",
     "count_many": "{{count}} детей",
-    "count_other": "{{count}} детей"
+    "count_other": "{{count}} детей",
+    "number": "№",
+    "gender": "Пол",
+    "times": "Время",
+    "inShort": "Приход",
+    "outShort": "Уход",
+    "pickedUp": "Забрал",
+    "actions": "Действия"
   },
   "reason": "Причина",
   "shortNote": "Короткая заметка",
@@ -65,5 +72,12 @@
     "doctorVisit": "Визит к врачу",
     "familyReason": "Семейные обстоятельства",
     "travel": "Поездка"
+  },
+  "allGenders": "Все",
+  "markAbsentFor": "Отметить {{name}} отсутствующим",
+  "gender": {
+    "boy": "Мальчик",
+    "girl": "Девочка",
+    "prefer_not_to_say": "Не указано"
   }
 }

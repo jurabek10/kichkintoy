@@ -43,7 +43,14 @@
     "absentReason": "Kelmaganlik sababi",
     "note": "Izoh",
     "count_one": "{{count}} bola",
-    "count_other": "{{count}} bola"
+    "count_other": "{{count}} bola",
+    "number": "№",
+    "gender": "Jinsi",
+    "times": "Vaqt",
+    "inShort": "Keldi",
+    "outShort": "Ketdi",
+    "pickedUp": "Olib ketdi",
+    "actions": "Amallar"
   },
   "reason": "Sabab",
   "shortNote": "Qisqa izoh",
@@ -63,5 +70,12 @@
     "doctorVisit": "Shifokor ko'rigi",
     "familyReason": "Oila sababi",
     "travel": "Sayohat"
+  },
+  "allGenders": "Hammasi",
+  "markAbsentFor": "{{name}}ni yo'q deb belgilash",
+  "gender": {
+    "boy": "O'g'il bola",
+    "girl": "Qiz bola",
+    "prefer_not_to_say": "Aytilmagan"
   }
 }

@@ -17,6 +17,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
@@ -43,7 +49,6 @@ import {
   absenceReasonForForm,
   translateAbsenceReason,
 } from "./absence-reason-form";
-import { AttendanceCard } from "./attendance-card";
 
 const statusOptions: AttendanceStatus[] = [
   "not_checked_in",
@@ -76,24 +81,17 @@ export function StaffAttendance({
   const { t } = useLayoutTranslation("attendance");
   const queryClient = useQueryClient();
   const [date, setDate] = useState(todayIso());
-  const [status, setStatus] = useState("all");
   const [classId, setClassId] = useState("all");
-  const [absenceDraft, setAbsenceDraft] = useState<{
-    childId: string;
-    reason: string;
-    note: string;
-  } | null>(null);
 
   const directorView = role === "director";
 
-  // The director sees the whole center grouped by class, so they always fetch
-  // the full day (with the center-wide summary). Teachers narrow the fetch with
-  // their class/status selects.
+  // Both roles fetch the full day for the chosen scope; the teacher's table
+  // filters by status and sex on the client, so it stays instant and the
+  // running count always reflects the whole class.
   const input = {
     centerId: centerId ?? "",
     date,
-    status:
-      directorView || status === "all" ? undefined : (status as AttendanceStatus),
+    status: undefined,
     classId: directorView || classId === "all" ? undefined : classId,
   };
 
@@ -145,10 +143,7 @@ export function StaffAttendance({
         absenceReason: input.reason,
         parentVisibleNote: input.note,
       }),
-    onSuccess: async () => {
-      setAbsenceDraft(null);
-      await invalidate();
-    },
+    onSuccess: invalidate,
   });
 
   if (!centerId) {
@@ -181,38 +176,25 @@ export function StaffAttendance({
               className="w-[155px]"
             />
             {!directorView ? (
-              <>
-                <Select value={classId} onValueChange={setClassId}>
-                  <SelectTrigger className="w-[170px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("allClasses")}</SelectItem>
-                    {classes.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="w-[175px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("allStatuses")}</SelectItem>
-                    {statusOptions.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {t(`status.${item}`, attendanceStatusLabel(item))}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
+              // Status now filters inside the table (with the roster) rather
+              // than re-fetching; only the class scope stays in the header.
+              <Select value={classId} onValueChange={setClassId}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allClasses")}</SelectItem>
+                  {classes.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : null}
           </div>
         </CardHeader>
-        {summary ? (
+        {directorView && summary ? (
           <CardContent className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-4">
               <Summary label={t("summary.total")} value={summary.total} />
@@ -265,80 +247,410 @@ export function StaffAttendance({
       ) : directorView ? (
         <DirectorClassGroups records={records} t={t} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {records.map((record) => (
-            <AttendanceCard
-              key={`${record.child.id}-${record.attendanceDate}`}
-              record={record}
-              actions={
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => checkIn.mutate(record.child.id)}
-                    disabled={checkIn.isPending}
-                  >
-                    <Check className="h-4 w-4" />
-                    {t("checkIn")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => checkOut.mutate(record.child.id)}
-                    disabled={checkOut.isPending}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {t("checkOut")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() =>
-                      setAbsenceDraft({
-                        childId: record.child.id,
-                        reason: absenceReasonForForm(record.absenceReason, t),
-                        note: record.parentVisibleNote ?? "",
-                      })
-                    }
-                    disabled={markAbsent.isPending}
-                  >
-                    <X className="h-4 w-4" />
-                    {t("absent")}
-                  </Button>
-                  {absenceDraft?.childId === record.child.id ? (
-                    <AbsenceReasonForm
-                      reason={absenceDraft.reason}
-                      note={absenceDraft.note}
-                      submitLabel={t("saveAbsent")}
-                      isPending={markAbsent.isPending}
-                      onReasonChange={(reason) =>
-                        setAbsenceDraft((current) =>
-                          current ? { ...current, reason } : current,
-                        )
-                      }
-                      onNoteChange={(note) =>
-                        setAbsenceDraft((current) =>
-                          current ? { ...current, note } : current,
-                        )
-                      }
-                      onCancel={() => setAbsenceDraft(null)}
-                      onSubmit={() =>
-                        markAbsent.mutate({
-                          childId: record.child.id,
-                          reason: absenceDraft.reason,
-                          note: absenceDraft.note,
-                        })
-                      }
-                    />
-                  ) : null}
-                </>
-              }
-            />
-          ))}
-        </div>
+        <TeacherAttendanceTable
+          records={records}
+          summary={summary ?? null}
+          onCheckIn={(childId) => checkIn.mutate(childId)}
+          onCheckOut={(childId) => checkOut.mutate(childId)}
+          onMarkAbsent={(values) => markAbsent.mutateAsync(values)}
+          checkInPending={checkIn.isPending}
+          checkOutPending={checkOut.isPending}
+          markAbsentPending={markAbsent.isPending}
+          t={t}
+        />
       )}
     </div>
   );
+}
+
+type AttendanceSummary = {
+  total: number;
+  notCheckedIn: number;
+  present: number;
+  late: number;
+  absent: number;
+  excused: number;
+  leftEarly: number;
+  pickedUp: number;
+};
+
+type AbsenceDraft = {
+  childId: string;
+  name: string;
+  reason: string;
+  note: string;
+};
+
+/**
+ * The teacher's day as one scannable roster table: a running number, the child
+ * (with sex), status, the in/out times, who picked the child up and how they're
+ * related, an optional note, and inline check-in / check-out / absent actions.
+ * Status and sex filter live in the toolbar (with the table, not above it), so a
+ * 30-child class is searchable instead of a wall of cards.
+ */
+function TeacherAttendanceTable({
+  records,
+  summary,
+  onCheckIn,
+  onCheckOut,
+  onMarkAbsent,
+  checkInPending,
+  checkOutPending,
+  markAbsentPending,
+  t,
+}: {
+  records: AttendanceRecordSummary[];
+  summary: AttendanceSummary | null;
+  onCheckIn: (childId: string) => void;
+  onCheckOut: (childId: string) => void;
+  onMarkAbsent: (values: {
+    childId: string;
+    reason: string;
+    note?: string;
+  }) => Promise<unknown>;
+  checkInPending: boolean;
+  checkOutPending: boolean;
+  markAbsentPending: boolean;
+  t: TFunction<"attendance">;
+}) {
+  const { t: tApp } = useLayoutTranslation("app");
+  const [absenceDraft, setAbsenceDraft] = useState<AbsenceDraft | null>(null);
+
+  function openAbsence(record: AttendanceRecordSummary) {
+    setAbsenceDraft({
+      childId: record.child.id,
+      name: record.child.name,
+      reason: absenceReasonForForm(record.absenceReason, t),
+      note: record.parentVisibleNote ?? "",
+    });
+  }
+
+  async function submitAbsence() {
+    if (!absenceDraft) return;
+    await onMarkAbsent({
+      childId: absenceDraft.childId,
+      reason: absenceDraft.reason,
+      note: absenceDraft.note,
+    });
+    setAbsenceDraft(null);
+  }
+
+  const columns: ColumnDef<AttendanceRecordSummary>[] = [
+    {
+      id: "index",
+      header: () => (
+        <span className="text-muted-foreground" aria-label={t("table.number")}>
+          #
+        </span>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row, table }) => {
+        const position =
+          table.getSortedRowModel().rows.findIndex((r) => r.id === row.id) + 1;
+        return (
+          <span className="nums tabular-nums text-sm font-semibold text-muted-foreground">
+            {position}
+          </span>
+        );
+      },
+    },
+    {
+      id: "child",
+      accessorFn: (record) => record.child.name,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.child")} />
+      ),
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{row.original.child.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {genderText(row.original.child.gender, t)}
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "gender",
+      accessorFn: (record) => record.child.gender ?? "",
+      filterFn: "equalsString",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.gender")} />
+      ),
+      cell: ({ row }) => genderText(row.original.child.gender, t),
+    },
+    {
+      accessorKey: "status",
+      filterFn: "equalsString",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.status")} />
+      ),
+      cell: ({ row }) => (
+        <Badge variant={statusBadge(row.original.status)}>
+          {t(
+            `status.${row.original.status}`,
+            attendanceStatusLabel(row.original.status),
+          )}
+        </Badge>
+      ),
+      sortingFn: (left, right) =>
+        compareText(
+          attendanceStatusLabel(left.original.status),
+          attendanceStatusLabel(right.original.status),
+        ),
+    },
+    {
+      id: "times",
+      enableSorting: false,
+      header: () => <span>{t("table.times")}</span>,
+      cell: ({ row }) => (
+        <div className="nums flex flex-col gap-0.5 text-xs">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-muted-foreground">{t("table.inShort")}</span>
+            <span className="font-semibold">
+              {row.original.checkedInAt
+                ? formatTime(row.original.checkedInAt)
+                : "—"}
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-muted-foreground">{t("table.outShort")}</span>
+            <span className="font-semibold">
+              {row.original.checkedOutAt
+                ? formatTime(row.original.checkedOutAt)
+                : "—"}
+            </span>
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "pickedUp",
+      enableSorting: false,
+      header: () => <span>{t("table.pickedUp")}</span>,
+      cell: ({ row }) => {
+        const by = row.original.pickedUpBy;
+        const rel = row.original.pickedUpRelationship;
+        if (!by) return <span className="text-muted-foreground">—</span>;
+        return (
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium text-foreground">{by}</span>
+            {rel ? (
+              <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">
+                {tApp(`signup.relationshipOptions.${rel}`, { defaultValue: rel })}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      id: "note",
+      enableSorting: false,
+      header: () => <span>{t("table.note")}</span>,
+      cell: ({ row }) => {
+        const note = row.original.parentVisibleNote ?? row.original.staffNote;
+        const text =
+          note ||
+          (row.original.absenceReason
+            ? translateAbsenceReason(row.original.absenceReason, t)
+            : null);
+        return text ? (
+          <span className="text-xs text-muted-foreground">{text}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      enableHiding: false,
+      header: () => (
+        <span className="block text-right">{t("table.actions")}</span>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title={t("checkIn")}
+            aria-label={t("checkIn")}
+            className="h-8 w-8 text-mint-ink hover:bg-mint/40 hover:text-mint-ink"
+            onClick={() => onCheckIn(row.original.child.id)}
+            disabled={checkInPending}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title={t("checkOut")}
+            aria-label={t("checkOut")}
+            className="h-8 w-8 text-sky-ink hover:bg-sky/40 hover:text-sky-ink"
+            onClick={() => onCheckOut(row.original.child.id)}
+            disabled={checkOutPending}
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            title={t("absent")}
+            aria-label={t("absent")}
+            className="h-8 w-8 text-coral-ink hover:bg-coral/40 hover:text-coral-ink"
+            onClick={() => openAbsence(row.original)}
+            disabled={markAbsentPending}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex flex-col gap-4">
+      {summary && summary.total > 0 ? (
+        <Card>
+          <CardContent className="py-4">
+            <StatusMeter
+              counts={summaryToCounts(summary)}
+              total={summary.total}
+              t={t}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <DataTable
+        columns={columns}
+        data={records}
+        pageSize={60}
+        initialColumnVisibility={{ gender: false, note: false }}
+        emptyMessage={t("noMatchesTitle")}
+        toolbar={(table) => {
+          const statusFilter =
+            (table.getColumn("status")?.getFilterValue() as string) ?? "all";
+          const genderFilter =
+            (table.getColumn("gender")?.getFilterValue() as string) ?? "all";
+          return (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={
+                      (table.getColumn("child")?.getFilterValue() as string) ?? ""
+                    }
+                    onChange={(event) =>
+                      table
+                        .getColumn("child")
+                        ?.setFilterValue(event.target.value)
+                    }
+                    placeholder={t("search")}
+                    className="h-9 w-[200px] pl-8"
+                  />
+                </div>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) =>
+                    table
+                      .getColumn("status")
+                      ?.setFilterValue(value === "all" ? undefined : value)
+                  }
+                >
+                  <SelectTrigger className="h-9 w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allStatuses")}</SelectItem>
+                    {statusOptions.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {t(`status.${item}`, attendanceStatusLabel(item))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={genderFilter}
+                  onValueChange={(value) =>
+                    table
+                      .getColumn("gender")
+                      ?.setFilterValue(value === "all" ? undefined : value)
+                  }
+                >
+                  <SelectTrigger className="h-9 w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("allGenders")}</SelectItem>
+                    <SelectItem value="boy">{t("gender.boy")}</SelectItem>
+                    <SelectItem value="girl">{t("gender.girl")}</SelectItem>
+                    <SelectItem value="prefer_not_to_say">
+                      {t("gender.prefer_not_to_say")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <DataTableViewOptions table={table} />
+            </div>
+          );
+        }}
+      />
+
+      <Dialog
+        open={!!absenceDraft}
+        onOpenChange={(open) => {
+          if (!open) setAbsenceDraft(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t("markAbsentFor", {
+                name: absenceDraft?.name ?? "",
+                defaultValue: t("absent"),
+              })}
+            </DialogTitle>
+          </DialogHeader>
+          {absenceDraft ? (
+            <AbsenceReasonForm
+              reason={absenceDraft.reason}
+              note={absenceDraft.note}
+              submitLabel={t("saveAbsent")}
+              isPending={markAbsentPending}
+              onReasonChange={(reason) =>
+                setAbsenceDraft((current) =>
+                  current ? { ...current, reason } : current,
+                )
+              }
+              onNoteChange={(note) =>
+                setAbsenceDraft((current) =>
+                  current ? { ...current, note } : current,
+                )
+              }
+              onCancel={() => setAbsenceDraft(null)}
+              onSubmit={submitAbsence}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function genderText(
+  gender: string | null | undefined,
+  t: TFunction<"attendance">,
+) {
+  if (gender === "boy") return t("gender.boy");
+  if (gender === "girl") return t("gender.girl");
+  if (gender === "prefer_not_to_say") return t("gender.prefer_not_to_say");
+  return "—";
 }
 
 /** The director's day as a list of collapsible class panels. */
