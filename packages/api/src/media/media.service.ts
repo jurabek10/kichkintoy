@@ -138,14 +138,15 @@ export class MediaService {
       where: { id: mediaAssetId },
     });
     if (!asset) throw new NotFoundException("Media asset not found.");
-    // A user may always read an avatar they uploaded themselves — this lets
-    // any role (including parents, who are not center staff) display their own
-    // profile photo without widening access to other media.
-    const ownsAvatar =
+    // A user may always read a profile photo they uploaded themselves (their
+    // own avatar or a child's photo) — this lets any role, including parents who
+    // are not center staff, display it without widening access to other media.
+    const profilePurpose = objectKeyPurpose(asset.fileUrl);
+    const ownsProfileMedia =
       asset.uploaderUserId === userId &&
-      objectKeyPurpose(asset.fileUrl) === "user_avatar";
+      (profilePurpose === "user_avatar" || profilePurpose === "child_profile");
     if (
-      !ownsAvatar &&
+      !ownsProfileMedia &&
       !(await this.canAccessMedia(userId, mediaAssetId, asset.centerId))
     ) {
       throw new ForbiddenException("You cannot access this media asset.");
@@ -185,7 +186,12 @@ export class MediaService {
       },
     });
     if (!staff) {
-      if (purpose === "medication" || purpose === "student_document") {
+      if (
+        purpose === "medication" ||
+        purpose === "student_document" ||
+        purpose === "user_avatar" ||
+        purpose === "child_profile"
+      ) {
         const guardian = await this.prisma.childGuardian.findFirst({
           where: {
             userId,
