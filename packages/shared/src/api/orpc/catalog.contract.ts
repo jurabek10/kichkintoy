@@ -9,11 +9,17 @@ import {
   centerSearchResponseSchema,
 } from "../centers.js";
 import {
+  childDetailSchema,
   classRosterChildSchema,
   teacherClassesResponseSchema,
+  updateChildRequestSchema,
 } from "../classes.js";
 import { districtsResponseSchema, regionsResponseSchema } from "../geo.js";
-import { centerIdInputSchema, emptyInputSchema } from "./common.contract.js";
+import {
+  centerIdInputSchema,
+  emptyInputSchema,
+  successResponseSchema,
+} from "./common.contract.js";
 
 export const geoContract = {
   regions: oc.input(emptyInputSchema).output(regionsResponseSchema),
@@ -33,4 +39,13 @@ export const teacherContract = {
   classChildren: oc
     .input(z.object({ classId: uuidSchema }))
     .output(z.array(classRosterChildSchema)),
+  // A teacher may open, edit, and remove a child — but only one that is
+  // enrolled in a class she is actively assigned to (enforced in the service).
+  child: oc.input(z.object({ childId: uuidSchema })).output(childDetailSchema),
+  updateChild: oc
+    .input(z.object({ childId: uuidSchema, body: updateChildRequestSchema }))
+    .output(childDetailSchema),
+  deleteChild: oc
+    .input(z.object({ childId: uuidSchema }))
+    .output(successResponseSchema),
 };

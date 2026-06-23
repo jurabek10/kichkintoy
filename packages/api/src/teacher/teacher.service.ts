@@ -47,22 +47,67 @@ export class TeacherService {
             photoUrl: true,
             dob: true,
             gender: true,
+            // The teacher's roster carries the same guardian contact the
+            // director's does, so she can reach a child's parent directly.
+            childGuardians: {
+              orderBy: { createdAt: "asc" },
+              select: {
+                relationship: true,
+                user: { select: { fullName: true, phone: true } },
+              },
+            },
           },
         },
       },
       orderBy: { startedAt: "asc" },
     });
 
-    return enrollments.map((enrollment) => ({
-      childId: enrollment.child.id,
-      name: [enrollment.child.firstName, enrollment.child.lastName]
-        .filter(Boolean)
-        .join(" "),
-      photoUrl: enrollment.child.photoUrl,
-      dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
-      joinedAt: enrollment.startedAt.toISOString().slice(0, 10),
-      gender: normalizeChildGender(enrollment.child.gender),
-    }));
+    return enrollments.map((enrollment) => {
+      // Guardians are ordered oldest-first; prefer the earliest with a phone.
+      const guardians = enrollment.child.childGuardians;
+      const guardian =
+        guardians.find((entry) => entry.user.phone) ?? guardians[0];
+      return {
+        childId: enrollment.child.id,
+        name: [enrollment.child.firstName, enrollment.child.lastName]
+          .filter(Boolean)
+          .join(" "),
+        photoUrl: enrollment.child.photoUrl,
+        dateOfBirth: enrollment.child.dob.toISOString().slice(0, 10),
+        joinedAt: enrollment.startedAt.toISOString().slice(0, 10),
+        gender: normalizeChildGender(enrollment.child.gender),
+        guardianPhone: guardian?.user.phone ?? null,
+        guardianName: guardian?.user.fullName ?? null,
+        guardianRelation: guardian?.relationship ?? null,
+      };
+    });
+  }
+
+  /**
+   * A teacher may act on a child only while that child is actively enrolled in
+   * a class she is actively assigned to. Returns the child's center so the
+   * caller can reuse the director's center-scoped child operations.
+   */
+  async requireChildAccess(teacherUserId: string, childId: string) {
+    const enrollment = await this.prisma.childEnrollment.findFirst({
+      where: {
+        childId,
+        enrollmentStatus: "active",
+        class: {
+          status: "active",
+          teacherClassAssignments: { some: { teacherUserId, endedAt: null } },
+        },
+      },
+      select: { centerId: true },
+    });
+
+    if (!enrollment) {
+      throw new ForbiddenException(
+        "You can only manage children in your own classes.",
+      );
+    }
+
+    return { centerId: enrollment.centerId };
   }
 
   private async requireActiveAssignment(
