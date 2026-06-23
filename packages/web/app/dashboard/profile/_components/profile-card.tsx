@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -29,20 +30,29 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
   const { t: tCommon } = useLayoutTranslation("common");
   const queryClient = useQueryClient();
 
+  const isTeacher = profile.teacher !== null;
   const [fullName, setFullName] = useState(profile.fullName);
   const [username, setUsername] = useState(profile.username ?? "");
   const [email, setEmail] = useState(profile.email ?? "");
+  const [bio, setBio] = useState(profile.teacher?.bio ?? "");
   const [error, setError] = useState<string | null>(null);
   const [phoneOpen, setPhoneOpen] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      orpc.profile.updateProfile({
+    mutationFn: async () => {
+      let next = await orpc.profile.updateProfile({
         fullName,
         username,
         email,
         preferredLanguage: profile.preferredLanguage,
-      }),
+      });
+      if (isTeacher) {
+        next = await orpc.profile.updateTeacherProfile({
+          bio: bio.trim() ? bio.trim() : null,
+        });
+      }
+      return next;
+    },
     onSuccess: (next) => {
       queryClient.setQueryData(queryKeys.profile.me(), next);
       updateStoredUser({ fullName: next.fullName, username: next.username });
@@ -69,10 +79,18 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
 
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{tCommon("roles.director")}</Badge>
+              <Badge variant="secondary">
+                {tCommon(`roles.${profile.role}`)}
+              </Badge>
               {profile.centerName ? (
                 <span className="text-sm text-muted-foreground">
                   {profile.centerName}
+                </span>
+              ) : null}
+              {profile.teacher?.employeeNumber ? (
+                <span className="text-sm text-muted-foreground">
+                  · {t("fields.employeeNumber")}:{" "}
+                  {profile.teacher.employeeNumber}
                 </span>
               ) : null}
             </div>
@@ -128,6 +146,23 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
                 </Button>
               </div>
             </div>
+
+            {isTeacher ? (
+              <div className="space-y-2">
+                <Label htmlFor="bio">{t("fields.bio")}</Label>
+                <Textarea
+                  id="bio"
+                  rows={3}
+                  maxLength={280}
+                  placeholder={t("fields.bioPlaceholder")}
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("fields.bioHint", { count: 280 - bio.length })}
+                </p>
+              </div>
+            ) : null}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

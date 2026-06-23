@@ -11,7 +11,16 @@
     "email": "Эл. почта",
     "emailPlaceholder": "you@example.com",
     "phone": "Номер телефона",
-    "language": "Язык"
+    "language": "Язык",
+    "employeeNumber": "Таб. номер",
+    "bio": "О себе",
+    "bioPlaceholder": "Короткая заметка, которую увидят родители и коллеги.",
+    "bioHint": "Осталось символов: {{count}}"
+  },
+  "classes": {
+    "title": "Мои группы",
+    "subtitle": "Группы, к которым вы прикреплены.",
+    "empty": "Группы пока не назначены."
   },
   "actions": {
     "save": "Сохранить",

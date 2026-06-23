@@ -238,6 +238,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const isParent = session.user.role === "parent";
   const isDirector = session.user.role === "director";
+  // Roles that currently have a "My Page" account screen (parent comes later).
+  const showMyPage = isDirector || session.user.role === "teacher";
 
   return (
     <SidebarProvider
@@ -308,7 +310,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           )}
           <SidebarMenu>
-            {isDirector ? (
+            {showMyPage ? (
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -352,7 +354,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <div className="lg:hidden">
                 <BrandMark href="/dashboard" />
               </div>
-              {isDirector ? (
+              {showMyPage ? (
                 <Link
                   href="/dashboard/profile"
                   className="hidden min-w-0 items-center gap-2.5 rounded-lg px-2 py-1 transition-colors hover:bg-muted lg:flex"
@@ -395,7 +397,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <p className="text-sm font-bold">{session.user.fullName}</p>
                 <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>
-              {isDirector ? (
+              {showMyPage ? (
                 <Link
                   href="/dashboard/profile"
                   aria-label={tNav("items.myPage")}

@@ -11,7 +11,16 @@
     "email": "Email",
     "emailPlaceholder": "siz@example.com",
     "phone": "Telefon raqami",
-    "language": "Til"
+    "language": "Til",
+    "employeeNumber": "Xodim raqami",
+    "bio": "O'zingiz haqingizda",
+    "bioPlaceholder": "Ota-onalar va hamkasblar ko'radigan qisqa ma'lumot.",
+    "bioHint": "{{count}} ta belgi qoldi"
+  },
+  "classes": {
+    "title": "Mening sinflarim",
+    "subtitle": "Siz biriktirilgan sinflar.",
+    "empty": "Hali sinf biriktirilmagan."
   },
   "actions": {
     "save": "Saqlash",

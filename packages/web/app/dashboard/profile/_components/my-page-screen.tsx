@@ -7,6 +7,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { MyClassesCard } from "./my-classes-card";
 import { NotificationsCard } from "./notifications-card";
 import { ProfileCard } from "./profile-card";
 import { SecurityCard } from "./security-card";
@@ -41,6 +42,7 @@ export function MyPageScreen() {
       ) : (
         <div className="space-y-6">
           <ProfileCard profile={profile} />
+          {profile.teacher ? <MyClassesCard /> : null}
           <SecurityCard />
           <NotificationsCard profile={profile} />
         </div>

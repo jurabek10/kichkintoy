@@ -11,7 +11,16 @@
     "email": "Email",
     "emailPlaceholder": "you@example.com",
     "phone": "Phone number",
-    "language": "Language"
+    "language": "Language",
+    "employeeNumber": "Employee no.",
+    "bio": "About you",
+    "bioPlaceholder": "A short note parents and colleagues can see.",
+    "bioHint": "{{count}} characters left"
+  },
+  "classes": {
+    "title": "My classes",
+    "subtitle": "The classes you're assigned to.",
+    "empty": "No classes assigned yet."
   },
   "actions": {
     "save": "Save changes",
