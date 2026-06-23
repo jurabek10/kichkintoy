@@ -27,6 +27,7 @@ export class TeacherService {
       name: assignment.class.name,
       ageGroup: assignment.class.ageGroup,
       academicYear: assignment.class.academicYear,
+      maxChildren: assignment.class.maxChildren,
       assignmentRole: assignment.assignmentRole,
       childCount: assignment.class._count.childEnrollments,
     }));
