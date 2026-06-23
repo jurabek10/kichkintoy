@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { DirectorChildDetail } from "./DirectorChildDetail";
+import { ChildDetailScreen } from "./child-detail-screen";
 
 export default function ChildProfilePage() {
   const params = useParams<{ childId: string }>();
-  return <DirectorChildDetail childId={params.childId} />;
+  return <ChildDetailScreen childId={params.childId} />;
 }

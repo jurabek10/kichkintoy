@@ -1,36 +1,92 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
-import type { TFunction } from "i18next";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, School } from "lucide-react";
+import { toast } from "sonner";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { ClassRosterChild } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { KidsLoader } from "@/components/kids-loader";
+import { DataTable } from "@/components/ui/data-table";
+import { PageHeading } from "@/components/page-heading";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { formatDate, genderLabel } from "@/lib/format";
+import { buildChildColumns, ChildrenTableToolbar } from "./child-columns";
 
 export function TeacherClassDetail({ classId }: { classId: string }) {
   const { t } = useLayoutTranslation("classes");
+  const { t: tApp } = useLayoutTranslation("app");
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [childToDelete, setChildToDelete] = useState<{
+    childId: string;
+    name: string;
+  } | null>(null);
+
+  const childrenKey = queryKeys.teacher.classChildren(classId);
+
+  // The class header reuses the cached class list — no extra round-trip for the
+  // name/age-group the teacher just tapped through from.
+  const { data: classes = [] } = useQuery({
+    queryKey: queryKeys.teacher.classes(),
+    queryFn: () => orpc.teacher.classes(),
+  });
+  const klass = classes.find((item) => item.id === classId) ?? null;
 
   const {
     data: children = [],
     isPending: loading,
     error: queryError,
   } = useQuery({
-    queryKey: queryKeys.teacher.classChildren(classId),
+    queryKey: childrenKey,
     queryFn: () => orpc.teacher.classChildren({ classId }),
   });
 
-  const error = queryError ? toApiError(queryError).message : null;
+  const deleteChildMutation = useMutation({
+    mutationFn: (childId: string) => orpc.teacher.deleteChild({ childId }),
+    onSuccess: async () => {
+      toast.success(t("childDetail.childRemoved"));
+      setChildToDelete(null);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: childrenKey }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.teacher.classes(),
+        }),
+      ]);
+    },
+    onError: (err) => setActionError(toApiError(err).message),
+  });
+
+  const childColumns = useMemo<ColumnDef<ClassRosterChild>[]>(
+    () =>
+      buildChildColumns({
+        t,
+        tApp,
+        onDelete: setChildToDelete,
+        showJoined: false,
+      }),
+    [t, tApp],
+  );
+
+  const meta =
+    [klass?.ageGroup, klass?.academicYear].filter(Boolean).join(" · ") ||
+    t("childrenTitle", { count: children.length });
+  const error =
+    actionError ?? (queryError ? toApiError(queryError).message : null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -44,63 +100,82 @@ export function TeacherClassDetail({ classId }: { classId: string }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">
+          <PageHeading
+            Icon={School}
+            tone="mint"
+            title={klass?.name ?? t("childrenTitle", { count: children.length })}
+            description={meta}
+          />
+        </CardHeader>
+      </Card>
+
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <h3 className="text-base font-bold text-foreground">
             {t("childrenTitle", { count: children.length })}
-          </CardTitle>
+          </h3>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : loading ? (
+          {loading ? (
             <KidsLoader label={t("loading")} size="sm" />
-          ) : children.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("noChildrenInClass")}
-            </p>
           ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {children.map((child) => (
-                <li
-                  key={child.childId}
-                  className="flex items-center gap-3 rounded-xl border p-3"
-                >
-                  <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-muted text-sm font-bold text-muted-foreground">
-                    {child.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={child.photoUrl}
-                        alt={child.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      child.name.slice(0, 1).toUpperCase()
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{child.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {translatedGender(child.gender, t)} ·{" "}
-                      {formatDate(child.dateOfBirth)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <DataTable
+              columns={childColumns}
+              data={children}
+              emptyMessage={t("noChildrenInClass")}
+              initialColumnVisibility={{ gender: false }}
+              toolbar={(table) => (
+                <ChildrenTableToolbar table={table} t={t} />
+              )}
+            />
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={!!childToDelete}
+        onOpenChange={(open) => {
+          if (!open) setChildToDelete(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("childDetail.deleteTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("childDetail.deleteBody", { name: childToDelete?.name ?? "" })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setChildToDelete(null)}
+            >
+              {tApp("actions.cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteChildMutation.isPending}
+              onClick={() => {
+                if (childToDelete) {
+                  deleteChildMutation.mutate(childToDelete.childId);
+                }
+              }}
+            >
+              {deleteChildMutation.isPending
+                ? t("childDetail.deleting")
+                : t("childDetail.deleteConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
-
-function translatedGender(
-  value: string | null | undefined,
-  t: TFunction<"classes">,
-) {
-  if (value === "boy") return t("gender.boy");
-  if (value === "girl") return t("gender.girl");
-  if (value === "prefer_not_to_say") return t("gender.prefer_not_to_say");
-  return genderLabel(value);
 }

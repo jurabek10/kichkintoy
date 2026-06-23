@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Eye, Pencil, Plus, Trash2, UserMinus } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, UserMinus } from "lucide-react";
 import { toast } from "sonner";
-import type { TFunction } from "i18next";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ClassRosterChild } from "@kichkintoy/shared";
 import { queryKeys } from "@/lib/query-keys";
@@ -21,8 +20,6 @@ import {
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
 import { DataTable } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
-import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import {
   Dialog,
   DialogContent,
@@ -43,11 +40,8 @@ import {
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import {
-  assignmentRoleLabel,
-  formatDateNumeric,
-  genderLabel,
-} from "@/lib/format";
+import { assignmentRoleLabel } from "@/lib/format";
+import { buildChildColumns, ChildrenTableToolbar } from "./child-columns";
 
 const CAPACITY_OPTIONS = [5, 10, 15, 20, 25, 30, 35] as const;
 
@@ -204,152 +198,7 @@ export function DirectorClassDetail({
   const error =
     actionError ?? (detailError ? toApiError(detailError).message : null);
   const childColumns = useMemo<ColumnDef<ClassRosterChild>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t("childrenTable.name")}
-          />
-        ),
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-3">
-            <ChildAvatar
-              name={row.original.name}
-              photoUrl={row.original.photoUrl}
-            />
-            <div className="min-w-0">
-              <p className="truncate font-semibold">{row.original.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {translatedGender(row.original.gender, t)}
-              </p>
-            </div>
-          </div>
-        ),
-      },
-      {
-        id: "phone",
-        accessorFn: (child) => child.guardianPhone ?? "",
-        enableSorting: false,
-        header: t("childrenTable.parent"),
-        cell: ({ row }) => {
-          const { guardianPhone, guardianName, guardianRelation } = row.original;
-          const relationLabel = guardianRelation
-            ? tApp(`signup.relationshipOptions.${guardianRelation}`, {
-                defaultValue: guardianRelation,
-              })
-            : null;
-          return (
-            <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate font-semibold text-foreground">
-                  {guardianName ?? "—"}
-                </span>
-                {relationLabel ? (
-                  <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-foreground">
-                    {relationLabel}
-                  </span>
-                ) : null}
-              </div>
-              {guardianPhone ? (
-                <a
-                  href={`tel:${guardianPhone}`}
-                  dir="ltr"
-                  className="nums mt-0.5 block w-fit text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
-                >
-                  {guardianPhone}
-                </a>
-              ) : (
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  {t("childrenTable.noPhone")}
-                </span>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "dateOfBirth",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t("childrenTable.birthday")}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="nums tabular-nums text-muted-foreground">
-            {formatDateNumeric(row.original.dateOfBirth)}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "joinedAt",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t("childrenTable.joined")}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="nums tabular-nums text-muted-foreground">
-            {formatDateNumeric(row.original.joinedAt)}
-          </span>
-        ),
-      },
-      {
-        id: "paymentStatus",
-        accessorFn: () => t("childrenTable.paymentComingSoon"),
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t("childrenTable.payment")}
-          />
-        ),
-        cell: () => (
-          <Badge variant="outline">{t("childrenTable.paymentComingSoon")}</Badge>
-        ),
-      },
-      {
-        id: "actions",
-        header: () => (
-          <span className="block text-right">{t("childrenTable.actions")}</span>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1">
-            <Button
-              asChild
-              size="sm"
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Link href={`/dashboard/children/${row.original.childId}`}>
-                <Eye className="h-4 w-4" />
-                {t("childrenTable.viewProfile")}
-              </Link>
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              aria-label={t("childDetail.delete")}
-              title={t("childDetail.delete")}
-              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              onClick={() =>
-                setChildToDelete({
-                  childId: row.original.childId,
-                  name: row.original.name,
-                })
-              }
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
+    () => buildChildColumns({ t, tApp, onDelete: setChildToDelete }),
     [t, tApp],
   );
 
@@ -529,21 +378,8 @@ export function DirectorClassDetail({
             columns={childColumns}
             data={detail.children}
             emptyMessage={t("noChildrenEnrolled")}
-            toolbar={(table) => (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <Input
-                  value={
-                    (table.getColumn("name")?.getFilterValue() as string) ?? ""
-                  }
-                  onChange={(event) =>
-                    table.getColumn("name")?.setFilterValue(event.target.value)
-                  }
-                  placeholder={t("childrenTable.search")}
-                  className="h-9 sm:w-[260px]"
-                />
-                <DataTableViewOptions table={table} />
-              </div>
-            )}
+            initialColumnVisibility={{ gender: false }}
+            toolbar={(table) => <ChildrenTableToolbar table={table} t={t} />}
           />
         </CardContent>
       </Card>
@@ -707,31 +543,3 @@ export function DirectorClassDetail({
   );
 }
 
-function ChildAvatar({
-  name,
-  photoUrl,
-}: {
-  name: string;
-  photoUrl: string | null;
-}) {
-  return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-accent text-xs font-bold text-accent-foreground">
-      {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
-      ) : (
-        name.slice(0, 1).toUpperCase()
-      )}
-    </span>
-  );
-}
-
-function translatedGender(
-  value: string | null | undefined,
-  t: TFunction<"classes">,
-) {
-  if (value === "boy") return t("gender.boy");
-  if (value === "girl") return t("gender.girl");
-  if (value === "prefer_not_to_say") return t("gender.prefer_not_to_say");
-  return genderLabel(value);
-}

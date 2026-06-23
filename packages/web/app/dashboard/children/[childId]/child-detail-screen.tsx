@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { KidsLoader } from "@/components/kids-loader";
+import { ChildAvatar } from "@/components/child-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { formatDateNumeric } from "@/lib/format";
@@ -54,7 +55,7 @@ import { cn } from "@/lib/utils";
 
 const GENDER_UNSET = "unset";
 
-export function DirectorChildDetail({ childId }: { childId: string }) {
+export function ChildDetailScreen({ childId }: { childId: string }) {
   const { t } = useLayoutTranslation("classes");
   const { t: tApp } = useLayoutTranslation("app");
   const { session } = useSession();
@@ -62,7 +63,11 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
   const queryClient = useQueryClient();
 
   const centerId = session?.membership.centerId ?? null;
-  const canManage = session?.user.role === "director";
+  // Both the director and a teacher (scoped to her own classes, enforced
+  // server-side) can open, edit, and remove a child. The teacher path uses the
+  // class-scoped `teacher.*` endpoints, which need no centerId.
+  const isTeacher = session?.user.role === "teacher";
+  const canManage = session?.user.role === "director" || isTeacher;
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -75,7 +80,9 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
   const [allergies, setAllergies] = useState("");
   const [medicalNotes, setMedicalNotes] = useState("");
 
-  const detailKey = queryKeys.director.childDetail(centerId ?? "", childId);
+  const detailKey = isTeacher
+    ? queryKeys.teacher.childDetail(childId)
+    : queryKeys.director.childDetail(centerId ?? "", childId);
 
   const {
     data: child = null,
@@ -83,24 +90,27 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
     error,
   } = useQuery({
     queryKey: detailKey,
-    queryFn: () => orpc.director.child({ centerId: centerId!, childId }),
-    enabled: !!centerId,
+    queryFn: () =>
+      isTeacher
+        ? orpc.teacher.child({ childId })
+        : orpc.director.child({ centerId: centerId!, childId }),
+    enabled: isTeacher || !!centerId,
   });
 
   const updateMutation = useMutation({
-    mutationFn: () =>
-      orpc.director.updateChild({
-        centerId: centerId!,
-        childId,
-        body: {
-          firstName: firstName.trim(),
-          lastName: lastName.trim() || null,
-          dateOfBirth,
-          gender: gender === GENDER_UNSET ? null : (gender as ChildGenderValue),
-          allergies: allergies.trim() || null,
-          medicalNotes: medicalNotes.trim() || null,
-        },
-      }),
+    mutationFn: () => {
+      const body = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || null,
+        dateOfBirth,
+        gender: gender === GENDER_UNSET ? null : (gender as ChildGenderValue),
+        allergies: allergies.trim() || null,
+        medicalNotes: medicalNotes.trim() || null,
+      };
+      return isTeacher
+        ? orpc.teacher.updateChild({ childId, body })
+        : orpc.director.updateChild({ centerId: centerId!, childId, body });
+    },
     onSuccess: async () => {
       toast.success(t("childDetail.childUpdated"));
       setEditOpen(false);
@@ -111,15 +121,17 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
 
   const deleteMutation = useMutation({
     mutationFn: () =>
-      orpc.director.deleteChild({ centerId: centerId!, childId }),
+      isTeacher
+        ? orpc.teacher.deleteChild({ childId })
+        : orpc.director.deleteChild({ centerId: centerId!, childId }),
     onSuccess: async () => {
       toast.success(t("childDetail.childRemoved"));
       setDeleteOpen(false);
-      if (centerId) {
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.director.classes(centerId),
-        });
-      }
+      await queryClient.invalidateQueries({
+        queryKey: isTeacher
+          ? queryKeys.teacher.classes()
+          : queryKeys.director.classes(centerId ?? ""),
+      });
       router.push("/dashboard/classes");
     },
     onError: (err) => setFormError(toApiError(err).message),
@@ -139,12 +151,12 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
 
   function submitEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!centerId) return;
+    if (!isTeacher && !centerId) return;
     if (!firstName.trim() || !dateOfBirth) return;
     updateMutation.mutate();
   }
 
-  if (!centerId) {
+  if (!isTeacher && !centerId) {
     return (
       <Alert variant="warning">
         <AlertDescription>{t("noCenter")}</AlertDescription>
@@ -193,7 +205,11 @@ export function DirectorChildDetail({ childId }: { childId: string }) {
       <Card>
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="flex min-w-0 items-center gap-4">
-            <ChildAvatar name={child.name} photoUrl={child.photoUrl} />
+            <ChildAvatar
+              name={child.name}
+              photoUrl={child.photoUrl}
+              className="h-16 w-16 rounded-2xl text-xl"
+            />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="truncate text-xl font-bold tracking-tight">
@@ -537,25 +553,6 @@ function Field({
       </dt>
       <dd className="mt-1 text-sm font-medium text-foreground">{children}</dd>
     </div>
-  );
-}
-
-function ChildAvatar({
-  name,
-  photoUrl,
-}: {
-  name: string;
-  photoUrl: string | null;
-}) {
-  return (
-    <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent text-xl font-bold text-accent-foreground">
-      {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
-      ) : (
-        name.slice(0, 1).toUpperCase()
-      )}
-    </span>
   );
 }
 
