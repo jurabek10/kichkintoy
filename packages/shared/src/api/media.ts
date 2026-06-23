@@ -9,6 +9,7 @@ export const mediaPurposeValues = [
   "notice",
   "child_profile",
   "student_document",
+  "user_avatar",
 ] as const;
 export const mediaPurposeSchema = z.enum(mediaPurposeValues);
 export type MediaPurpose = z.infer<typeof mediaPurposeSchema>;
