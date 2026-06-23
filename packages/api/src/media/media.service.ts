@@ -435,6 +435,34 @@ export class MediaService {
       return false;
     }
 
+    // A child's profile photo isn't tied to a post — the asset id is stored on
+    // the child row. Staff assigned to a class the child is actively enrolled
+    // in (and the child's guardians) may view it. Directors already returned
+    // true above.
+    const profileChild = await this.prisma.child.findFirst({
+      where: { photoUrl: mediaAssetId },
+      include: {
+        childEnrollments: {
+          where: { enrollmentStatus: "active" },
+          select: { classId: true },
+        },
+      },
+    });
+    if (profileChild) {
+      const classIds = profileChild.childEnrollments
+        .map((enrollment) => enrollment.classId)
+        .filter((id): id is string => Boolean(id));
+      if (staff && (await this.teacherHasClassAccess(userId, classIds))) {
+        return true;
+      }
+      return Boolean(
+        await this.prisma.childGuardian.findFirst({
+          where: { userId, childId: profileChild.id },
+          select: { id: true },
+        }),
+      );
+    }
+
     return false;
   }
 
