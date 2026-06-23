@@ -22,6 +22,27 @@
     "subtitle": "The classes you're assigned to.",
     "empty": "No classes assigned yet."
   },
+  "children": {
+    "title": "My children",
+    "subtitle": "Keep your children's details up to date.",
+    "loading": "Loading children…",
+    "empty": "No children linked yet.",
+    "edit": "Edit",
+    "editHint": "Update your child's details and photo.",
+    "managedByCenter": "Managed by your center",
+    "age": "{{count}} yrs"
+  },
+  "child": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "birthDate": "Birth date",
+    "gender": "Gender",
+    "boy": "Boy",
+    "girl": "Girl",
+    "allergies": "Allergies",
+    "medicalNotes": "Medical notes",
+    "photo": "Change photo"
+  },
   "actions": {
     "save": "Save changes",
     "cancel": "Cancel",
@@ -73,7 +94,10 @@
     "passwordChanged": "Password changed.",
     "avatarUpdated": "Photo updated.",
     "avatarRemoved": "Photo removed.",
-    "notificationsSaved": "Notification settings saved."
+    "notificationsSaved": "Notification settings saved.",
+    "childSaved": "Child updated.",
+    "childPhotoUpdated": "Photo updated.",
+    "childPhotoRemoved": "Photo removed."
   },
   "errors": {
     "uploadFailed": "Could not upload the photo. Please try again."

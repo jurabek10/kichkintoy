@@ -22,6 +22,27 @@
     "subtitle": "Siz biriktirilgan sinflar.",
     "empty": "Hali sinf biriktirilmagan."
   },
+  "children": {
+    "title": "Farzandlarim",
+    "subtitle": "Farzandlaringiz ma'lumotlarini yangilab turing.",
+    "loading": "Farzandlar yuklanmoqda…",
+    "empty": "Hali farzand bog'lanmagan.",
+    "edit": "Tahrirlash",
+    "editHint": "Farzandingiz ma'lumotlari va rasmini yangilang.",
+    "managedByCenter": "Markaz tomonidan boshqariladi",
+    "age": "{{count}} yosh"
+  },
+  "child": {
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "birthDate": "Tug'ilgan sana",
+    "gender": "Jinsi",
+    "boy": "O'g'il",
+    "girl": "Qiz",
+    "allergies": "Allergiya",
+    "medicalNotes": "Tibbiy eslatmalar",
+    "photo": "Rasmni o'zgartirish"
+  },
   "actions": {
     "save": "Saqlash",
     "cancel": "Bekor qilish",
@@ -73,7 +94,10 @@
     "passwordChanged": "Parol o'zgartirildi.",
     "avatarUpdated": "Rasm yangilandi.",
     "avatarRemoved": "Rasm o'chirildi.",
-    "notificationsSaved": "Bildirishnoma sozlamalari saqlandi."
+    "notificationsSaved": "Bildirishnoma sozlamalari saqlandi.",
+    "childSaved": "Farzand ma'lumotlari yangilandi.",
+    "childPhotoUpdated": "Rasm yangilandi.",
+    "childPhotoRemoved": "Rasm o'chirildi."
   },
   "errors": {
     "uploadFailed": "Rasmni yuklab bo'lmadi. Qayta urinib ko'ring."
