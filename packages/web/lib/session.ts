@@ -71,6 +71,22 @@ export function useSession(): {
   return { session, loading };
 }
 
+/**
+ * Patch the locally stored user (e.g. after editing the profile) so the
+ * dashboard header reflects the change without a full re-login.
+ */
+export function updateStoredUser(patch: Partial<StoredSession["user"]>) {
+  if (typeof window === "undefined") return;
+  const stored = readSession();
+  if (!stored) return;
+  const next: StoredSession = {
+    ...stored,
+    user: { ...stored.user, ...patch },
+  };
+  window.localStorage.setItem(sessionStorageKey, JSON.stringify(next));
+  window.dispatchEvent(new Event("kichkintoy:session"));
+}
+
 export async function logoutAndClear(token: string | null) {
   if (token) {
     try {

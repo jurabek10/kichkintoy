@@ -55,6 +55,7 @@ const layoutNamespaces = [
   "medications",
   "pickups",
   "teachers",
+  "profile",
 ];
 
 export default async function RootLayout({

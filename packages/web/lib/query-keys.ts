@@ -136,6 +136,9 @@ export const queryKeys = {
       ["notifications", "list", input ?? {}] as const,
     unreadCount: () => ["notifications", "unread-count"] as const,
   },
+  profile: {
+    me: () => ["profile", "me"] as const,
+  },
   parent: {
     children: () => ["parent", "children"] as const,
     childReports: (childId: string) =>
