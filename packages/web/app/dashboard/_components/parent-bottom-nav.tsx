@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { Bell, CalendarCheck, FileText, Home, Images } from "lucide-react";
+import {
+  Bell,
+  CalendarCheck,
+  FileText,
+  Home,
+  Images,
+  UserCircle,
+} from "lucide-react";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +24,7 @@ const ITEMS: Array<{ href: string; labelKey: string; Icon: LucideIcon }> = [
   { href: "/dashboard/albums", labelKey: "items.albums", Icon: Images },
   { href: "/dashboard/notices", labelKey: "items.notices", Icon: Bell },
   { href: "/dashboard/pickups", labelKey: "items.pickups", Icon: CalendarCheck },
+  { href: "/dashboard/profile", labelKey: "items.myPage", Icon: UserCircle },
 ];
 
 export function ParentBottomNav() {

@@ -31,6 +31,7 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
   const queryClient = useQueryClient();
 
   const isTeacher = profile.teacher !== null;
+  const isParent = profile.role === "parent";
   const [fullName, setFullName] = useState(profile.fullName);
   const [username, setUsername] = useState(profile.username ?? "");
   const [email, setEmail] = useState(profile.email ?? "");
@@ -75,7 +76,9 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <AvatarUploader profile={profile} />
+          {/* Parents don't have their own photo — their child's photo is the
+              hero of the page. Directors and teachers keep a profile avatar. */}
+          {isParent ? null : <AvatarUploader profile={profile} />}
 
           <div className="min-w-0 flex-1 space-y-4">
             <div className="flex flex-wrap items-center gap-2">

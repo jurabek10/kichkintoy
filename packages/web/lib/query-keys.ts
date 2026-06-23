@@ -138,6 +138,7 @@ export const queryKeys = {
   },
   profile: {
     me: () => ["profile", "me"] as const,
+    children: () => ["profile", "children"] as const,
   },
   parent: {
     children: () => ["parent", "children"] as const,

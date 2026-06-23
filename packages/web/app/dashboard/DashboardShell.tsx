@@ -238,8 +238,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const isParent = session.user.role === "parent";
   const isDirector = session.user.role === "director";
-  // Roles that currently have a "My Page" account screen (parent comes later).
-  const showMyPage = isDirector || session.user.role === "teacher";
+  // All roles now have a "My Page" account screen.
+  const showMyPage = true;
 
   return (
     <SidebarProvider
