@@ -1,0 +1,72 @@
+{
+  "title": "My Page",
+  "subtitle": "Manage your account, sign-in details, and notifications.",
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Your photo and contact details."
+  },
+  "fields": {
+    "fullName": "Full name",
+    "username": "Username",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "phone": "Phone number",
+    "language": "Language"
+  },
+  "actions": {
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove",
+    "changePhone": "Change",
+    "changePassword": "Change password"
+  },
+  "security": {
+    "title": "Account & security",
+    "subtitle": "Update the password you sign in with.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "requirement": "Use at least 8 characters, including a letter and a number.",
+    "mismatch": "The new passwords do not match."
+  },
+  "preferences": {
+    "title": "Preferences",
+    "subtitle": "Choose the language for your dashboard."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Decide how you want to be reached.",
+    "push": "Push notifications",
+    "pushHint": "Alerts on your devices.",
+    "sms": "SMS notifications",
+    "smsHint": "Text messages for important updates.",
+    "quietHours": "Quiet hours",
+    "quietHoursHint": "Pause notifications during these hours.",
+    "from": "From",
+    "to": "To"
+  },
+  "phoneDialog": {
+    "title": "Change phone number",
+    "description": "We'll send a code to your new number to verify it.",
+    "newPhone": "New phone number",
+    "sendCode": "Send code",
+    "code": "Verification code",
+    "verify": "Verify and save",
+    "resend": "Resend code",
+    "codeSent": "We sent a verification code to your phone.",
+    "debugCode": "Test code: {{code}}",
+    "changed": "Phone number updated."
+  },
+  "toasts": {
+    "profileSaved": "Profile updated.",
+    "languageSaved": "Language updated.",
+    "passwordChanged": "Password changed.",
+    "avatarUpdated": "Photo updated.",
+    "avatarRemoved": "Photo removed.",
+    "notificationsSaved": "Notification settings saved."
+  },
+  "errors": {
+    "uploadFailed": "Could not upload the photo. Please try again."
+  }
+}

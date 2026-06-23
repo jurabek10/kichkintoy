@@ -1,0 +1,72 @@
+{
+  "title": "Mening sahifam",
+  "subtitle": "Hisobingiz, kirish ma'lumotlari va bildirishnomalarni boshqaring.",
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Rasmingiz va aloqa ma'lumotlaringiz."
+  },
+  "fields": {
+    "fullName": "To'liq ism",
+    "username": "Foydalanuvchi nomi",
+    "email": "Email",
+    "emailPlaceholder": "siz@example.com",
+    "phone": "Telefon raqami",
+    "language": "Til"
+  },
+  "actions": {
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "changePhoto": "Rasmni o'zgartirish",
+    "removePhoto": "O'chirish",
+    "changePhone": "O'zgartirish",
+    "changePassword": "Parolni o'zgartirish"
+  },
+  "security": {
+    "title": "Hisob va xavfsizlik",
+    "subtitle": "Kirish uchun ishlatadigan parolingizni yangilang.",
+    "currentPassword": "Joriy parol",
+    "newPassword": "Yangi parol",
+    "confirmPassword": "Yangi parolni tasdiqlang",
+    "requirement": "Kamida 8 ta belgi, harf va raqam ishlating.",
+    "mismatch": "Yangi parollar mos kelmadi."
+  },
+  "preferences": {
+    "title": "Sozlamalar",
+    "subtitle": "Boshqaruv paneli tilini tanlang."
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "subtitle": "Siz bilan qanday bog'lanishni tanlang.",
+    "push": "Push bildirishnomalar",
+    "pushHint": "Qurilmalaringizdagi ogohlantirishlar.",
+    "sms": "SMS bildirishnomalar",
+    "smsHint": "Muhim yangiliklar uchun SMS.",
+    "quietHours": "Tinch soatlar",
+    "quietHoursHint": "Shu soatlarda bildirishnomalar to'xtatiladi.",
+    "from": "Dan",
+    "to": "Gacha"
+  },
+  "phoneDialog": {
+    "title": "Telefon raqamini o'zgartirish",
+    "description": "Yangi raqamingizni tasdiqlash uchun kod yuboramiz.",
+    "newPhone": "Yangi telefon raqami",
+    "sendCode": "Kod yuborish",
+    "code": "Tasdiqlash kodi",
+    "verify": "Tasdiqlash va saqlash",
+    "resend": "Kodni qayta yuborish",
+    "codeSent": "Telefoningizga tasdiqlash kodi yuborildi.",
+    "debugCode": "Test kodi: {{code}}",
+    "changed": "Telefon raqami yangilandi."
+  },
+  "toasts": {
+    "profileSaved": "Profil yangilandi.",
+    "languageSaved": "Til yangilandi.",
+    "passwordChanged": "Parol o'zgartirildi.",
+    "avatarUpdated": "Rasm yangilandi.",
+    "avatarRemoved": "Rasm o'chirildi.",
+    "notificationsSaved": "Bildirishnoma sozlamalari saqlandi."
+  },
+  "errors": {
+    "uploadFailed": "Rasmni yuklab bo'lmadi. Qayta urinib ko'ring."
+  }
+}
