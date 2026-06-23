@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeading } from "@/components/page-heading";
 import {
   Select,
   SelectContent,
@@ -45,10 +46,7 @@ export function TeacherDocuments({ centerId }: { centerId: string | null }) {
     <div className="grid gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <ShieldCheck className="h-5 w-5" />
-            {t("teacherTitle")}
-          </CardTitle>
+          <PageHeading Icon={ShieldCheck} tone="sky" title={t("teacherTitle")} />
         </CardHeader>
         <CardContent>
           <Select value={childId} onValueChange={setChildId}>

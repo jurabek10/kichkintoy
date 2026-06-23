@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Users } from "lucide-react";
+import { BookOpen, CheckCircle2, Users } from "lucide-react";
 import type { TFunction } from "i18next";
 import type {
   ClassListItem,
@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
+import { PageHeading } from "@/components/page-heading";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -75,10 +76,12 @@ export function StaffReports({
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-xl">{t("title")}</CardTitle>
-            <CardDescription>{t("staffDescription")}</CardDescription>
-          </div>
+          <PageHeading
+            Icon={BookOpen}
+            tone="coral"
+            title={t("title")}
+            description={t("staffDescription")}
+          />
           <div className="flex items-center gap-2">
             <DatePicker
               value={date}

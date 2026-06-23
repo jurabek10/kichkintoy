@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, X } from "lucide-react";
+import { CalendarDays, Plus, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
+import { PageHeading } from "@/components/page-heading";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -65,10 +66,12 @@ export function StaffCalendar({
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-xl">{t("title")}</CardTitle>
-            <CardDescription>{t("staffDescription")}</CardDescription>
-          </div>
+          <PageHeading
+            Icon={CalendarDays}
+            tone="grape"
+            title={t("title")}
+            description={t("staffDescription")}
+          />
           <div className="flex flex-wrap items-center gap-2">
             <MonthPicker
               value={month}

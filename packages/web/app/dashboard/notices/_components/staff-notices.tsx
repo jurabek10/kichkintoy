@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
+import { PageHeading } from "@/components/page-heading";
 import { toApiError } from "@/lib/api/errors";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
@@ -67,10 +68,12 @@ export function StaffNotices({
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="text-xl">{t("title")}</CardTitle>
-            <CardDescription>{t("staffDescription")}</CardDescription>
-          </div>
+          <PageHeading
+            Icon={Bell}
+            tone="sky"
+            title={t("title")}
+            description={t("staffDescription")}
+          />
           <Button asChild>
             <Link href="/dashboard/notices/new">
               <Plus className="h-4 w-4" />

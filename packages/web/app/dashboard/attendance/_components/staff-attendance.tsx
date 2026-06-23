@@ -16,15 +16,10 @@ import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LoadingCard } from "@/components/loading-card";
+import { PageHeading } from "@/components/page-heading";
 import { formatTime } from "@/lib/date";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
@@ -171,12 +166,14 @@ export function StaffAttendance({
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <CardTitle className="text-xl">{t("title")}</CardTitle>
-            <CardDescription>
-              {directorView ? t("directorDescription") : t("staffDescription")}
-            </CardDescription>
-          </div>
+          <PageHeading
+            Icon={ClipboardCheck}
+            tone="mint"
+            title={t("title")}
+            description={
+              directorView ? t("directorDescription") : t("staffDescription")
+            }
+          />
           <div className="flex flex-wrap items-center gap-2">
             <DatePicker
               value={date}

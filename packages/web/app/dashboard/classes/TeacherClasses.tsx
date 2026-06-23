@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
+import { PageHeading } from "@/components/page-heading";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { queryKeys } from "@/lib/query-keys";
 import { assignmentRoleLabel } from "@/lib/format";
@@ -40,8 +41,12 @@ export function TeacherClasses() {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">{t("myTitle")}</CardTitle>
-          <CardDescription>{t("myDescription")}</CardDescription>
+          <PageHeading
+            Icon={School}
+            tone="mint"
+            title={t("myTitle")}
+            description={t("myDescription")}
+          />
         </CardHeader>
       </Card>
 

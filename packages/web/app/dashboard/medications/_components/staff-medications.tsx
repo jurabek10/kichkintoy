@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
+import { PageHeading } from "@/components/page-heading";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
@@ -105,8 +106,12 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
     <div className="flex flex-col gap-5">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">{t("title")}</CardTitle>
-          <CardDescription>{t("staffDescription")}</CardDescription>
+          <PageHeading
+            Icon={Pill}
+            tone="coral"
+            title={t("title")}
+            description={t("staffDescription")}
+          />
         </CardHeader>
       </Card>
 
