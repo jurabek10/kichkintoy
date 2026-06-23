@@ -8,6 +8,11 @@
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
   "todaySection": "Bugun",
   "thisMonth": "Shu oy",
+  "records": "Yozuvlar",
+  "view": {
+    "day": "Kun",
+    "month": "Oy"
+  },
   "noToday": "Bugunga olib ketish yo'q.",
   "table": {
     "child": "Bola",
@@ -17,10 +22,12 @@
     "date": "Sana",
     "status": "Holat",
     "search": "Bolani qidirish…",
-    "empty": "Bu oyda olib ketish yo'q."
+    "empty": "Bu oyda olib ketish yo'q.",
+    "open": "Ochish"
   },
   "filters": {
-    "all": "Barcha holatlar"
+    "all": "Barcha holatlar",
+    "allClasses": "Barcha sinflar"
   },
   "status": {
     "submitted": "Yuborilgan",

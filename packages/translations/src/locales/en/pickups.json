@@ -8,6 +8,11 @@
   "noCenter": "Your account is not linked to a center yet.",
   "todaySection": "Today",
   "thisMonth": "This month",
+  "records": "Records",
+  "view": {
+    "day": "Day",
+    "month": "Month"
+  },
   "noToday": "No pickups for today.",
   "table": {
     "child": "Child",
@@ -17,10 +22,12 @@
     "date": "Date",
     "status": "Status",
     "search": "Search child…",
-    "empty": "No pickups this month."
+    "empty": "No pickups this month.",
+    "open": "Open"
   },
   "filters": {
-    "all": "All statuses"
+    "all": "All statuses",
+    "allClasses": "All classes"
   },
   "status": {
     "submitted": "Submitted",

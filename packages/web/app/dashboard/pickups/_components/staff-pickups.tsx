@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Search, UserCheck } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Search, UserCheck } from "lucide-react";
 import type { PickupNoticeStatus, PickupNoticeSummary } from "@kichkintoy/shared";
 import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,6 +22,7 @@ import { LoadingCard } from "@/components/loading-card";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { MonthPicker } from "@/components/ui/month-picker";
 import {
@@ -34,11 +37,13 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { PickupCard } from "./pickup-card";
+import { cn } from "@/lib/utils";
 import {
   pickupRelationshipLabelKey,
   pickupStatusLabelKey,
 } from "./pickup-labels";
+
+type RecordsView = "day" | "month";
 
 const statusOptions: PickupNoticeStatus[] = [
   "submitted",
@@ -47,11 +52,17 @@ const statusOptions: PickupNoticeStatus[] = [
   "cancelled",
 ];
 
+type ClassOption = { id: string; name: string };
+
 export function StaffPickups({ centerId }: { centerId: string | null }) {
   const { t } = useLayoutTranslation("pickups");
+  const today = todayIso();
+  const [view, setView] = useState<RecordsView>("day");
+  const [day, setDay] = useState(today);
   const [month, setMonth] = useState(currentMonth());
   const [status, setStatus] = useState("all");
-  const today = todayIso();
+  const [todayClass, setTodayClass] = useState("all");
+  const [tableClass, setTableClass] = useState("all");
   const range = monthRange(month);
 
   const todayInput = { centerId: centerId ?? "", date: today };
@@ -61,17 +72,30 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
     enabled: !!centerId,
   });
 
-  const monthInput = {
-    centerId: centerId ?? "",
-    from: range.from,
-    to: range.to,
-    status: status === "all" ? undefined : (status as PickupNoticeStatus),
-  };
-  const monthQuery = useQuery({
-    queryKey: queryKeys.pickups.staffList(monthInput),
-    queryFn: () => orpc.pickups.staffList(monthInput),
+  // The records table narrows to a single day by default — a month of daily
+  // pickups is hundreds of rows — and can switch to a month overview.
+  const statusFilter =
+    status === "all" ? undefined : (status as PickupNoticeStatus);
+  const recordsInput =
+    view === "day"
+      ? { centerId: centerId ?? "", date: day, status: statusFilter }
+      : {
+          centerId: centerId ?? "",
+          from: range.from,
+          to: range.to,
+          status: statusFilter,
+        };
+  const recordsQuery = useQuery({
+    queryKey: queryKeys.pickups.staffList(recordsInput),
+    queryFn: () => orpc.pickups.staffList(recordsInput),
     enabled: !!centerId,
   });
+
+  const todayNotices = todayQuery.data ?? [];
+  const recordNotices = recordsQuery.data ?? [];
+
+  const todayClasses = useClassOptions(todayNotices);
+  const tableClasses = useClassOptions(recordNotices);
 
   if (!centerId) {
     return (
@@ -81,9 +105,13 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
     );
   }
 
-  const todayNotices = todayQuery.data ?? [];
-  const monthNotices = monthQuery.data ?? [];
-  const error = todayQuery.error ?? monthQuery.error;
+  const error = todayQuery.error ?? recordsQuery.error;
+
+  // pickupTime is a real HH:MM, so today reads as a pickup timeline.
+  const todayRows = inClass(todayNotices, todayClass).sort((a, b) =>
+    a.pickupTime.localeCompare(b.pickupTime),
+  );
+  const tableRows = inClass(recordNotices, tableClass);
 
   return (
     <div className="flex flex-col gap-5">
@@ -101,33 +129,62 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
       ) : null}
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-base font-bold">{t("todaySection")}</h2>
-          <span className="text-sm text-muted-foreground">
-            {formatDate(today)}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-base font-bold">{t("todaySection")}</h2>
+            <span className="text-sm text-muted-foreground">
+              {formatDate(today)}
+            </span>
+          </div>
+          <ClassFilter
+            value={todayClass}
+            onValueChange={setTodayClass}
+            classes={todayClasses}
+            allLabel={t("filters.allClasses")}
+          />
         </div>
         {todayQuery.isPending ? (
           <LoadingCard label={t("loading")} />
-        ) : todayNotices.length === 0 ? (
+        ) : todayRows.length === 0 ? (
           <Card className="grid place-items-center gap-2 p-6 text-center">
             <UserCheck className="h-7 w-7 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">{t("noToday")}</p>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {todayNotices.map((notice) => (
-              <PickupCard key={notice.id} notice={notice} />
+          <Card className="divide-y overflow-hidden p-0">
+            {todayRows.map((notice) => (
+              <PickupTimelineRow key={notice.id} notice={notice} t={t} />
             ))}
-          </div>
+          </Card>
         )}
       </section>
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base">{t("thisMonth")}</CardTitle>
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <CardTitle className="text-base">{t("records")}</CardTitle>
+            <ViewToggle value={view} onValueChange={setView} t={t} />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
-            <MonthPicker value={month} onValueChange={setMonth} className="w-[170px]" />
+            {view === "day" ? (
+              <DatePicker
+                value={day}
+                onValueChange={setDay}
+                className="w-[170px]"
+              />
+            ) : (
+              <MonthPicker
+                value={month}
+                onValueChange={setMonth}
+                className="w-[170px]"
+              />
+            )}
+            <ClassFilter
+              value={tableClass}
+              onValueChange={setTableClass}
+              classes={tableClasses}
+              allLabel={t("filters.allClasses")}
+            />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-[165px]">
                 <SelectValue />
@@ -144,13 +201,127 @@ export function StaffPickups({ centerId }: { centerId: string | null }) {
           </div>
         </CardHeader>
         <CardContent>
-          {monthQuery.isPending ? (
+          {recordsQuery.isPending ? (
             <LoadingCard label={t("loading")} />
           ) : (
-            <PickupTable notices={monthNotices} t={t} />
+            <PickupTable notices={tableRows} t={t} />
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/**
+ * One pickup on today's timeline. Time-led (pickupTime is a real clock value),
+ * then who's being picked up and by whom. One tap opens the notice.
+ */
+function PickupTimelineRow({
+  notice,
+  t,
+}: {
+  notice: PickupNoticeSummary;
+  t: TFunction<"pickups">;
+}) {
+  return (
+    <Link
+      href={`/dashboard/pickups/${notice.id}`}
+      className="group flex items-center gap-3 px-3 py-3 transition hover:bg-muted/40 sm:gap-4 sm:px-4"
+    >
+      <span className="w-14 shrink-0 text-base font-bold tabular-nums tracking-tight">
+        {notice.pickupTime}
+      </span>
+      <span className="h-9 w-px shrink-0 bg-border" aria-hidden />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-semibold">
+            {notice.child.name}
+          </span>
+          {notice.child.className ? (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {notice.child.className}
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          <span className="font-medium text-foreground/80">
+            {notice.pickupPersonName}
+          </span>{" "}
+          · {t(pickupRelationshipLabelKey(notice.relationship))}
+        </p>
+      </div>
+
+      <Badge
+        variant={pickupStatusVariant(notice.status)}
+        className="hidden shrink-0 sm:inline-flex"
+      >
+        {t(pickupStatusLabelKey(notice.status))}
+      </Badge>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+    </Link>
+  );
+}
+
+function ClassFilter({
+  value,
+  onValueChange,
+  classes,
+  allLabel,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  classes: ClassOption[];
+  allLabel: string;
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="w-[150px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{allLabel}</SelectItem>
+        {classes.map((item) => (
+          <SelectItem key={item.id} value={item.id}>
+            {item.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function ViewToggle({
+  value,
+  onValueChange,
+  t,
+}: {
+  value: RecordsView;
+  onValueChange: (value: RecordsView) => void;
+  t: TFunction<"pickups">;
+}) {
+  const options: { key: RecordsView; label: string }[] = [
+    { key: "day", label: t("view.day") },
+    { key: "month", label: t("view.month") },
+  ];
+  return (
+    <div className="inline-flex rounded-lg bg-muted p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          onClick={() => onValueChange(option.key)}
+          aria-pressed={value === option.key}
+          className={cn(
+            "rounded-md px-3 py-1 text-sm font-medium transition",
+            value === option.key
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -233,8 +404,29 @@ function PickupTable({
           </Badge>
         ),
       },
+      {
+        id: "open",
+        enableHiding: false,
+        header: () => <span className="sr-only">{t("table.open")}</span>,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/dashboard/pickups/${row.original.id}`);
+              }}
+            >
+              {t("table.open")}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ),
+      },
     ],
-    [t],
+    [router, t],
   );
 
   const query = search.trim().toLowerCase();
@@ -267,6 +459,24 @@ function PickupTable({
       )}
     />
   );
+}
+
+function useClassOptions(notices: PickupNoticeSummary[]): ClassOption[] {
+  return useMemo(() => {
+    const unique = new Map<string, string>();
+    for (const notice of notices) {
+      const { classId, className } = notice.child;
+      if (classId && className) unique.set(classId, className);
+    }
+    return [...unique.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [notices]);
+}
+
+function inClass(notices: PickupNoticeSummary[], classId: string) {
+  if (classId === "all") return notices;
+  return notices.filter((notice) => notice.child.classId === classId);
 }
 
 function pickupStatusVariant(status: PickupNoticeStatus) {
