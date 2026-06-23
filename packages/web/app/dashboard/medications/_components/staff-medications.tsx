@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Pill, Search } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Clock, Pill, Search } from "lucide-react";
 import type { MedicationRequestSummary, MedicationStatus } from "@kichkintoy/shared";
 import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -34,7 +36,7 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { MedicationCard } from "./medication-card";
+import { SignedMedicationImage } from "./signed-medication-image";
 import { medicationStatusLabelKey } from "./medication-labels";
 
 const statusOptions: MedicationStatus[] = [
@@ -44,10 +46,14 @@ const statusOptions: MedicationStatus[] = [
   "cancelled",
 ];
 
+type ClassOption = { id: string; name: string };
+
 export function StaffMedications({ centerId }: { centerId: string | null }) {
   const { t } = useLayoutTranslation("medications");
   const [month, setMonth] = useState(currentMonth());
   const [status, setStatus] = useState("all");
+  const [todayClass, setTodayClass] = useState("all");
+  const [tableClass, setTableClass] = useState("all");
   const today = todayIso();
   const range = monthRange(month);
 
@@ -70,6 +76,12 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
     enabled: !!centerId,
   });
 
+  const todayRequests = todayQuery.data ?? [];
+  const monthRequests = monthQuery.data ?? [];
+
+  const todayClasses = useClassOptions(todayRequests);
+  const tableClasses = useClassOptions(monthRequests);
+
   if (!centerId) {
     return (
       <Alert variant="warning">
@@ -78,9 +90,16 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
     );
   }
 
-  const todayRequests = todayQuery.data ?? [];
-  const monthRequests = monthQuery.data ?? [];
   const error = todayQuery.error ?? monthQuery.error;
+
+  // Time is free text ("after lunch", "08:30"), so it can't order a schedule.
+  // Surface what still needs action: pending first, then by child name.
+  const todayRows = inClass(todayRequests, todayClass).sort(
+    (a, b) =>
+      Number(b.status === "pending") - Number(a.status === "pending") ||
+      a.child.name.localeCompare(b.child.name),
+  );
+  const tableRows = inClass(monthRequests, tableClass);
 
   return (
     <div className="flex flex-col gap-5">
@@ -98,25 +117,33 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
       ) : null}
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-base font-bold">{t("todaySection")}</h2>
-          <span className="text-sm text-muted-foreground">
-            {formatDate(today)}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-base font-bold">{t("todaySection")}</h2>
+            <span className="text-sm text-muted-foreground">
+              {formatDate(today)}
+            </span>
+          </div>
+          <ClassFilter
+            value={todayClass}
+            onValueChange={setTodayClass}
+            classes={todayClasses}
+            allLabel={t("filters.allClasses")}
+          />
         </div>
         {todayQuery.isPending ? (
           <LoadingCard label={t("loading")} />
-        ) : todayRequests.length === 0 ? (
+        ) : todayRows.length === 0 ? (
           <Card className="grid place-items-center gap-2 p-6 text-center">
             <Pill className="h-7 w-7 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">{t("noToday")}</p>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {todayRequests.map((request) => (
-              <MedicationCard key={request.id} request={request} />
+          <Card className="divide-y overflow-hidden p-0">
+            {todayRows.map((request) => (
+              <MedicationRoundRow key={request.id} request={request} t={t} />
             ))}
-          </div>
+          </Card>
         )}
       </section>
 
@@ -125,6 +152,12 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
           <CardTitle className="text-base">{t("thisMonth")}</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <MonthPicker value={month} onValueChange={setMonth} className="w-[170px]" />
+            <ClassFilter
+              value={tableClass}
+              onValueChange={setTableClass}
+              classes={tableClasses}
+              allLabel={t("filters.allClasses")}
+            />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
@@ -144,11 +177,104 @@ export function StaffMedications({ centerId }: { centerId: string | null }) {
           {monthQuery.isPending ? (
             <LoadingCard label={t("loading")} />
           ) : (
-            <MedicationTable requests={monthRequests} t={t} />
+            <MedicationTable requests={tableRows} t={t} />
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/**
+ * One medication on today's round. Identity-led: thumbnail + child first, with
+ * the qualitative dose time ("after lunch", "08:30", …) as a free-width chip so
+ * any wording stays on one line. One tap opens the report.
+ */
+function MedicationRoundRow({
+  request,
+  t,
+}: {
+  request: MedicationRequestSummary;
+  t: TFunction<"medications">;
+}) {
+  return (
+    <Link
+      href={`/dashboard/medications/${request.id}`}
+      className="group flex items-center gap-3 px-3 py-3 transition hover:bg-muted/40 sm:gap-4 sm:px-4"
+    >
+      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border bg-muted">
+        {request.photo ? (
+          <SignedMedicationImage
+            mediaAssetId={request.photo.assetId}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="grid h-full w-full place-items-center">
+            <Pill className="h-5 w-5 text-muted-foreground" />
+          </span>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-semibold">
+            {request.child.name}
+          </span>
+          {request.child.className ? (
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {request.child.className}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <span className="truncate font-medium text-foreground/80">
+            {request.medicineName}
+          </span>
+          <span className="text-muted-foreground/60">·</span>
+          <span className="truncate">{request.dosage}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-foreground/70">
+            <Clock className="h-3 w-3" />
+            <span className="truncate">{request.medicationTime}</span>
+          </span>
+        </div>
+      </div>
+
+      <Badge
+        variant={medicationStatusVariant(request.status)}
+        className="hidden shrink-0 sm:inline-flex"
+      >
+        {t(medicationStatusLabelKey(request.status))}
+      </Badge>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+    </Link>
+  );
+}
+
+function ClassFilter({
+  value,
+  onValueChange,
+  classes,
+  allLabel,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  classes: ClassOption[];
+  allLabel: string;
+}) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="w-[150px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">{allLabel}</SelectItem>
+        {classes.map((item) => (
+          <SelectItem key={item.id} value={item.id}>
+            {item.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -228,8 +354,29 @@ function MedicationTable({
           </Badge>
         ),
       },
+      {
+        id: "open",
+        enableHiding: false,
+        header: () => <span className="sr-only">{t("table.open")}</span>,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/dashboard/medications/${row.original.id}`);
+              }}
+            >
+              {t("table.open")}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ),
+      },
     ],
-    [t],
+    [router, t],
   );
 
   const query = search.trim().toLowerCase();
@@ -264,6 +411,24 @@ function MedicationTable({
       )}
     />
   );
+}
+
+function useClassOptions(requests: MedicationRequestSummary[]): ClassOption[] {
+  return useMemo(() => {
+    const unique = new Map<string, string>();
+    for (const request of requests) {
+      const { classId, className } = request.child;
+      if (classId && className) unique.set(classId, className);
+    }
+    return [...unique.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [requests]);
+}
+
+function inClass(requests: MedicationRequestSummary[], classId: string) {
+  if (classId === "all") return requests;
+  return requests.filter((request) => request.child.classId === classId);
 }
 
 function medicationStatusVariant(status: MedicationStatus) {

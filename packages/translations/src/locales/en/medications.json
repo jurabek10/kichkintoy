@@ -17,10 +17,12 @@
     "date": "Date",
     "status": "Status",
     "search": "Search child…",
-    "empty": "No medication this month."
+    "empty": "No medication this month.",
+    "open": "Open"
   },
   "filters": {
-    "all": "All statuses"
+    "all": "All statuses",
+    "allClasses": "All classes"
   },
   "status": {
     "pending": "Pending",

@@ -17,10 +17,12 @@
     "date": "Sana",
     "status": "Holat",
     "search": "Bolani qidirish…",
-    "empty": "Bu oyda dori yo'q."
+    "empty": "Bu oyda dori yo'q.",
+    "open": "Ochish"
   },
   "filters": {
-    "all": "Barcha holatlar"
+    "all": "Barcha holatlar",
+    "allClasses": "Barcha sinflar"
   },
   "status": {
     "pending": "Kutilmoqda",
