@@ -7,6 +7,7 @@ import {
   updateNotificationSettingsInputSchema,
   updatePhoneInputSchema,
   updateProfileInputSchema,
+  updateTeacherProfileInputSchema,
 } from "../profile.js";
 import { emptyInputSchema, successResponseSchema } from "./common.contract.js";
 
@@ -14,6 +15,9 @@ export const profileContract = {
   get: oc.input(emptyInputSchema).output(profileViewSchema),
   updateProfile: oc
     .input(updateProfileInputSchema)
+    .output(profileViewSchema),
+  updateTeacherProfile: oc
+    .input(updateTeacherProfileInputSchema)
     .output(profileViewSchema),
   updatePhone: oc.input(updatePhoneInputSchema).output(profileViewSchema),
   changePassword: oc

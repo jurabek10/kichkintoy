@@ -18,6 +18,12 @@ export function createProfileRouter(os: ORPCImplementer, deps: ORPCDeps) {
         deps.profileService.updateProfile(context.user.id, input),
       ),
 
+    updateTeacherProfile: os.profile.updateTeacherProfile
+      .use(access.authed)
+      .handler(({ input, context }) =>
+        deps.profileService.updateTeacherProfile(context.user.id, input.bio),
+      ),
+
     updatePhone: os.profile.updatePhone
       .use(access.authed)
       .handler(async ({ input, context }) => {

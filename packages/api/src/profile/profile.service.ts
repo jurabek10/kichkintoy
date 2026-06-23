@@ -29,6 +29,7 @@ export class ProfileService {
       include: {
         userRoles: { include: { role: true, center: true } },
         userNotificationSettings: true,
+        teacherProfile: true,
       },
     });
 
@@ -38,6 +39,7 @@ export class ProfileService {
 
     const centerRole =
       user.userRoles.find((r) => r.centerId && r.center) ?? null;
+    const role = primaryRole(user.userRoles);
 
     return profileViewSchema.parse({
       id: user.id,
@@ -53,7 +55,35 @@ export class ProfileService {
       notificationSettings: toNotificationSettings(
         user.userNotificationSettings,
       ),
+      teacher:
+        role === "teacher"
+          ? {
+              employeeNumber: user.teacherProfile?.employeeNumber ?? null,
+              bio: user.teacherProfile?.bio ?? null,
+            }
+          : null,
     });
+  }
+
+  async updateTeacherProfile(
+    userId: string,
+    bio: string | null,
+  ): Promise<ProfileView> {
+    const profile = await this.prisma.teacherProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!profile) {
+      throw new BadRequestException("This account is not a teacher.");
+    }
+
+    await this.prisma.teacherProfile.update({
+      where: { userId },
+      data: { bio: bio?.trim() ? bio.trim() : null },
+    });
+
+    return this.get(userId);
   }
 
   async updateProfile(

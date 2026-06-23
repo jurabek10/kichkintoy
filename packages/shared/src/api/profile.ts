@@ -16,6 +16,13 @@ export const notificationSettingsSchema = z.object({
 });
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
+/** Teacher-specific account fields. Present only when the user is a teacher. */
+export const teacherProfileViewSchema = z.object({
+  employeeNumber: z.string().nullable(),
+  bio: z.string().nullable(),
+});
+export type TeacherProfileView = z.infer<typeof teacherProfileViewSchema>;
+
 /** The full account view rendered by the "My Page" screen. */
 export const profileViewSchema = z.object({
   id: uuidSchema,
@@ -29,6 +36,7 @@ export const profileViewSchema = z.object({
   preferredLanguage: appLanguageSchema,
   avatarMediaAssetId: uuidSchema.nullable(),
   notificationSettings: notificationSettingsSchema,
+  teacher: teacherProfileViewSchema.nullable(),
 });
 export type ProfileView = z.infer<typeof profileViewSchema>;
 
@@ -67,6 +75,13 @@ export const updateAvatarInputSchema = z.object({
   mediaAssetId: uuidSchema,
 });
 export type UpdateAvatarInput = z.infer<typeof updateAvatarInputSchema>;
+
+export const updateTeacherProfileInputSchema = z.object({
+  bio: z.string().trim().max(280, "Keep your bio under 280 characters.").nullable(),
+});
+export type UpdateTeacherProfileInput = z.infer<
+  typeof updateTeacherProfileInputSchema
+>;
 
 export const updateNotificationSettingsInputSchema = z.object({
   pushEnabled: z.boolean(),
