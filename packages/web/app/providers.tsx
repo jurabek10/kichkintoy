@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { onlineManager } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { getQueryClient } from "@/lib/query";
 import { createIdbPersister } from "@/lib/query-persister";
 import { registerOfflineMutations } from "@/lib/offline-mutations";
+
+// Dev-only panel — load it lazily so it stays out of the providers graph that
+// every page compiles on first visit (keeps cold dev compiles faster).
+const ReactQueryDevtools = dynamic(
+  () =>
+    import("@tanstack/react-query-devtools").then((m) => m.ReactQueryDevtools),
+  { ssr: false },
+);
 
 // Bump to invalidate every persisted cache after a breaking schema/shape change.
 const PERSIST_BUSTER = "v1";
