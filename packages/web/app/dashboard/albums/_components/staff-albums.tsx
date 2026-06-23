@@ -2,34 +2,65 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Images, Plus } from "lucide-react";
+import { type ColumnDef } from "@tanstack/react-table";
+import {
+  ArrowUpRight,
+  Heart,
+  ImageIcon,
+  Images,
+  MessageCircle,
+  Plus,
+  Search,
+} from "lucide-react";
 import type { AlbumPostSummary } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
+import { MonthPicker } from "@/components/ui/month-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
-import { DirectorAlbumCard } from "./director-album-card";
+import { SignedAlbumImage } from "./signed-album-image";
 
-type AlbumStatusFilter = "all" | "published" | "draft";
-
-const FILTERS: AlbumStatusFilter[] = ["all", "published", "draft"];
+type Period = "all" | "month" | "day";
+type ClassOption = { id: string; name: string };
 
 export function StaffAlbums({ centerId }: { centerId: string | null }) {
   const { t } = useLayoutTranslation("albums");
-  const [filter, setFilter] = useState<AlbumStatusFilter>("all");
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [classId, setClassId] = useState("all");
+  const [period, setPeriod] = useState<Period>("all");
+  const [month, setMonth] = useState(currentMonth());
+  const [day, setDay] = useState(todayIso());
 
-  // One fetch, then tab + count on the client so switching is instant.
   const {
     data: posts = [],
     isPending,
@@ -40,13 +71,19 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
     enabled: !!centerId,
   });
 
-  const counts = useMemo(() => countByStatus(posts), [posts]);
-  const visible = useMemo(
-    () =>
-      filter === "all"
-        ? posts
-        : posts.filter((post) => post.status === filter),
-    [posts, filter],
+  const classOptions = useMemo<ClassOption[]>(() => {
+    const unique = new Map<string, string>();
+    for (const post of posts) {
+      for (const klass of post.classes) unique.set(klass.id, klass.name);
+    }
+    return [...unique.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [posts]);
+
+  const columns = useMemo<ColumnDef<AlbumPostSummary>[]>(
+    () => buildColumns(t, router),
+    [t, router],
   );
 
   if (!centerId) {
@@ -56,6 +93,29 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
       </Alert>
     );
   }
+
+  const query = search.trim().toLowerCase();
+  const rows = posts.filter((post) => {
+    if (status !== "all" && post.status !== status) return false;
+    if (classId !== "all" && !post.classes.some((c) => c.id === classId)) {
+      return false;
+    }
+    if (period === "month" && monthKey(albumDate(post)) !== month) return false;
+    if (period === "day" && dayKey(albumDate(post)) !== day) return false;
+    if (query) {
+      const haystack = [
+        albumTitle(post, t),
+        post.caption,
+        post.bodyPreview,
+        post.author.fullName,
+        post.classes.map((c) => c.name).join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -80,76 +140,284 @@ export function StaffAlbums({ centerId }: { centerId: string | null }) {
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((key) => {
-          const active = filter === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setFilter(key)}
-              aria-pressed={active}
-              className={cn(
-                "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                active
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {t(filterLabel(key))}
-              <span
-                className={cn(
-                  "tabular-nums rounded-full px-1.5 text-xs font-bold",
-                  active
-                    ? "bg-primary-foreground/20"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {counts[key]}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {isPending ? (
         <LoadingCard label={t("loading")} />
-      ) : visible.length === 0 ? (
+      ) : posts.length === 0 ? (
         <Card className="grid place-items-center gap-2 p-8 text-center">
           <Images className="h-8 w-8 text-muted-foreground" />
-          <p className="font-semibold">
-            {filter === "all" ? t("empty.staffTitle") : t("empty.filterTitle")}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {filter === "all" ? t("empty.staffBody") : t("empty.filterBody")}
-          </p>
+          <p className="font-semibold">{t("empty.staffTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty.staffBody")}</p>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visible.map((post) => (
-            <DirectorAlbumCard key={post.id} post={post} />
-          ))}
-        </div>
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <DataTable
+              columns={columns}
+              data={rows}
+              pageSize={15}
+              emptyMessage={t("table.empty")}
+              toolbar={(table) => (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder={t("table.search")}
+                        className="h-9 w-[200px] pl-8"
+                      />
+                    </div>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger className="h-9 w-[150px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t("table.allStatuses")}
+                        </SelectItem>
+                        <SelectItem value="published">
+                          {t("status.published")}
+                        </SelectItem>
+                        <SelectItem value="draft">
+                          {t("status.draft")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={classId} onValueChange={setClassId}>
+                      <SelectTrigger className="h-9 w-[150px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t("table.allClasses")}
+                        </SelectItem>
+                        {classOptions.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <PeriodToggle value={period} onValueChange={setPeriod} t={t} />
+                    {period === "month" ? (
+                      <MonthPicker
+                        value={month}
+                        onValueChange={setMonth}
+                        className="w-[160px]"
+                      />
+                    ) : period === "day" ? (
+                      <DatePicker
+                        value={day}
+                        onValueChange={setDay}
+                        className="w-[160px]"
+                      />
+                    ) : null}
+                  </div>
+                  <DataTableViewOptions table={table} />
+                </div>
+              )}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
 }
 
-function countByStatus(posts: AlbumPostSummary[]) {
-  const counts: Record<AlbumStatusFilter, number> = {
-    all: posts.length,
-    published: 0,
-    draft: 0,
-  };
-  for (const post of posts) {
-    if (post.status in counts) {
-      counts[post.status as AlbumStatusFilter] += 1;
-    }
-  }
-  return counts;
+function buildColumns(
+  t: TFunction<"albums">,
+  router: ReturnType<typeof useRouter>,
+): ColumnDef<AlbumPostSummary>[] {
+  return [
+    {
+      id: "album",
+      accessorFn: (post) => albumTitle(post, t),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.album")} />
+      ),
+      cell: ({ row }) => {
+        const post = row.original;
+        const asset = post.coverMedia?.assetId ?? post.previewMedia[0]?.assetId;
+        const classNames = post.classes.map((c) => c.name).join(", ");
+        return (
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-muted">
+              {asset ? (
+                <SignedAlbumImage
+                  mediaAssetId={asset}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="grid h-full w-full place-items-center">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                </span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{albumTitle(post, t)}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {classNames || post.author.fullName}
+              </p>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.status")} />
+      ),
+      cell: ({ row }) => (
+        <Badge
+          variant={row.original.status === "draft" ? "secondary" : "success"}
+        >
+          {t(`status.${row.original.status}`)}
+        </Badge>
+      ),
+    },
+    {
+      id: "visibility",
+      accessorFn: (post) => post.visibility,
+      enableSorting: false,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.visibility")} />
+      ),
+      cell: ({ row }) => (
+        <Badge variant="outline">{t(visibilityKey(row.original.visibility))}</Badge>
+      ),
+    },
+    {
+      accessorKey: "mediaCount",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.photos")} />
+      ),
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-1.5 tabular-nums text-muted-foreground">
+          <ImageIcon className="h-3.5 w-3.5" />
+          {row.original.mediaCount}
+        </span>
+      ),
+    },
+    {
+      id: "engagement",
+      accessorFn: (post) => post.reactionSummary.heartCount,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.engagement")} />
+      ),
+      cell: ({ row }) => (
+        <span className="flex items-center gap-3 tabular-nums text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Heart className="h-3.5 w-3.5" />
+            {row.original.reactionSummary.heartCount}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <MessageCircle className="h-3.5 w-3.5" />
+            {row.original.commentCount}
+          </span>
+        </span>
+      ),
+    },
+    {
+      id: "date",
+      accessorFn: (post) => albumDate(post),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("table.date")} />
+      ),
+      cell: ({ row }) => (
+        <span className="nums text-sm text-muted-foreground">
+          {formatDate(albumDate(row.original))}
+        </span>
+      ),
+    },
+    {
+      id: "open",
+      enableHiding: false,
+      enableSorting: false,
+      header: () => <span className="sr-only">{t("table.open")}</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+            onClick={() => router.push(`/dashboard/albums/${row.original.id}`)}
+          >
+            {t("table.open")}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 }
 
-function filterLabel(key: AlbumStatusFilter) {
-  if (key === "all") return "filters.all";
-  return `status.${key}`;
+function PeriodToggle({
+  value,
+  onValueChange,
+  t,
+}: {
+  value: Period;
+  onValueChange: (value: Period) => void;
+  t: TFunction<"albums">;
+}) {
+  const options: { key: Period; label: string }[] = [
+    { key: "all", label: t("table.period.all") },
+    { key: "month", label: t("table.period.month") },
+    { key: "day", label: t("table.period.day") },
+  ];
+  return (
+    <div className="inline-flex rounded-lg bg-muted p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.key}
+          type="button"
+          onClick={() => onValueChange(option.key)}
+          aria-pressed={value === option.key}
+          className={cn(
+            "rounded-md px-3 py-1 text-sm font-medium transition",
+            value === option.key
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function albumDate(post: AlbumPostSummary) {
+  return post.publishedAt ?? post.updatedAt;
+}
+
+function albumTitle(post: AlbumPostSummary, t: TFunction<"albums">) {
+  const firstLine = post.caption.split("\n")[0]?.trim();
+  return firstLine || post.bodyPreview || t("card.emptyTitle");
+}
+
+function visibilityKey(value: string) {
+  if (value === "class") return "visibility.class";
+  return "visibility.taggedChildren";
+}
+
+// yyyy-mm-dd / yyyy-mm in the display timezone, so filters match shown dates.
+function dayKey(iso: string) {
+  return new Date(iso).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Tashkent",
+  });
+}
+
+function monthKey(iso: string) {
+  return dayKey(iso).slice(0, 7);
+}
+
+function todayIso() {
+  return dayKey(new Date().toISOString());
+}
+
+function currentMonth() {
+  return todayIso().slice(0, 7);
 }

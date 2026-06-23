@@ -10,6 +10,24 @@
     "all": "Barchasi",
     "drafts": "Qoralamalar"
   },
+  "table": {
+    "album": "Albom",
+    "status": "Holat",
+    "visibility": "Ko'rinish",
+    "photos": "Suratlar",
+    "engagement": "Faollik",
+    "date": "Sana",
+    "open": "Ochish",
+    "search": "Albomlarni qidirish…",
+    "empty": "Filtrlarga mos albom yo'q.",
+    "allStatuses": "Barcha holatlar",
+    "allClasses": "Barcha sinflar",
+    "period": {
+      "all": "Barchasi",
+      "month": "Oy",
+      "day": "Kun"
+    }
+  },
   "status": {
     "draft": "Qoralama",
     "published": "E'lon qilingan"

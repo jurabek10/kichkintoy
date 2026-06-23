@@ -10,6 +10,24 @@
     "all": "All",
     "drafts": "Drafts"
   },
+  "table": {
+    "album": "Album",
+    "status": "Status",
+    "visibility": "Visibility",
+    "photos": "Photos",
+    "engagement": "Engagement",
+    "date": "Date",
+    "open": "Open",
+    "search": "Search albums…",
+    "empty": "No albums match your filters.",
+    "allStatuses": "All statuses",
+    "allClasses": "All classes",
+    "period": {
+      "all": "All time",
+      "month": "Month",
+      "day": "Day"
+    }
+  },
   "status": {
     "draft": "Draft",
     "published": "Published"
