@@ -62,6 +62,9 @@ export class MediaService {
     ) {
       throw new BadRequestException("Student document uploads must be images or PDFs.");
     }
+    if (input.purpose === "user_avatar" && !ALLOWED_IMAGE_TYPES.has(input.mimeType)) {
+      throw new BadRequestException("Profile photo must be an image.");
+    }
     const maxBytes =
       input.purpose === "daily_report" && ALLOWED_VIDEO_TYPES.has(input.mimeType)
         ? DAILY_REPORT_VIDEO_LIMIT_BYTES
@@ -135,7 +138,16 @@ export class MediaService {
       where: { id: mediaAssetId },
     });
     if (!asset) throw new NotFoundException("Media asset not found.");
-    if (!(await this.canAccessMedia(userId, mediaAssetId, asset.centerId))) {
+    // A user may always read an avatar they uploaded themselves — this lets
+    // any role (including parents, who are not center staff) display their own
+    // profile photo without widening access to other media.
+    const ownsAvatar =
+      asset.uploaderUserId === userId &&
+      objectKeyPurpose(asset.fileUrl) === "user_avatar";
+    if (
+      !ownsAvatar &&
+      !(await this.canAccessMedia(userId, mediaAssetId, asset.centerId))
+    ) {
       throw new ForbiddenException("You cannot access this media asset.");
     }
     const signed = await this.storage.createDownloadUrl(asset.fileUrl);
@@ -446,6 +458,11 @@ export class MediaService {
       }),
     );
   }
+}
+
+/** Object keys are `centers/{centerId}/{purpose}/{assetId}/original.ext`. */
+function objectKeyPurpose(objectKey: string) {
+  return objectKey.split("/")[2] ?? null;
 }
 
 function mediaTypeForMime(mimeType: string) {

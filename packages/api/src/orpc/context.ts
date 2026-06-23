@@ -20,6 +20,7 @@ import type { MealsService } from "../meals/meals.service";
 import type { NoticesService } from "../notices/notices.service";
 import type { NotificationsQueryService } from "../notifications/notifications-query.service";
 import type { PickupsService } from "../pickups/pickups.service";
+import type { ProfileService } from "../profile/profile.service";
 import type { RealtimeService } from "../realtime/realtime.service";
 import type { GeminiService } from "../reports/gemini.service";
 import type { ReportsService } from "../reports/reports.service";
@@ -50,6 +51,7 @@ export type ORPCDeps = {
   noticesService: NoticesService;
   notificationsQueryService: NotificationsQueryService;
   pickupsService: PickupsService;
+  profileService: ProfileService;
   realtimeService: RealtimeService;
   reportsService: ReportsService;
   geminiService: GeminiService;

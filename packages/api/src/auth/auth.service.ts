@@ -597,6 +597,112 @@ export class AuthService {
     };
   }
 
+  /**
+   * Change the signed-in user's password after re-verifying the current one.
+   * Used by the account/"My Page" screen. The active session is intentionally
+   * left valid — we are not forcing a re-login on the device making the change.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    ctx: RequestContext = {},
+  ) {
+    const credential = await this.prisma.authCredential.findUnique({
+      where: { userId },
+    });
+
+    if (!credential) {
+      throw new BadRequestException("No password is set for this account.");
+    }
+
+    const isValid = await verifyPassword(
+      currentPassword,
+      credential.passwordHash,
+    );
+
+    if (!isValid) {
+      throw new BadRequestException("Current password is incorrect.");
+    }
+
+    await this.prisma.authCredential.update({
+      where: { userId },
+      data: { passwordHash: await hashPassword(newPassword) },
+    });
+
+    await this.audit.log({
+      actorUserId: userId,
+      action: "auth.password_changed",
+      entityType: "user",
+      entityId: userId,
+      ipAddress: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+    });
+
+    return { success: true };
+  }
+
+  /**
+   * Change the signed-in user's phone number. Requires a verification token
+   * issued by `verifyCode` for the exact new number (same OTP flow as signup),
+   * and rejects a number already claimed by another account.
+   */
+  async changePhone(
+    userId: string,
+    phoneNumberInput: string,
+    phoneVerificationToken: string,
+    ctx: RequestContext = {},
+  ) {
+    const phoneNumber = normalizePhoneNumber(phoneNumberInput);
+
+    const verification = await this.prisma.phoneVerification.findUnique({
+      where: { verificationToken: phoneVerificationToken },
+    });
+
+    if (
+      !verification ||
+      verification.phone !== phoneNumber ||
+      !verification.verifiedAt ||
+      verification.consumedAt ||
+      verification.expiresAt <= new Date()
+    ) {
+      throw new BadRequestException("Phone verification is required.");
+    }
+
+    const conflict = await this.prisma.user.findFirst({
+      where: { phone: phoneNumber, id: { not: userId } },
+      select: { id: true },
+    });
+
+    if (conflict) {
+      throw new ConflictException(
+        "That phone number is already in use by another account.",
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { phone: phoneNumber },
+      });
+      await tx.phoneVerification.update({
+        where: { id: verification.id },
+        data: { consumedAt: new Date() },
+      });
+    });
+
+    await this.audit.log({
+      actorUserId: userId,
+      action: "auth.phone_changed",
+      entityType: "user",
+      entityId: userId,
+      ipAddress: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+    });
+
+    return { phone: phoneNumber };
+  }
+
   async logout(token: string, ctx: RequestContext = {}) {
     const tokenHash = hashOpaqueValue(token);
     const session = await this.prisma.authSession.findUnique({
