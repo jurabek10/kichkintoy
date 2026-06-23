@@ -62,7 +62,10 @@
     "viewProfile": "View profile",
     "delete": "Delete",
     "deleteComingSoon": "Child removal will be added after the enrollment API is ready.",
-    "search": "Filter children..."
+    "search": "Filter children...",
+    "gender": "Sex",
+    "number": "Number",
+    "allGenders": "All"
   },
   "childProfile": {
     "title": "Child profile",

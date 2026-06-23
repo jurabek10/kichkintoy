@@ -62,7 +62,10 @@
     "viewProfile": "Profil",
     "delete": "O'chirish",
     "deleteComingSoon": "Bolani olib tashlash enrollment API tayyor bo'lgandan keyin qo'shiladi.",
-    "search": "Bolalarni filterlash..."
+    "search": "Bolalarni filterlash...",
+    "gender": "Jinsi",
+    "number": "Tartib",
+    "allGenders": "Hammasi"
   },
   "childProfile": {
     "title": "Bola profili",

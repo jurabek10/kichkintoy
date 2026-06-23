@@ -38,6 +38,8 @@ interface DataTableProps<TData, TValue> {
   /** Builds the "Page X of Y" label for i18n. */
   pageLabel?: (page: number, total: number) => string;
   toolbar?: (table: TableInstance<TData>) => React.ReactNode;
+  /** Columns hidden on first render (e.g. a filter-only column). */
+  initialColumnVisibility?: VisibilityState;
   /** Navigates / acts on a row when clicked; also adds pointer affordances. */
   onRowClick?: (row: TData) => void;
   /** Extra classes per row, e.g. to dim past entries. */
@@ -52,6 +54,7 @@ export function DataTable<TData, TValue>({
   emptyMessage = "No results.",
   pageLabel,
   toolbar,
+  initialColumnVisibility,
   onRowClick,
   rowClassName,
   className,
@@ -60,7 +63,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(initialColumnVisibility ?? {});
 
   const table = useReactTable({
     data,

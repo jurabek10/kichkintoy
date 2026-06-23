@@ -62,7 +62,10 @@
     "viewProfile": "Профиль",
     "delete": "Удалить",
     "deleteComingSoon": "Удаление ребенка будет добавлено после готовности API зачисления.",
-    "search": "Фильтр детей..."
+    "search": "Фильтр детей...",
+    "gender": "Пол",
+    "number": "Номер",
+    "allGenders": "Все"
   },
   "childProfile": {
     "title": "Профиль ребенка",

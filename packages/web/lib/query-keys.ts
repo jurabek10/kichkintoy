@@ -99,6 +99,8 @@ export const queryKeys = {
     classes: () => ["teacher", "classes"] as const,
     classChildren: (classId: string) =>
       ["teacher", "classes", classId, "children"] as const,
+    childDetail: (childId: string) =>
+      ["teacher", "children", childId] as const,
     reports: (params?: Record<string, unknown>) =>
       ["teacher", "reports", params ?? {}] as const,
     classReportStatuses: (classId: string, reportDate?: string) =>
