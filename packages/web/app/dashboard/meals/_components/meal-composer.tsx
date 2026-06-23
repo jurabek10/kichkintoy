@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, Send, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Save, Send, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import type {
-  MealAudienceResponse,
-  MealAudienceType,
-  MealEatingStatus,
-  MealType,
-} from "@kichkintoy/shared";
+import type { MealAudienceType, MealType } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,15 +34,31 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { eatingStatusLabelKey, mealTypeLabelKey } from "./meal-labels";
+import { mealTypeLabelKey } from "./meal-labels";
 
 const mealTypes: MealType[] = ["breakfast", "lunch", "snack", "dinner"];
-const eatingStatuses: MealEatingStatus[] = [
-  "ate_all",
-  "ate_most",
-  "ate_some",
-  "did_not_eat",
-];
+
+type MealBlock = {
+  key: string;
+  mealType: MealType;
+  menuText: string;
+  allergyNote: string;
+  mediaAssetIds: string[];
+  uploading: boolean;
+};
+
+let blockCounter = 0;
+function makeBlock(mealType: MealType): MealBlock {
+  blockCounter += 1;
+  return {
+    key: `block-${blockCounter}`,
+    mealType,
+    menuText: "",
+    allergyNote: "",
+    mediaAssetIds: [],
+    uploading: false,
+  };
+}
 
 export function MealComposer({
   centerId,
@@ -59,17 +71,11 @@ export function MealComposer({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [mealDate, setMealDate] = useState(todayIso());
-  const [mealType, setMealType] = useState<MealType>("lunch");
   const [audienceType, setAudienceType] = useState<MealAudienceType>(
     director ? "center" : "class",
   );
   const [classIds, setClassIds] = useState<string[]>([]);
-  const [menuText, setMenuText] = useState("");
-  const [allergyNote, setAllergyNote] = useState("");
-  const [mediaAssetIds, setMediaAssetIds] = useState<string[]>([]);
-  const [childStatuses, setChildStatuses] = useState<
-    Record<string, MealEatingStatus | "">
-  >({});
+  const [blocks, setBlocks] = useState<MealBlock[]>(() => [makeBlock("breakfast")]);
   const [error, setError] = useState<string | null>(null);
 
   const { data: audience } = useQuery({
@@ -78,40 +84,61 @@ export function MealComposer({
     enabled: !!centerId,
   });
 
-  const visibleChildren = useMemo<MealAudienceResponse["children"]>(() => {
-    if (!audience) return [];
-    if (audienceType === "center") return audience.children;
-    return audience.children.filter((child) =>
-      child.classId ? classIds.includes(child.classId) : false,
-    );
-  }, [audience, audienceType, classIds]);
+  const usedTypes = blocks.map((block) => block.mealType);
+  const nextType = mealTypes.find((type) => !usedTypes.includes(type));
 
   const createMutation = useMutation({
-    mutationFn: (publish: boolean) =>
-      orpc.meals.create({
-        centerId: centerId!,
-        mealDate,
-        mealType,
-        audienceType,
-        classIds: audienceType === "class" ? classIds : [],
-        menuText,
-        allergyNote: allergyNote || undefined,
-        mediaAssetIds,
-        childStatuses: Object.entries(childStatuses)
-          .filter(([, status]) => status)
-          .map(([childId, status]) => ({
-            childId,
-            status: status as MealEatingStatus,
-          })),
-        publish,
-      }),
-    onSuccess: async (meal, publish) => {
-      toast.success(publish ? t("toast.published") : t("toast.savedAsDraft"));
+    mutationFn: async (publish: boolean) => {
+      // Each meal type is its own post; create them one after another so a
+      // single submission publishes the whole day's menu.
+      const created = [];
+      for (const block of blocks) {
+        const meal = await orpc.meals.create({
+          centerId: centerId!,
+          mealDate,
+          mealType: block.mealType,
+          audienceType,
+          classIds: audienceType === "class" ? classIds : [],
+          menuText: block.menuText.trim(),
+          allergyNote: block.allergyNote.trim() || undefined,
+          mediaAssetIds: block.mediaAssetIds,
+          childStatuses: [],
+          publish,
+        });
+        created.push(meal);
+      }
+      return created;
+    },
+    onSuccess: async (created, publish) => {
+      toast.success(
+        publish
+          ? t("toast.mealsPublished", { count: created.length })
+          : t("toast.mealsSaved", { count: created.length }),
+      );
       await queryClient.invalidateQueries({ queryKey: queryKeys.meals.all() });
-      router.push(`/dashboard/meals/${meal.id}`);
+      router.push("/dashboard/meals");
     },
     onError: (err) => setError(toApiError(err).message),
   });
+
+  function updateBlock(key: string, patch: Partial<MealBlock>) {
+    setBlocks((current) =>
+      current.map((block) =>
+        block.key === key ? { ...block, ...patch } : block,
+      ),
+    );
+  }
+
+  function addBlock() {
+    if (!nextType) return;
+    setBlocks((current) => [...current, makeBlock(nextType)]);
+  }
+
+  function removeBlock(key: string) {
+    setBlocks((current) =>
+      current.length === 1 ? current : current.filter((b) => b.key !== key),
+    );
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -121,21 +148,29 @@ export function MealComposer({
   function save(publish: boolean) {
     setError(null);
     if (!centerId) return setError(t("validation.centerRequired"));
-    if (!menuText.trim()) return setError(t("validation.menuRequired"));
     if (audienceType === "class" && classIds.length === 0) {
       return setError(t("validation.chooseClass"));
+    }
+    if (blocks.some((block) => !block.menuText.trim())) {
+      return setError(t("validation.menuRequired"));
+    }
+    if (blocks.some((block) => block.uploading)) {
+      return setError(t("validation.uploadInProgress"));
     }
     createMutation.mutate(publish);
   }
 
-  async function uploadFiles(files: FileList | null) {
+  async function uploadFiles(key: string, files: FileList | null) {
     if (!files || !centerId) return;
     setError(null);
+    const block = blocks.find((b) => b.key === key);
+    if (!block) return;
+    updateBlock(key, { uploading: true });
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files).slice(
         0,
-        10 - mediaAssetIds.length,
+        10 - block.mediaAssetIds.length,
       )) {
         const signed = await orpc.media.createUploadUrl({
           centerId,
@@ -159,11 +194,22 @@ export function MealComposer({
         });
         uploaded.push(asset.id);
       }
-      setMediaAssetIds((current) => [...current, ...uploaded]);
+      setBlocks((current) =>
+        current.map((b) =>
+          b.key === key
+            ? {
+                ...b,
+                uploading: false,
+                mediaAssetIds: [...b.mediaAssetIds, ...uploaded],
+              }
+            : b,
+        ),
+      );
       if (uploaded.length) {
         toast.success(t("toast.uploaded", { count: uploaded.length }));
       }
     } catch (err) {
+      updateBlock(key, { uploading: false });
       setError(
         err instanceof Error ? err.message : t("validation.uploadFailed"),
       );
@@ -188,7 +234,7 @@ export function MealComposer({
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
-          <CardDescription>{t("composer.description")}</CardDescription>
+          <CardDescription>{t("composer.dayDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           {error ? (
@@ -197,33 +243,13 @@ export function MealComposer({
             </Alert>
           ) : null}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="meal-date">{t("composer.date")}</Label>
-              <DatePicker
-                id="meal-date"
-                value={mealDate}
-                onValueChange={setMealDate}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>{t("composer.mealType")}</Label>
-              <Select
-                value={mealType}
-                onValueChange={(value) => setMealType(value as MealType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {mealTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(mealTypeLabelKey(type))}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid gap-2 sm:max-w-xs">
+            <Label htmlFor="meal-date">{t("composer.date")}</Label>
+            <DatePicker
+              id="meal-date"
+              value={mealDate}
+              onValueChange={setMealDate}
+            />
           </div>
 
           <div className="grid gap-3">
@@ -269,100 +295,133 @@ export function MealComposer({
               </div>
             </div>
           ) : null}
-
-          <div className="grid gap-2">
-            <Label htmlFor="menu-text">{t("composer.menuText")}</Label>
-            <Textarea
-              id="menu-text"
-              value={menuText}
-              onChange={(event) => setMenuText(event.target.value)}
-              rows={5}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="allergy-note">{t("composer.allergyNote")}</Label>
-            <Textarea
-              id="allergy-note"
-              value={allergyNote}
-              onChange={(event) => setAllergyNote(event.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="meal-photo">{t("composer.foodPhotos")}</Label>
-            <label className="grid cursor-pointer place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition hover:border-primary/50">
-              <Upload className="h-6 w-6" />
-              <span>{t("composer.choosePhotos")}</span>
-              <Input
-                id="meal-photo"
-                type="file"
-                accept="image/*,video/mp4,video/webm,video/quicktime"
-                multiple
-                className="sr-only"
-                onChange={(event) => uploadFiles(event.target.files)}
-              />
-            </label>
-            {mediaAssetIds.length ? (
-              <p className="text-sm text-muted-foreground">
-                {t("composer.uploadedFiles", { count: mediaAssetIds.length })}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-2">
-            <Label>{t("composer.eatingStatus")}</Label>
-            <div className="grid max-h-80 gap-2 overflow-auto rounded-md border p-3">
-              {visibleChildren.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("composer.chooseAudience")}
-                </p>
-              ) : (
-                visibleChildren.map((child) => (
-                  <div
-                    key={child.id}
-                    className="grid gap-2 rounded-md border p-3 sm:grid-cols-[1fr_180px]"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold">{child.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {child.className ?? t("detail.noClass")}
-                      </p>
-                    </div>
-                    <Select
-                      value={childStatuses[child.id] ?? "unset"}
-                      onValueChange={(value) =>
-                        setChildStatuses((current) => ({
-                          ...current,
-                          [child.id]:
-                            value === "unset"
-                              ? ""
-                              : (value as MealEatingStatus),
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unset">
-                          {t("detail.notRecorded")}
-                        </SelectItem>
-                        {eatingStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {t(eatingStatusLabelKey(status))}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </CardContent>
       </Card>
+
+      {blocks.map((block, index) => {
+        // Offer each meal type once per submission.
+        const typeOptions = mealTypes.filter(
+          (type) => type === block.mealType || !usedTypes.includes(type),
+        );
+        return (
+          <Card key={block.key}>
+            <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Badge variant="secondary" className="tabular-nums">
+                  {index + 1}
+                </Badge>
+                {t(mealTypeLabelKey(block.mealType))}
+              </CardTitle>
+              {blocks.length > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => removeBlock(block.key)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t("composer.removeMeal")}
+                </Button>
+              ) : null}
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-2 sm:max-w-xs">
+                <Label>{t("composer.mealType")}</Label>
+                <Select
+                  value={block.mealType}
+                  onValueChange={(value) =>
+                    updateBlock(block.key, { mealType: value as MealType })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(mealTypeLabelKey(type))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`menu-${block.key}`}>
+                  {t("composer.menuText")}
+                </Label>
+                <Textarea
+                  id={`menu-${block.key}`}
+                  value={block.menuText}
+                  onChange={(event) =>
+                    updateBlock(block.key, { menuText: event.target.value })
+                  }
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`allergy-${block.key}`}>
+                  {t("composer.allergyNote")}
+                </Label>
+                <Textarea
+                  id={`allergy-${block.key}`}
+                  value={block.allergyNote}
+                  onChange={(event) =>
+                    updateBlock(block.key, { allergyNote: event.target.value })
+                  }
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor={`photo-${block.key}`}>
+                  {t("composer.foodPhotos")}
+                </Label>
+                <label className="grid cursor-pointer place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition hover:border-primary/50">
+                  <Upload className="h-6 w-6" />
+                  <span>
+                    {block.uploading
+                      ? t("composer.uploading")
+                      : t("composer.choosePhotos")}
+                  </span>
+                  <Input
+                    id={`photo-${block.key}`}
+                    type="file"
+                    accept="image/*,video/mp4,video/webm,video/quicktime"
+                    multiple
+                    className="sr-only"
+                    disabled={block.uploading}
+                    onChange={(event) =>
+                      uploadFiles(block.key, event.target.files)
+                    }
+                  />
+                </label>
+                {block.mediaAssetIds.length ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("composer.uploadedFiles", {
+                      count: block.mediaAssetIds.length,
+                    })}
+                  </p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {nextType ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-dashed"
+          onClick={addBlock}
+        >
+          <Plus className="h-4 w-4" />
+          {t("composer.addMeal")}
+        </Button>
+      ) : null}
 
       <div className="sticky bottom-4 flex justify-end gap-2 rounded-md border bg-background p-3 shadow-pop">
         <Button

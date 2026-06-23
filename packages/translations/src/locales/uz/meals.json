@@ -6,6 +6,29 @@
   "back": "Taomlarga qaytish",
   "loading": "Yuklanmoqda...",
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "todaySection": "Bugungi menyu",
+  "noToday": "Bugunga taom e'lon qilinmagan.",
+  "menuHistory": "Menyu tarixi",
+  "menuHistoryDescription": "E'lon qilingan barcha menyular, oy bo'yicha yoki butun davr.",
+  "table": {
+    "menu": "Menyu",
+    "type": "Turi",
+    "date": "Sana",
+    "audience": "Auditoriya",
+    "status": "Holat",
+    "photos": "Suratlar",
+    "open": "Ochish",
+    "search": "Menyularni qidirish…",
+    "empty": "Filtrlarga mos taom yo'q.",
+    "allTypes": "Barcha turlar",
+    "allStatuses": "Barcha holatlar",
+    "allClasses": "Barcha sinflar",
+    "period": {
+      "all": "Butun davr",
+      "month": "Oy",
+      "day": "Kun"
+    }
+  },
   "empty": {
     "staffTitle": "Bu sana uchun taom yo'q",
     "staffBody": "Tayyor bo'lganda kunlik taom menyusini e'lon qiling.",
@@ -39,6 +62,10 @@
   "composer": {
     "newTitle": "Yangi taom",
     "description": "Bugungi menyuni ovqat surati va ixtiyoriy ovqatlanish holati bilan e'lon qiling.",
+    "dayDescription": "Kun menyusini tuzing — har bir taomni o'z surati bilan qo'shing.",
+    "addMeal": "Yana taom qo'shish",
+    "removeMeal": "O'chirish",
+    "uploading": "Yuklanmoqda…",
     "date": "Sana",
     "mealType": "Taom turi",
     "audience": "Auditoriya",
@@ -58,11 +85,14 @@
     "menuRequired": "Menyu matni majburiy.",
     "chooseClass": "Kamida bitta sinfni tanlang.",
     "uploadFailed": "Yuklash amalga oshmadi.",
-    "uploadFailedForFile": "{{file}} uchun yuklash amalga oshmadi."
+    "uploadFailedForFile": "{{file}} uchun yuklash amalga oshmadi.",
+    "uploadInProgress": "Suratlar yuklanib bo'lishini kuting."
   },
   "toast": {
     "published": "Taom e'lon qilindi.",
     "savedAsDraft": "Taom qoralama sifatida saqlandi.",
+    "mealsPublished": "{{count}} ta taom e'lon qilindi.",
+    "mealsSaved": "{{count}} ta taom qoralama sifatida saqlandi.",
     "uploaded": "{{count}} ta fayl yuklandi.",
     "statusSaved": "Ovqatlanish holati saqlandi.",
     "deleted": "Taom o'chirildi."

@@ -6,6 +6,29 @@
   "back": "Back to meals",
   "loading": "Loading...",
   "noCenter": "Your account is not linked to a center yet.",
+  "todaySection": "Today's menu",
+  "noToday": "No meals posted for today.",
+  "menuHistory": "Menu history",
+  "menuHistoryDescription": "Every menu posted, by month or all time.",
+  "table": {
+    "menu": "Menu",
+    "type": "Type",
+    "date": "Date",
+    "audience": "Audience",
+    "status": "Status",
+    "photos": "Photos",
+    "open": "Open",
+    "search": "Search menus…",
+    "empty": "No meals match your filters.",
+    "allTypes": "All types",
+    "allStatuses": "All statuses",
+    "allClasses": "All classes",
+    "period": {
+      "all": "All time",
+      "month": "Month",
+      "day": "Day"
+    }
+  },
   "empty": {
     "staffTitle": "No meals for this date",
     "staffBody": "Publish the daily food menu when it is ready.",
@@ -39,6 +62,10 @@
   "composer": {
     "newTitle": "New meal",
     "description": "Publish today's menu with a food photo and optional eating status.",
+    "dayDescription": "Build the day's menu — add each meal with its own photos.",
+    "addMeal": "Add another meal",
+    "removeMeal": "Remove",
+    "uploading": "Uploading…",
     "date": "Date",
     "mealType": "Meal type",
     "audience": "Audience",
@@ -58,11 +85,14 @@
     "menuRequired": "Menu text is required.",
     "chooseClass": "Choose at least one class.",
     "uploadFailed": "Upload failed.",
-    "uploadFailedForFile": "Upload failed for {{file}}."
+    "uploadFailedForFile": "Upload failed for {{file}}.",
+    "uploadInProgress": "Wait for photos to finish uploading."
   },
   "toast": {
     "published": "Meal published.",
     "savedAsDraft": "Meal saved as draft.",
+    "mealsPublished": "{{count}} meal(s) published.",
+    "mealsSaved": "{{count}} meal(s) saved as draft.",
     "uploaded": "{{count}} file(s) uploaded.",
     "statusSaved": "Eating status saved.",
     "deleted": "Meal deleted."
