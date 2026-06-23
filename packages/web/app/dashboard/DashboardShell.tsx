@@ -204,14 +204,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     }
   }, [loading, session, router]);
 
-  // The director gets a serious "operations console" skin via a scoped token
-  // set. It's applied at the document root so Radix portals (the mobile rail,
-  // dialogs, popovers) inherit it too. Parents/teachers keep the candy theme.
+  // Each role wears its own scoped token set, applied at the document root so
+  // Radix portals (the mobile rail, dialogs, popovers) inherit it too:
+  //   • director — a serious steel "operations console"
+  //   • teacher  — the mobile app's cool-gray + blue world, brought to desktop
+  //   • parent   — the cream candy theme (the default :root tokens)
   const role = session?.user.role;
   useEffect(() => {
     const root = document.documentElement;
     if (role === "director") {
       root.dataset.theme = "director";
+    } else if (role === "teacher") {
+      root.dataset.theme = "teacher";
     } else {
       delete root.dataset.theme;
     }
@@ -238,6 +242,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const isParent = session.user.role === "parent";
   const isDirector = session.user.role === "director";
+  const isTeacher = session.user.role === "teacher";
   // All roles now have a "My Page" account screen.
   const showMyPage = true;
 
@@ -273,9 +278,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
-              <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
+              {isParent ? (
+                <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
+              ) : null}
               <div className="relative flex items-center gap-2.5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary via-sky to-grape text-white">
+                <span
+                  className={cn(
+                    "grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white",
+                    // The teacher echoes the phone's flat blue tab accent; the
+                    // parent keeps the candy gradient.
+                    isTeacher
+                      ? "bg-primary"
+                      : "bg-gradient-to-br from-primary via-sky to-grape",
+                  )}
+                >
                   <School className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
@@ -302,13 +318,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </SidebarContent>
 
         <SidebarFooter className="p-2">
-          {isDirector ? null : (
+          {isParent ? (
             <div className="relative mb-1 flex items-center justify-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-r from-sky/15 via-mint/15 to-coral/15 py-2 group-data-[collapsible=icon]:hidden">
               <KidBalloon className="h-9 w-6 animate-float text-coral" />
               <KidBalloon className="h-7 w-5 animate-float-slow text-sky" />
               <KidBalloon className="h-8 w-5 animate-float text-grape" />
             </div>
-          )}
+          ) : null}
           <SidebarMenu>
             {showMyPage ? (
               <SidebarMenuItem>
@@ -345,7 +361,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </Sidebar>
 
       <SidebarInset
-        className={cn("min-w-0", isDirector ? "bg-director-grid" : "bg-kids-dots")}
+        className={cn(
+          "min-w-0",
+          isDirector
+            ? "bg-director-grid"
+            : isTeacher
+              ? // The phone's ground is a flat, calm gray — keep it flat here too,
+                // no confetti. Restraint is the point: the candy lives in the tiles.
+                "bg-background"
+              : "bg-kids-dots",
+        )}
       >
         <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
@@ -425,6 +450,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </div>
           {isDirector ? (
             <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          ) : isTeacher ? (
+            // A single clean blue hairline — the rainbow trim belongs to the
+            // parent's playroom; the teacher's workspace stays composed.
+            <div className="h-0.5 w-full bg-primary/15" />
           ) : (
             <CandyTrim />
           )}

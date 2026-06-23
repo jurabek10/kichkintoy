@@ -71,7 +71,33 @@
     "noticesParentDesc": "Важные сообщения от воспитателя.",
     "pickup": "Забрать ребенка",
     "pickupDesc": "Запланируйте время, когда заберете ребенка сегодня.",
-    "open": "Открыть"
+    "open": "Открыть",
+    "teacher": {
+      "greetingMorning": "Доброе утро, {{name}}",
+      "greetingAfternoon": "Добрый день, {{name}}",
+      "greetingEvening": "Добрый вечер, {{name}}",
+      "subtitle": "Ваш день в {{center}}.",
+      "subtitleNoCenter": "Ваш день кратко.",
+      "quickActions": "Быстрые действия",
+      "quickActionsSub": "Сразу переходите к самому нужному.",
+      "todayReports": "Отчёты за сегодня",
+      "todayReportsSub": "Видно, какие группы отправлены.",
+      "viewAll": "Все отчёты",
+      "stat": {
+        "classes": "Группы",
+        "children": "Дети",
+        "reportsSent": "Отчётов отправлено",
+        "reportsPending": "Осталось написать"
+      },
+      "allSent": "Все отправлены",
+      "sent": "{{sent}}/{{total}} отправлено",
+      "childrenCount_one": "{{count}} ребёнок",
+      "childrenCount_few": "{{count}} ребёнка",
+      "childrenCount_many": "{{count}} детей",
+      "childrenCount_other": "{{count}} детей",
+      "noClasses": "Пока нет групп",
+      "noClassesSub": "Заведующий скоро добавит вас в группу."
+    }
   },
   "parentHome": {
     "today": "Сегодня",

@@ -143,6 +143,30 @@
         "sendNotice": "E'lon yuborish",
         "paymentsSoon": "To'lovlarni ochish · Tez orada"
       }
+    },
+    "teacher": {
+      "greetingMorning": "Xayrli tong, {{name}}",
+      "greetingAfternoon": "Xayrli kun, {{name}}",
+      "greetingEvening": "Xayrli kech, {{name}}",
+      "subtitle": "{{center}}dagi bugungi kuningiz.",
+      "subtitleNoCenter": "Bugungi kuningiz bir qarashda.",
+      "quickActions": "Tezkor amallar",
+      "quickActionsSub": "Eng ko'p ishlatadiganlaringizga o'ting.",
+      "todayReports": "Bugungi hisobotlar",
+      "todayReportsSub": "Qaysi guruhlar yuborilganini ko'ring.",
+      "viewAll": "Barcha hisobotlar",
+      "stat": {
+        "classes": "Guruhlar",
+        "children": "Bolalar",
+        "reportsSent": "Yuborilgan hisobotlar",
+        "reportsPending": "Yozilishi kerak"
+      },
+      "allSent": "Hammasi yuborildi",
+      "sent": "{{sent}}/{{total}} yuborildi",
+      "childrenCount_one": "{{count}} bola",
+      "childrenCount_other": "{{count}} bola",
+      "noClasses": "Hozircha guruh yo'q",
+      "noClassesSub": "Mudira sizni tez orada guruhga qo'shadi."
     }
   },
   "parentHome": {

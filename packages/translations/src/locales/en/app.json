@@ -143,6 +143,30 @@
         "sendNotice": "Send announcement",
         "paymentsSoon": "Open payments · Coming soon"
       }
+    },
+    "teacher": {
+      "greetingMorning": "Good morning, {{name}}",
+      "greetingAfternoon": "Good afternoon, {{name}}",
+      "greetingEvening": "Good evening, {{name}}",
+      "subtitle": "Here's your day at {{center}}.",
+      "subtitleNoCenter": "Here's your day at a glance.",
+      "quickActions": "Quick actions",
+      "quickActionsSub": "Jump straight to what you do most.",
+      "todayReports": "Today's reports",
+      "todayReportsSub": "See which classes are sent.",
+      "viewAll": "All reports",
+      "stat": {
+        "classes": "Classes",
+        "children": "Children",
+        "reportsSent": "Reports sent",
+        "reportsPending": "Still to write"
+      },
+      "allSent": "All sent",
+      "sent": "{{sent}}/{{total}} sent",
+      "childrenCount_one": "{{count}} child",
+      "childrenCount_other": "{{count}} children",
+      "noClasses": "No classes yet",
+      "noClassesSub": "Your director will add you to a class soon."
     }
   },
   "parentHome": {
