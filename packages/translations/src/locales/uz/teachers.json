@@ -5,6 +5,26 @@
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
   "canApprove": "So'rovlarni tasdiqlay oladi",
   "toggleAria": "{{name}} uchun tasdiqlash ruxsatini o'zgartirish",
+  "statusActive": "Faol",
+  "statusInactive": "Nofaol",
+  "fields": {
+    "fullName": "To'liq ism",
+    "phone": "Telefon",
+    "username": "Foydalanuvchi nomi",
+    "email": "Email",
+    "joined": "Qo'shilgan",
+    "approved": "Tasdiqlangan",
+    "lastLogin": "Oxirgi kirish"
+  },
+  "table": {
+    "role": "Lavozim",
+    "canApprove": "Tasdiqlay oladi",
+    "open": "Ochish",
+    "search": "O'qituvchini qidirish…",
+    "empty": "Filtrlarga mos o'qituvchi yo'q.",
+    "allRoles": "Barcha lavozimlar",
+    "allClasses": "Barcha sinflar"
+  },
   "errors": {
     "updateFailed": "Yangilab bo'lmadi.",
     "loadFailed": "O'qituvchilar yuklanmadi."
@@ -21,5 +41,37 @@
   "toast": {
     "canApprove": "{{name}} endi so'rovlarni tasdiqlay oladi.",
     "cannotApprove": "{{name}} endi so'rovlarni tasdiqlay olmaydi."
+  },
+  "detail": {
+    "back": "O'qituvchilarga qaytish",
+    "loadFailed": "Bu o'qituvchini yuklab bo'lmadi.",
+    "edit": "Tahrirlash",
+    "remove": "O'chirish",
+    "approver": "Tasdiqlovchi",
+    "noPhone": "Telefon yo'q",
+    "never": "Hech qachon",
+    "notProvided": "Ko'rsatilmagan",
+    "classCount": "{{count}} ta sinf",
+    "infoTitle": "O'qituvchi ma'lumotlari",
+    "infoDescription": "Aloqa ma'lumotlari va a'zolik.",
+    "classesTitle": "Sinflar",
+    "classesDescription": "Bu o'qituvchining sinflarini biriktiring yoki olib tashlang.",
+    "addClass": "Sinfga biriktirish",
+    "chooseClass": "Sinfni tanlang",
+    "assign": "Biriktirish",
+    "unassignAria": "{{class}} dan olib tashlash",
+    "noClassesToAdd": "Barcha sinflar biriktirilgan",
+    "classAssigned": "{{class}} ga biriktirildi.",
+    "classUnassigned": "{{class}} dan olib tashlandi.",
+    "editTitle": "O'qituvchini tahrirlash",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "canApproveHint": "Bu o'qituvchi ota-ona va o'qituvchi so'rovlarini tasdiqlay olsin.",
+    "saving": "Saqlanmoqda…",
+    "updated": "O'qituvchi yangilandi.",
+    "removeTitle": "O'qituvchi o'chirilsinmi?",
+    "removeBody": "{{name}} ushbu markazdan o'chiriladi va barcha sinflardan chiqariladi. Hisobi saqlanib qoladi va uni keyinroq qayta taklif qilishingiz mumkin.",
+    "removeConfirm": "O'qituvchini o'chirish",
+    "removing": "O'chirilmoqda…",
+    "removed": "O'qituvchi markazdan o'chirildi."
   }
 }

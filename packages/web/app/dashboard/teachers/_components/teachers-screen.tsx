@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GraduationCap } from "lucide-react";
+import { type ColumnDef } from "@tanstack/react-table";
+import { ArrowUpRight, GraduationCap, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { CenterTeacher } from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { queryKeys } from "@/lib/query-keys";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,16 +19,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { KidsLoader } from "@/components/kids-loader";
+import { DataTable } from "@/components/ui/data-table";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { KidsLoader } from "@/components/kids-loader";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatDate } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { assignmentRoleLabelKey } from "./teacher-labels";
 
+type ClassOption = { id: string; name: string };
+
 export function TeachersScreen({ centerId }: { centerId: string | null }) {
   const { t } = useLayoutTranslation("teachers");
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState("all");
+  const [classId, setClassId] = useState("all");
 
   const teachersKey = queryKeys.director.teachers(centerId ?? "");
 
@@ -39,13 +61,7 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: ({
-      teacher,
-      next,
-    }: {
-      teacher: CenterTeacher;
-      next: boolean;
-    }) =>
+    mutationFn: ({ teacher, next }: { teacher: CenterTeacher; next: boolean }) =>
       orpc.director.updateTeacher({
         centerId: centerId!,
         userId: teacher.userId,
@@ -57,8 +73,10 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
       await queryClient.cancelQueries({ queryKey: teachersKey });
       const previous = queryClient.getQueryData<CenterTeacher[]>(teachersKey);
       queryClient.setQueryData<CenterTeacher[]>(teachersKey, (current) =>
-        (current ?? []).map((t) =>
-          t.userId === teacher.userId ? { ...t, canApproveMembers: next } : t,
+        (current ?? []).map((item) =>
+          item.userId === teacher.userId
+            ? { ...item, canApproveMembers: next }
+            : item,
         ),
       );
       return { previous };
@@ -83,6 +101,153 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
     },
   });
 
+  const classOptions = useMemo<ClassOption[]>(() => {
+    const unique = new Map<string, string>();
+    for (const teacher of teachers) {
+      for (const assignment of teacher.assignments) {
+        unique.set(assignment.classId, assignment.className);
+      }
+    }
+    return [...unique.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [teachers]);
+
+  const columns = useMemo<ColumnDef<CenterTeacher>[]>(
+    () => [
+      {
+        id: "name",
+        accessorFn: (teacher) => teacher.fullName,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("fields.fullName")} />
+        ),
+        cell: ({ row }) => {
+          const teacher = row.original;
+          return (
+            <div className="flex min-w-0 items-center gap-3">
+              <TeacherAvatar
+                name={teacher.fullName}
+                photoUrl={teacher.avatarUrl}
+                size="sm"
+              />
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{teacher.fullName}</p>
+                <p
+                  dir="ltr"
+                  className="nums truncate text-left text-xs text-muted-foreground"
+                >
+                  {teacher.phoneNumber ?? teacher.username ?? "—"}
+                </p>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "classes",
+        accessorFn: (teacher) =>
+          teacher.assignments.map((a) => a.className).join(", "),
+        enableSorting: false,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("detail.classesTitle")} />
+        ),
+        cell: ({ row }) =>
+          row.original.assignments.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {row.original.assignments.map((assignment) => (
+                <Badge key={assignment.classId} variant="info">
+                  {assignment.className}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {t("empty.noClasses")}
+            </span>
+          ),
+      },
+      {
+        id: "role",
+        accessorFn: (teacher) => primaryRole(teacher),
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("table.role")} />
+        ),
+        cell: ({ row }) => {
+          const roles = distinctRoles(row.original);
+          if (roles.length === 0)
+            return <span className="text-muted-foreground">—</span>;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {roles.map((value) => (
+                <Badge
+                  key={value}
+                  variant={value === "teacher" ? "secondary" : "outline"}
+                >
+                  {t(assignmentRoleLabelKey(value))}
+                </Badge>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "approvedAt",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t("fields.approved")} />
+        ),
+        cell: ({ row }) => (
+          <span className="nums text-sm text-muted-foreground">
+            {formatDate(row.original.approvedAt)}
+          </span>
+        ),
+      },
+      {
+        id: "approve",
+        enableSorting: false,
+        accessorFn: (teacher) => teacher.canApproveMembers,
+        header: () => <span className="text-xs">{t("table.canApprove")}</span>,
+        cell: ({ row }) => {
+          const teacher = row.original;
+          return (
+            <Switch
+              checked={teacher.canApproveMembers}
+              onCheckedChange={(value: boolean) =>
+                centerId && toggleMutation.mutate({ teacher, next: value })
+              }
+              disabled={
+                toggleMutation.isPending &&
+                toggleMutation.variables?.teacher.userId === teacher.userId
+              }
+              aria-label={t("toggleAria", { name: teacher.fullName })}
+            />
+          );
+        },
+      },
+      {
+        id: "open",
+        enableHiding: false,
+        enableSorting: false,
+        header: () => <span className="sr-only">{t("table.open")}</span>,
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() =>
+                router.push(`/dashboard/teachers/${row.original.userId}`)
+              }
+            >
+              {t("table.open")}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [t, centerId, router, toggleMutation],
+  );
+
   const error =
     mutationError ??
     (loadError
@@ -90,11 +255,6 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
         ? loadError.message
         : t("errors.loadFailed")
       : null);
-
-  function togglePermission(teacher: CenterTeacher, next: boolean) {
-    if (!centerId) return;
-    toggleMutation.mutate({ teacher, next });
-  }
 
   if (!centerId) {
     return (
@@ -104,12 +264,46 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
     );
   }
 
+  const query = search.trim().toLowerCase();
+  const rows = teachers.filter((teacher) => {
+    if (query) {
+      const haystack = [
+        teacher.fullName,
+        teacher.phoneNumber ?? "",
+        teacher.username ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    if (
+      role !== "all" &&
+      !teacher.assignments.some((a) => a.assignmentRole === role)
+    ) {
+      return false;
+    }
+    if (
+      classId !== "all" &&
+      !teacher.assignments.some((a) => a.classId === classId)
+    ) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="flex flex-col gap-4">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-xl">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
+          </div>
+          {teachers.length > 0 ? (
+            <Badge variant="secondary" className="nums shrink-0 text-sm">
+              {teachers.length}
+            </Badge>
+          ) : null}
         </CardHeader>
       </Card>
 
@@ -139,58 +333,117 @@ export function TeachersScreen({ centerId }: { centerId: string | null }) {
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-0">
-            <ul className="flex flex-col divide-y">
-              {teachers.map((teacher) => (
-                <li
-                  key={teacher.userId}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <p className="font-semibold">{teacher.fullName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {teacher.phoneNumber ?? teacher.username ?? "—"}
-                    </p>
-                    {teacher.assignments.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {teacher.assignments.map((assignment) => (
-                          <Badge key={assignment.classId} variant="info">
-                            {assignment.className}
-                            {assignment.assignmentRole === "assistant_teacher"
-                              ? ` · ${t(assignmentRoleLabelKey(assignment.assignmentRole))}`
-                              : ""}
-                          </Badge>
+          <CardContent className="p-4 sm:p-5">
+            <DataTable
+              columns={columns}
+              data={rows}
+              pageSize={15}
+              emptyMessage={t("table.empty")}
+              toolbar={(table) => (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder={t("table.search")}
+                        className="h-9 w-[200px] pl-8"
+                      />
+                    </div>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger className="h-9 w-[150px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("table.allRoles")}</SelectItem>
+                        <SelectItem value="teacher">
+                          {t("assignmentRole.teacher")}
+                        </SelectItem>
+                        <SelectItem value="assistant_teacher">
+                          {t("assignmentRole.assistantTeacher")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={classId} onValueChange={setClassId}>
+                      <SelectTrigger className="h-9 w-[150px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          {t("table.allClasses")}
+                        </SelectItem>
+                        {classOptions.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
                         ))}
-                      </div>
-                    ) : (
-                      <p className="pt-1 text-xs text-muted-foreground">
-                        {t("empty.noClasses")}
-                      </p>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <label className="flex items-center gap-3 sm:justify-end">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {t("canApprove")}
-                    </span>
-                    <Switch
-                      checked={teacher.canApproveMembers}
-                      onCheckedChange={(value: boolean) =>
-                        togglePermission(teacher, value)
-                      }
-                      disabled={
-                        toggleMutation.isPending &&
-                        toggleMutation.variables?.teacher.userId ===
-                          teacher.userId
-                      }
-                      aria-label={t("toggleAria", { name: teacher.fullName })}
-                    />
-                  </label>
-                </li>
-              ))}
-            </ul>
+                  <DataTableViewOptions table={table} />
+                </div>
+              )}
+            />
           </CardContent>
         </Card>
       )}
     </div>
   );
+}
+
+function distinctRoles(teacher: CenterTeacher) {
+  const roles: ("teacher" | "assistant_teacher")[] = [];
+  if (teacher.assignments.some((a) => a.assignmentRole === "teacher")) {
+    roles.push("teacher");
+  }
+  if (teacher.assignments.some((a) => a.assignmentRole === "assistant_teacher")) {
+    roles.push("assistant_teacher");
+  }
+  return roles;
+}
+
+// Lead teachers sort ahead of assistants; unassigned last.
+function primaryRole(teacher: CenterTeacher) {
+  if (teacher.assignments.some((a) => a.assignmentRole === "teacher")) {
+    return "1";
+  }
+  if (teacher.assignments.length > 0) return "2";
+  return "3";
+}
+
+export function TeacherAvatar({
+  name,
+  photoUrl,
+  size = "md",
+}: {
+  name: string;
+  photoUrl: string | null;
+  size?: "sm" | "md" | "lg";
+}) {
+  const dimensions =
+    size === "lg"
+      ? "h-16 w-16 text-xl"
+      : size === "sm"
+        ? "h-9 w-9 text-xs"
+        : "h-12 w-12 text-base";
+  return (
+    <span
+      className={`grid ${dimensions} shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 font-bold text-primary`}
+    >
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        initials(name)
+      )}
+    </span>
+  );
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0]!.slice(0, 1).toUpperCase();
+  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }

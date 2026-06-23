@@ -5,6 +5,26 @@
   "noCenter": "Your account is not linked to a center yet.",
   "canApprove": "Can approve requests",
   "toggleAria": "Toggle approval permission for {{name}}",
+  "statusActive": "Active",
+  "statusInactive": "Inactive",
+  "fields": {
+    "fullName": "Full name",
+    "phone": "Phone",
+    "username": "Username",
+    "email": "Email",
+    "joined": "Joined",
+    "approved": "Approved",
+    "lastLogin": "Last login"
+  },
+  "table": {
+    "role": "Role",
+    "canApprove": "Can approve",
+    "open": "Open",
+    "search": "Search teacher…",
+    "empty": "No teachers match your filters.",
+    "allRoles": "All roles",
+    "allClasses": "All classes"
+  },
   "errors": {
     "updateFailed": "Could not update.",
     "loadFailed": "Could not load teachers."
@@ -21,5 +41,37 @@
   "toast": {
     "canApprove": "{{name}} can now approve requests.",
     "cannotApprove": "{{name}} can no longer approve requests."
+  },
+  "detail": {
+    "back": "Back to teachers",
+    "loadFailed": "Could not load this teacher.",
+    "edit": "Edit",
+    "remove": "Remove",
+    "approver": "Approver",
+    "noPhone": "No phone",
+    "never": "Never",
+    "notProvided": "Not provided",
+    "classCount": "{{count}} classes",
+    "infoTitle": "Teacher information",
+    "infoDescription": "Contact details and membership.",
+    "classesTitle": "Classes",
+    "classesDescription": "Assign or remove the classes this teacher runs.",
+    "addClass": "Add to a class",
+    "chooseClass": "Choose a class",
+    "assign": "Assign",
+    "unassignAria": "Remove from {{class}}",
+    "noClassesToAdd": "All classes assigned",
+    "classAssigned": "Added to {{class}}.",
+    "classUnassigned": "Removed from {{class}}.",
+    "editTitle": "Edit teacher",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "canApproveHint": "Let this teacher approve parent and teacher join requests.",
+    "saving": "Saving…",
+    "updated": "Teacher updated.",
+    "removeTitle": "Remove teacher?",
+    "removeBody": "{{name}} will be removed from this center and unassigned from every class. Their account stays, and you can invite them again later.",
+    "removeConfirm": "Remove teacher",
+    "removing": "Removing…",
+    "removed": "Teacher removed from the center."
   }
 }

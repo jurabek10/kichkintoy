@@ -150,6 +150,8 @@ export const queryKeys = {
     childDetail: (centerId: string, childId: string) =>
       ["director", centerId, "children", childId] as const,
     teachers: (centerId: string) => ["director", centerId, "teachers"] as const,
+    teacherDetail: (centerId: string, userId: string) =>
+      ["director", centerId, "teachers", userId] as const,
     joinRequests: (centerId: string, status?: string) =>
       ["director", centerId, "join-requests", status ?? ""] as const,
     invitations: (centerId: string) =>
