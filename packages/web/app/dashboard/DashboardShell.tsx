@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
+import { CurrentUserAvatar } from "@/components/current-user-avatar";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import {
@@ -307,6 +308,25 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           )}
           <SidebarMenu>
+            {isDirector ? (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/dashboard/profile")}
+                  tooltip={tNav("items.myPage")}
+                  className="h-auto py-2"
+                >
+                  <Link href="/dashboard/profile">
+                    <CurrentUserAvatar
+                      fallbackName={session.user.fullName}
+                      className="h-7 w-7 shrink-0"
+                      textClassName="text-[10px]"
+                    />
+                    <span className="truncate">{tNav("items.myPage")}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ) : null}
             <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip={tCommon("actions.signOut")}
@@ -332,23 +352,62 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <div className="lg:hidden">
                 <BrandMark href="/dashboard" />
               </div>
-              <div className="hidden min-w-0 lg:block">
-                <p className="truncate text-sm font-bold">
-                  {tCommon("dashboard.hello", { name: session.user.fullName })}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {roleLabel}
-                  {session.membership.centerName
-                    ? ` · ${session.membership.centerName}`
-                    : ""}
-                </p>
-              </div>
+              {isDirector ? (
+                <Link
+                  href="/dashboard/profile"
+                  className="hidden min-w-0 items-center gap-2.5 rounded-lg px-2 py-1 transition-colors hover:bg-muted lg:flex"
+                >
+                  <CurrentUserAvatar
+                    fallbackName={session.user.fullName}
+                    className="h-9 w-9 shrink-0"
+                    textClassName="text-xs"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">
+                      {tCommon("dashboard.hello", {
+                        name: session.user.fullName,
+                      })}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {roleLabel}
+                      {session.membership.centerName
+                        ? ` · ${session.membership.centerName}`
+                        : ""}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="hidden min-w-0 lg:block">
+                  <p className="truncate text-sm font-bold">
+                    {tCommon("dashboard.hello", { name: session.user.fullName })}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {roleLabel}
+                    {session.membership.centerName
+                      ? ` · ${session.membership.centerName}`
+                      : ""}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden text-right sm:block lg:hidden">
                 <p className="text-sm font-bold">{session.user.fullName}</p>
                 <p className="text-xs text-muted-foreground">{roleLabel}</p>
               </div>
+              {isDirector ? (
+                <Link
+                  href="/dashboard/profile"
+                  aria-label={tNav("items.myPage")}
+                  className="rounded-full transition-opacity hover:opacity-90 lg:hidden"
+                >
+                  <CurrentUserAvatar
+                    fallbackName={session.user.fullName}
+                    className="h-9 w-9"
+                    textClassName="text-xs"
+                  />
+                </Link>
+              ) : null}
               <LanguageSwitcher />
               <NotificationBell />
               <Button
