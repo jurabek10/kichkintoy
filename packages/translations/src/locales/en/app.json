@@ -166,7 +166,43 @@
       "childrenCount_one": "{{count}} child",
       "childrenCount_other": "{{count}} children",
       "noClasses": "No classes yet",
-      "noClassesSub": "Your director will add you to a class soon."
+      "noClassesSub": "Your director will add you to a class soon.",
+      "classInfo": {
+        "titleMulti": "My classes",
+        "sub": "Who's in your room.",
+        "viewAll": "Open classes",
+        "children": "Children",
+        "emptySeats": "Empty seats",
+        "boys": "Boys",
+        "girls": "Girls",
+        "ratio": "{{boys}} boys, {{girls}} girls"
+      },
+      "attendance": {
+        "title": "Today's attendance",
+        "sub": "Who's in class today.",
+        "viewAll": "Open attendance",
+        "here": "Here",
+        "late": "Late",
+        "absent": "Absent",
+        "notIn": "Not in yet",
+        "allHere": "Everyone's here"
+      },
+      "medications": {
+        "title": "Medication today",
+        "sub": "Doses parents asked you to give.",
+        "viewAll": "Open medications",
+        "toGive_one": "{{count}} to give",
+        "toGive_other": "{{count}} to give",
+        "atTime": "at {{time}}",
+        "empty": "No medication today",
+        "emptySub": "Nothing for your class to give today.",
+        "status": {
+          "pending": "To give",
+          "administered": "Given",
+          "skipped": "Skipped",
+          "cancelled": "Cancelled"
+        }
+      }
     }
   },
   "parentHome": {

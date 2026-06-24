@@ -96,7 +96,45 @@
       "childrenCount_many": "{{count}} детей",
       "childrenCount_other": "{{count}} детей",
       "noClasses": "Пока нет групп",
-      "noClassesSub": "Заведующий скоро добавит вас в группу."
+      "noClassesSub": "Заведующий скоро добавит вас в группу.",
+      "classInfo": {
+        "titleMulti": "Мои группы",
+        "sub": "Кто в вашей группе.",
+        "viewAll": "Открыть группы",
+        "children": "Дети",
+        "emptySeats": "Свободные места",
+        "boys": "Мальчики",
+        "girls": "Девочки",
+        "ratio": "{{boys}} мальчиков, {{girls}} девочек"
+      },
+      "attendance": {
+        "title": "Сегодняшняя посещаемость",
+        "sub": "Кто сегодня в группе.",
+        "viewAll": "Открыть посещаемость",
+        "here": "Пришли",
+        "late": "Опоздали",
+        "absent": "Отсутствуют",
+        "notIn": "Ещё нет",
+        "allHere": "Все на месте"
+      },
+      "medications": {
+        "title": "Лекарства на сегодня",
+        "sub": "Дозы, которые попросили дать родители.",
+        "viewAll": "Открыть лекарства",
+        "toGive_one": "{{count}} дать",
+        "toGive_few": "{{count}} дать",
+        "toGive_many": "{{count}} дать",
+        "toGive_other": "{{count}} дать",
+        "atTime": "в {{time}}",
+        "empty": "Сегодня лекарств нет",
+        "emptySub": "Сегодня вашей группе ничего давать не нужно.",
+        "status": {
+          "pending": "Дать",
+          "administered": "Дано",
+          "skipped": "Пропущено",
+          "cancelled": "Отменено"
+        }
+      }
     }
   },
   "parentHome": {

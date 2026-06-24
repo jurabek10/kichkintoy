@@ -166,7 +166,43 @@
       "childrenCount_one": "{{count}} bola",
       "childrenCount_other": "{{count}} bola",
       "noClasses": "Hozircha guruh yo'q",
-      "noClassesSub": "Mudira sizni tez orada guruhga qo'shadi."
+      "noClassesSub": "Mudira sizni tez orada guruhga qo'shadi.",
+      "classInfo": {
+        "titleMulti": "Mening sinflarim",
+        "sub": "Sinfingizda kim bor.",
+        "viewAll": "Sinflarni ochish",
+        "children": "Bolalar",
+        "emptySeats": "Bo'sh joylar",
+        "boys": "O'g'il bolalar",
+        "girls": "Qiz bolalar",
+        "ratio": "{{boys}} o'g'il, {{girls}} qiz"
+      },
+      "attendance": {
+        "title": "Bugungi davomat",
+        "sub": "Bugun sinfda kim bor.",
+        "viewAll": "Davomatni ochish",
+        "here": "Keldi",
+        "late": "Kech",
+        "absent": "Kelmadi",
+        "notIn": "Hali yo'q",
+        "allHere": "Hammasi keldi"
+      },
+      "medications": {
+        "title": "Bugungi dorilar",
+        "sub": "Ota-onalar berishni so'ragan dorilar.",
+        "viewAll": "Dorilarni ochish",
+        "toGive_one": "{{count}} ta berish",
+        "toGive_other": "{{count}} ta berish",
+        "atTime": "{{time}} da",
+        "empty": "Bugun dori yo'q",
+        "emptySub": "Bugun sinfingizga dori berish shart emas.",
+        "status": {
+          "pending": "Berish",
+          "administered": "Berildi",
+          "skipped": "O'tkazib yuborildi",
+          "cancelled": "Bekor qilindi"
+        }
+      }
     }
   },
   "parentHome": {
