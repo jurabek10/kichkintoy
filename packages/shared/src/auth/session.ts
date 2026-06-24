@@ -25,6 +25,10 @@ export const membershipSchema = z.object({
   joinRequestId: uuidSchema.nullable(),
   centerId: uuidSchema.nullable(),
   centerName: z.string().nullable(),
+  // Whether this member may approve/reject join requests. Directors and org
+  // owners always can; teachers only when the director grants it. Drives the
+  // read-only vs. actionable state on the requests screen.
+  canApproveMembers: z.boolean().default(false),
 });
 
 export type Membership = z.infer<typeof membershipSchema>;

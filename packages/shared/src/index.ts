@@ -19,6 +19,9 @@ export * from "./membership/index.js";
 /** HTTP API request/response contracts shared by web, mobile, and backend. */
 export * from "./api/index.js";
 
+/** Shared app error codes and their English fallbacks. */
+export * from "./errors/index.js";
+
 /** Shared Zod validators and language enum. */
 export * from "./lib/validators.js";
 export * from "./lib/language.js";
