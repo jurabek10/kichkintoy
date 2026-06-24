@@ -24,15 +24,24 @@
   "table": {
     "type": "Type",
     "name": "Name",
+    "child": "Child",
+    "class": "Requested class",
+    "phone": "Phone",
     "contact": "Child / Phone",
     "submitted": "Submitted",
-    "actions": "Actions"
+    "actions": "Actions",
+    "searchName": "Search by name"
   },
   "actions": {
     "review": "Review",
+    "view": "View",
     "approve": "Approve",
     "reject": "Reject",
     "working": "Working..."
+  },
+  "readOnly": {
+    "banner": "You can view requests, but only the director or an approver can approve or reject them.",
+    "pending": "This request is waiting for the director or an approver to act."
   },
   "validation": {
     "pickClass": "Pick a class for this parent before approving."

@@ -24,15 +24,24 @@
   "table": {
     "type": "Turi",
     "name": "Nomi",
+    "child": "Bola",
+    "class": "So'ralgan sinf",
+    "phone": "Telefon",
     "contact": "Bola / Telefon",
     "submitted": "Yuborilgan",
-    "actions": "Amallar"
+    "actions": "Amallar",
+    "searchName": "Ism bo'yicha qidirish"
   },
   "actions": {
     "review": "Ko'rib chiqish",
+    "view": "Ko'rish",
     "approve": "Tasdiqlash",
     "reject": "Rad etish",
     "working": "Ishlanmoqda..."
+  },
+  "readOnly": {
+    "banner": "Siz so'rovlarni ko'rishingiz mumkin, lekin tasdiqlash yoki rad etishni faqat direktor yoki ruxsat berilgan xodim qila oladi.",
+    "pending": "Bu so'rov direktor yoki ruxsat berilgan xodim qarorini kutmoqda."
   },
   "validation": {
     "pickClass": "Tasdiqlashdan oldin ota-ona uchun sinf tanlang."
