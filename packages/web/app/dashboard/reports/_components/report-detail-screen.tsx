@@ -395,7 +395,8 @@ function ReportEditForm({
               onChange={(event) =>
                 onChange({ ...edit, teacherNote: event.target.value })
               }
-              rows={5}
+              rows={12}
+              className="min-h-[240px]"
             />
           </div>
           <div className="flex flex-col gap-2">

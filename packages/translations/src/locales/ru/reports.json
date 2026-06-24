@@ -14,8 +14,23 @@
   "childrenCount": "{{count}} детей",
   "readCount": "{{read}}/{{total}} прочитали",
   "newReport": "Новый отчет",
+  "allClasses": "Все группы",
+  "classesHint": "Откройте группу, чтобы писать отчеты",
+  "writeReports": "Писать отчеты",
+  "reportsCount": "{{count}} отчетов",
   "reportsForDate": "Отчеты за {{date}}",
   "noReportsForDate": "За эту дату отчетов пока нет.",
+  "table": {
+    "child": "Ребенок",
+    "class": "Группа",
+    "content": "Содержание",
+    "time": "Время",
+    "status": "Статус",
+    "actions": "Действия",
+    "view": "Открыть",
+    "absent": "Отсутствует",
+    "searchChild": "Поиск по имени ребенка"
+  },
   "back": "Отчеты",
   "classReports": "Отчеты группы",
   "directorClassDescription": "Следите за пришедшими детьми и готовностью отчетов за {{date}}.",
@@ -26,6 +41,7 @@
   "publishedReports": "Опубликовано отчетов: {{count}}.",
   "metrics": {
     "attended": "Пришли сегодня",
+    "enrolled": "Зачислено",
     "published": "Опубликованные отчеты",
     "missing": "Нет отчетов"
   },

@@ -14,8 +14,23 @@
   "childrenCount": "{{count}} bola",
   "readCount": "{{read}}/{{total}} o'qidi",
   "newReport": "Yangi hisobot",
+  "allClasses": "Barcha sinflar",
+  "classesHint": "Hisobot yozish uchun sinfni oching",
+  "writeReports": "Hisobot yozish",
+  "reportsCount": "{{count}} ta hisobot",
   "reportsForDate": "{{date}} uchun hisobotlar",
   "noReportsForDate": "Bu sana uchun hali hisobot yo'q.",
+  "table": {
+    "child": "Bola",
+    "class": "Sinf",
+    "content": "Mazmuni",
+    "time": "Vaqt",
+    "status": "Holat",
+    "actions": "Amallar",
+    "view": "Ko'rish",
+    "absent": "Kelmagan",
+    "searchChild": "Bola ismi bo'yicha qidirish"
+  },
   "back": "Hisobotlar",
   "classReports": "Sinf hisobotlari",
   "directorClassDescription": "{{date}} kuni kelgan bolalar va hisobot holatini kuzating.",
@@ -26,6 +41,7 @@
   "publishedReports": "{{count}} ta hisobot e'lon qilindi.",
   "metrics": {
     "attended": "Bugun kelganlar",
+    "enrolled": "Ro'yxatda",
     "published": "E'lon qilingan hisobotlar",
     "missing": "Yetishmayotgan hisobotlar"
   },

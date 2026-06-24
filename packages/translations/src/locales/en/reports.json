@@ -14,8 +14,23 @@
   "childrenCount": "{{count}} children",
   "readCount": "{{read}}/{{total}} read",
   "newReport": "New report",
+  "allClasses": "All classes",
+  "classesHint": "Open a class to write reports",
+  "writeReports": "Write reports",
+  "reportsCount": "{{count}} reports",
   "reportsForDate": "Reports for {{date}}",
   "noReportsForDate": "No reports for this date yet.",
+  "table": {
+    "child": "Child",
+    "class": "Class",
+    "content": "Content",
+    "time": "Time",
+    "status": "Status",
+    "actions": "Actions",
+    "view": "View",
+    "absent": "Absent",
+    "searchChild": "Search by child name"
+  },
   "back": "Reports",
   "classReports": "Class reports",
   "directorClassDescription": "Monitor checked-in children and report completion for {{date}}.",
@@ -26,6 +41,7 @@
   "publishedReports": "Published {{count}} reports.",
   "metrics": {
     "attended": "Attended today",
+    "enrolled": "Enrolled",
     "published": "Reports published",
     "missing": "Missing reports"
   },

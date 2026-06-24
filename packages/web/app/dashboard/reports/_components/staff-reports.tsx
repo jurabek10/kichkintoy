@@ -8,28 +8,21 @@ import type { TFunction } from "i18next";
 import type {
   ClassListItem,
   DailyReportClassChildStatus,
-  DailyReportListResponse,
   TeacherClass,
 } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
 import { PageHeading } from "@/components/page-heading";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { formatDate, reportStatusLabel } from "@/lib/format";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
-import { reportItemSummary, todayIsoDate } from "./report-utils";
+import { todayIsoDate } from "./report-utils";
+import { TeacherDayReports } from "./teacher-day-reports";
+import { ClassReports } from "./class-reports";
 
 export function StaffReports({
   centerId,
@@ -72,6 +65,22 @@ export function StaffReports({
   const reports = data?.reports ?? [];
   const error = loadError ? toApiError(loadError).message : null;
 
+  // Most teachers run a single room. With nothing to choose between, the class
+  // picker is pure friction — drop them straight into that class's report list
+  // so "Reports" means "write today's reports". Two or more classes keep the
+  // overview with the picker.
+  if (!director && !loading && classes.length === 1) {
+    return (
+      <ClassReports
+        centerId={centerId}
+        classId={classes[0].id}
+        initialDate={date}
+        role="teacher"
+        embedded
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -106,10 +115,13 @@ export function StaffReports({
           t={t}
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <StaffClassesCard classes={classes} date={date} loading={loading} t={t} />
-          <StaffReportsCard date={date} loading={loading} reports={reports} t={t} />
-        </div>
+        <TeacherDayReports
+          classes={classes}
+          reports={reports}
+          date={date}
+          loading={loading}
+          t={t}
+        />
       )}
     </div>
   );
@@ -341,105 +353,3 @@ function StatTile({
   );
 }
 
-function StaffClassesCard({
-  classes,
-  date,
-  loading,
-  t,
-}: {
-  classes: Array<TeacherClass | ClassListItem>;
-  date: string;
-  loading: boolean;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{t("classes")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <KidsLoader label={t("loading")} size="sm" />
-        ) : classes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("noClasses")}</p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {classes.map((klass) => (
-              <Link
-                key={klass.id}
-                href={`/dashboard/reports/classes/${klass.id}?date=${date}`}
-                className="rounded-lg border p-4 transition hover:border-primary/40 hover:bg-muted/40"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-bold">{klass.name}</p>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t("childrenCount", { count: klass.childCount })}
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function StaffReportsCard({
-  date,
-  loading,
-  reports,
-  t,
-}: {
-  date: string;
-  loading: boolean;
-  reports: DailyReportListResponse;
-  t: TFunction<"reports">;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">
-          {t("reportsForDate", { date: formatDate(date) })}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <KidsLoader label={t("loading")} size="sm" />
-        ) : reports.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("noReportsForDate")}</p>
-        ) : (
-          <ul className="flex flex-col divide-y">
-            {reports.map((report) => (
-              <li key={report.id} className="py-3 first:pt-0 last:pb-0">
-                <Link
-                  href={`/dashboard/reports/${report.id}`}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{report.child.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {report.class.name} · {reportItemSummary(report, t)}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      report.status === "published"
-                        ? "success"
-                        : report.status === "scheduled"
-                          ? "warning"
-                          : "secondary"
-                    }
-                  >
-                    {t(`status.${report.status}`, reportStatusLabel(report.status))}
-                  </Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
