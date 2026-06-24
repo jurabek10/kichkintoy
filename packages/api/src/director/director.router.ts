@@ -22,14 +22,21 @@ export function createDirectorRouter(os: ORPCImplementer, deps: ORPCDeps) {
         deps.directorService.getHomeSummary(input.centerId),
       ),
     joinRequests: os.director.joinRequests
-      .use(access.centerMember)
-      .handler(async ({ input }) =>
+      // Any teacher of the center may view requests; only directors and
+      // approver-teachers (centerMember, below) can approve/reject them.
+      .use(access.centerStaff)
+      .handler(async ({ input, context }) =>
         joinRequestRowSchema
           .array()
           .parse(
-            await deps.directorService.listJoinRequests(input.centerId, {
-              status: input.status,
-            }),
+            await deps.directorService.listJoinRequests(
+              input.centerId,
+              { status: input.status },
+              {
+                userId: context.user.id,
+                directorView: context.access === "director",
+              },
+            ),
           ),
       ),
     approveJoinRequest: os.director.approveJoinRequest

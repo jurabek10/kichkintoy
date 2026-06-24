@@ -257,11 +257,34 @@ export class DirectorService {
     });
   }
 
-  async listJoinRequests(centerId: string, query: ListJoinRequestsQuery) {
+  async listJoinRequests(
+    centerId: string,
+    query: ListJoinRequestsQuery,
+    viewer?: { userId: string; directorView: boolean },
+  ) {
     const status = query.status ?? "pending";
 
+    // Teachers only see child-enrollment (parent) requests for the classes they
+    // teach; directors see every request in the center.
+    let teacherScope:
+      | { kind: "parent"; requestedClassId: { in: string[] } }
+      | undefined;
+    if (viewer && !viewer.directorView) {
+      const assignments = await this.prisma.teacherClassAssignment.findMany({
+        where: {
+          teacherUserId: viewer.userId,
+          endedAt: null,
+          class: { centerId },
+        },
+        select: { classId: true },
+      });
+      const classIds = assignments.map((assignment) => assignment.classId);
+      if (classIds.length === 0) return [];
+      teacherScope = { kind: "parent", requestedClassId: { in: classIds } };
+    }
+
     const requests = await this.prisma.centerJoinRequest.findMany({
-      where: { centerId, status },
+      where: { centerId, status, ...teacherScope },
       include: {
         parentUser: {
           select: { id: true, fullName: true, phone: true, username: true },

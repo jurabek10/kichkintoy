@@ -55,6 +55,9 @@ type MembershipPayload = {
   joinRequestId: string | null;
   centerId: string | null;
   centerName: string | null;
+  // Omitted ⇒ false (the membership schema defaults it). Set true for directors
+  // and approver-teachers so the client can show actionable controls.
+  canApproveMembers?: boolean;
 };
 
 @Injectable()
@@ -1375,16 +1378,21 @@ export class AuthService {
         userId,
         centerId: { not: null },
       },
-      include: { center: true },
+      include: { center: true, role: true },
       orderBy: { createdAt: "desc" },
     });
 
     if (centerRole?.center) {
+      // Directors/org owners always can; teachers only when granted the flag.
+      const isDirector =
+        centerRole.role?.name === "director" ||
+        centerRole.role?.name === "organization_owner";
       return {
         status: "active",
         joinRequestId: null,
         centerId: centerRole.centerId,
         centerName: centerRole.center.name,
+        canApproveMembers: isDirector || centerRole.canApproveMembers,
       };
     }
 
@@ -1410,6 +1418,7 @@ export class AuthService {
         joinRequestId: null,
         centerId: orgCenter?.id ?? null,
         centerName: orgCenter?.name ?? null,
+        canApproveMembers: true,
       };
     }
 
