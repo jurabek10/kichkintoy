@@ -20,6 +20,9 @@ import {
  * (`context.ts`) and is covered by `context.spec.ts`.
  *
  *   authed        — any signed-in user.
+ *   centerStaff   — director OR any teacher of the center; read-only callers
+ *                   (needs centerId). Use for center-scoped *reads* a teacher
+ *                   may see but not act on.
  *   centerMember  — director OR approver-teacher of the center (needs centerId).
  *   directorOnly  — director / org-owner of the center (needs centerId).
  */
@@ -28,6 +31,19 @@ export function createAccess(os: ORPCImplementer, deps: ORPCDeps) {
     const user = await requireUser(deps.prisma, context.req);
     return next({ context: { user } });
   });
+
+  const centerStaff = os.middleware(
+    async ({ context, next }, input: { centerId: string }) => {
+      const user = await requireUser(deps.prisma, context.req);
+      const access = await requireCenterAccess(
+        deps.prisma,
+        context.req,
+        input.centerId,
+        { allowAnyTeacher: true },
+      );
+      return next({ context: { user, access } });
+    },
+  );
 
   const centerMember = os.middleware(
     async ({ context, next }, input: { centerId: string }) => {
@@ -51,7 +67,7 @@ export function createAccess(os: ORPCImplementer, deps: ORPCDeps) {
     },
   );
 
-  return { authed, centerMember, directorOnly };
+  return { authed, centerStaff, centerMember, directorOnly };
 }
 
 export type AccessPolicies = ReturnType<typeof createAccess>;

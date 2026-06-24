@@ -1,7 +1,23 @@
 import { describe, it, expect, vi } from "vitest";
-import { ForbiddenException, UnauthorizedException } from "@nestjs/common";
+import { HttpStatus } from "@nestjs/common";
 import type { Request } from "express";
+import type { AppErrorCode } from "@kichkintoy/shared";
 import { requireUser, requireCenterAccess } from "./context";
+import { AppException } from "../common/app-exception";
+
+/** Asserts the promise rejects with an AppException carrying the given code. */
+async function expectAppError(
+  promise: Promise<unknown>,
+  code: AppErrorCode,
+  status: HttpStatus,
+) {
+  await expect(promise).rejects.toBeInstanceOf(AppException);
+  await promise.catch((error: unknown) => {
+    expect(error).toBeInstanceOf(AppException);
+    expect((error as AppException).code).toBe(code);
+    expect((error as AppException).getStatus()).toBe(status);
+  });
+}
 
 /**
  * Safety-net tests for the authorization seam. These pin the *enforcement*
@@ -42,17 +58,21 @@ const authedUser = {
 describe("requireUser", () => {
   it("rejects a request with no bearer token", async () => {
     const prisma = { authSession: { findUnique: vi.fn() } } as any;
-    await expect(requireUser(prisma, fakeReq())).rejects.toBeInstanceOf(
-      UnauthorizedException,
+    await expectAppError(
+      requireUser(prisma, fakeReq()),
+      "AUTH_REQUIRED",
+      HttpStatus.UNAUTHORIZED,
     );
     expect(prisma.authSession.findUnique).not.toHaveBeenCalled();
   });
 
   it("rejects when the session is not found", async () => {
     const prisma = { authSession: { findUnique: vi.fn().mockResolvedValue(null) } } as any;
-    await expect(
+    await expectAppError(
       requireUser(prisma, fakeReq("Bearer abc")),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+      "SESSION_EXPIRED",
+      HttpStatus.UNAUTHORIZED,
+    );
   });
 
   it("rejects an expired session", async () => {
@@ -64,9 +84,11 @@ describe("requireUser", () => {
         }),
       },
     } as any;
-    await expect(
+    await expectAppError(
       requireUser(prisma, fakeReq("Bearer abc")),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+      "SESSION_EXPIRED",
+      HttpStatus.UNAUTHORIZED,
+    );
   });
 
   it("rejects a revoked session", async () => {
@@ -77,9 +99,11 @@ describe("requireUser", () => {
           .mockResolvedValue({ ...validSession, revokedAt: new Date() }),
       },
     } as any;
-    await expect(
+    await expectAppError(
       requireUser(prisma, fakeReq("Bearer abc")),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+      "SESSION_EXPIRED",
+      HttpStatus.UNAUTHORIZED,
+    );
   });
 
   it("resolves a valid session and caches the user on the request", async () => {
@@ -101,15 +125,18 @@ describe("requireCenterAccess", () => {
     center,
     director,
     approver,
+    teacher,
   }: {
     center: unknown;
     director?: unknown;
     approver?: unknown;
+    teacher?: unknown;
   }) {
     const findFirst = vi
       .fn()
       .mockResolvedValueOnce(director ?? null) // director / org-owner lookup
-      .mockResolvedValueOnce(approver ?? null); // approver-teacher lookup
+      .mockResolvedValueOnce(approver ?? null) // approver-teacher lookup
+      .mockResolvedValueOnce(teacher ?? null); // any-teacher lookup (allowAnyTeacher)
     return {
       center: { findUnique: vi.fn().mockResolvedValue(center) },
       userRole: { findFirst },
@@ -122,11 +149,13 @@ describe("requireCenterAccess", () => {
     return req;
   }
 
-  it("throws Forbidden when the center does not exist", async () => {
+  it("throws when the center does not exist", async () => {
     const prisma = prismaWith({ center: null });
-    await expect(
+    await expectAppError(
       requireCenterAccess(prisma, authedReq(), "center-1"),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+      "CENTER_NOT_FOUND",
+      HttpStatus.NOT_FOUND,
+    );
   });
 
   it("grants 'director' when a director role matches", async () => {
@@ -145,9 +174,13 @@ describe("requireCenterAccess", () => {
       director: null,
       approver: { id: "role-2" },
     });
-    await expect(
-      requireCenterAccess(prisma, authedReq(), "center-1", { directorOnly: true }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expectAppError(
+      requireCenterAccess(prisma, authedReq(), "center-1", {
+        directorOnly: true,
+      }),
+      "DIRECTOR_ACCESS_REQUIRED",
+      HttpStatus.FORBIDDEN,
+    );
   });
 
   it("grants 'approver_teacher' to an approver teacher when not directorOnly", async () => {
@@ -161,14 +194,46 @@ describe("requireCenterAccess", () => {
     ).resolves.toBe("approver_teacher");
   });
 
-  it("throws Forbidden when the user has no center access at all", async () => {
+  it("throws NO_APPROVER_ACCESS when a plain teacher tries to act", async () => {
     const prisma = prismaWith({
       center: { id: "center-1", organizationId: "org-1" },
       director: null,
       approver: null,
     });
-    await expect(
+    await expectAppError(
       requireCenterAccess(prisma, authedReq(), "center-1"),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+      "NO_APPROVER_ACCESS",
+      HttpStatus.FORBIDDEN,
+    );
+  });
+
+  it("grants 'center_teacher' to any teacher when allowAnyTeacher is set", async () => {
+    const prisma = prismaWith({
+      center: { id: "center-1", organizationId: "org-1" },
+      director: null,
+      approver: null,
+      teacher: { id: "role-3" },
+    });
+    await expect(
+      requireCenterAccess(prisma, authedReq(), "center-1", {
+        allowAnyTeacher: true,
+      }),
+    ).resolves.toBe("center_teacher");
+  });
+
+  it("throws CENTER_ACCESS_REQUIRED when a non-teacher reads with allowAnyTeacher", async () => {
+    const prisma = prismaWith({
+      center: { id: "center-1", organizationId: "org-1" },
+      director: null,
+      approver: null,
+      teacher: null,
+    });
+    await expectAppError(
+      requireCenterAccess(prisma, authedReq(), "center-1", {
+        allowAnyTeacher: true,
+      }),
+      "CENTER_ACCESS_REQUIRED",
+      HttpStatus.FORBIDDEN,
+    );
   });
 });

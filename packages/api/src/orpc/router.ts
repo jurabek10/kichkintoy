@@ -1,7 +1,8 @@
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { NextFunction, Request, Response } from "express";
 import { RPCHandler } from "@orpc/server/node";
-import { implement, onError } from "@orpc/server";
+import { implement } from "@orpc/server";
+import { toORPCError } from "./error-mapping";
 import { appContract } from "@kichkintoy/shared";
 import { AlbumsService } from "../albums/albums.service";
 import { AttendanceService } from "../attendance/attendance.service";
@@ -74,10 +75,16 @@ export function registerORPCRoutes(app: NestExpressApplication) {
 
   const handler = new RPCHandler(router, {
     interceptors: [
-      onError((error) => {
-        // Keep the server log useful while the client receives a normalized error.
-        console.error(error);
-      }),
+      async (options) => {
+        try {
+          return await options.next();
+        } catch (error) {
+          // Log the original for the server, hand the client a normalized error
+          // that preserves status/message and a translatable code.
+          console.error(error);
+          throw toORPCError(error);
+        }
+      },
     ],
   });
 

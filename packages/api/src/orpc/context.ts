@@ -1,5 +1,6 @@
-import { ForbiddenException, UnauthorizedException } from "@nestjs/common";
+import { HttpStatus } from "@nestjs/common";
 import { createHash } from "node:crypto";
+import { AppException } from "../common/app-exception";
 import type { Request } from "express";
 import type { implement } from "@orpc/server";
 import type { appContract } from "@kichkintoy/shared";
@@ -86,7 +87,7 @@ export async function requireUser(
 
   const token = bearerToken(req);
   if (!token) {
-    throw new UnauthorizedException("Authentication required.");
+    throw new AppException("AUTH_REQUIRED", HttpStatus.UNAUTHORIZED);
   }
 
   const tokenHash = createHash("sha256").update(token).digest("hex");
@@ -111,7 +112,7 @@ export async function requireUser(
     session.expiresAt <= new Date() ||
     !session.user
   ) {
-    throw new UnauthorizedException("Session is invalid or expired.");
+    throw new AppException("SESSION_EXPIRED", HttpStatus.UNAUTHORIZED);
   }
 
   request.user = {
@@ -134,7 +135,7 @@ export async function requireCenterAccess(
   prisma: PrismaService,
   req: Request,
   centerId: string,
-  options: { directorOnly?: boolean } = {},
+  options: { directorOnly?: boolean; allowAnyTeacher?: boolean } = {},
 ): Promise<DirectorAccessLevel> {
   const request = req as RequestWithUser;
   const user = await requireUser(prisma, req);
@@ -144,7 +145,7 @@ export async function requireCenterAccess(
   });
 
   if (!center) {
-    throw new ForbiddenException("Center not found.");
+    throw new AppException("CENTER_NOT_FOUND", HttpStatus.NOT_FOUND);
   }
 
   const directorMatch = await prisma.userRole.findFirst({
@@ -167,8 +168,9 @@ export async function requireCenterAccess(
   }
 
   if (options.directorOnly) {
-    throw new ForbiddenException(
-      "Director access is required for this action.",
+    throw new AppException(
+      "DIRECTOR_ACCESS_REQUIRED",
+      HttpStatus.FORBIDDEN,
     );
   }
 
@@ -186,7 +188,22 @@ export async function requireCenterAccess(
     return request.centerAccess;
   }
 
-  throw new ForbiddenException(
-    "You do not have approver access to this center.",
-  );
+  // Read-only callers (e.g. viewing join requests) accept any teacher of the
+  // center; they just can't act on what they see.
+  if (options.allowAnyTeacher) {
+    const teacher = await prisma.userRole.findFirst({
+      where: {
+        userId: user.id,
+        centerId: center.id,
+        role: { name: "teacher" },
+      },
+    });
+    if (teacher) {
+      request.centerAccess = "center_teacher";
+      return request.centerAccess;
+    }
+    throw new AppException("CENTER_ACCESS_REQUIRED", HttpStatus.FORBIDDEN);
+  }
+
+  throw new AppException("NO_APPROVER_ACCESS", HttpStatus.FORBIDDEN);
 }

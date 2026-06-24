@@ -21,7 +21,12 @@ export const DIRECTOR_ONLY_METADATA = "directorOnlyAccess";
  */
 export const DirectorOnly = () => SetMetadata(DIRECTOR_ONLY_METADATA, true);
 
-export type DirectorAccessLevel = "director" | "approver_teacher";
+export type DirectorAccessLevel =
+  | "director"
+  | "approver_teacher"
+  // Any teacher of the center: may read center-scoped lists (e.g. join
+  // requests) but cannot approve/reject. Granted only via `allowAnyTeacher`.
+  | "center_teacher";
 
 export type RequestWithCenterAccess = RequestWithUser & {
   centerAccess?: DirectorAccessLevel;
