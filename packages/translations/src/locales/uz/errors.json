@@ -1,0 +1,12 @@
+{
+  "generic": "Nimadir xato ketdi. Qayta urinib ko'ring.",
+  "codes": {
+    "AUTH_REQUIRED": "Davom etish uchun tizimga kiring.",
+    "SESSION_EXPIRED": "Sessiya muddati tugadi. Qaytadan kiring.",
+    "CENTER_NOT_FOUND": "Bu markaz topilmadi.",
+    "CENTER_ACCESS_REQUIRED": "Sizda bu markazga ruxsat yo'q.",
+    "DIRECTOR_ACCESS_REQUIRED": "Buni faqat direktor qila oladi.",
+    "NO_APPROVER_ACCESS": "Siz so'rovlarni ko'rishingiz mumkin, lekin tasdiqlash yoki rad etishni faqat direktor yoki ruxsat berilgan xodim qila oladi.",
+    "INTERNAL_ERROR": "Nimadir xato ketdi. Qayta urinib ko'ring."
+  }
+}

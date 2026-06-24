@@ -42,6 +42,7 @@ const layoutNamespaces = [
   "common",
   "nav",
   "app",
+  "errors",
   "reports",
   "classes",
   "attendance",

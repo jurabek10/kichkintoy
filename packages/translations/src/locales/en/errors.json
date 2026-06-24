@@ -1,0 +1,12 @@
+{
+  "generic": "Something went wrong. Please try again.",
+  "codes": {
+    "AUTH_REQUIRED": "Please sign in to continue.",
+    "SESSION_EXPIRED": "Your session has expired. Please sign in again.",
+    "CENTER_NOT_FOUND": "We couldn't find this center.",
+    "CENTER_ACCESS_REQUIRED": "You don't have access to this center.",
+    "DIRECTOR_ACCESS_REQUIRED": "Only the director can do this.",
+    "NO_APPROVER_ACCESS": "You can view requests, but only the director or an approver can approve or reject them.",
+    "INTERNAL_ERROR": "Something went wrong. Please try again."
+  }
+}
