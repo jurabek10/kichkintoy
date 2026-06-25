@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { KidsLoader } from "@/components/kids-loader";
+import { SignedAvatar } from "@/components/signed-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { formatDate } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
@@ -418,32 +419,21 @@ export function TeacherAvatar({
   size = "md",
 }: {
   name: string;
+  // A private media-asset id (not a URL); resolved to a short-lived signed
+  // URL by SignedAvatar. Named `photoUrl` for historical reasons.
   photoUrl: string | null;
   size?: "sm" | "md" | "lg";
 }) {
   const dimensions =
-    size === "lg"
-      ? "h-16 w-16 text-xl"
-      : size === "sm"
-        ? "h-9 w-9 text-xs"
-        : "h-12 w-12 text-base";
+    size === "lg" ? "h-16 w-16" : size === "sm" ? "h-9 w-9" : "h-12 w-12";
+  const textClassName =
+    size === "lg" ? "text-xl" : size === "sm" ? "text-xs" : "text-base";
   return (
-    <span
-      className={`grid ${dimensions} shrink-0 place-items-center overflow-hidden rounded-full bg-primary/10 font-bold text-primary`}
-    >
-      {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt={name} className="h-full w-full object-cover" />
-      ) : (
-        initials(name)
-      )}
-    </span>
+    <SignedAvatar
+      mediaAssetId={photoUrl}
+      name={name}
+      className={`${dimensions} shrink-0`}
+      textClassName={textClassName}
+    />
   );
-}
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 1).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
