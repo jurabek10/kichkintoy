@@ -9,9 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardDescription,
+  CardContent,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
@@ -20,7 +19,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
-import { DirectorNoticeCard } from "./director-notice-card";
+import { NoticeTable } from "./notice-table";
 
 type NoticeStatusFilter = "all" | "draft" | "scheduled" | "published";
 
@@ -34,6 +33,7 @@ export function StaffNotices({
 }) {
   const { t } = useLayoutTranslation("notices");
   const [filter, setFilter] = useState<NoticeStatusFilter>("all");
+  const [search, setSearch] = useState("");
 
   // Fetch the whole list once, then tab + count on the client so switching
   // filters is instant and each tab can show its own count.
@@ -53,8 +53,12 @@ export function StaffNotices({
       filter === "all"
         ? notices
         : notices.filter((notice) => notice.status === filter);
-    return [...list].sort(byPinnedThenRecent);
-  }, [notices, filter]);
+    const query = search.trim().toLowerCase();
+    const searched = query
+      ? list.filter((notice) => noticeMatchesSearch(notice, query))
+      : list;
+    return [...searched].sort(byPinnedThenRecent);
+  }, [filter, notices, search]);
 
   if (!centerId) {
     return (
@@ -134,11 +138,17 @@ export function StaffNotices({
           </p>
         </Card>
       ) : (
-        <div className="grid gap-3">
-          {visible.map((notice) => (
-            <DirectorNoticeCard key={notice.id} notice={notice} />
-          ))}
-        </div>
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <NoticeTable
+              notices={visible}
+              mode="staff"
+              search={search}
+              onSearchChange={setSearch}
+              t={t}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -172,4 +182,20 @@ function recencyOf(notice: NoticeSummary) {
 function filterLabel(key: NoticeStatusFilter) {
   if (key === "all") return "filters.all";
   return `status.${key}`;
+}
+
+function noticeMatchesSearch(notice: NoticeSummary, query: string) {
+  return [
+    notice.title,
+    notice.bodyPreview,
+    notice.author.fullName,
+    notice.centerName,
+    notice.child?.name,
+    notice.child?.className,
+    notice.targets.map((target) => target.label).join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
 }

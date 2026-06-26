@@ -34,7 +34,18 @@
     "actionNeeded": "Action needed",
     "confirmed": "Confirmed",
     "confirmation": "Confirmation",
-    "important": "Important"
+    "important": "Important",
+    "new": "New"
+  },
+  "table": {
+    "notice": "Notice",
+    "status": "Status",
+    "audience": "Audience",
+    "activity": "Created",
+    "createdAt": "Created",
+    "open": "Open",
+    "search": "Search notices...",
+    "empty": "No notices match this view."
   },
   "empty": {
     "staffTitle": "No notices yet",
@@ -69,7 +80,8 @@
     "published": "Notice published.",
     "savedAsDraft": "Notice saved as draft.",
     "confirmed": "Notice confirmed.",
-    "deleted": "Notice deleted."
+    "deleted": "Notice deleted.",
+    "commentDeleted": "Comment removed."
   },
   "detail": {
     "notFound": "Notice not found.",
@@ -79,6 +91,15 @@
     "confirmPrompt": "Please confirm you've read this notice.",
     "confirm": "Confirm",
     "youConfirmed": "You confirmed on {{date}}",
+    "comments": "Comments",
+    "writeComment": "Write a comment",
+    "post": "Post",
+    "you": "You",
+    "author": "Author",
+    "deleteComment": "Delete comment",
+    "commentDeleted": "Comment removed",
+    "startConversation": "No comments yet — start the conversation.",
+    "commentsDisabled": "Comments are turned off for this notice.",
     "emptyFilterTitle": "Nothing here",
     "emptyUnread": "You're all caught up.",
     "emptyToConfirm": "Nothing waiting on you.",

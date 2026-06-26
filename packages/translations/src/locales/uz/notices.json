@@ -34,7 +34,18 @@
     "actionNeeded": "Harakat kerak",
     "confirmed": "Tasdiqlangan",
     "confirmation": "Tasdiqlash",
-    "important": "Muhim"
+    "important": "Muhim",
+    "new": "Yangi"
+  },
+  "table": {
+    "notice": "E'lon",
+    "status": "Holat",
+    "audience": "Auditoriya",
+    "activity": "Yaratilgan",
+    "createdAt": "Yaratilgan",
+    "open": "Ochish",
+    "search": "E'lonlarni qidirish...",
+    "empty": "Bu ko'rinishga mos e'lon yo'q."
   },
   "empty": {
     "staffTitle": "Hali e'lon yo'q",
@@ -69,7 +80,8 @@
     "published": "E'lon qilindi.",
     "savedAsDraft": "E'lon qoralama sifatida saqlandi.",
     "confirmed": "E'lon tasdiqlandi.",
-    "deleted": "E'lon o'chirildi."
+    "deleted": "E'lon o'chirildi.",
+    "commentDeleted": "Izoh o'chirildi."
   },
   "detail": {
     "notFound": "E'lon topilmadi.",
@@ -79,6 +91,15 @@
     "confirmPrompt": "Iltimos, bu e'lonni o'qiganingizni tasdiqlang.",
     "confirm": "Tasdiqlash",
     "youConfirmed": "Siz {{date}} da tasdiqladingiz",
+    "comments": "Izohlar",
+    "writeComment": "Izoh yozing",
+    "post": "Yuborish",
+    "you": "Siz",
+    "author": "Muallif",
+    "deleteComment": "Izohni o'chirish",
+    "commentDeleted": "Izoh o'chirildi",
+    "startConversation": "Hozircha izoh yo'q — birinchi bo'lib yozing.",
+    "commentsDisabled": "Bu e'lon uchun izohlar o'chirilgan.",
     "emptyFilterTitle": "Bu yerda hech narsa yo'q",
     "emptyUnread": "Hammasi o'qilgan.",
     "emptyToConfirm": "Sizdan kutilayotgan narsa yo'q.",

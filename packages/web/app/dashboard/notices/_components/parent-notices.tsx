@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
 import type { NoticeSummary } from "@kichkintoy/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
 import { toApiError } from "@/lib/api/errors";
@@ -13,7 +13,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
-import { ParentNoticeCard } from "./parent-notice-card";
+import { NoticeTable } from "./notice-table";
 
 type NoticeFilter = "all" | "unread" | "toConfirm";
 
@@ -22,6 +22,7 @@ const FILTERS: NoticeFilter[] = ["all", "unread", "toConfirm"];
 export function ParentNotices() {
   const { t } = useLayoutTranslation("notices");
   const [filter, setFilter] = useState<NoticeFilter>("all");
+  const [search, setSearch] = useState("");
 
   const {
     data: notices = [],
@@ -43,8 +44,12 @@ export function ParentNotices() {
 
   const visible = useMemo(() => {
     const list = notices.filter((notice) => matchesFilter(notice, filter));
-    return [...list].sort(byPinnedThenRecent);
-  }, [notices, filter]);
+    const query = search.trim().toLowerCase();
+    const searched = query
+      ? list.filter((notice) => noticeMatchesSearch(notice, query))
+      : list;
+    return [...searched].sort(byPinnedThenRecent);
+  }, [filter, notices, search]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -116,14 +121,17 @@ export function ParentNotices() {
           }
         />
       ) : (
-        <div className="grid gap-3">
-          {visible.map((notice) => (
-            <ParentNoticeCard
-              key={`${notice.id}:${notice.child?.id ?? "center"}`}
-              notice={notice}
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <NoticeTable
+              notices={visible}
+              mode="parent"
+              search={search}
+              onSearchChange={setSearch}
+              t={t}
             />
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -159,4 +167,20 @@ function byPinnedThenRecent(a: NoticeSummary, b: NoticeSummary) {
 
 function recencyOf(notice: NoticeSummary) {
   return new Date(notice.publishedAt ?? notice.updatedAt).getTime();
+}
+
+function noticeMatchesSearch(notice: NoticeSummary, query: string) {
+  return [
+    notice.title,
+    notice.bodyPreview,
+    notice.author.fullName,
+    notice.centerName,
+    notice.child?.name,
+    notice.child?.className,
+    notice.targets.map((target) => target.label).join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
 }

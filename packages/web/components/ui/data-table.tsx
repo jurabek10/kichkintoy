@@ -45,6 +45,7 @@ interface DataTableProps<TData, TValue> {
   /** Extra classes per row, e.g. to dim past entries. */
   rowClassName?: (row: TData) => string | undefined;
   className?: string;
+  tableClassName?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -58,6 +59,7 @@ export function DataTable<TData, TValue>({
   onRowClick,
   rowClassName,
   className,
+  tableClassName,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] =
@@ -85,7 +87,7 @@ export function DataTable<TData, TValue>({
     <div className={cn("flex flex-col gap-2", className)}>
       {toolbar ? toolbar(table) : null}
       <div className="overflow-hidden rounded-xl border bg-card shadow-card">
-        <Table>
+        <Table className={tableClassName}>
           <TableHeader className="bg-muted/40">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
