@@ -3,10 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, Send, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Bookmark,
+  CheckCircle2,
+  Send,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +28,7 @@ import { toApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { cn } from "@/lib/utils";
 
 export function NoticeDetailScreen({
   noticeId,
@@ -74,9 +82,7 @@ export function NoticeDetailScreen({
   });
 
   if (isPending) {
-    return (
-      <LoadingCard label={t("loading")} />
-    );
+    return <LoadingCard label={t("loading")} />;
   }
 
   if (!notice) {
@@ -91,6 +97,8 @@ export function NoticeDetailScreen({
 
   const actionError =
     confirmMutation.error ?? publishMutation.error ?? deleteMutation.error;
+  const confirmed = !!notice.myConfirmedAt;
+  const needsConfirm = notice.requiresConfirmation && !confirmed;
 
   return (
     <div className="flex flex-col gap-4">
@@ -108,74 +116,121 @@ export function NoticeDetailScreen({
       ) : null}
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="mb-2 flex flex-wrap gap-2">
-              <Badge variant="outline">{t(statusKey(notice.status))}</Badge>
-              <Badge variant="outline">{t(audienceKey(notice.targetType))}</Badge>
-              {notice.requiresConfirmation ? (
-                <Badge>{t("badges.confirmation")}</Badge>
-              ) : null}
-              {notice.isPinned ? (
-                <Badge variant="secondary">{t("badges.pinned")}</Badge>
-              ) : null}
-            </div>
-            <CardTitle className="text-2xl">{notice.title}</CardTitle>
-            <CardDescription>
-              {t("detail.authorDate", {
-                author: notice.author.fullName,
-                date: formatDateTime(notice.publishedAt ?? notice.updatedAt),
-              })}
-            </CardDescription>
+        <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
+          {/* Tags */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              {t(audienceKey(notice.targetType))}
+            </span>
+            {notice.isImportant ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-coral-ink">
+                <Star className="h-3 w-3 fill-current" />
+                {t("badges.important")}
+              </span>
+            ) : null}
+            {notice.isPinned ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-sunshine px-2 py-0.5 text-[11px] font-bold text-sunshine-ink">
+                <Bookmark className="h-3 w-3 fill-current" />
+                {t("badges.pinned")}
+              </span>
+            ) : null}
+            {!parent ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                <span
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    STATUS_DOT[notice.status] ?? "bg-muted-foreground/40",
+                  )}
+                />
+                {t(statusKey(notice.status))}
+              </span>
+            ) : null}
           </div>
-          {!parent ? (
-            <div className="flex gap-2">
-              {notice.status !== "published" ? (
-                <Button
-                  onClick={() => publishMutation.mutate()}
-                  disabled={publishMutation.isPending}
-                >
-                  <Send className="h-4 w-4" />
-                  {t("detail.publish")}
-                </Button>
-              ) : null}
-              <Button
-                variant="destructive"
-                onClick={() => deleteMutation.mutate()}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("detail.delete")}
-              </Button>
+
+          {/* Title */}
+          <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-foreground">
+            {notice.title}
+          </h1>
+
+          {/* Author */}
+          <div className="flex items-center gap-3 border-b pb-4">
+            <NoticeAvatar name={notice.author.fullName} />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-foreground">
+                {notice.author.fullName}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDateTime(notice.publishedAt ?? notice.updatedAt)}
+              </p>
             </div>
-          ) : null}
-        </CardHeader>
-        <CardContent className="whitespace-pre-wrap text-sm leading-7">
-          {notice.body}
+            {!parent ? (
+              <div className="flex shrink-0 gap-2">
+                {notice.status !== "published" ? (
+                  <Button
+                    size="sm"
+                    onClick={() => publishMutation.mutate()}
+                    disabled={publishMutation.isPending}
+                  >
+                    <Send className="h-4 w-4" />
+                    {t("detail.publish")}
+                  </Button>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deleteMutation.mutate()}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t("detail.delete")}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Body */}
+          <div className="whitespace-pre-wrap text-[15px] leading-7 text-foreground">
+            {notice.body}
+          </div>
         </CardContent>
       </Card>
 
-      {parent && notice.requiresConfirmation && !notice.myConfirmedAt ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold">
+      {/* Confirmation — the one thing a parent does with a notice */}
+      {parent && notice.requiresConfirmation ? (
+        confirmed ? (
+          <Card className="flex items-center gap-3 border-mint-ink/20 bg-mint/15 p-4">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-mint-ink" />
+            <p className="text-sm font-semibold text-foreground">
+              {t("detail.youConfirmed", {
+                date: formatDateTime(notice.myConfirmedAt),
+              })}
+            </p>
+          </Card>
+        ) : (
+          <Card className="flex flex-col gap-3 border-sky-ink/20 bg-sky/15 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <AlertCircle className="h-4 w-4 shrink-0 text-sky-ink" />
               {t("detail.confirmPrompt")}
             </p>
             <Button
+              className="shrink-0 bg-sky-ink hover:bg-sky-ink/90"
               onClick={() => confirmMutation.mutate()}
               disabled={confirmMutation.isPending}
             >
               <CheckCircle2 className="h-4 w-4" />
               {t("detail.confirm")}
             </Button>
-          </CardContent>
-        </Card>
+          </Card>
+        )
       ) : null}
 
+      {/* Read receipts — the author's view */}
       {!parent ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("detail.readReceipts")}</CardTitle>
+            <CardTitle className="text-base">
+              {t("detail.readReceipts")}
+            </CardTitle>
             <CardDescription>
               {t("readCount", {
                 read: notice.readCount,
@@ -228,6 +283,29 @@ export function NoticeDetailScreen({
     </div>
   );
 }
+
+function NoticeAvatar({ name }: { name: string }) {
+  return (
+    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sky/30 text-sm font-bold text-sky-ink">
+      {initials(name)}
+    </span>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+const STATUS_DOT: Record<string, string> = {
+  published: "bg-mint",
+  scheduled: "bg-sunshine",
+  draft: "bg-muted-foreground/40",
+};
 
 function statusKey(value: string) {
   if (value === "published") return "status.published";

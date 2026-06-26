@@ -1,6 +1,7 @@
 {
   "title": "E'lonlar",
   "staffDescription": "Ota-onalarga operatsion yangiliklar yuboring va kim o'qiganini kuzating.",
+  "parentDescription": "Markazdan yangiliklar — yangilarini o'qing va e'tibor talab qilganini tasdiqlang.",
   "newNotice": "Yangi e'lon",
   "back": "E'lonlarga qaytish",
   "loading": "Yuklanmoqda...",
@@ -13,8 +14,11 @@
   "draftNotSent": "Qoralama — hali yuborilmagan",
   "filters": {
     "all": "Barchasi",
-    "drafts": "Qoralamalar"
+    "drafts": "Qoralamalar",
+    "unread": "O'qilmagan",
+    "toConfirm": "Tasdiqlash kerak"
   },
+  "unread": "O'qilmagan",
   "status": {
     "draft": "Qoralama",
     "scheduled": "Rejalangan",
@@ -72,8 +76,12 @@
     "authorDate": "{{author}} · {{date}}",
     "publish": "E'lon qilish",
     "delete": "O'chirish",
-    "confirmPrompt": "Iltimos, bu e'lonni tasdiqlang.",
+    "confirmPrompt": "Iltimos, bu e'lonni o'qiganingizni tasdiqlang.",
     "confirm": "Tasdiqlash",
+    "youConfirmed": "Siz {{date}} da tasdiqladingiz",
+    "emptyFilterTitle": "Bu yerda hech narsa yo'q",
+    "emptyUnread": "Hammasi o'qilgan.",
+    "emptyToConfirm": "Sizdan kutilayotgan narsa yo'q.",
     "readReceipts": "O'qilganlik",
     "noReceipts": "O'qilganlik ma'lumoti e'lon qilingandan keyin paydo bo'ladi.",
     "readAt": "O'qilgan: {{date}}",

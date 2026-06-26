@@ -1,6 +1,7 @@
 {
   "title": "Notices",
   "staffDescription": "Send operational updates to parents and track who has read them.",
+  "parentDescription": "Updates from your center — read what's new and confirm what needs you.",
   "newNotice": "New notice",
   "back": "Back to notices",
   "loading": "Loading...",
@@ -13,8 +14,11 @@
   "draftNotSent": "Draft — not sent yet",
   "filters": {
     "all": "All",
-    "drafts": "Drafts"
+    "drafts": "Drafts",
+    "unread": "Unread",
+    "toConfirm": "To confirm"
   },
+  "unread": "Unread",
   "status": {
     "draft": "Draft",
     "scheduled": "Scheduled",
@@ -72,8 +76,12 @@
     "authorDate": "{{author}} · {{date}}",
     "publish": "Publish",
     "delete": "Delete",
-    "confirmPrompt": "Please confirm this notice.",
+    "confirmPrompt": "Please confirm you've read this notice.",
     "confirm": "Confirm",
+    "youConfirmed": "You confirmed on {{date}}",
+    "emptyFilterTitle": "Nothing here",
+    "emptyUnread": "You're all caught up.",
+    "emptyToConfirm": "Nothing waiting on you.",
     "readReceipts": "Read receipts",
     "noReceipts": "Receipts appear after publishing.",
     "readAt": "Read: {{date}}",
