@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, MapPin, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  User,
+  Users,
+  X,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -21,8 +32,10 @@ import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { formatTime, formatWeekdayLong } from "@/lib/date";
+import { cn } from "@/lib/utils";
 import { EventComposer } from "./event-composer";
-import { eventContext, formatEventTime } from "./event-card";
+import { eventContext } from "./event-card";
 
 export function EventDetailScreen({
   eventId,
@@ -71,15 +84,6 @@ export function EventDetailScreen({
       });
     },
   });
-
-  const eventSeen = event?.seenByMe ?? true;
-  const currentEventId = event?.id;
-
-  useEffect(() => {
-    if (isParent && currentEventId && !eventSeen && !markSeen.isPending) {
-      markSeen.mutate();
-    }
-  }, [currentEventId, eventSeen, isParent, markSeen.isPending]);
 
   if (isPending) {
     return (
@@ -140,46 +144,158 @@ export function EventDetailScreen({
     );
   }
 
+  const cancelled = event.status === "cancelled";
+  const completed = event.status === "completed";
+  const audienceValue =
+    event.audienceType === "center"
+      ? t("audience.wholeCenter")
+      : eventContext(event, t);
+  const seen = event.seenByMe || markSeen.isPending;
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/calendar">
           <ArrowLeft className="h-4 w-4" />
           {t("back")}
         </Link>
       </Button>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{event.title}</CardTitle>
-          <CardDescription>{eventContext(event, t)}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 text-sm">
-          <p className="flex items-center gap-2 text-muted-foreground">
-            <CalendarDays className="h-4 w-4" />
-            {formatEventTime(event, i18n.language)}
-          </p>
-          {event.locationText ? (
-            <p className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              {event.locationText}
-            </p>
-          ) : null}
-          {event.status === "cancelled" ? (
-            <Alert variant="warning">
-              <AlertDescription>
-                {t("detail.cancelled")}
-                {event.cancellationReason ? ` ${event.cancellationReason}` : ""}
-              </AlertDescription>
-            </Alert>
-          ) : null}
-          {event.description ? (
-            <p className="whitespace-pre-wrap">{event.description}</p>
-          ) : null}
-          <p className="text-xs text-muted-foreground">
-            {event.seenByMe ? t("status.seen") : t("detail.markingSeen")}
-          </p>
-        </CardContent>
+
+      {/* Title + status */}
+      <div className="flex flex-col gap-2">
+        {cancelled ? (
+          <span className="inline-flex w-fit items-center rounded-full bg-coral px-3 py-1 text-xs font-bold text-coral-ink">
+            {t("status.cancelled")}
+          </span>
+        ) : completed ? (
+          <span className="inline-flex w-fit items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+            {t("detail.completed")}
+          </span>
+        ) : null}
+        <h1
+          className={cn(
+            "text-2xl font-extrabold leading-tight tracking-tight",
+            cancelled ? "text-muted-foreground line-through" : "text-foreground",
+          )}
+        >
+          {event.title}
+        </h1>
+      </div>
+
+      {/* Facts */}
+      <Card className="overflow-hidden p-0">
+        <InfoRow
+          Icon={CalendarDays}
+          label={t("detail.when")}
+          value={formatWeekdayLong(event.startsAt, i18n.language)}
+        />
+        <InfoRow
+          Icon={Clock}
+          label={t("detail.time")}
+          value={
+            event.allDay
+              ? t("allDay")
+              : event.endsAt
+                ? `${formatTime(event.startsAt)} – ${formatTime(event.endsAt)}`
+                : formatTime(event.startsAt)
+          }
+        />
+        {event.locationText ? (
+          <InfoRow
+            Icon={MapPin}
+            label={t("detail.location")}
+            value={event.locationText}
+          />
+        ) : null}
+        {audienceValue ? (
+          <InfoRow
+            Icon={Users}
+            label={t("detail.audience")}
+            value={audienceValue}
+          />
+        ) : null}
+        <InfoRow
+          Icon={User}
+          label={t("detail.organizer")}
+          value={event.authorName}
+          last
+        />
       </Card>
+
+      {/* Description */}
+      {event.description ? (
+        <Card className="p-4">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            {t("detail.details")}
+          </p>
+          <p className="whitespace-pre-wrap text-[15px] leading-6 text-foreground">
+            {event.description}
+          </p>
+        </Card>
+      ) : null}
+
+      {/* Cancellation reason */}
+      {cancelled ? (
+        <Card className="border-coral-ink/20 bg-coral/20 p-4">
+          <p className="mb-1 text-xs font-bold text-coral-ink">
+            {t("detail.cancelledTitle")}
+          </p>
+          <p className="text-sm leading-5 text-foreground">
+            {event.cancellationReason || t("detail.cancelled")}
+          </p>
+        </Card>
+      ) : null}
+
+      {/* Acknowledge — the one thing a parent does with an event */}
+      {!cancelled ? (
+        <Button
+          type="button"
+          size="lg"
+          variant={seen ? "secondary" : "default"}
+          className="w-full gap-1.5"
+          disabled={seen}
+          onClick={() => markSeen.mutate()}
+        >
+          {seen ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
+          {seen ? t("detail.seen") : t("detail.gotIt")}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/** One labelled fact in the event's info card, with a sky-tinted icon. */
+function InfoRow({
+  Icon,
+  label,
+  value,
+  last,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-4 py-3",
+        !last && "border-b",
+      )}
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sky/40 text-sky-ink">
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+        <p className="font-semibold text-foreground">{value}</p>
+      </div>
     </div>
   );
 }
