@@ -4,7 +4,7 @@
  * meals / albums data layers. The backend already exposes everything we need
  * (status + check-in/out times per day for any range), so this is read-only.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useCurrentChild, type Query } from '@/data/parent';
 import { formatTime } from '@/lib/date';
@@ -91,4 +91,23 @@ export function useAttendanceCalendar(
   }
 
   return { data: days, isPending: child.isPending || (!!childId && query.isPending) };
+}
+
+// --- Mutation -------------------------------------------------------------
+
+/** Report a child's absence to the teacher for a given day. */
+export function useReportAbsence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      childId: string;
+      attendanceDate: string;
+      absenceReason: string;
+      parentVisibleNote?: string;
+    }) => orpc.attendance.parentSubmitAbsence(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+    },
+  });
 }

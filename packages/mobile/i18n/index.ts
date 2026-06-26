@@ -14,6 +14,7 @@ import {
 import enAccount from '@kichkintoy/translations/locales/en/account.json';
 import enAlbums from '@kichkintoy/translations/locales/en/albums.json';
 import enApp from '@kichkintoy/translations/locales/en/app.json';
+import enAttendance from '@kichkintoy/translations/locales/en/attendance.json';
 import enCommon from '@kichkintoy/translations/locales/en/common.json';
 import enDocuments from '@kichkintoy/translations/locales/en/documents.json';
 import enMeals from '@kichkintoy/translations/locales/en/meals.json';
@@ -26,6 +27,7 @@ import enReports from '@kichkintoy/translations/locales/en/reports.json';
 import ruAccount from '@kichkintoy/translations/locales/ru/account.json';
 import ruAlbums from '@kichkintoy/translations/locales/ru/albums.json';
 import ruApp from '@kichkintoy/translations/locales/ru/app.json';
+import ruAttendance from '@kichkintoy/translations/locales/ru/attendance.json';
 import ruCommon from '@kichkintoy/translations/locales/ru/common.json';
 import ruDocuments from '@kichkintoy/translations/locales/ru/documents.json';
 import ruMeals from '@kichkintoy/translations/locales/ru/meals.json';
@@ -38,6 +40,7 @@ import ruReports from '@kichkintoy/translations/locales/ru/reports.json';
 import uzAccount from '@kichkintoy/translations/locales/uz/account.json';
 import uzAlbums from '@kichkintoy/translations/locales/uz/albums.json';
 import uzApp from '@kichkintoy/translations/locales/uz/app.json';
+import uzAttendance from '@kichkintoy/translations/locales/uz/attendance.json';
 import uzCommon from '@kichkintoy/translations/locales/uz/common.json';
 import uzDocuments from '@kichkintoy/translations/locales/uz/documents.json';
 import uzMeals from '@kichkintoy/translations/locales/uz/meals.json';
@@ -49,9 +52,9 @@ import uzPickups from '@kichkintoy/translations/locales/uz/pickups.json';
 import uzReports from '@kichkintoy/translations/locales/uz/reports.json';
 
 const resources = {
-  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, pickups: uzPickups, documents: uzDocuments },
-  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, pickups: enPickups, documents: enDocuments },
-  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, pickups: ruPickups, documents: ruDocuments },
+  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, pickups: uzPickups, documents: uzDocuments, attendance: uzAttendance },
+  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, pickups: enPickups, documents: enDocuments, attendance: enAttendance },
+  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, pickups: ruPickups, documents: ruDocuments, attendance: ruAttendance },
 };
 
 const STORAGE_KEY = 'kichkintoy.language';
@@ -67,7 +70,7 @@ void i18n.use(initReactI18next).init({
   lng: deviceLanguage(),
   fallbackLng,
   defaultNS,
-  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'pickups', 'documents'],
+  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'pickups', 'documents', 'attendance'],
   interpolation: { escapeValue: false },
   returnNull: false,
   // Resources are bundled, so we never need to suspend while loading them —
