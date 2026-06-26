@@ -36,9 +36,18 @@ export type NoticeSummary = {
   time: string; // "11:13"
 };
 
+export type NoticeCommentView = {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  deleted: boolean;
+};
+
 export type NoticeDetail = NoticeSummary & {
   body: string;
   isConfirmed: boolean;
+  comments: NoticeCommentView[];
 };
 
 // --- Mappers --------------------------------------------------------------
@@ -70,6 +79,13 @@ function toNoticeDetail(notice: ApiNoticeDetail): NoticeDetail {
     ...toNoticeSummary(notice),
     body: notice.body,
     isConfirmed: !!notice.myConfirmedAt,
+    comments: notice.comments.map((comment) => ({
+      id: comment.id,
+      authorName: comment.authorName,
+      body: comment.deletedAt ? '' : comment.body,
+      createdAt: comment.createdAt,
+      deleted: !!comment.deletedAt,
+    })),
   };
 }
 
@@ -126,6 +142,19 @@ export function useConfirmNotice(noticeId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: noticeKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notices.parentList });
+    },
+  });
+}
+
+/** Post a comment on a notice, then refresh its detail thread. */
+export function useAddNoticeComment(noticeId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) =>
+      orpc.notices.addComment({ noticeId, body: { body } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notices.detail(noticeId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.notices.parentList });
     },
   });

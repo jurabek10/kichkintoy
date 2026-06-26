@@ -7,8 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommentBar } from '@/components/common/comment-bar';
 import { Avatar } from '@/components/ui/avatar';
 import { Loader } from '@/components/ui/loader';
-import { useConfirmNotice, useNotice } from '@/data/notices';
-import { formatLongDate } from '@/lib/date';
+import { useAddNoticeComment, useConfirmNotice, useNotice } from '@/data/notices';
+import { formatLongDate, formatTime, localIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
 const SKY = '#3E8FE0';
@@ -53,6 +53,7 @@ export default function NoticeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation('notices');
   const { data: notice, isPending } = useNotice(String(id));
+  const addComment = useAddNoticeComment(String(id));
 
   if (isPending) {
     return (
@@ -107,11 +108,47 @@ export default function NoticeDetailScreen() {
             <ConfirmCard noticeId={notice.id} confirmed={notice.isConfirmed} />
           ) : null}
 
+          {/* Comment thread */}
+          <View className="mt-5 px-4">
+            <Text className="mb-1 text-sm font-bold text-foreground">{t('detail.comments')}</Text>
+            {notice.comments.length === 0 ? (
+              <Text className="py-3 text-sm text-muted">{t('detail.startConversation')}</Text>
+            ) : (
+              notice.comments.map((comment) => (
+                <View key={comment.id} className="flex-row gap-3 border-b border-border py-3">
+                  <Avatar size={32} />
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-sm font-bold text-foreground">{comment.authorName}</Text>
+                      <Text className="text-xs text-muted">
+                        {formatLongDate(localIsoDate(comment.createdAt), i18n.language)} ·{' '}
+                        {formatTime(comment.createdAt)}
+                      </Text>
+                    </View>
+                    <Text
+                      className={cn(
+                        'mt-0.5 text-[15px] leading-5',
+                        comment.deleted ? 'italic text-muted' : 'text-foreground',
+                      )}>
+                      {comment.deleted ? t('detail.commentDeleted') : comment.body}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
+
           <View className="h-6" />
         </ScrollView>
 
         {notice.allowComments ? (
-          <CommentBar placeholder={t('detail.writeComment', { ns: 'reports' })} accentColor={SKY} />
+          <CommentBar
+            placeholder={t('detail.writeComment')}
+            accentColor={SKY}
+            onSubmit={async (text) => {
+              await addComment.mutateAsync(text);
+            }}
+          />
         ) : null}
       </KeyboardAvoidingView>
     </View>
