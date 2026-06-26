@@ -28,7 +28,9 @@ import { toApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { NoticeComments } from "./notice-comments";
 
 export function NoticeDetailScreen({
   noticeId,
@@ -38,6 +40,7 @@ export function NoticeDetailScreen({
   parent: boolean;
 }) {
   const { t } = useLayoutTranslation("notices");
+  const { session } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const detailKey = parent
@@ -99,6 +102,9 @@ export function NoticeDetailScreen({
     confirmMutation.error ?? publishMutation.error ?? deleteMutation.error;
   const confirmed = !!notice.myConfirmedAt;
   const needsConfirm = notice.requiresConfirmation && !confirmed;
+  const canManage =
+    !parent &&
+    (session?.user.role === "director" || notice.author.id === session?.user.id);
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,7 +169,7 @@ export function NoticeDetailScreen({
                 {formatDateTime(notice.publishedAt ?? notice.updatedAt)}
               </p>
             </div>
-            {!parent ? (
+            {canManage ? (
               <div className="flex shrink-0 gap-2">
                 {notice.status !== "published" ? (
                   <Button
@@ -280,6 +286,15 @@ export function NoticeDetailScreen({
           </CardContent>
         </Card>
       ) : null}
+
+      <NoticeComments
+        noticeId={noticeId}
+        comments={notice.comments}
+        canComment={notice.allowComments && notice.status === "published"}
+        currentUserId={session?.user.id ?? ""}
+        noticeAuthorId={notice.author.id}
+        canModerate={canManage}
+      />
     </div>
   );
 }
