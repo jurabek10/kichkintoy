@@ -213,17 +213,98 @@ export class CalendarService {
       },
     });
 
-    // De-duplicate by child (a child could match more than one of the parent's
-    // classes), keeping the first enrollment we saw.
+    return calendarBirthdayListResponseSchema.parse(
+      this.collectBirthdays(classmates, filters.from, filters.to, ownChildIds),
+    );
+  }
+
+  /**
+   * Classmate birthdays for staff, within [from, to] (date-only). A teacher sees
+   * birthdays for the children in their assigned classes; a director sees every
+   * active class in the center. Staff never have an "own child", so every entry
+   * reads as a classmate.
+   */
+  async birthdaysForStaff(
+    userId: string,
+    filters: { centerId: string; from: string; to: string },
+  ) {
+    const scope = await this.requireStaffScope(userId, filters.centerId);
+    const classes = await this.prisma.class.findMany({
+      where: scope.director
+        ? { centerId: filters.centerId, status: "active" }
+        : { id: { in: scope.classIds }, centerId: filters.centerId, status: "active" },
+      select: { id: true },
+    });
+    const classIds = classes.map((item) => item.id);
+    if (classIds.length === 0) {
+      return calendarBirthdayListResponseSchema.parse([]);
+    }
+
+    const enrollments = await this.prisma.childEnrollment.findMany({
+      where: { enrollmentStatus: "active", classId: { in: classIds } },
+      include: {
+        child: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            dob: true,
+            photoUrl: true,
+          },
+        },
+        class: { select: { id: true, name: true } },
+      },
+    });
+
+    return calendarBirthdayListResponseSchema.parse(
+      this.collectBirthdays(enrollments, filters.from, filters.to, new Set()),
+    );
+  }
+
+  /**
+   * Pick the right birthday source for the caller: staff (with a center) see
+   * their classes' birthdays; everyone else sees their child's classmates'.
+   */
+  async birthdays(
+    userId: string,
+    filters: { centerId?: string; childId?: string; from: string; to: string },
+  ) {
+    if (filters.centerId && (await this.isStaffUser(userId))) {
+      return this.birthdaysForStaff(userId, {
+        centerId: filters.centerId,
+        from: filters.from,
+        to: filters.to,
+      });
+    }
+    return this.birthdaysForParent(userId, filters);
+  }
+
+  /** Reduce active class enrollments to one birthday entry per child per
+   *  occurrence, de-duplicated across overlapping classes and sorted by date. */
+  private collectBirthdays(
+    enrollments: Array<{
+      child: {
+        id: string;
+        firstName: string;
+        lastName: string | null;
+        dob: Date;
+        photoUrl: string | null;
+      };
+      class: { id: string; name: string } | null;
+    }>,
+    from: string,
+    to: string,
+    ownChildIds: Set<string>,
+  ): CalendarBirthdayEntry[] {
     const seen = new Set<string>();
     const entries: CalendarBirthdayEntry[] = [];
-    for (const enrollment of classmates) {
+    for (const enrollment of enrollments) {
       if (seen.has(enrollment.child.id)) continue;
       seen.add(enrollment.child.id);
       for (const occurrence of birthdayOccurrences(
         enrollment.child.dob,
-        filters.from,
-        filters.to,
+        from,
+        to,
       )) {
         entries.push({
           childId: enrollment.child.id,
@@ -237,9 +318,21 @@ export class CalendarService {
         });
       }
     }
-
     entries.sort((a, b) => a.date.localeCompare(b.date));
-    return calendarBirthdayListResponseSchema.parse(entries);
+    return entries;
+  }
+
+  /** True when the user holds any staff role (teacher, director, or owner). */
+  private async isStaffUser(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { userRoles: { include: { role: true } } },
+    });
+    return (
+      user?.userRoles.some((item) =>
+        ["director", "organization_owner", "teacher"].includes(item.role.name),
+      ) ?? false
+    );
   }
 
   async get(userId: string, eventId: string) {

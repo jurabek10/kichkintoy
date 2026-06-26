@@ -16,6 +16,15 @@
   "showWholeMonth": "Butun oyni ko'rsatish",
   "open": "Ochish",
   "allDay": "Kun bo'yi",
+  "birthdays": "Tug'ilgan kunlar",
+  "noBirthdays": "Bu oyda tug'ilgan kunlar yo'q",
+  "turns": "{{age}} yoshga to'ladi",
+  "yourChild": "Sizning farzandingiz",
+  "birthdayAria": "{{name}} {{age}} yoshga to'ladi",
+  "legend": {
+    "events": "Tadbirlar",
+    "birthdays": "Tug'ilgan kunlar"
+  },
   "table": {
     "when": "Qachon",
     "event": "Tadbir",
@@ -88,6 +97,16 @@
     "reason": "Sabab",
     "cancelButton": "Tadbirni bekor qilish",
     "cancelled": "Bu tadbir bekor qilingan.",
-    "markingSeen": "Ko'rilgan deb belgilanmoqda..."
+    "cancelledTitle": "Bekor qilish sababi",
+    "markingSeen": "Ko'rilgan deb belgilanmoqda...",
+    "when": "Qachon",
+    "time": "Vaqt",
+    "location": "Joy",
+    "audience": "Kim uchun",
+    "organizer": "Tashkilotchi",
+    "details": "Tafsilotlar",
+    "completed": "Yakunlangan",
+    "gotIt": "Tushunarli",
+    "seen": "Ko'rilgan"
   }
 }

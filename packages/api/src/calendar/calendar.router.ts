@@ -29,7 +29,7 @@ export function createCalendarRouter(os: ORPCImplementer, deps: ORPCDeps) {
       });
     }),
     birthdays: os.calendar.birthdays.use(access.authed).handler(async ({ input, context }) => {
-      return deps.calendarService.birthdaysForParent(context.user.id, {
+      return deps.calendarService.birthdays(context.user.id, {
         centerId: input.centerId,
         childId: input.childId,
         from: input.from,

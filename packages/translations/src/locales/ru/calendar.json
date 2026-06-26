@@ -16,6 +16,15 @@
   "showWholeMonth": "Показать весь месяц",
   "open": "Открыть",
   "allDay": "Весь день",
+  "birthdays": "Дни рождения",
+  "noBirthdays": "В этом месяце нет дней рождения",
+  "turns": "Исполняется {{age}}",
+  "yourChild": "Ваш ребёнок",
+  "birthdayAria": "{{name}} исполняется {{age}}",
+  "legend": {
+    "events": "События",
+    "birthdays": "Дни рождения"
+  },
   "table": {
     "when": "Когда",
     "event": "Событие",
@@ -88,6 +97,16 @@
     "reason": "Причина",
     "cancelButton": "Отменить событие",
     "cancelled": "Это событие отменено.",
-    "markingSeen": "Отмечаем как просмотренное..."
+    "cancelledTitle": "Причина отмены",
+    "markingSeen": "Отмечаем как просмотренное...",
+    "when": "Когда",
+    "time": "Время",
+    "location": "Место",
+    "audience": "Для кого",
+    "organizer": "Организатор",
+    "details": "Подробности",
+    "completed": "Завершено",
+    "gotIt": "Понятно",
+    "seen": "Просмотрено"
   }
 }

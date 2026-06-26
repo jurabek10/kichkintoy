@@ -16,6 +16,15 @@
   "showWholeMonth": "Show whole month",
   "open": "Open",
   "allDay": "All day",
+  "birthdays": "Birthdays",
+  "noBirthdays": "No birthdays this month",
+  "turns": "Turns {{age}}",
+  "yourChild": "Your child",
+  "birthdayAria": "{{name}} turns {{age}}",
+  "legend": {
+    "events": "Events",
+    "birthdays": "Birthdays"
+  },
   "table": {
     "when": "When",
     "event": "Event",
@@ -88,6 +97,16 @@
     "reason": "Reason",
     "cancelButton": "Cancel event",
     "cancelled": "This event was cancelled.",
-    "markingSeen": "Marking as seen..."
+    "cancelledTitle": "Why it was cancelled",
+    "markingSeen": "Marking as seen...",
+    "when": "When",
+    "time": "Time",
+    "location": "Location",
+    "audience": "For",
+    "organizer": "Organized by",
+    "details": "Details",
+    "completed": "Completed",
+    "gotIt": "Got it",
+    "seen": "Seen"
   }
 }
