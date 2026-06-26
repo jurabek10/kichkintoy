@@ -42,6 +42,8 @@ export const queryKeys = {
       ["calendar", "parent", input] as const,
     upcoming: (input?: Record<string, unknown>) =>
       ["calendar", "upcoming", input ?? {}] as const,
+    birthdays: (input: Record<string, unknown>) =>
+      ["calendar", "birthdays", input] as const,
     detail: (eventId: string) => ["calendar", "detail", eventId] as const,
   },
   studentDocuments: {

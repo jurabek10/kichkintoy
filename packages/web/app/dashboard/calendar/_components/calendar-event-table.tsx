@@ -12,7 +12,10 @@ import {
   Smile,
   Users,
 } from "lucide-react";
-import type { CalendarEventSummary } from "@kichkintoy/shared";
+import type {
+  CalendarBirthdayEntry,
+  CalendarEventSummary,
+} from "@kichkintoy/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -23,6 +26,26 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { formatTime, formatWeekdayShort } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { eventContext } from "./event-card";
+
+/** A single agenda line — either a staff event or a classmate birthday — so the
+ *  month reads as one chronological schedule, the way the mobile app shows it. */
+type ScheduleRow =
+  | {
+      kind: "event";
+      id: string;
+      date: string;
+      sortKey: string;
+      title: string;
+      event: CalendarEventSummary;
+    }
+  | {
+      kind: "birthday";
+      id: string;
+      date: string;
+      sortKey: string;
+      title: string;
+      birthday: CalendarBirthdayEntry;
+    };
 
 /** Audience → leading glyph + pastel tint. The icon names who the event is for,
  *  so the colour isn't the only signal (matches the mobile schedule rows). */
@@ -37,54 +60,107 @@ const AUDIENCE: Record<
 
 export function CalendarEventTable({
   events,
+  birthdays,
 }: {
   events: CalendarEventSummary[];
+  birthdays: CalendarBirthdayEntry[];
 }) {
   const { t, i18n } = useLayoutTranslation("calendar");
+  const lang = i18n.language;
   const router = useRouter();
   const [search, setSearch] = useState("");
 
-  const columns = useMemo<ColumnDef<CalendarEventSummary>[]>(
+  // Merge events and birthdays into one chronological list. Birthdays and
+  // all-day events sort before timed events on the same day.
+  const rows = useMemo<ScheduleRow[]>(() => {
+    const eventRows: ScheduleRow[] = events.map((event) => {
+      const date = event.startsAt.slice(0, 10);
+      return {
+        kind: "event",
+        id: event.id,
+        date,
+        sortKey: `${date} ${event.allDay ? "0" : `1 ${formatTime(event.startsAt)}`}`,
+        title: event.title,
+        event,
+      };
+    });
+    const birthdayRows: ScheduleRow[] = birthdays.map((birthday) => ({
+      kind: "birthday",
+      id: `bday-${birthday.childId}-${birthday.date}`,
+      date: birthday.date,
+      sortKey: `${birthday.date} 0`,
+      title: birthday.childName,
+      birthday,
+    }));
+    return [...eventRows, ...birthdayRows].sort((a, b) =>
+      a.sortKey.localeCompare(b.sortKey),
+    );
+  }, [events, birthdays]);
+
+  const columns = useMemo<ColumnDef<ScheduleRow>[]>(
     () => [
       {
         id: "when",
-        accessorFn: (event) => event.startsAt,
+        accessorFn: (row) => row.sortKey,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.when")} />
         ),
         cell: ({ row }) => {
-          const event = row.original;
-          const date = event.startsAt.slice(0, 10);
+          const item = row.original;
           return (
             <div className="flex items-center gap-3">
               <div className="flex w-9 shrink-0 flex-col items-center leading-none">
                 <span className="text-lg font-extrabold tabular-nums">
-                  {Number(date.slice(8, 10))}
+                  {Number(item.date.slice(8, 10))}
                 </span>
                 <span className="mt-0.5 text-[10px] font-bold uppercase text-muted-foreground">
-                  {formatWeekdayShort(event.startsAt, i18n.language)}
+                  {formatWeekdayShort(item.date, lang)}
                 </span>
               </div>
               <span className="text-sm tabular-nums text-muted-foreground">
-                {event.allDay ? t("allDay") : formatTime(event.startsAt)}
+                {item.kind === "event"
+                  ? item.event.allDay
+                    ? t("allDay")
+                    : formatTime(item.event.startsAt)
+                  : ""}
               </span>
             </div>
           );
         },
         sortingFn: (left, right) =>
-          left.original.startsAt.localeCompare(right.original.startsAt),
+          left.original.sortKey.localeCompare(right.original.sortKey),
       },
       {
         id: "event",
-        accessorFn: (event) => event.title,
+        accessorFn: (row) => row.title,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.event")} />
         ),
         cell: ({ row }) => {
-          const event = row.original;
-          const audience = AUDIENCE[event.audienceType];
+          const item = row.original;
+          if (item.kind === "birthday") {
+            return (
+              <div className="flex min-w-0 items-center gap-3">
+                <BirthdayAvatar
+                  name={item.birthday.childName}
+                  photoUrl={item.birthday.photoUrl}
+                  own={item.birthday.isOwnChild}
+                />
+                <div className="min-w-0">
+                  <span className="flex items-center gap-1.5 truncate font-semibold">
+                    <span aria-hidden>🎂</span>
+                    {item.birthday.childName}
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {t("turns", { age: item.birthday.turningAge })}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+          const audience = AUDIENCE[item.event.audienceType];
           const Icon = audience.icon;
-          const cancelled = event.status === "cancelled";
+          const cancelled = item.event.status === "cancelled";
           return (
             <div className="flex min-w-0 items-center gap-3">
               <span
@@ -101,7 +177,7 @@ export function CalendarEventTable({
                   cancelled && "text-muted-foreground line-through",
                 )}
               >
-                {event.title}
+                {item.event.title}
               </span>
             </div>
           );
@@ -111,92 +187,115 @@ export function CalendarEventTable({
       },
       {
         id: "audience",
-        accessorFn: (event) => eventContext(event, t),
+        accessorFn: (row) =>
+          row.kind === "event"
+            ? eventContext(row.event, t)
+            : (row.birthday.className ?? ""),
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.audience")} />
         ),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {eventContext(row.original, t)}
+            {row.original.kind === "event"
+              ? eventContext(row.original.event, t)
+              : (row.original.birthday.className ?? "—")}
           </span>
         ),
       },
       {
         id: "location",
-        accessorFn: (event) => event.locationText ?? "",
+        accessorFn: (row) =>
+          row.kind === "event" ? (row.event.locationText ?? "") : "",
         enableSorting: false,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.location")} />
         ),
-        cell: ({ row }) =>
-          row.original.locationText ? (
+        cell: ({ row }) => {
+          const item = row.original;
+          return item.kind === "event" && item.event.locationText ? (
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
-              {row.original.locationText}
+              {item.event.locationText}
             </span>
           ) : (
             <span className="text-muted-foreground">—</span>
-          ),
+          );
+        },
       },
       {
         id: "status",
-        accessorFn: (event) => event.status,
+        accessorFn: (row) => (row.kind === "event" ? row.event.status : "birthday"),
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t("table.status")} />
         ),
-        cell: ({ row }) => (
-          <Badge
-            variant={
-              row.original.status === "cancelled" ? "destructive" : "secondary"
-            }
-          >
-            {t(eventStatusKey(row.original))}
-          </Badge>
-        ),
+        cell: ({ row }) => {
+          const item = row.original;
+          if (item.kind === "birthday") {
+            return item.birthday.isOwnChild ? (
+              <span className="inline-flex items-center rounded-full bg-coral/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-coral-ink">
+                {t("yourChild")}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            );
+          }
+          return (
+            <Badge
+              variant={
+                item.event.status === "cancelled" ? "destructive" : "secondary"
+              }
+            >
+              {t(eventStatusKey(item.event))}
+            </Badge>
+          );
+        },
       },
       {
         id: "actions",
         enableSorting: false,
         enableHiding: false,
         header: () => <span className="sr-only">{t("open")}</span>,
-        cell: ({ row }) => (
-          <div className="text-right">
-            <Button
-              asChild
-              size="sm"
-              variant="ghost"
-              className="h-8 gap-1 text-primary hover:text-primary"
-            >
-              <Link
-                href={`/dashboard/calendar/${row.original.id}`}
-                onClick={(event) => event.stopPropagation()}
+        cell: ({ row }) =>
+          row.original.kind === "event" ? (
+            <div className="text-right">
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className="h-8 gap-1 text-primary hover:text-primary"
               >
-                {t("open")}
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        ),
+                <Link
+                  href={`/dashboard/calendar/${row.original.event.id}`}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {t("open")}
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          ) : null,
       },
     ],
-    [t, i18n.language],
+    [t, lang],
   );
 
   const query = search.trim().toLowerCase();
-  const rows = query
-    ? events.filter((event) => event.title.toLowerCase().includes(query))
-    : events;
+  const filtered = query
+    ? rows.filter((row) => row.title.toLowerCase().includes(query))
+    : rows;
 
   return (
     <DataTable
       columns={columns}
-      data={rows}
-      pageSize={10}
+      data={filtered}
+      pageSize={12}
       emptyMessage={t("noEventsThisMonth")}
-      onRowClick={(event) => router.push(`/dashboard/calendar/${event.id}`)}
-      rowClassName={(event) =>
-        isPast(event.startsAt) ? "opacity-50" : undefined
-      }
+      onRowClick={(row) => {
+        if (row.kind === "event") {
+          router.push(`/dashboard/calendar/${row.event.id}`);
+        }
+      }}
+      rowClassName={(row) => (isPast(row.date) ? "opacity-50" : undefined)}
       toolbar={(table) => (
         <div className="flex items-center justify-between gap-2">
           <div className="relative">
@@ -215,13 +314,48 @@ export function CalendarEventTable({
   );
 }
 
+function BirthdayAvatar({
+  name,
+  photoUrl,
+  own,
+}: {
+  name: string;
+  photoUrl: string | null;
+  own: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-grape/20 text-xs font-bold text-grape-ink",
+        own && "ring-2 ring-coral-ink ring-offset-1 ring-offset-card",
+      )}
+    >
+      {photoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+      ) : (
+        initials(name)
+      )}
+    </span>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function eventStatusKey(event: CalendarEventSummary) {
   if (event.status === "cancelled") return "status.cancelled";
   return event.seenByMe ? "status.seen" : "status.scheduled";
 }
 
-function isPast(startsAt: string) {
-  return startsAt.slice(0, 10) < toLocalIso(new Date());
+function isPast(date: string) {
+  return date < toLocalIso(new Date());
 }
 
 function toLocalIso(value: Date) {

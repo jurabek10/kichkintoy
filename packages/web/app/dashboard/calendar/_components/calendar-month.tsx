@@ -1,9 +1,23 @@
 "use client";
 
+import { Building2, Smile, Users } from "lucide-react";
 import type { CalendarEventSummary } from "@kichkintoy/shared";
 import { Card } from "@/components/ui/card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
+
+const EMPTY_DATES: Set<string> = new Set();
+
+/** Audience → leading glyph + pastel tint, matching the event table. The icon
+ *  names who each event is for, so a day's marks say more than a row of dots. */
+const AUDIENCE: Record<
+  CalendarEventSummary["audienceType"],
+  { Icon: typeof Building2; chip: string }
+> = {
+  center: { Icon: Building2, chip: "bg-sky/25 text-sky-ink" },
+  class: { Icon: Users, chip: "bg-grape/25 text-grape-ink" },
+  child: { Icon: Smile, chip: "bg-mint/25 text-mint-ink" },
+};
 
 const weekdays = [
   "weekdays.sun",
@@ -18,21 +32,27 @@ const weekdays = [
 export function CalendarMonth({
   month,
   events,
+  birthdayDates,
   selectedDate,
   onSelectDate,
 }: {
   month: string;
   events: CalendarEventSummary[];
+  /** Days (ISO "YYYY-MM-DD") that have a classmate birthday. */
+  birthdayDates?: Set<string>;
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
 }) {
   const { t } = useLayoutTranslation("calendar");
   const days = monthDays(month);
   const today = toIsoDate(new Date());
-  const eventCounts = new Map<string, number>();
+  const birthdays = birthdayDates ?? EMPTY_DATES;
+  const eventsByDay = new Map<string, CalendarEventSummary[]>();
   for (const event of events) {
     const key = event.startsAt.slice(0, 10);
-    eventCounts.set(key, (eventCounts.get(key) ?? 0) + 1);
+    const list = eventsByDay.get(key);
+    if (list) list.push(event);
+    else eventsByDay.set(key, [event]);
   }
 
   return (
@@ -54,7 +74,8 @@ export function CalendarMonth({
               />
             );
           }
-          const count = eventCounts.get(day) ?? 0;
+          const dayEvents = eventsByDay.get(day) ?? [];
+          const hasBirthday = birthdays.has(day);
           const isSelected = selectedDate === day;
           const isToday = day === today;
           return (
@@ -64,7 +85,7 @@ export function CalendarMonth({
               onClick={() => onSelectDate(day)}
               aria-pressed={isSelected}
               className={cn(
-                "group flex h-20 flex-col items-stretch gap-1 border-b border-r p-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:h-24 sm:p-2",
+                "group relative flex h-20 flex-col items-stretch gap-1 border-b border-r p-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:h-24 sm:p-2",
                 "[&:nth-child(7n)]:border-r-0",
                 isSelected ? "bg-primary/10" : "hover:bg-muted/50",
               )}
@@ -79,17 +100,33 @@ export function CalendarMonth({
               >
                 {Number(day.slice(8, 10))}
               </span>
-              {count > 0 ? (
-                <span className="mt-auto flex items-center gap-1 px-0.5">
-                  {Array.from({ length: Math.min(count, 3) }).map((_, dot) => (
-                    <span
-                      key={dot}
-                      className="h-1.5 w-1.5 rounded-full bg-primary"
-                    />
-                  ))}
-                  {count > 3 ? (
-                    <span className="text-[10px] font-bold text-primary">
-                      +{count - 3}
+              {hasBirthday ? (
+                <span
+                  className="absolute right-1 top-1 text-xs leading-none sm:text-sm"
+                  aria-hidden
+                >
+                  🎂
+                </span>
+              ) : null}
+              {dayEvents.length > 0 ? (
+                <span className="mt-auto flex items-center gap-0.5">
+                  {dayEvents.slice(0, 3).map((event, index) => {
+                    const { Icon, chip } = AUDIENCE[event.audienceType];
+                    return (
+                      <span
+                        key={index}
+                        className={cn(
+                          "grid h-[18px] w-[18px] place-items-center rounded-full",
+                          chip,
+                        )}
+                      >
+                        <Icon className="h-2.5 w-2.5" />
+                      </span>
+                    );
+                  })}
+                  {dayEvents.length > 3 ? (
+                    <span className="text-[10px] font-bold text-muted-foreground">
+                      +{dayEvents.length - 3}
                     </span>
                   ) : null}
                 </span>
@@ -99,6 +136,40 @@ export function CalendarMonth({
         })}
       </div>
     </Card>
+  );
+}
+
+/** The grid's key: what each audience glyph and the cake mean. */
+export function CalendarLegend() {
+  const { t } = useLayoutTranslation("calendar");
+  const items = [
+    ["center", "audience.wholeCenter"],
+    ["class", "audience.class"],
+    ["child", "audience.child"],
+  ] as const;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 px-1 text-xs text-muted-foreground">
+      {items.map(([audience, labelKey]) => {
+        const { Icon, chip } = AUDIENCE[audience];
+        return (
+          <span key={audience} className="inline-flex items-center gap-1.5">
+            <span
+              className={cn(
+                "grid h-[18px] w-[18px] place-items-center rounded-full",
+                chip,
+              )}
+            >
+              <Icon className="h-2.5 w-2.5" />
+            </span>
+            {t(labelKey)}
+          </span>
+        );
+      })}
+      <span className="inline-flex items-center gap-1.5">
+        <span aria-hidden>🎂</span>
+        {t("legend.birthdays")}
+      </span>
+    </div>
   );
 }
 

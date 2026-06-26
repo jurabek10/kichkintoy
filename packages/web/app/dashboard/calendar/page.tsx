@@ -1,19 +1,17 @@
 "use client";
 
-import { ParentCalendar } from "./_components/parent-calendar";
-import { StaffCalendar } from "./_components/staff-calendar";
+import { CalendarWorkspace } from "./_components/calendar-workspace";
 import { useSession } from "@/lib/session";
 
 export default function CalendarPage() {
   const { session } = useSession();
   if (!session) return null;
 
-  if (session.user.role === "parent") return <ParentCalendar />;
+  if (session.user.role === "parent") {
+    return <CalendarWorkspace mode="parent" centerId={null} />;
+  }
 
   return (
-    <StaffCalendar
-      centerId={session.membership.centerId}
-      role={session.user.role}
-    />
+    <CalendarWorkspace mode="staff" centerId={session.membership.centerId} />
   );
 }
