@@ -1,6 +1,12 @@
 {
   "title": "Albums",
   "staffDescription": "Share class photos with parents using child-safe visibility.",
+  "parentDescription": "Photos your center shares from your child's day.",
+  "today": "Today",
+  "latest": "Latest",
+  "allAlbums": "All albums",
+  "photosCount_one": "{{count}} photo",
+  "photosCount_other": "{{count}} photos",
   "newAlbum": "New album",
   "back": "Back to albums",
   "loading": "Loading...",

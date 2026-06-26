@@ -1,6 +1,12 @@
 {
   "title": "Albomlar",
   "staffDescription": "Bolalar uchun xavfsiz ko'rinish bilan sinf rasmlarini ota-onalar bilan ulashing.",
+  "parentDescription": "Markaz farzandingiz kunidan ulashgan rasmlar.",
+  "today": "Bugun",
+  "latest": "Eng so'nggi",
+  "allAlbums": "Barcha albomlar",
+  "photosCount_one": "{{count}} ta rasm",
+  "photosCount_other": "{{count}} ta rasm",
   "newAlbum": "Yangi albom",
   "back": "Albomlarga qaytish",
   "loading": "Yuklanmoqda...",
