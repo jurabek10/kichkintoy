@@ -208,7 +208,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   // Radix portals (the mobile rail, dialogs, popovers) inherit it too:
   //   • director — a serious steel "operations console"
   //   • teacher  — the mobile app's cool-gray + blue world, brought to desktop
-  //   • parent   — the cream candy theme (the default :root tokens)
+  //   • parent   — the same mobile world (cool-gray + blue), so the parent's
+  //                phone and web read as one product
   const role = session?.user.role;
   useEffect(() => {
     const root = document.documentElement;
@@ -216,6 +217,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       root.dataset.theme = "director";
     } else if (role === "teacher") {
       root.dataset.theme = "teacher";
+    } else if (role === "parent") {
+      root.dataset.theme = "parent";
     } else {
       delete root.dataset.theme;
     }
@@ -247,9 +250,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const showMyPage = true;
 
   return (
-    <SidebarProvider
-      className={isParent ? "font-kids" : undefined}
-    >
+    <SidebarProvider>{/* Parent shares the teacher/phone typography (Inter), not a separate kids font. */}
       <Sidebar collapsible="icon" variant="sidebar">
         <SidebarHeader className="relative gap-3 p-3">
           <div className="flex h-12 items-center px-1">
@@ -365,11 +366,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           "min-w-0",
           isDirector
             ? "bg-director-grid"
-            : isTeacher
-              ? // The phone's ground is a flat, calm gray — keep it flat here too,
-                // no confetti. Restraint is the point: the candy lives in the tiles.
-                "bg-background"
-              : "bg-kids-dots",
+            : // Parent and teacher share the phone's flat, calm gray ground — no
+              // confetti. Restraint is the point: the candy lives in the tiles.
+              "bg-background",
         )}
       >
         <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">

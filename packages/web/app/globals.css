@@ -224,6 +224,80 @@
     --sidebar-ring: 211 88% 59%;
   }
 
+  /* Parent — the phone, on the web. The parent's mobile app is a calm cool-gray
+     ground (#F2F3F5), the app's blue (#3B8FF3) as the single primary, white
+     rounded cards, and the candy tile palette (coral / sky / grape / mint /
+     sunshine) used exactly as the phone uses it. We deliberately retire the old
+     cream-confetti parent theme so the two platforms read as one product;
+     parent and teacher now share this language, differing only in features. */
+  [data-theme="parent"] {
+    --background: 220 13% 96%;
+    --foreground: 223 9% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 223 9% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 223 9% 18%;
+
+    --primary: 211 88% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 223 9% 26%;
+
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 6% 46%;
+
+    --accent: 211 100% 95%;
+    --accent-foreground: 211 70% 38%;
+
+    --destructive: 9 78% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 211 88% 59%;
+
+    --success: 137 44% 38%;
+    --warning: 38 80% 38%;
+    --info: 211 73% 44%;
+
+    --gold: 38 91% 50%;
+    --gold-foreground: 35 60% 22%;
+
+    /* Candy tiles — soft fills are the phone's exact hexes; "ink" glyphs are
+       deepened so a colored label/number clears WCAG AA on white. */
+    --coral: 13 100% 94%;
+    --sunshine: 44 100% 91%;
+    --mint: 136 49% 91%;
+    --sky: 212 100% 94%;
+    --grape: 255 100% 95%;
+    --bubblegum: 340 100% 95%;
+
+    --coral-ink: 9 74% 45%;
+    --sunshine-ink: 36 90% 33%;
+    --mint-ink: 137 55% 30%;
+    --sky-ink: 211 75% 42%;
+    --grape-ink: 256 52% 52%;
+    --bubblegum-ink: 338 65% 46%;
+
+    /* A touch rounder than the teacher's workspace — this is still the kids'
+       playroom, just a calmer one. */
+    --radius: 1.15rem;
+
+    /* A white, quiet rail with a blue active pill — the mobile tab bar's blue,
+       so phone and desktop light up the same way. */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 223 8% 32%;
+    --sidebar-primary: 211 88% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 211 100% 96%;
+    --sidebar-accent-foreground: 211 72% 40%;
+    --sidebar-border: 220 13% 92%;
+    --sidebar-ring: 211 88% 59%;
+  }
+
   * {
     @apply border-border;
   }
