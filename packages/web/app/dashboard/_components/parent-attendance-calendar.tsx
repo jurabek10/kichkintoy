@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
-import { formatTime } from "@/lib/date";
+import { formatMonthName, formatTime, weekdayShortNames } from "@/lib/date";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,25 +40,6 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const isoFor = (year: number, monthIndex: number, day: number) =>
   `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
 
-function localeTag(lang: string) {
-  return lang === "uz" ? "uz-UZ" : lang === "ru" ? "ru-RU" : "en-US";
-}
-
-function monthLabel(year: number, monthIndex: number, lang: string) {
-  return new Date(year, monthIndex, 1).toLocaleDateString(localeTag(lang), {
-    month: "long",
-  });
-}
-
-// Sunday-first short weekday names in the active language.
-function weekdayShortNames(lang: string) {
-  const tag = localeTag(lang);
-  // 2024-01-07 is a Sunday; walk seven days from it.
-  return Array.from({ length: 7 }, (_, i) =>
-    new Date(2024, 0, 7 + i).toLocaleDateString(tag, { weekday: "short" }),
-  );
-}
-
 function cellFill(info: DayInfo | undefined) {
   if (!info) return "bg-card";
   if (info.attended) return "bg-mint";
@@ -76,22 +57,32 @@ function glyph(info: DayInfo | undefined) {
   return null;
 }
 
+type CalendarMonth = { year: number; monthIndex: number };
+
 export function ParentAttendanceCalendar({
   childId,
   showMore = true,
+  value,
+  onChange,
 }: {
   childId: string;
   showMore?: boolean;
+  /** Controlled selected month; omit for self-managed state (home card). */
+  value?: CalendarMonth;
+  onChange?: (month: CalendarMonth) => void;
 }) {
   const { t, i18n } = useLayoutTranslation("app");
   const lang = i18n.language;
 
   const now = new Date();
   const today = isoFor(now.getFullYear(), now.getMonth(), now.getDate());
-  const [view, setView] = useState({
+  const [internal, setInternal] = useState<CalendarMonth>({
     year: now.getFullYear(),
     monthIndex: now.getMonth(),
   });
+  const view = value ?? internal;
+  const setView = (month: CalendarMonth) =>
+    onChange ? onChange(month) : setInternal(month);
 
   const range = useMemo(() => {
     const last = new Date(view.year, view.monthIndex + 1, 0).getDate();
@@ -189,7 +180,7 @@ export function ParentAttendanceCalendar({
         <div className="flex flex-1 flex-col items-center">
           <span className="text-xs text-muted-foreground">{view.year}</span>
           <span className="text-lg font-extrabold capitalize text-foreground">
-            {monthLabel(view.year, view.monthIndex, lang)}
+            {formatMonthName(view.year, view.monthIndex, lang)}
           </span>
         </div>
         <button

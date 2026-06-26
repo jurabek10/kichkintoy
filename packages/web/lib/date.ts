@@ -80,6 +80,26 @@ export function formatMonthYear(month: string, language: string): string {
   });
 }
 
+/** "iyun" — standalone month name, for headers that show the year separately. */
+export function formatMonthName(
+  year: number,
+  monthIndex: number,
+  language: string,
+): string {
+  return format(new Date(year, monthIndex, 1), "LLLL", {
+    locale: dateLocale(language),
+  });
+}
+
+/** Sunday-first short weekday names ("Yak", "Dush", …) for calendar grids. */
+export function weekdayShortNames(language: string): string[] {
+  const locale = dateLocale(language);
+  // 2024-01-07 is a Sunday; walk seven days from it.
+  return Array.from({ length: 7 }, (_, i) =>
+    format(new Date(2024, 0, 7 + i), "EEE", { locale }),
+  );
+}
+
 /** "15-iyun, 16:30" — day, month, 24h time. */
 export function formatDayMonthTime(value: string | Date, language: string): string {
   return format(toUzbekistanDate(value), "d MMMM, HH:mm", { locale: dateLocale(language) });
