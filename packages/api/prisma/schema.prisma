@@ -144,6 +144,7 @@ model User {
   authCredential              AuthCredential?
   authSessions                AuthSession[]
   albumComments               AlbumComment[]
+  noticeComments              NoticeComment[]
   albumPosts                  AlbumPost[]
   albumReactions              AlbumReaction[]
   auditLogs                   AuditLog[]                  @relation("AuditActor")
@@ -623,10 +624,27 @@ model Notice {
   class      Class?            @relation(fields: [classId], references: [id])
   recipients NoticeRecipient[]
   targets    NoticeTarget[]
+  comments   NoticeComment[]
 
   @@index([centerId, publishedAt])
   @@index([classId])
   @@map("notices")
+}
+
+model NoticeComment {
+  id           String    @id @default(uuid()) @db.Uuid
+  noticeId     String    @map("notice_id") @db.Uuid
+  authorUserId String    @map("author_user_id") @db.Uuid
+  body         String
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notice     Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  authorUser User   @relation(fields: [authorUserId], references: [id])
+
+  @@index([noticeId, createdAt])
+  @@map("notice_comments")
 }
 
 model NoticeTarget {

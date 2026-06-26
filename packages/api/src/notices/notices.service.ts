@@ -7,6 +7,7 @@ import {
 import { Prisma } from "@prisma/client";
 import {
   noticeAudienceResponseSchema,
+  noticeCommentSchema,
   noticeDetailSchema,
   noticeRecipientActionResponseSchema,
   noticeSummarySchema,
@@ -45,6 +46,10 @@ const noticeInclude = {
         },
       },
     },
+    orderBy: { createdAt: "asc" },
+  },
+  comments: {
+    include: { authorUser: { select: { id: true, fullName: true } } },
     orderBy: { createdAt: "asc" },
   },
 } satisfies Prisma.NoticeInclude;
@@ -98,12 +103,16 @@ export class NoticesService {
   async listForAuthor(userId: string, centerId: string, status?: string) {
     const access = await this.requireAuthorAccess(userId, centerId);
     await this.publishDueScheduledNotices();
+    const teacherReadableWhere =
+      access.level === "teacher"
+        ? await this.teacherReadableNoticeWhere(userId, access)
+        : undefined;
 
     const notices = await this.prisma.notice.findMany({
       where: {
         centerId,
         status,
-        ...(access.level === "teacher" ? { authorUserId: userId } : {}),
+        ...(teacherReadableWhere ? { OR: teacherReadableWhere } : {}),
       },
       include: noticeInclude,
       orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
@@ -361,6 +370,93 @@ export class NoticesService {
     });
   }
 
+  async addComment(userId: string, noticeId: string, body: string) {
+    const notice = await this.requireNotice(noticeId);
+    if (!(await this.canViewNotice(userId, notice))) {
+      throw new ForbiddenException("You cannot comment on this notice.");
+    }
+    if (!notice.allowComments || notice.status !== "published") {
+      throw new BadRequestException("Comments are turned off for this notice.");
+    }
+    const comment = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.noticeComment.create({
+        data: { noticeId, authorUserId: userId, body: body.trim() },
+        include: { authorUser: { select: { id: true, fullName: true } } },
+      });
+      await this.notifyComment(tx, notice, userId);
+      return created;
+    });
+    return noticeCommentSchema.parse(toNoticeComment(comment));
+  }
+
+  async deleteComment(userId: string, noticeId: string, commentId: string) {
+    const notice = await this.requireNotice(noticeId);
+    const comment = await this.prisma.noticeComment.findUnique({
+      where: { id: commentId },
+    });
+    if (!comment || comment.noticeId !== noticeId) {
+      throw new NotFoundException("Comment not found.");
+    }
+    const canManage = await this.canManageNotice(userId, notice);
+    if (!canManage && comment.authorUserId !== userId) {
+      throw new ForbiddenException("You cannot delete this comment.");
+    }
+    await this.prisma.noticeComment.update({
+      where: { id: commentId },
+      data: { deletedAt: new Date() },
+    });
+    return { success: true };
+  }
+
+  /** A user can see a notice if they received it, can manage it, or teach its audience. */
+  private async canViewNotice(userId: string, notice: NoticePayload) {
+    if (await this.canManageNotice(userId, notice)) return true;
+    if (await this.canViewNoticeAsTeacher(userId, notice)) return true;
+    const recipient = await this.prisma.noticeRecipient.findFirst({
+      where: { userId, noticeId: notice.id },
+      select: { id: true },
+    });
+    return !!recipient;
+  }
+
+  /** A director in the center, or the notice's author, can manage it. */
+  private async canManageNotice(userId: string, notice: NoticePayload) {
+    const access = await this.requireAuthorAccess(userId, notice.centerId).catch(
+      () => null,
+    );
+    if (!access) return false;
+    return access.level === "director" || notice.authorUserId === userId;
+  }
+
+  /** Notify the notice author and earlier commenters of a new comment. */
+  private async notifyComment(
+    tx: Tx,
+    notice: NoticePayload,
+    authorUserId: string,
+  ) {
+    const participants = new Set<string>([
+      notice.authorUserId,
+      ...notice.comments.map((comment) => comment.authorUserId),
+    ]);
+    participants.delete(authorUserId);
+    await Promise.all(
+      [...participants].map((userId) =>
+        this.notifications.enqueue(
+          {
+            userId,
+            notificationType: "notice.comment_created",
+            title: "New comment",
+            body: notice.title,
+            entityType: "notice",
+            entityId: notice.id,
+            channels: ["in_app", "push"],
+          },
+          tx,
+        ),
+      ),
+    );
+  }
+
   private async requireNotice(noticeId: string) {
     const notice = await this.prisma.notice.findUnique({
       where: { id: noticeId },
@@ -373,10 +469,104 @@ export class NoticesService {
   private async requireCanViewAsAuthor(userId: string, notice: NoticePayload) {
     const access = await this.requireAuthorAccess(userId, notice.centerId);
     if (access.level === "director") return access;
-    if (notice.authorUserId !== userId) {
-      throw new ForbiddenException("You can only view your own notices.");
+    if (
+      notice.authorUserId === userId ||
+      (await this.canTeacherAccessNotice(access, notice))
+    ) {
+      return access;
     }
-    return access;
+    throw new ForbiddenException("You cannot view this notice.");
+  }
+
+  private async teacherReadableNoticeWhere(
+    userId: string,
+    access: Extract<AuthorAccess, { level: "teacher" }>,
+  ): Promise<Prisma.NoticeWhereInput[]> {
+    const childIds = await this.teacherChildIds(access);
+    const publishedForTeacher: Prisma.NoticeWhereInput = {
+      status: "published",
+      OR: [
+        { targetType: "center" },
+        {
+          targets: {
+            some: {
+              targetKind: "class",
+              targetId: { in: access.classIds },
+            },
+          },
+        },
+        ...(childIds.length > 0
+          ? [
+              {
+                targets: {
+                  some: {
+                    targetKind: "child",
+                    targetId: { in: childIds },
+                  },
+                },
+              } satisfies Prisma.NoticeWhereInput,
+            ]
+          : []),
+      ],
+    };
+
+    return [{ authorUserId: userId }, publishedForTeacher];
+  }
+
+  private async canViewNoticeAsTeacher(
+    userId: string,
+    notice: NoticePayload,
+  ) {
+    const access = await this.requireAuthorAccess(userId, notice.centerId).catch(
+      () => null,
+    );
+    if (!access || access.level !== "teacher") return false;
+    return this.canTeacherAccessNotice(access, notice);
+  }
+
+  private async canTeacherAccessNotice(
+    access: Extract<AuthorAccess, { level: "teacher" }>,
+    notice: NoticePayload,
+  ) {
+    if (notice.status !== "published") return false;
+    if (notice.targetType === "center") return true;
+    if (notice.targetType === "class") {
+      const allowed = new Set(access.classIds);
+      return notice.targets.some(
+        (target) =>
+          target.targetKind === "class" && allowed.has(target.targetId),
+      );
+    }
+    if (notice.targetType === "child") {
+      const targetIds = notice.targets
+        .filter((target) => target.targetKind === "child")
+        .map((target) => target.targetId);
+      if (targetIds.length === 0) return false;
+      const count = await this.prisma.childEnrollment.count({
+        where: {
+          centerId: access.centerId,
+          enrollmentStatus: "active",
+          classId: { in: access.classIds },
+          childId: { in: targetIds },
+        },
+      });
+      return count > 0;
+    }
+    return false;
+  }
+
+  private async teacherChildIds(
+    access: Extract<AuthorAccess, { level: "teacher" }>,
+  ) {
+    const enrollments = await this.prisma.childEnrollment.findMany({
+      where: {
+        centerId: access.centerId,
+        enrollmentStatus: "active",
+        classId: { in: access.classIds },
+      },
+      select: { childId: true },
+    });
+    return [...new Set(enrollments.map((enrollment) => enrollment.childId))];
   }
 
   private async requireCanEdit(userId: string, notice: NoticePayload) {
@@ -612,6 +802,7 @@ export class NoticesService {
     return noticeDetailSchema.parse({
       ...summary,
       body: notice.body,
+      comments: notice.comments.map(toNoticeComment),
       recipients: notice.recipients.map((recipient) => {
         const childEnrollment = recipient.child?.childEnrollments[0];
         return {
@@ -669,6 +860,7 @@ export class NoticesService {
       isImportant: notice.isImportant,
       publishedAt: notice.publishedAt?.toISOString() ?? null,
       scheduledAt: notice.scheduledAt?.toISOString() ?? null,
+      createdAt: notice.createdAt.toISOString(),
       updatedAt: notice.updatedAt.toISOString(),
       recipientCount: notice.recipients.length,
       readCount: notice.recipients.filter((recipient) => recipient.readAt)
@@ -676,6 +868,8 @@ export class NoticesService {
       confirmedCount: notice.recipients.filter(
         (recipient) => recipient.confirmedAt,
       ).length,
+      commentCount: notice.comments.filter((comment) => !comment.deletedAt)
+        .length,
       myReadAt: firstViewerRecipient?.readAt?.toISOString() ?? null,
       myConfirmedAt: firstViewerRecipient?.confirmedAt?.toISOString() ?? null,
       child: firstViewerRecipient?.child
@@ -775,4 +969,16 @@ function assertNoticeScheduleWindow(date: Date) {
 
 function childName(child: { firstName: string; lastName?: string | null }) {
   return [child.firstName, child.lastName].filter(Boolean).join(" ");
+}
+
+function toNoticeComment(comment: NoticePayload["comments"][number]) {
+  return {
+    id: comment.id,
+    authorUserId: comment.authorUserId,
+    authorName: comment.authorUser.fullName,
+    body: comment.deletedAt ? "" : comment.body,
+    deletedAt: comment.deletedAt?.toISOString() ?? null,
+    createdAt: comment.createdAt.toISOString(),
+    updatedAt: comment.updatedAt.toISOString(),
+  };
 }

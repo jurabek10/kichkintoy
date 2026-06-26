@@ -50,5 +50,23 @@ export function createNoticesRouter(os: ORPCImplementer, deps: ORPCDeps) {
     confirm: os.notices.confirm.use(access.authed).handler(async ({ input, context }) => {
       return deps.noticesService.confirm(context.user.id, input.noticeId);
     }),
+    addComment: os.notices.addComment.use(access.authed).handler(
+      async ({ input, context }) => {
+        return deps.noticesService.addComment(
+          context.user.id,
+          input.noticeId,
+          input.body.body,
+        );
+      },
+    ),
+    deleteComment: os.notices.deleteComment.use(access.authed).handler(
+      async ({ input, context }) => {
+        return deps.noticesService.deleteComment(
+          context.user.id,
+          input.noticeId,
+          input.commentId,
+        );
+      },
+    ),
   };
 }

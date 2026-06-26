@@ -2,8 +2,10 @@ import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { uuidSchema } from "../../lib/validators.js";
 import {
+  addNoticeCommentInputSchema,
   createNoticeRequestSchema,
   noticeAudienceResponseSchema,
+  noticeCommentSchema,
   noticeDetailSchema,
   noticeListResponseSchema,
   noticeRecipientActionResponseSchema,
@@ -28,6 +30,12 @@ const publishNoticeInputSchema = noticeIdInputSchema.extend({
   body: publishNoticeRequestSchema,
 });
 const parentChildNoticesInputSchema = z.object({ childId: uuidSchema });
+const addNoticeCommentProcedureInputSchema = noticeIdInputSchema.extend({
+  body: addNoticeCommentInputSchema,
+});
+const deleteNoticeCommentInputSchema = noticeIdInputSchema.extend({
+  commentId: uuidSchema,
+});
 
 export const noticesContract = {
   audience: oc.input(centerIdInputSchema).output(noticeAudienceResponseSchema),
@@ -48,4 +56,10 @@ export const noticesContract = {
   confirm: oc
     .input(noticeIdInputSchema)
     .output(noticeRecipientActionResponseSchema),
+  addComment: oc
+    .input(addNoticeCommentProcedureInputSchema)
+    .output(noticeCommentSchema),
+  deleteComment: oc
+    .input(deleteNoticeCommentInputSchema)
+    .output(successResponseSchema),
 };

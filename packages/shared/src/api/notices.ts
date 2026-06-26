@@ -30,6 +30,22 @@ export const noticeAuthorSchema = z.object({
 });
 export type NoticeAuthor = z.infer<typeof noticeAuthorSchema>;
 
+export const noticeCommentSchema = z.object({
+  id: uuidSchema,
+  authorUserId: uuidSchema,
+  authorName: z.string(),
+  body: z.string(),
+  deletedAt: isoDateTimeSchema.nullable(),
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema,
+});
+export type NoticeComment = z.infer<typeof noticeCommentSchema>;
+
+export const addNoticeCommentInputSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+});
+export type AddNoticeCommentInput = z.infer<typeof addNoticeCommentInputSchema>;
+
 export const noticeClassSchema = z.object({
   id: uuidSchema,
   name: z.string(),
@@ -103,10 +119,12 @@ export const noticeSummarySchema = z.object({
   isImportant: z.boolean(),
   publishedAt: isoDateTimeSchema.nullable(),
   scheduledAt: isoDateTimeSchema.nullable(),
+  createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
   recipientCount: z.number().int(),
   readCount: z.number().int(),
   confirmedCount: z.number().int(),
+  commentCount: z.number().int(),
   myReadAt: isoDateTimeSchema.nullable().optional(),
   myConfirmedAt: isoDateTimeSchema.nullable().optional(),
   child: noticeChildSchema.nullable().optional(),
@@ -116,6 +134,7 @@ export type NoticeSummary = z.infer<typeof noticeSummarySchema>;
 export const noticeDetailSchema = noticeSummarySchema.extend({
   body: z.string(),
   recipients: z.array(noticeReadSchema),
+  comments: z.array(noticeCommentSchema),
 });
 export type NoticeDetail = z.infer<typeof noticeDetailSchema>;
 
