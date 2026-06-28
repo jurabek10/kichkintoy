@@ -31,6 +31,9 @@ export default async function initTranslations(
     fallbackNS: namespaces[0],
     ns: namespaces,
     preload: resources ? [] : [locale],
+    // React already escapes interpolated values, so i18next must not escape them
+    // again — otherwise an apostrophe like "O‘rta" renders as "O&#39;rta".
+    interpolation: { escapeValue: false },
   });
 
   return {
