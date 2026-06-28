@@ -9,6 +9,8 @@
   "todaySection": "Today",
   "thisMonth": "This month",
   "records": "Records",
+  "parentRecordsDescription": "Your pickup notices for the selected month.",
+  "schedulePickup": "Schedule a pickup",
   "view": {
     "day": "Day",
     "month": "Month"
@@ -27,7 +29,8 @@
   },
   "filters": {
     "all": "All statuses",
-    "allClasses": "All classes"
+    "allClasses": "All classes",
+    "allChildren": "All children"
   },
   "status": {
     "submitted": "Submitted",

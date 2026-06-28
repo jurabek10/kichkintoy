@@ -9,6 +9,8 @@
   "todaySection": "Bugun",
   "thisMonth": "Shu oy",
   "records": "Yozuvlar",
+  "parentRecordsDescription": "Tanlangan oydagi olib ketish xabarlaringiz.",
+  "schedulePickup": "Olib ketishni rejalashtirish",
   "view": {
     "day": "Kun",
     "month": "Oy"
@@ -27,7 +29,8 @@
   },
   "filters": {
     "all": "Barcha holatlar",
-    "allClasses": "Barcha sinflar"
+    "allClasses": "Barcha sinflar",
+    "allChildren": "Barcha bolalar"
   },
   "status": {
     "submitted": "Yuborilgan",

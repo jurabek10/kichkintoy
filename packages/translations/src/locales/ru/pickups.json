@@ -9,6 +9,8 @@
   "todaySection": "Сегодня",
   "thisMonth": "Этот месяц",
   "records": "Записи",
+  "parentRecordsDescription": "Ваши записи о выдаче за выбранный месяц.",
+  "schedulePickup": "Запланировать выдачу",
   "view": {
     "day": "День",
     "month": "Месяц"
@@ -27,7 +29,8 @@
   },
   "filters": {
     "all": "Все статусы",
-    "allClasses": "Все группы"
+    "allClasses": "Все группы",
+    "allChildren": "Все дети"
   },
   "status": {
     "submitted": "Отправлено",
