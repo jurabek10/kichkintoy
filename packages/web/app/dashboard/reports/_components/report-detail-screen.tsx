@@ -32,12 +32,16 @@ import {
 import {
   formatDate,
   formatDateTime,
+  formatTime,
+  formatWeekdayShort,
   participationInterestLabel,
   participationLevelLabel,
   reportItemTypeLabel,
   reportStatusLabel,
 } from "@/lib/format";
 import { SignedReportMedia } from "./signed-report-media";
+import { moodEmoji, reportTimestamp } from "./report-utils";
+import { translateItemTitle, translateItemValue } from "./report-item-i18n";
 
 export function ReportDetailScreen({
   isParent,
@@ -184,15 +188,19 @@ export function ReportDetailScreen({
   return (
     <div className="flex flex-col gap-4">
       <BackToReports t={t} />
-      <ReportHeader
-        isParent={isParent}
-        report={report}
-        t={t}
-        working={working}
-        onDelete={removeReport}
-        onPublish={publish}
-        onUnpublish={unpublish}
-      />
+      {isParent ? (
+        <ParentReportHero report={report} t={t} />
+      ) : (
+        <ReportHeader
+          isParent={isParent}
+          report={report}
+          t={t}
+          working={working}
+          onDelete={removeReport}
+          onPublish={publish}
+          onUnpublish={unpublish}
+        />
+      )}
 
       {error ? (
         <Alert variant="destructive">
@@ -327,6 +335,39 @@ function ReportHeader({
           </div>
         ) : null}
       </CardHeader>
+    </Card>
+  );
+}
+
+/** The parent's view opens on a warm coral hero — child, date rail and mood —
+ *  so reading a report on web feels like the mobile screen, not an admin form. */
+function ParentReportHero({
+  report,
+  t,
+}: {
+  report: DailyReportDetail;
+  t: TFunction<"reports">;
+}) {
+  const date = reportTimestamp(report);
+  return (
+    <Card className="overflow-hidden border-coral/30">
+      <div className="flex items-center gap-4 bg-gradient-to-br from-coral/10 via-coral/5 to-transparent p-5">
+        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-coral/15 text-4xl shadow-sm">
+          {moodEmoji(report.mood)}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-coral-ink">
+            {formatWeekdayShort(date)} · {formatTime(date)}
+          </p>
+          <h1 className="truncate text-xl font-extrabold text-foreground">
+            {report.child.name}
+          </h1>
+          <p className="truncate text-sm text-muted-foreground">
+            {formatDate(report.reportDate)} · {report.class.name} ·{" "}
+            {report.author.fullName}
+          </p>
+        </div>
+      </div>
     </Card>
   );
 }
@@ -484,24 +525,31 @@ function ReportItems({
 }) {
   return (
     <section className="grid gap-2 sm:grid-cols-2">
-      {items.map((item) => (
-        <div key={item.id} className="rounded-lg border p-3">
-          <Badge variant="info">
-            {t(`itemTypes.${item.itemType}`, reportItemTypeLabel(item.itemType))}
-          </Badge>
-          <p className="mt-2 font-semibold">
-            {item.title || item.value || t("detail.item")}
-          </p>
-          {item.value && item.title ? (
-            <p className="text-sm text-muted-foreground">{item.value}</p>
-          ) : null}
-          {item.note ? (
-            <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
-              {item.note}
+      {items.map((item) => {
+        const title = translateItemTitle(item.title, t);
+        const value = translateItemValue(item.itemType, item.value, t);
+        return (
+          <div key={item.id} className="rounded-lg border p-3">
+            <Badge variant="info">
+              {t(
+                `itemTypes.${item.itemType}`,
+                reportItemTypeLabel(item.itemType),
+              )}
+            </Badge>
+            <p className="mt-2 font-semibold">
+              {title || value || t("detail.item")}
             </p>
-          ) : null}
-        </div>
-      ))}
+            {value && title ? (
+              <p className="text-sm text-muted-foreground">{value}</p>
+            ) : null}
+            {item.note ? (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                {item.note}
+              </p>
+            ) : null}
+          </div>
+        );
+      })}
     </section>
   );
 }
@@ -546,7 +594,11 @@ function ClassParticipationItems({
             <div key={item.id} className="rounded-lg border p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="font-semibold">
-                  {item.title || t("detail.subject")}
+                  {item.title
+                    ? t(`participation.subjects.${item.title}`, {
+                        defaultValue: item.title,
+                      })
+                    : t("detail.subject")}
                 </p>
                 {item.value ? (
                   <Badge variant="info">

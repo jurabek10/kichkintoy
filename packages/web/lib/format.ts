@@ -213,3 +213,31 @@ export function formatDateTime(
     locale: dateLocale(activeLanguage()),
   });
 }
+
+/** Clock time only — e.g. "14:05". Returns "—" when there is no value. */
+export function formatTime(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const date = toUzbekistanDate(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return format(date, "HH:mm");
+}
+
+/** Day-of-month as a bare number — the big figure on a calendar date rail. */
+export function formatDayOfMonth(
+  value: string | Date | null | undefined,
+): string {
+  if (!value) return "—";
+  const date = toUzbekistanDate(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return format(date, "d");
+}
+
+/** Abbreviated weekday — e.g. "Mon" / "Dush" — to sit under the day number. */
+export function formatWeekdayShort(
+  value: string | Date | null | undefined,
+): string {
+  if (!value) return "";
+  const date = toUzbekistanDate(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return format(date, "EEE", { locale: dateLocale(activeLanguage()) });
+}

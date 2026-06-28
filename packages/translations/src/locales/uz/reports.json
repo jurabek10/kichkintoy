@@ -81,6 +81,25 @@
     "comments": "{{count}} izoh",
     "empty": "Hali ma'lumot yo'q"
   },
+  "parent": {
+    "todayHeading": "Bugungi hisobot",
+    "latestHeading": "Oxirgi hisobot",
+    "noToday": "Bugun hali hisobot yo'q",
+    "noTodayBody": "Tarbiyachi {{name}}ning bugungi hisobotini chop etganda, u shu yerda birinchi bo'lib ko'rinadi.",
+    "yourChild": "farzandingiz",
+    "noNoteYet": "Tarbiyachi hali izoh qo'shmagan.",
+    "readFull": "Hisobotni o'qish",
+    "allReports": "Barcha hisobotlar",
+    "tableEmpty": "Ushbu filtrlarga mos hisobot yo'q.",
+    "searchPlaceholder": "Hisobotlarni qidirish",
+    "periodAll": "Hammasi",
+    "periodMonth": "Oy bo'yicha",
+    "colDate": "Sana",
+    "colReport": "Hisobot",
+    "colTime": "Vaqt",
+    "open": "Ochish",
+    "noChildrenTitle": "Hali farzand bog'lanmagan"
+  },
   "status": {
     "published": "E'lon qilingan",
     "scheduled": "Rejalangan",

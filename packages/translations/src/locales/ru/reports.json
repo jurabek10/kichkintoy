@@ -81,6 +81,25 @@
     "comments": "{{count}} комментариев",
     "empty": "Пока нет содержимого"
   },
+  "parent": {
+    "todayHeading": "Отчёт за сегодня",
+    "latestHeading": "Последний отчёт",
+    "noToday": "Сегодня отчёта пока нет",
+    "noTodayBody": "Когда воспитатель опубликует сегодняшний отчёт {{name}}, он появится здесь первым.",
+    "yourChild": "вашего ребёнка",
+    "noNoteYet": "Воспитатель пока не добавил заметку.",
+    "readFull": "Читать отчёт",
+    "allReports": "Все отчёты",
+    "tableEmpty": "Нет отчётов по этим фильтрам.",
+    "searchPlaceholder": "Поиск отчётов",
+    "periodAll": "Все",
+    "periodMonth": "По месяцам",
+    "colDate": "Дата",
+    "colReport": "Отчёт",
+    "colTime": "Время",
+    "open": "Открыть",
+    "noChildrenTitle": "Дети ещё не привязаны"
+  },
   "status": {
     "published": "Опубликовано",
     "scheduled": "Запланировано",

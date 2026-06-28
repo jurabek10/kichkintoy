@@ -81,6 +81,25 @@
     "comments": "{{count}} comments",
     "empty": "No content yet"
   },
+  "parent": {
+    "todayHeading": "Today's report",
+    "latestHeading": "Latest report",
+    "noToday": "No report yet today",
+    "noTodayBody": "When {{name}}'s teacher publishes today's report, it shows up here first.",
+    "yourChild": "your child",
+    "noNoteYet": "The teacher hasn't added a note yet.",
+    "readFull": "Read full report",
+    "allReports": "All reports",
+    "tableEmpty": "No reports match these filters.",
+    "searchPlaceholder": "Search reports",
+    "periodAll": "All",
+    "periodMonth": "By month",
+    "colDate": "Date",
+    "colReport": "Report",
+    "colTime": "Time",
+    "open": "Open",
+    "noChildrenTitle": "No children linked yet"
+  },
   "status": {
     "published": "Published",
     "scheduled": "Scheduled",
