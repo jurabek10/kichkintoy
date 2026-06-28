@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import type { ReportItem } from '@/data/reports';
+import { translateItemTitle, translateItemValue } from '@/lib/report-item-i18n';
 import { cn } from '@/lib/utils';
 
 /** "Day at a glance" — the report's structured items as a label/value table. */
@@ -15,11 +16,11 @@ export function ReportItemsTable({ items }: { items: ReportItem[] }) {
         const label =
           item.itemType === 'class_participation'
             ? classParticipationLabel(item.title, typeLabel, t)
-            : item.title || typeLabel;
+            : translateItemTitle(item.title, t) || typeLabel;
         const value =
           item.itemType === 'class_participation'
             ? t(`participationLevels.${item.value}`, { defaultValue: item.value })
-            : item.value;
+            : translateItemValue(item.itemType, item.value, t);
         return (
           <View
             key={item.id}

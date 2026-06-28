@@ -111,14 +111,17 @@ export function ReportComposer({
     setObs((prev) => ({ ...prev, [key]: value }));
   }
 
-  // Build items array from dropdown state for saving
+  // Build items array from dropdown state for saving. Titles and values are
+  // stored as language-neutral tokens ("breakfast", "half") — never display
+  // text — so each parent reads the report in their own language. See
+  // report-item-i18n.ts for the render-time translation.
   function buildItems() {
     const items: Array<{ itemType: "meal" | "sleep" | "activity" | "health" | "class_participation"; title?: string; value?: string; note?: string }> = [];
-    if (obs.breakfast) items.push({ itemType: "meal", title: t("composer.breakfast"), value: obs.breakfast });
-    if (obs.lunch)     items.push({ itemType: "meal", title: t("composer.lunch"),     value: obs.lunch });
-    if (obs.snack)     items.push({ itemType: "meal", title: t("composer.snack"),     value: obs.snack });
-    if (obs.sleep)     items.push({ itemType: "sleep", title: t("composer.nap"),      value: obs.sleep });
-    if (obs.activity)  items.push({ itemType: "activity", title: t("composer.mainActivity"), value: obs.activity });
+    if (obs.breakfast) items.push({ itemType: "meal", title: "breakfast", value: obs.breakfast });
+    if (obs.lunch)     items.push({ itemType: "meal", title: "lunch",     value: obs.lunch });
+    if (obs.snack)     items.push({ itemType: "meal", title: "snack",     value: obs.snack });
+    if (obs.sleep)     items.push({ itemType: "sleep", title: "nap",      value: obs.sleep });
+    if (obs.activity)  items.push({ itemType: "activity", title: "mainActivity", value: obs.activity });
     if (obs.healthStatus) items.push({ itemType: "health", value: obs.healthStatus, note: obs.healthNote || undefined });
     for (const raw of classParticipationRowsToItems(classParticipationRows)) {
       items.push({ itemType: raw.itemType as "class_participation", title: raw.title ?? undefined, value: raw.value ?? undefined, note: raw.note ?? undefined });
@@ -164,14 +167,15 @@ export function ReportComposer({
     const language = i18n.language === "ru" ? "ru" : "uz";
     const placeholder = language === "ru" ? "ребёнок" : "bola";
 
-    // Build items with human-readable translated labels for AI context
+    // The stored state holds tokens; translate them to readable labels in the
+    // note's language so the AI has real words to work with, not "half".
     const aiItems: Array<{ itemType: "meal" | "sleep" | "activity" | "health"; title?: string; value?: string }> = [];
-    if (obs.breakfast) aiItems.push({ itemType: "meal", title: t("composer.breakfast"), value: obs.breakfast });
-    if (obs.lunch)     aiItems.push({ itemType: "meal", title: t("composer.lunch"),     value: obs.lunch });
-    if (obs.snack)     aiItems.push({ itemType: "meal", title: t("composer.snack"),     value: obs.snack });
-    if (obs.sleep)     aiItems.push({ itemType: "sleep", title: t("composer.nap"),      value: obs.sleep });
-    if (obs.activity)  aiItems.push({ itemType: "activity", title: t("composer.mainActivity"), value: obs.activity });
-    if (obs.healthStatus) aiItems.push({ itemType: "health", value: obs.healthStatus });
+    if (obs.breakfast) aiItems.push({ itemType: "meal", title: t("composer.breakfast"), value: t(`composer.mealOptions.${obs.breakfast}`) });
+    if (obs.lunch)     aiItems.push({ itemType: "meal", title: t("composer.lunch"),     value: t(`composer.mealOptions.${obs.lunch}`) });
+    if (obs.snack)     aiItems.push({ itemType: "meal", title: t("composer.snack"),     value: t(`composer.mealOptions.${obs.snack}`) });
+    if (obs.sleep)     aiItems.push({ itemType: "sleep", title: t("composer.nap"),      value: t(`composer.sleepOptions.${obs.sleep}`) });
+    if (obs.activity)  aiItems.push({ itemType: "activity", title: t("composer.mainActivity"), value: t(`composer.activityOptions.${obs.activity}`) });
+    if (obs.healthStatus) aiItems.push({ itemType: "health", value: t(`composer.healthOptions.${obs.healthStatus}`) });
 
     const participation = classParticipationRows
       .filter((row) => row.subject.trim() || row.customSubject.trim())
@@ -187,7 +191,7 @@ export function ReportComposer({
     try {
       const result = await orpc.reports.generateNote({
         language,
-        mood: obs.mood || undefined,
+        mood: obs.mood ? t(`composer.moodOptions.${obs.mood}`) : undefined,
         items: aiItems.length > 0 ? aiItems : undefined,
         classParticipation: participation.length > 0 ? participation : undefined,
       });
@@ -288,7 +292,7 @@ export function ReportComposer({
             value={obs.mood}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("mood", v)}
-            options={moodOptionKeys.map((k) => ({ value: t(`composer.moodOptions.${k}`), label: t(`composer.moodOptions.${k}`) }))}
+            options={moodOptionKeys.map((k) => ({ value: k, label: t(`composer.moodOptions.${k}`) }))}
           />
           {/* Breakfast */}
           <ObservationDropdown
@@ -296,7 +300,7 @@ export function ReportComposer({
             value={obs.breakfast}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("breakfast", v)}
-            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+            options={mealOptionKeys.map((k) => ({ value: k, label: t(`composer.mealOptions.${k}`) }))}
           />
           {/* Lunch */}
           <ObservationDropdown
@@ -304,7 +308,7 @@ export function ReportComposer({
             value={obs.lunch}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("lunch", v)}
-            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+            options={mealOptionKeys.map((k) => ({ value: k, label: t(`composer.mealOptions.${k}`) }))}
           />
           {/* Snack */}
           <ObservationDropdown
@@ -312,7 +316,7 @@ export function ReportComposer({
             value={obs.snack}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("snack", v)}
-            options={mealOptionKeys.map((k) => ({ value: t(`composer.mealOptions.${k}`), label: t(`composer.mealOptions.${k}`) }))}
+            options={mealOptionKeys.map((k) => ({ value: k, label: t(`composer.mealOptions.${k}`) }))}
           />
           {/* Sleep */}
           <ObservationDropdown
@@ -320,7 +324,7 @@ export function ReportComposer({
             value={obs.sleep}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("sleep", v)}
-            options={sleepOptionKeys.map((k) => ({ value: t(`composer.sleepOptions.${k}`), label: t(`composer.sleepOptions.${k}`) }))}
+            options={sleepOptionKeys.map((k) => ({ value: k, label: t(`composer.sleepOptions.${k}`) }))}
           />
           {/* Activity */}
           <ObservationDropdown
@@ -328,7 +332,7 @@ export function ReportComposer({
             value={obs.activity}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("activity", v)}
-            options={activityOptionKeys.map((k) => ({ value: t(`composer.activityOptions.${k}`), label: t(`composer.activityOptions.${k}`) }))}
+            options={activityOptionKeys.map((k) => ({ value: k, label: t(`composer.activityOptions.${k}`) }))}
           />
           {/* Health status */}
           <ObservationDropdown
@@ -336,10 +340,10 @@ export function ReportComposer({
             value={obs.healthStatus}
             placeholder={t("composer.selectOption")}
             onChange={(v) => setField("healthStatus", v)}
-            options={healthOptionKeys.map((k) => ({ value: t(`composer.healthOptions.${k}`), label: t(`composer.healthOptions.${k}`) }))}
+            options={healthOptionKeys.map((k) => ({ value: k, label: t(`composer.healthOptions.${k}`) }))}
           />
           {/* Health note — only when there is something to note */}
-          {obs.healthStatus && obs.healthStatus !== t("composer.healthOptions.healthy") && (
+          {obs.healthStatus && obs.healthStatus !== "healthy" && (
             <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
               <Label htmlFor="health-note">{t("composer.healthNoteLabel")}</Label>
               <Textarea
