@@ -43,7 +43,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import type { TFunction } from "i18next";
-import { CandyTrim, KidCloud, KidBalloon } from "@/components/kids-decor";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { NotificationBell } from "./_components/notification-bell";
 import { ParentBottomNav } from "./_components/parent-bottom-nav";
@@ -279,9 +278,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <div className="relative overflow-hidden rounded-2xl border border-sidebar-border bg-white p-3 shadow-sm group-data-[collapsible=icon]:hidden">
-              {isParent ? (
-                <KidCloud className="pointer-events-none absolute -right-2 -top-1 h-7 w-14 text-sky/25" />
-              ) : null}
               <div className="relative flex items-center gap-2.5">
                 <span
                   className={cn(
@@ -319,13 +315,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </SidebarContent>
 
         <SidebarFooter className="p-2">
-          {isParent ? (
-            <div className="relative mb-1 flex items-center justify-center gap-1 overflow-hidden rounded-2xl bg-gradient-to-r from-sky/15 via-mint/15 to-coral/15 py-2 group-data-[collapsible=icon]:hidden">
-              <KidBalloon className="h-9 w-6 animate-float text-coral" />
-              <KidBalloon className="h-7 w-5 animate-float-slow text-sky" />
-              <KidBalloon className="h-8 w-5 animate-float text-grape" />
-            </div>
-          ) : null}
           <SidebarMenu>
             {showMyPage ? (
               <SidebarMenuItem>
@@ -449,12 +438,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </div>
           {isDirector ? (
             <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          ) : isTeacher ? (
-            // A single clean blue hairline — the rainbow trim belongs to the
-            // parent's playroom; the teacher's workspace stays composed.
-            <div className="h-0.5 w-full bg-primary/15" />
           ) : (
-            <CandyTrim />
+            // A single clean blue hairline — parent and teacher share the same
+            // composed workspace, no rainbow trim.
+            <div className="h-0.5 w-full bg-primary/15" />
           )}
         </header>
 
