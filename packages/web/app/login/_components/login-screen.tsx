@@ -8,13 +8,7 @@ import { AuthShell } from "@/components/auth-shell";
 import { FieldError } from "@/components/field-error";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -62,23 +56,25 @@ export function LoginScreen() {
       footer={
         <>
           {t("login.footerText")}{" "}
-          <Link href="/signup" className="font-semibold text-primary">
+          <Link href="/signup" className="font-bold text-primary hover:underline">
             {t("login.createAccount")}
           </Link>
         </>
       }
     >
-      <Card className="border bg-white shadow-pop">
-        <CardHeader>
-          <p className="text-xs font-extrabold uppercase text-primary">
-            {t("login.eyebrow")}
-          </p>
-          <CardTitle className="text-2xl">{t("login.title")}</CardTitle>
-          <CardDescription>{t("login.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card className="border bg-card shadow-pop">
+        <CardContent className="flex flex-col gap-5 p-6 sm:p-7">
+          <div className="flex flex-col gap-1 text-center">
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              {t("login.title")}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t("login.description")}
+            </p>
+          </div>
+
           {errors.form ? (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive">
               <AlertDescription>{errors.form}</AlertDescription>
             </Alert>
           ) : null}
@@ -114,21 +110,16 @@ export function LoginScreen() {
             <Button
               type="submit"
               size="lg"
-              className="mt-2 w-full rounded-xl"
+              className="mt-1 w-full rounded-xl"
               disabled={submitting}
             >
               {submitting ? t("login.submitting") : t("login.submit")}
             </Button>
           </form>
 
-          <div id="center" className="mt-6 rounded-xl bg-accent p-4 text-sm">
-            <p className="font-bold text-accent-foreground">
-              {t("login.centerHelpTitle")}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {t("login.centerHelpText")}
-            </p>
-          </div>
+          <p className="text-center text-xs leading-5 text-muted-foreground">
+            {t("login.centerHelpText")}
+          </p>
         </CardContent>
       </Card>
     </AuthShell>

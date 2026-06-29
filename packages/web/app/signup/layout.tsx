@@ -7,8 +7,8 @@ import { SignupProgress } from "./SignupProgress";
 export default function SignupLayout({ children }: { children: ReactNode }) {
   return (
     <SignupProvider>
-      <AuthShell>
-        <Card>
+      <AuthShell size="wide">
+        <Card className="shadow-pop">
           <CardContent className="flex flex-col gap-6 p-6 sm:p-8">
             <SignupProgress />
             {children}
