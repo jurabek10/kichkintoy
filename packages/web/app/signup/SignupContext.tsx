@@ -190,7 +190,17 @@ export function stepIndexFor(
   draft: SignupDraft,
 ): { current: number; total: number } {
   const order = stepOrderFor(draft);
-  const index = order.findIndex((step) => pathname.startsWith(step));
+  // Every step path starts with "/signup", so a plain prefix check always
+  // matches the first entry. Pick the most specific (longest) matching step.
+  let index = -1;
+  let bestLength = -1;
+  order.forEach((step, stepIndex) => {
+    const matches = pathname === step || pathname.startsWith(`${step}/`);
+    if (matches && step.length > bestLength) {
+      index = stepIndex;
+      bestLength = step.length;
+    }
+  });
   return {
     current: index === -1 ? 1 : index + 1,
     total: order.length,
