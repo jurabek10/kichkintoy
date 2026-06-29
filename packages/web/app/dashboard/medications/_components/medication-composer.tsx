@@ -2,20 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Send, Upload } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Camera,
+  Check,
+  Loader2,
+  PenLine,
+  Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
@@ -29,13 +30,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
+import { formatDate } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "./confirm-dialog";
+import { SignaturePad } from "./signature-pad";
+
+const SIGNATURE_MEDIA_PREFIX = "media:";
 
 export function MedicationComposer() {
   const { t } = useLayoutTranslation("medications");
   const router = useRouter();
   const queryClient = useQueryClient();
+
   const [childId, setChildId] = useState("");
   const [requestedForDate, setRequestedForDate] = useState(todayIso());
   const [symptoms, setSymptoms] = useState("");
@@ -47,13 +55,19 @@ export function MedicationComposer() {
   const [storageMethod, setStorageMethod] = useState("");
   const [instructions, setInstructions] = useState("");
   const [specialNote, setSpecialNote] = useState("");
-  const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(
-    null,
-  );
-  const [photoCaption, setPhotoCaption] = useState("");
-  const [parentSignature, setParentSignature] = useState("");
   const [consent, setConsent] = useState(false);
+
+  const [photoAssetId, setPhotoAssetId] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+
+  const [signatureAssetId, setSignatureAssetId] = useState<string | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [signatureUploading, setSignatureUploading] = useState(false);
+  const [signOpen, setSignOpen] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const { data: audience } = useQuery({
     queryKey: queryKeys.medications.children(),
@@ -61,42 +75,108 @@ export function MedicationComposer() {
   });
 
   useEffect(() => {
-    if (!childId && audience?.children[0]) {
-      setChildId(audience.children[0].id);
-    }
+    if (!childId && audience?.children[0]) setChildId(audience.children[0].id);
   }, [audience, childId]);
+
+  const selectedChild = audience?.children.find((item) => item.id === childId);
 
   const createMutation = useMutation({
     mutationFn: () =>
       orpc.medications.create({
         childId,
         requestedForDate,
-        symptoms,
-        medicineName,
-        medicationType,
-        dosage,
-        medicationTime,
-        medicationCount: medicationCount || undefined,
-        storageMethod: storageMethod || undefined,
-        instructions: instructions || undefined,
-        specialNote: specialNote || undefined,
-        photoMediaAssetId: photoMediaAssetId ?? undefined,
-        photoCaption: photoCaption || undefined,
-        parentSignature,
+        symptoms: symptoms.trim(),
+        medicineName: medicineName.trim(),
+        medicationType: medicationType.trim(),
+        dosage: dosage.trim(),
+        medicationTime: medicationTime.trim(),
+        medicationCount: medicationCount.trim() || undefined,
+        storageMethod: storageMethod.trim() || undefined,
+        instructions: instructions.trim() || undefined,
+        specialNote: specialNote.trim() || undefined,
+        photoMediaAssetId: photoAssetId ?? undefined,
+        parentSignature: `${SIGNATURE_MEDIA_PREFIX}${signatureAssetId}`,
         consent: true,
       }),
     onSuccess: async (request) => {
+      setConfirming(false);
       toast.success(t("toast.requestSent"));
       await queryClient.invalidateQueries({
         queryKey: queryKeys.medications.all(),
       });
       router.push(`/dashboard/medications/${request.id}`);
     },
-    onError: (err) => setError(toApiError(err).message),
+    onError: (err) => {
+      setConfirming(false);
+      setError(toApiError(err).message);
+    },
   });
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  /** Upload a file to the selected child's center; returns the asset id. */
+  async function uploadAsset(file: File): Promise<string> {
+    if (!selectedChild) throw new Error(t("validation.childRequired"));
+    const signed = await orpc.media.createUploadUrl({
+      centerId: selectedChild.centerId,
+      fileName: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+      purpose: "medication",
+    });
+    const response = await fetch(signed.uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    if (!response.ok) {
+      throw new Error(t("validation.uploadFailedForFile", { file: file.name }));
+    }
+    const asset = await orpc.media.completeUpload({
+      mediaAssetId: signed.mediaAssetId,
+    });
+    return asset.id;
+  }
+
+  async function pickPhoto(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    if (!selectedChild) return setError(t("validation.chooseChildBeforeUpload"));
+    setError(null);
+    setPhotoUploading(true);
+    try {
+      const id = await uploadAsset(file);
+      setPhotoAssetId(id);
+      setPhotoPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
+      toast.success(t("toast.photoUploaded"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("validation.uploadFailed"));
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  async function handleSignature(file: File) {
+    if (!selectedChild) return setError(t("validation.childRequired"));
+    setError(null);
+    setSignatureUploading(true);
+    try {
+      const id = await uploadAsset(file);
+      setSignatureAssetId(id);
+      setSignaturePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("validation.uploadFailed"));
+    } finally {
+      setSignatureUploading(false);
+    }
+  }
+
+  /** Validate, then open the confirm step — never submit directly. */
+  function review() {
     setError(null);
     if (!childId) return setError(t("validation.childRequired"));
     if (!symptoms.trim()) return setError(t("validation.symptomsRequired"));
@@ -107,59 +187,13 @@ export function MedicationComposer() {
     if (!dosage.trim()) return setError(t("validation.dosageRequired"));
     if (!medicationTime.trim())
       return setError(t("validation.medicationTimeRequired"));
-    if (!parentSignature.trim())
-      return setError(t("validation.parentSignatureRequired"));
+    if (!signatureAssetId) return setError(t("validation.signatureRequired"));
     if (!consent) return setError(t("validation.consentRequired"));
-    createMutation.mutate();
+    setConfirming(true);
   }
-
-  async function uploadFile(files: FileList | null) {
-    const file = files?.[0];
-    if (!file) return;
-    const effectiveChildId = childId || audience?.children[0]?.id;
-    if (!effectiveChildId) {
-      return setError(t("validation.chooseChildBeforeUpload"));
-    }
-    if (!childId) setChildId(effectiveChildId);
-    const child = audience?.children.find(
-      (item) => item.id === effectiveChildId,
-    );
-    if (!child) return setError(t("validation.chooseChildBeforeUpload"));
-    setError(null);
-    try {
-      const signed = await orpc.media.createUploadUrl({
-        centerId: child.centerId,
-        fileName: file.name,
-        mimeType: file.type,
-        sizeBytes: file.size,
-        purpose: "medication",
-      });
-      const response = await fetch(signed.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!response.ok) {
-        throw new Error(
-          t("validation.uploadFailedForFile", { file: file.name }),
-        );
-      }
-      const asset = await orpc.media.completeUpload({
-        mediaAssetId: signed.mediaAssetId,
-      });
-      setPhotoMediaAssetId(asset.id);
-      toast.success(t("toast.photoUploaded"));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t("validation.uploadFailed"),
-      );
-    }
-  }
-
-  const selectedChild = audience?.children.find((item) => item.id === childId);
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={submit}>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <Button asChild variant="ghost" className="w-fit">
         <Link href="/dashboard/medications">
           <ArrowLeft className="h-4 w-4" />
@@ -167,210 +201,326 @@ export function MedicationComposer() {
         </Link>
       </Button>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">{t("composer.newTitle")}</CardTitle>
-          <CardDescription>{t("composer.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-coral text-coral-ink">
+          <PenLine className="h-5 w-5" />
+        </span>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">
+            {t("composer.newTitle")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("composer.description")}
+          </p>
+        </div>
+      </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label>{t("composer.child")}</Label>
-              <Select value={childId} onValueChange={setChildId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("composer.chooseChild")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {(audience?.children ?? []).map((child) => (
-                    <SelectItem key={child.id} value={child.id}>
-                      {child.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedChild ? (
-                <p className="text-xs text-muted-foreground">
-                  {selectedChild.className ?? t("detail.noClass")}
-                </p>
-              ) : null}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="medication-date">{t("composer.date")}</Label>
-              <DatePicker
-                id="medication-date"
-                value={requestedForDate}
-                onValueChange={setRequestedForDate}
-              />
-            </div>
-          </div>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
-          <div className="grid gap-2">
-            <Label htmlFor="symptoms">{t("composer.symptoms")}</Label>
-            <Textarea
-              id="symptoms"
-              value={symptoms}
-              onChange={(event) => setSymptoms(event.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              id="medicine-name"
-              label={t("composer.medicineName")}
-              value={medicineName}
-              onChange={setMedicineName}
-            />
-            <Field
-              id="medication-type"
-              label={t("composer.medicationType")}
-              value={medicationType}
-              onChange={setMedicationType}
-            />
-            <Field
-              id="dosage"
-              label={t("composer.dosage")}
-              value={dosage}
-              onChange={setDosage}
-            />
-            <Field
-              id="medication-time"
-              label={t("composer.medicationTime")}
-              value={medicationTime}
-              onChange={setMedicationTime}
-            />
-            <Field
-              id="medication-count"
-              label={t("composer.countFrequency")}
-              value={medicationCount}
-              onChange={setMedicationCount}
-            />
-            <Field
-              id="storage-method"
-              label={t("composer.storageMethod")}
-              value={storageMethod}
-              onChange={setStorageMethod}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="instructions">{t("composer.instructions")}</Label>
-            <Textarea
-              id="instructions"
-              value={instructions}
-              onChange={(event) => setInstructions(event.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="special-note">{t("composer.specialNote")}</Label>
-            <Textarea
-              id="special-note"
-              value={specialNote}
-              onChange={(event) => setSpecialNote(event.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="medication-photo">
-              {t("composer.medicationPhoto")}
+      <Section title={t("sections.who")}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label>
+              {t("composer.child")} <RequiredMark />
             </Label>
-            <label
-              className={`grid place-items-center gap-2 rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground transition ${
-                selectedChild
-                  ? "cursor-pointer hover:border-primary/50"
-                  : "cursor-not-allowed opacity-60"
-              }`}
-            >
-              <Upload className="h-6 w-6" />
-              <span>{t("composer.choosePhoto")}</span>
-              <Input
-                id="medication-photo"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                disabled={!selectedChild}
-                onChange={(event) => uploadFile(event.target.files)}
-              />
-            </label>
-            {photoMediaAssetId ? (
-              <p className="text-sm text-muted-foreground">
-                {t("composer.photoUploaded")}
+            <Select value={childId} onValueChange={setChildId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("composer.chooseChild")} />
+              </SelectTrigger>
+              <SelectContent>
+                {(audience?.children ?? []).map((child) => (
+                  <SelectItem key={child.id} value={child.id}>
+                    {child.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedChild ? (
+              <p className="text-xs text-muted-foreground">
+                {selectedChild.className ?? t("detail.noClass")}
               </p>
             ) : null}
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="photo-caption">{t("composer.photoCaption")}</Label>
-            <Input
-              id="photo-caption"
-              value={photoCaption}
-              maxLength={50}
-              disabled={!photoMediaAssetId}
-              onChange={(event) => setPhotoCaption(event.target.value)}
+          <div className="grid gap-1.5">
+            <Label htmlFor="medication-date">{t("composer.date")}</Label>
+            <DatePicker
+              id="medication-date"
+              value={requestedForDate}
+              onValueChange={setRequestedForDate}
             />
           </div>
+        </div>
+      </Section>
 
-          <div className="grid gap-2">
-            <Label htmlFor="parent-signature">
-              {t("composer.parentSignature")}
-            </Label>
-            <Input
-              id="parent-signature"
-              value={parentSignature}
-              onChange={(event) => setParentSignature(event.target.value)}
-            />
-          </div>
+      <Section title={t("sections.medicine")}>
+        <Field label={t("composer.symptoms")} required>
+          <Textarea
+            value={symptoms}
+            onChange={(event) => setSymptoms(event.target.value)}
+            rows={3}
+          />
+        </Field>
 
-          <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
-            <Checkbox
-              checked={consent}
-              onCheckedChange={(checked) => setConsent(checked === true)}
-            />
-            <span>{t("composer.consent")}</span>
-          </label>
-        </CardContent>
-      </Card>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            label={t("composer.medicineName")}
+            value={medicineName}
+            onChange={setMedicineName}
+            required
+          />
+          <TextField
+            label={t("composer.medicationType")}
+            value={medicationType}
+            onChange={setMedicationType}
+            required
+          />
+          <TextField
+            label={t("composer.dosage")}
+            value={dosage}
+            onChange={setDosage}
+            required
+          />
+          <TextField
+            label={t("composer.medicationTime")}
+            value={medicationTime}
+            onChange={setMedicationTime}
+            required
+          />
+          <TextField
+            label={t("composer.countFrequency")}
+            value={medicationCount}
+            onChange={setMedicationCount}
+          />
+          <TextField
+            label={t("composer.storageMethod")}
+            value={storageMethod}
+            onChange={setStorageMethod}
+          />
+        </div>
 
-      <div className="sticky bottom-4 flex justify-end rounded-md border bg-background p-3 shadow-pop">
-        <Button type="submit" disabled={createMutation.isPending}>
+        <Field label={t("composer.medicationPhoto")}>
+          {photoPreview ? (
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photoPreview}
+                alt=""
+                className="h-16 w-16 rounded-xl border object-cover"
+              />
+              <label className="cursor-pointer text-sm font-semibold text-coral-ink hover:underline">
+                {t("composer.changePhoto")}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={photoUploading}
+                  onChange={(event) => pickPhoto(event.target.files)}
+                />
+              </label>
+            </div>
+          ) : (
+            <label
+              className={cn(
+                "grid place-items-center gap-2 rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground transition",
+                selectedChild
+                  ? "cursor-pointer hover:border-coral-ink/50"
+                  : "cursor-not-allowed opacity-60",
+              )}
+            >
+              {photoUploading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-coral-ink" />
+              ) : (
+                <Camera className="h-6 w-6 text-coral-ink" />
+              )}
+              <span>
+                {photoUploading
+                  ? t("composer.uploading")
+                  : t("composer.addPhoto")}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={!selectedChild || photoUploading}
+                onChange={(event) => pickPhoto(event.target.files)}
+              />
+            </label>
+          )}
+        </Field>
+      </Section>
+
+      <Section title={t("sections.notes")}>
+        <Field label={t("composer.instructions")}>
+          <Textarea
+            value={instructions}
+            onChange={(event) => setInstructions(event.target.value)}
+            rows={3}
+          />
+        </Field>
+        <Field label={t("composer.specialNote")}>
+          <Textarea
+            value={specialNote}
+            onChange={(event) => setSpecialNote(event.target.value)}
+            rows={3}
+          />
+        </Field>
+      </Section>
+
+      <Section title={t("sections.authorize")}>
+        <Field label={t("composer.parentSignature")} required>
+          {signaturePreview ? (
+            <div className="flex flex-col gap-2">
+              <div className="grid h-28 place-items-center rounded-2xl border bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={signaturePreview}
+                  alt=""
+                  className="h-full w-auto object-contain"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setSignOpen(true)}
+                disabled={signatureUploading}
+                className="self-start text-sm font-semibold text-coral-ink hover:underline"
+              >
+                {t("composer.reSign")}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                selectedChild
+                  ? setSignOpen(true)
+                  : setError(t("validation.childRequired"))
+              }
+              disabled={signatureUploading}
+              className="grid h-28 w-full place-items-center gap-2 rounded-2xl border border-dashed border-coral-ink/60 bg-coral/40 text-coral-ink transition hover:bg-coral/60"
+            >
+              {signatureUploading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <PenLine className="h-6 w-6" />
+              )}
+              <span className="text-sm font-semibold">
+                {signatureUploading
+                  ? t("composer.uploading")
+                  : t("composer.tapToSign")}
+              </span>
+            </button>
+          )}
+        </Field>
+
+        <button
+          type="button"
+          onClick={() => setConsent((value) => !value)}
+          className="flex items-start gap-3 rounded-2xl bg-coral/40 p-3.5 text-left"
+        >
+          <span
+            className={cn(
+              "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-coral-ink transition",
+              consent ? "bg-coral-ink text-white" : "bg-background",
+            )}
+          >
+            {consent ? <Check className="h-4 w-4" /> : null}
+          </span>
+          <span className="text-sm leading-5">{t("composer.consent")}</span>
+        </button>
+      </Section>
+
+      <div className="sticky bottom-4 z-10 flex justify-end rounded-2xl border bg-background/95 p-3 shadow-pop backdrop-blur">
+        <Button onClick={review} disabled={createMutation.isPending}>
           <Send className="h-4 w-4" />
           {t("composer.saveRequest")}
         </Button>
       </div>
-    </form>
+
+      <SignaturePad
+        open={signOpen}
+        onOpenChange={setSignOpen}
+        onSave={handleSignature}
+      />
+
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={t("confirm.title")}
+        body={t("confirm.body")}
+        summary={[
+          { label: t("composer.child"), value: selectedChild?.name ?? "" },
+          { label: t("composer.date"), value: formatDate(requestedForDate) },
+          { label: t("composer.medicineName"), value: medicineName },
+          { label: t("composer.dosage"), value: dosage },
+          { label: t("composer.medicationTime"), value: medicationTime },
+        ]}
+        confirmLabel={t("confirm.yes")}
+        cancelLabel={t("confirm.no")}
+        loading={createMutation.isPending}
+        onConfirm={() => createMutation.mutate()}
+      />
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Card>
+      <CardContent className="grid gap-4 p-5">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-coral-ink">
+          {title}
+        </p>
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
 function Field({
-  id,
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <Label>
+        {label}
+        {required ? <RequiredMark /> : null}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function TextField({
   label,
   value,
   onChange,
+  required,
 }: {
-  id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  required?: boolean;
 }) {
   return (
-    <div className="grid gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </div>
+    <Field label={label} required={required}>
+      <Input value={value} onChange={(event) => onChange(event.target.value)} />
+    </Field>
   );
+}
+
+function RequiredMark() {
+  return <span className="text-coral-ink"> *</span>;
 }
 
 function todayIso() {

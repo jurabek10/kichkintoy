@@ -3,9 +3,27 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, CheckCircle2, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Droplet,
+  FlaskConical,
+  type LucideIcon,
+  Repeat,
+  Save,
+  Snowflake,
+  User,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
-import type { CompleteMedicationRequestInput } from "@kichkintoy/shared";
+import type {
+  CompleteMedicationRequestInput,
+  MedicationRequestDetail,
+} from "@kichkintoy/shared";
+import type { TFunction } from "i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,20 +39,17 @@ import { formatDate, formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
+import { ConfirmDialog } from "./confirm-dialog";
 import { SignedMedicationImage } from "./signed-medication-image";
 import { medicationStatusLabelKey } from "./medication-labels";
+
+const SIGNATURE_MEDIA_PREFIX = "media:";
 
 export function MedicationDetailScreen({ requestId }: { requestId: string }) {
   const { t } = useLayoutTranslation("medications");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const staff = session?.user.role !== "parent";
-  const [completionStatus, setCompletionStatus] =
-    useState<CompleteMedicationRequestInput["status"]>("administered");
-  const [administeredAt, setAdministeredAt] = useState(currentLocalDateTime());
-  const [administeredDose, setAdministeredDose] = useState("");
-  const [staffNote, setStaffNote] = useState("");
-  const [skippedReason, setSkippedReason] = useState("");
 
   const {
     data: request,
@@ -47,19 +62,390 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
     refetchOnMount: "always",
   });
 
+  async function invalidate() {
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.medications.all(),
+    });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.medications.detail(requestId),
+    });
+  }
+
+  if (isPending) {
+    return <LoadingCard label={t("loading")} />;
+  }
+
+  if (error || !request) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          {error ? toApiError(error).message : t("detail.notFound")}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+      <Button asChild variant="ghost" className="w-fit">
+        <Link href="/dashboard/medications">
+          <ArrowLeft className="h-4 w-4" />
+          {t("back")}
+        </Link>
+      </Button>
+
+      {staff ? (
+        <StaffDetail request={request} t={t} onChanged={invalidate} />
+      ) : (
+        <ParentDetail
+          request={request}
+          requestId={requestId}
+          t={t}
+          onChanged={invalidate}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * Parent view — mirrors the mobile detail screen: a coral banner, identity-led
+ * info rows, the parent's own notes and signature, and the center's outcome
+ * once it lands. A pending request can be cancelled behind a confirm step.
+ * -------------------------------------------------------------------------- */
+
+function ParentDetail({
+  request,
+  requestId,
+  t,
+  onChanged,
+}: {
+  request: MedicationRequestDetail;
+  requestId: string;
+  t: TFunction<"medications">;
+  onChanged: () => Promise<void>;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const pending = request.status === "pending";
+  const isMediaSignature = request.parentSignature.startsWith(
+    SIGNATURE_MEDIA_PREFIX,
+  );
+
   const cancelMutation = useMutation({
     mutationFn: () => orpc.medications.cancel({ requestId }),
     onSuccess: async () => {
+      setConfirming(false);
       toast.success(t("toast.requestCancelled"));
-      await invalidate();
+      await onChanged();
     },
-    onError: (err) => toast.error(toApiError(err).message),
+    onError: (err) => {
+      setConfirming(false);
+      toast.error(toApiError(err).message);
+    },
   });
+
+  const facts: Array<{ icon: LucideIcon; label: string; value: string }> = [
+    { icon: User, label: t("detail.child"), value: request.child.name },
+    ...(request.child.className
+      ? [
+          {
+            icon: Users,
+            label: t("detail.class"),
+            value: request.child.className,
+          },
+        ]
+      : []),
+    {
+      icon: Calendar,
+      label: t("composer.date"),
+      value: formatDate(request.requestedForDate),
+    },
+    {
+      icon: FlaskConical,
+      label: t("detail.medicineType"),
+      value: request.medicationType,
+    },
+    { icon: Droplet, label: t("detail.dosage"), value: request.dosage },
+    {
+      icon: Clock,
+      label: t("composer.medicationTime"),
+      value: request.medicationTime,
+    },
+    ...(request.medicationCount
+      ? [
+          {
+            icon: Repeat,
+            label: t("detail.countFrequency"),
+            value: request.medicationCount,
+          },
+        ]
+      : []),
+    ...(request.storageMethod
+      ? [
+          {
+            icon: Snowflake,
+            label: t("detail.storage"),
+            value: request.storageMethod,
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <>
+      <Card className="overflow-hidden">
+        <div className="flex items-start justify-between gap-3 bg-coral/50 p-5">
+          <div className="min-w-0">
+            <Badge variant={statusVariant(request.status)}>
+              {t(medicationStatusLabelKey(request.status))}
+            </Badge>
+            <h1 className="mt-2 text-2xl font-extrabold leading-tight">
+              {request.medicineName}
+            </h1>
+          </div>
+        </div>
+
+        <dl className="divide-y">
+          {facts.map((fact) => (
+            <InfoRow
+              key={fact.label}
+              Icon={fact.icon}
+              label={fact.label}
+              value={fact.value}
+            />
+          ))}
+        </dl>
+      </Card>
+
+      <NoteCard label={t("detail.symptoms")} value={request.symptoms} />
+      {request.instructions ? (
+        <NoteCard
+          label={t("detail.instructions")}
+          value={request.instructions}
+        />
+      ) : null}
+      {request.specialNote ? (
+        <NoteCard
+          label={t("detail.specialNote")}
+          value={request.specialNote}
+        />
+      ) : null}
+
+      {request.photo ? (
+        <Card>
+          <CardContent className="grid gap-2 p-5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+              {t("composer.medicationPhoto")}
+            </p>
+            <div className="overflow-hidden rounded-xl border bg-muted">
+              <SignedMedicationImage
+                mediaAssetId={request.photo.assetId}
+                className="aspect-[4/3] w-full object-cover"
+              />
+            </div>
+            {request.photoCaption ? (
+              <p className="text-sm text-muted-foreground">
+                {request.photoCaption}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardContent className="grid gap-2 p-5">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+            {t("detail.signature")}
+          </p>
+          {isMediaSignature ? (
+            <div className="grid h-28 place-items-center rounded-xl border bg-white">
+              <SignedMedicationImage
+                mediaAssetId={request.parentSignature.slice(
+                  SIGNATURE_MEDIA_PREFIX.length,
+                )}
+                className="h-full w-auto object-contain"
+              />
+            </div>
+          ) : (
+            <p className="text-sm font-semibold">
+              {request.parentSignature || "—"}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Outcome request={request} t={t} />
+
+      {pending ? (
+        <Button
+          variant="outline"
+          className="border-coral-ink text-coral-ink hover:bg-coral/40 hover:text-coral-ink"
+          onClick={() => setConfirming(true)}
+        >
+          <Ban className="h-4 w-4" />
+          {t("detail.cancelRequest")}
+        </Button>
+      ) : null}
+
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={t("cancelConfirm.title")}
+        body={t("cancelConfirm.body")}
+        confirmLabel={t("cancelConfirm.yes")}
+        cancelLabel={t("cancelConfirm.no")}
+        tone="destructive"
+        loading={cancelMutation.isPending}
+        onConfirm={() => cancelMutation.mutate()}
+      />
+    </>
+  );
+}
+
+function InfoRow({
+  Icon,
+  label,
+  value,
+}: {
+  Icon: LucideIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 px-5 py-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-coral text-coral-ink">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <dt className="text-[11px] font-semibold uppercase text-muted-foreground">
+          {label}
+        </dt>
+        <dd className="text-[15px] font-semibold">{value}</dd>
+      </div>
+    </div>
+  );
+}
+
+function NoteCard({ label, value }: { label: string; value: string }) {
+  return (
+    <Card>
+      <CardContent className="grid gap-1.5 p-5">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+        <p className="whitespace-pre-wrap text-[15px] leading-6">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Outcome({
+  request,
+  t,
+}: {
+  request: MedicationRequestDetail;
+  t: TFunction<"medications">;
+}) {
+  if (request.status === "administered") {
+    return (
+      <Card className="border-mint">
+        <CardContent className="grid gap-2 p-5">
+          <div className="flex items-center gap-2 text-mint-ink">
+            <CheckCircle2 className="h-5 w-5" />
+            <p className="text-sm font-bold">{t("detail.reportTitle")}</p>
+          </div>
+          <OutcomeLine
+            label={t("detail.staff")}
+            value={request.administeredBy?.fullName}
+          />
+          <OutcomeLine
+            label={t("detail.administeredAt")}
+            value={
+              request.administeredAt
+                ? formatDateTime(request.administeredAt)
+                : null
+            }
+          />
+          <OutcomeLine
+            label={t("detail.administeredDose")}
+            value={request.administeredDose}
+          />
+          <OutcomeLine
+            label={t("detail.staffNote")}
+            value={request.staffNote}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (request.status === "skipped") {
+    return (
+      <Card>
+        <CardContent className="grid gap-2 p-5">
+          <p className="text-sm font-bold text-muted-foreground">
+            {t("detail.reportTitle")}
+          </p>
+          <OutcomeLine
+            label={t("detail.skippedReason")}
+            value={request.skippedReason}
+          />
+          <OutcomeLine
+            label={t("detail.staffNote")}
+            value={request.staffNote}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (request.status === "pending") {
+    return (
+      <p className="px-1 text-sm text-muted-foreground">
+        {t("detail.noReportYet")}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+function OutcomeLine({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <p className="text-sm">
+      <span className="font-semibold">{label}: </span>
+      {value}
+    </p>
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * Staff view — review the request and file the administration report.
+ * -------------------------------------------------------------------------- */
+
+function StaffDetail({
+  request,
+  t,
+  onChanged,
+}: {
+  request: MedicationRequestDetail;
+  t: TFunction<"medications">;
+  onChanged: () => Promise<void>;
+}) {
+  const [completionStatus, setCompletionStatus] =
+    useState<CompleteMedicationRequestInput["status"]>("administered");
+  const [administeredAt, setAdministeredAt] = useState(currentLocalDateTime());
+  const [administeredDose, setAdministeredDose] = useState("");
+  const [staffNote, setStaffNote] = useState("");
+  const [skippedReason, setSkippedReason] = useState("");
+
+  const pending = request.status === "pending";
 
   const completeMutation = useMutation({
     mutationFn: () =>
       orpc.medications.complete({
-        requestId,
+        requestId: request.id,
         body: {
           status: completionStatus,
           administeredAt:
@@ -74,59 +460,13 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
       }),
     onSuccess: async () => {
       toast.success(t("toast.reportSaved"));
-      await invalidate();
+      await onChanged();
     },
     onError: (err) => toast.error(toApiError(err).message),
   });
 
-  async function invalidate() {
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.medications.all(),
-    });
-    await queryClient.invalidateQueries({
-      queryKey: queryKeys.medications.detail(requestId),
-    });
-  }
-
-  if (isPending) {
-    return (
-      <LoadingCard label={t("loading")} />
-    );
-  }
-
-  if (error || !request) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>
-          {error ? toApiError(error).message : t("detail.notFound")}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  const pending = request.status === "pending";
-
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <Button asChild variant="ghost">
-          <Link href="/dashboard/medications">
-            <ArrowLeft className="h-4 w-4" />
-            {t("back")}
-          </Link>
-        </Button>
-        {!staff && pending ? (
-          <Button
-            variant="destructive"
-            onClick={() => cancelMutation.mutate()}
-            disabled={cancelMutation.isPending}
-          >
-            <Ban className="h-4 w-4" />
-            {t("detail.cancelRequest")}
-          </Button>
-        ) : null}
-      </div>
-
+    <>
       <Card>
         <CardHeader className="grid gap-3">
           <div className="flex flex-wrap gap-2">
@@ -156,10 +496,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
           <InfoGrid
             items={[
               [t("detail.child"), request.child.name],
-              [
-                t("detail.class"),
-                request.child.className ?? t("detail.noClass"),
-              ],
+              [t("detail.class"), request.child.className ?? t("detail.noClass")],
               [t("detail.parent"), request.parentName],
               [t("detail.symptoms"), request.symptoms],
               [t("detail.medicineType"), request.medicationType],
@@ -174,10 +511,12 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
 
           <div className="grid gap-1.5">
             <p className="text-sm font-medium">{t("detail.signature")}</p>
-            {request.parentSignature.startsWith("media:") ? (
+            {request.parentSignature.startsWith(SIGNATURE_MEDIA_PREFIX) ? (
               <div className="w-fit overflow-hidden rounded-md border bg-white">
                 <SignedMedicationImage
-                  mediaAssetId={request.parentSignature.slice("media:".length)}
+                  mediaAssetId={request.parentSignature.slice(
+                    SIGNATURE_MEDIA_PREFIX.length,
+                  )}
                   className="h-28 w-auto object-contain"
                 />
               </div>
@@ -195,7 +534,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
           <CardTitle className="text-base">{t("detail.reportTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {pending && staff ? (
+          {pending ? (
             <>
               <RadioGroup
                 value={completionStatus}
@@ -223,9 +562,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
                       id="administered-at"
                       type="datetime-local"
                       value={administeredAt}
-                      onChange={(event) =>
-                        setAdministeredAt(event.target.value)
-                      }
+                      onChange={(event) => setAdministeredAt(event.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -275,10 +612,6 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
                 {t("detail.saveReport")}
               </Button>
             </>
-          ) : request.status === "pending" ? (
-            <p className="text-sm text-muted-foreground">
-              {t("detail.noReportYet")}
-            </p>
           ) : (
             <div className="grid gap-3">
               <div className="flex items-center gap-2">
@@ -305,7 +638,7 @@ export function MedicationDetailScreen({ requestId }: { requestId: string }) {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }
 
@@ -331,6 +664,13 @@ function ReportOption({ value, label }: { value: string; label: string }) {
       <span className="text-sm font-semibold">{label}</span>
     </label>
   );
+}
+
+function statusVariant(status: MedicationRequestDetail["status"]) {
+  if (status === "administered") return "success" as const;
+  if (status === "skipped") return "warning" as const;
+  if (status === "cancelled") return "destructive" as const;
+  return "secondary" as const;
 }
 
 function currentLocalDateTime() {

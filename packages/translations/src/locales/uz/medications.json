@@ -9,16 +9,24 @@
   "todaySection": "Bugun",
   "thisMonth": "Shu oy",
   "noToday": "Bugunga dori yo'q.",
+  "requestHistory": "So'rovlar tarixi",
+  "requestHistoryDescription": "Siz yuborgan barcha so'rovlar, oy bo'yicha yoki butun davr.",
   "table": {
     "child": "Bola",
     "class": "Sinf",
     "medicine": "Dori",
+    "dosage": "Doza",
     "time": "Vaqt",
     "date": "Sana",
     "status": "Holat",
-    "search": "Bolani qidirish…",
-    "empty": "Bu oyda dori yo'q.",
-    "open": "Ochish"
+    "search": "Dorini qidirish…",
+    "empty": "Bu oraliqda so'rov yo'q.",
+    "open": "Ochish",
+    "period": {
+      "all": "Butun davr",
+      "month": "Oy",
+      "day": "Kun"
+    }
   },
   "filters": {
     "all": "Barcha holatlar",
@@ -70,8 +78,9 @@
   "signature": {
     "title": "Shu yerga imzo qo'ying",
     "hint": "So'rovni tasdiqlash uchun barmog'ingiz bilan imzolang.",
+    "drawHint": "So'rovni tasdiqlash uchun chiziq ustiga imzo chizing.",
     "clear": "Tozalash",
-    "save": "Saqlash"
+    "save": "Imzoni saqlash"
   },
   "validation": {
     "childRequired": "Bolani tanlang.",

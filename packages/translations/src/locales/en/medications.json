@@ -9,16 +9,24 @@
   "todaySection": "Today",
   "thisMonth": "This month",
   "noToday": "No medication scheduled for today.",
+  "requestHistory": "Request history",
+  "requestHistoryDescription": "Every request you've sent, by month or all time.",
   "table": {
     "child": "Child",
     "class": "Class",
     "medicine": "Medicine",
+    "dosage": "Dosage",
     "time": "Time",
     "date": "Date",
     "status": "Status",
-    "search": "Search child…",
-    "empty": "No medication this month.",
-    "open": "Open"
+    "search": "Search medicine…",
+    "empty": "No requests in this range.",
+    "open": "Open",
+    "period": {
+      "all": "All time",
+      "month": "Month",
+      "day": "Day"
+    }
   },
   "filters": {
     "all": "All statuses",
@@ -70,8 +78,9 @@
   "signature": {
     "title": "Sign here",
     "hint": "Sign with your finger to authorize this request.",
+    "drawHint": "Draw your signature above the line to authorize this request.",
     "clear": "Clear",
-    "save": "Save"
+    "save": "Save signature"
   },
   "validation": {
     "childRequired": "Choose a child.",
