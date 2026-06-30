@@ -1,0 +1,174 @@
+{
+  "home": {
+    "greeting": {
+      "morning": "Xayrli tong, {{name}}",
+      "afternoon": "Xayrli kun, {{name}}",
+      "evening": "Xayrli kech, {{name}}"
+    },
+    "today": "Bugun",
+    "openAttendance": "Davomat",
+    "hereNow": "Hozir bor",
+    "allHere": "Hammasi keldi",
+    "here": "Keldi",
+    "late": "Kechikdi",
+    "absent": "Kelmadi",
+    "notIn": "Belgilanmagan",
+    "medsToGive": "Bugun {{count}} ta dori berish kerak",
+    "shortcuts": "Tezkor amallar",
+    "viewAll": "Hammasi",
+    "childrenCount": "{{count}} bola",
+    "classInfo": "Guruh tarkibi",
+    "emptySeats": "Bo'sh joylar",
+    "todayReports": "Bugungi hisobotlar",
+    "reportsPct": "Bugungi hisobotlarning {{pct}}% yuborildi"
+  },
+  "calendar": {
+    "title": "Taqvim",
+    "upcoming": "Bo'ladigan",
+    "past": "O'tgan",
+    "empty": "Tadbir yo'q",
+    "emptyBody": "Muassasa tadbirlari va guruh faoliyatlari shu yerda ko'rinadi.",
+    "allDay": "Kun bo'yi",
+    "allCenter": "Butun muassasa",
+    "cancelled": "Bekor qilindi"
+  },
+  "documents": {
+    "title": "Hujjatlar",
+    "empty": "Topshiriq yo'q",
+    "emptyBody": "Ota-onalardan kelgan qabul hujjatlari shu yerda ko'rinadi.",
+    "due": "Muddat {{date}}",
+    "filter": { "all": "Hammasi" },
+    "status": {
+      "not_started": "Boshlanmagan",
+      "in_progress": "Jarayonda",
+      "submitted": "Tekshirishga",
+      "needs_correction": "Tuzatish kerak",
+      "accepted": "Qabul qilindi",
+      "closed": "Yopilgan"
+    }
+  },
+  "requests": {
+    "title": "Qo'shilish so'rovlari",
+    "empty": "So'rov yo'q",
+    "emptyBody": "Ota-ona va tarbiyachilarning qo'shilish so'rovlari shu yerda ko'rinadi.",
+    "byParent": "Yuborgan: {{name}}",
+    "approve": "Tasdiqlash",
+    "reject": "Rad etish",
+    "readOnly": "Faqat ruxsati bor xodimlar so'rovlarni tasdiqlay oladi.",
+    "status": { "pending": "Kutilmoqda", "approved": "Tasdiqlangan", "rejected": "Rad etilgan" }
+  },
+  "classes": {
+    "title": "Mening guruhlarim",
+    "empty": "Guruh biriktirilmagan",
+    "emptyBody": "Mudira sizni guruhga biriktirgach, u shu yerda ko'rinadi.",
+    "teacher": "Tarbiyachi",
+    "assistant": "Yordamchi",
+    "seatsFree": "{{count}} ta bo'sh joy",
+    "full": "To'la"
+  },
+  "roster": {
+    "title": "Bolalar ro'yxati",
+    "empty": "Hozircha bola yo'q",
+    "emptyBody": "Bu guruhga yozilgan bolalar shu yerda ko'rinadi.",
+    "childrenCount": "{{count}} bola",
+    "boys": "O'g'il bolalar",
+    "girls": "Qiz bolalar"
+  },
+  "child": {
+    "title": "Bola",
+    "age": "Yoshi",
+    "birthday": "Tug'ilgan kun",
+    "class": "Guruh",
+    "gender": "Jinsi",
+    "boy": "O'g'il bola",
+    "girl": "Qiz bola",
+    "allergies": "Allergiyalar",
+    "medicalNotes": "Tibbiy eslatmalar",
+    "none": "Kiritilmagan",
+    "guardians": "Ota-onalar",
+    "noGuardians": "Ota-ona biriktirilmagan",
+    "call": "Qo'ng'iroq"
+  },
+  "reports": {
+    "title": "Kunlik hisobotlar",
+    "subtitle": "Bugungi hisobotlar holati guruhlar bo'yicha",
+    "sent": "{{sent}}/{{total}} yuborildi",
+    "allSent": "Hammasi yuborildi",
+    "pending": "{{count}} ta qoldi",
+    "empty": "Hisobot uchun guruh yo'q",
+    "status": {
+      "published": "Yuborildi",
+      "draft": "Qoralama",
+      "none": "Boshlanmagan"
+    }
+  },
+  "attendance": {
+    "title": "Davomat",
+    "here": "Keldi",
+    "late": "Kechikdi",
+    "absent": "Kelmadi",
+    "excused": "Sababli",
+    "leftEarly": "Erta ketdi",
+    "pickedUp": "Olib ketildi",
+    "notIn": "Belgilanmagan",
+    "present": "Bor",
+    "empty": "Bugunga bola yo'q",
+    "checkIn": "Kelganini belgilash",
+    "checkOut": "Ketganini belgilash",
+    "markAbsent": "Kelmagan deb belgilash",
+    "checkedInAt": "{{time}} da keldi",
+    "checkedOutAt": "{{time}} da ketdi"
+  },
+  "meals": {
+    "title": "Ovqatlanish",
+    "empty": "Bugunga ovqat rejalashtirilmagan",
+    "servedCount": "{{count}} ta berildi"
+  },
+  "medications": {
+    "title": "Dorilar",
+    "empty": "Bugun beriladigan dori yo'q",
+    "atTime": "{{time}} da",
+    "toGive": "{{count}} ta berish kerak",
+    "markGiven": "Berildi deb belgilash",
+    "status": {
+      "pending": "Berish",
+      "administered": "Berildi",
+      "skipped": "O'tkazildi",
+      "cancelled": "Bekor qilindi"
+    }
+  },
+  "albums": {
+    "title": "Albomlar",
+    "empty": "Hozircha albom yo'q",
+    "emptyBody": "Ota-onalarga joylagan foto albomlaringiz shu yerda ko'rinadi.",
+    "photos": "{{count}} ta foto",
+    "draft": "Qoralama"
+  },
+  "notices": {
+    "title": "E'lonlar",
+    "empty": "Hozircha e'lon yo'q",
+    "emptyBody": "Ota-onalarga joylagan e'lonlaringiz shu yerda ko'rinadi.",
+    "status": {
+      "draft": "Qoralama",
+      "scheduled": "Rejalashtirilgan",
+      "published": "E'lon qilingan"
+    }
+  },
+  "pickups": {
+    "title": "Olib ketish",
+    "empty": "Bugunga olib ketish o'zgarishi yo'q",
+    "acknowledge": "Tasdiqlash",
+    "status": {
+      "submitted": "Yangi",
+      "acknowledged": "Qabul qilindi",
+      "changed": "O'zgartirildi",
+      "cancelled": "Bekor qilindi"
+    }
+  },
+  "account": {
+    "role": "Tarbiyachi",
+    "center": "Muassasa",
+    "classesCount": "{{count}} ta guruh",
+    "myInfo": "Mening ma'lumotlarim"
+  }
+}

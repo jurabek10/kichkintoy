@@ -1,0 +1,174 @@
+{
+  "home": {
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "today": "Today",
+    "openAttendance": "Attendance",
+    "hereNow": "Here now",
+    "allHere": "Everyone is here",
+    "here": "Here",
+    "late": "Late",
+    "absent": "Absent",
+    "notIn": "Not in",
+    "medsToGive": "{{count}} medicine to give today",
+    "shortcuts": "Shortcuts",
+    "viewAll": "View all",
+    "childrenCount": "{{count}} children",
+    "classInfo": "Class make-up",
+    "emptySeats": "Free seats",
+    "todayReports": "Today's reports",
+    "reportsPct": "{{pct}}% of today's reports sent"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "empty": "No events",
+    "emptyBody": "Center events and class activities will appear here.",
+    "allDay": "All day",
+    "allCenter": "Whole center",
+    "cancelled": "Cancelled"
+  },
+  "documents": {
+    "title": "Documents",
+    "empty": "No submissions",
+    "emptyBody": "Enrollment document submissions from parents will appear here.",
+    "due": "Due {{date}}",
+    "filter": { "all": "All" },
+    "status": {
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "submitted": "To review",
+      "needs_correction": "Needs fix",
+      "accepted": "Accepted",
+      "closed": "Closed"
+    }
+  },
+  "requests": {
+    "title": "Join requests",
+    "empty": "No requests",
+    "emptyBody": "Parent and teacher requests to join the center will appear here.",
+    "byParent": "Requested by {{name}}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "readOnly": "Only staff with permission can approve requests.",
+    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected" }
+  },
+  "classes": {
+    "title": "My classes",
+    "empty": "No classes assigned",
+    "emptyBody": "Once a director assigns you to a class, it will show up here.",
+    "teacher": "Teacher",
+    "assistant": "Assistant",
+    "seatsFree": "{{count}} seats free",
+    "full": "Full"
+  },
+  "roster": {
+    "title": "Roster",
+    "empty": "No children yet",
+    "emptyBody": "Children enrolled in this class will appear here.",
+    "childrenCount": "{{count}} children",
+    "boys": "Boys",
+    "girls": "Girls"
+  },
+  "child": {
+    "title": "Child",
+    "age": "Age",
+    "birthday": "Birthday",
+    "class": "Class",
+    "gender": "Gender",
+    "boy": "Boy",
+    "girl": "Girl",
+    "allergies": "Allergies",
+    "medicalNotes": "Medical notes",
+    "none": "None recorded",
+    "guardians": "Guardians",
+    "noGuardians": "No guardians linked",
+    "call": "Call"
+  },
+  "reports": {
+    "title": "Daily reports",
+    "subtitle": "Today's report progress by class",
+    "sent": "{{sent}}/{{total}} sent",
+    "allSent": "All sent",
+    "pending": "{{count}} left",
+    "empty": "No classes to report on",
+    "status": {
+      "published": "Sent",
+      "draft": "Draft",
+      "none": "Not started"
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "here": "Here",
+    "late": "Late",
+    "absent": "Absent",
+    "excused": "Excused",
+    "leftEarly": "Left early",
+    "pickedUp": "Picked up",
+    "notIn": "Not checked in",
+    "present": "Present",
+    "empty": "No children for today",
+    "checkIn": "Check in",
+    "checkOut": "Check out",
+    "markAbsent": "Mark absent",
+    "checkedInAt": "In at {{time}}",
+    "checkedOutAt": "Out at {{time}}"
+  },
+  "meals": {
+    "title": "Meals",
+    "empty": "No meals planned for today",
+    "servedCount": "{{count}} served"
+  },
+  "medications": {
+    "title": "Medication",
+    "empty": "No medicine to give today",
+    "atTime": "at {{time}}",
+    "toGive": "{{count}} to give",
+    "markGiven": "Mark given",
+    "status": {
+      "pending": "To give",
+      "administered": "Given",
+      "skipped": "Skipped",
+      "cancelled": "Cancelled"
+    }
+  },
+  "albums": {
+    "title": "Albums",
+    "empty": "No albums yet",
+    "emptyBody": "Photo albums you post to parents will appear here.",
+    "photos": "{{count}} photos",
+    "draft": "Draft"
+  },
+  "notices": {
+    "title": "Notices",
+    "empty": "No notices yet",
+    "emptyBody": "Announcements you post to parents will appear here.",
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "published": "Published"
+    }
+  },
+  "pickups": {
+    "title": "Pickup",
+    "empty": "No pickup changes for today",
+    "acknowledge": "Acknowledge",
+    "status": {
+      "submitted": "New",
+      "acknowledged": "Acknowledged",
+      "changed": "Changed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "account": {
+    "role": "Teacher",
+    "center": "Center",
+    "classesCount": "{{count}} classes",
+    "myInfo": "My info"
+  }
+}
