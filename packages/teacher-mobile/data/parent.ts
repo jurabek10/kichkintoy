@@ -1,0 +1,196 @@
+/**
+ * Parent data access — the single seam between "where parent data comes from"
+ * and "how a screen renders it".
+ *
+ * The home hooks now call the real oRPC API via TanStack Query and map the
+ * responses into the shapes the screens already consume. Reports, notices,
+ * albums and meals have their own data modules (data/reports.ts,
+ * data/notices.ts, data/albums.ts, data/meals.ts).
+ */
+import { useQuery } from '@tanstack/react-query';
+
+import i18n from '@/i18n';
+import { ageLabel, formatDayMonth, formatLongDate, localIsoDate, todayIsoDate } from '@/lib/date';
+import { orpc } from '@/lib/orpc';
+import { queryKeys } from '@/lib/query-keys';
+import { documentContacts, profile, type Child } from '@/constants/data';
+
+export type Query<T> = {
+  data: T;
+  isPending: boolean;
+};
+
+/** Wrap a ready value in the query shape (hardcoded sections only). */
+function ready<T>(data: T): Query<T> {
+  return { data, isPending: false };
+}
+
+// --- Children -------------------------------------------------------------
+
+type ApiChild = {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  dateOfBirth: string | null;
+  className: string | null;
+  centerName: string;
+};
+
+function toChild(child: ApiChild): Child {
+  return {
+    id: child.id,
+    name: child.name,
+    photo: child.photoUrl,
+    className: child.className ?? undefined,
+    centerName: child.centerName,
+    birthLabel: child.dateOfBirth ? formatLongDate(child.dateOfBirth, i18n.language) : '',
+    ageLabel: child.dateOfBirth ? ageLabel(child.dateOfBirth) : '',
+  };
+}
+
+export function useChildren(): Query<Child[]> {
+  const query = useQuery({
+    queryKey: queryKeys.parent.children,
+    queryFn: () => orpc.reports.parentChildren(),
+  });
+  return { data: (query.data ?? []).map(toChild), isPending: query.isPending };
+}
+
+export function useCurrentChild(): Query<Child | null> {
+  const { data, isPending } = useChildren();
+  return { data: data[0] ?? null, isPending };
+}
+
+export function useCenter(): Query<{ name: string }> {
+  const { data, isPending } = useCurrentChild();
+  return { data: { name: data?.centerName ?? '' }, isPending };
+}
+
+// --- Home feed ------------------------------------------------------------
+
+export type HomeFeed = {
+  report: { id: string; note: string; mood: string; photoCount: number; updateCount: number; dateLabel: string } | null;
+  album: {
+    id: string;
+    caption: string;
+    photoCount: number;
+    dateLabel: string;
+    previewMedia: { id: string; assetId: string; mediaType: string }[];
+  } | null;
+  notice: { title: string; body: string; dateLabel: string } | null;
+};
+
+function byDateDesc(a: string | null, b: string | null) {
+  return (b ?? '').localeCompare(a ?? '');
+}
+
+export function useHomeFeed(): Query<HomeFeed> {
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
+  const lang = i18n.language;
+
+  const reportsQuery = useQuery({
+    queryKey: queryKeys.parent.childReports(childId),
+    queryFn: () => orpc.reports.parentList({ childId }),
+    enabled: !!childId,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+  });
+  const albumsQuery = useQuery({
+    queryKey: queryKeys.albums.parentList(childId),
+    queryFn: () => orpc.albums.parentList({ childId }),
+    enabled: !!childId,
+  });
+  const noticesQuery = useQuery({
+    queryKey: queryKeys.notices.parentList,
+    queryFn: () => orpc.notices.parentList({}),
+  });
+
+  // The home "Today" section only surfaces items from today — otherwise each
+  // slot shows its "nothing yet" card rather than a stale older entry.
+  const today = todayIsoDate();
+  const latestReport = [...(reportsQuery.data ?? [])]
+    .filter((report) => report.status === 'published' && report.reportDate === today)
+    .sort((a, b) => byDateDesc(a.reportDate, b.reportDate))[0];
+  const latestAlbum = [...(albumsQuery.data ?? [])]
+    .filter((album) => album.publishedAt && localIsoDate(album.publishedAt) === today)
+    .sort((a, b) => byDateDesc(a.publishedAt, b.publishedAt))[0];
+  const latestNotice = [...(noticesQuery.data ?? [])]
+    .filter((notice) => notice.publishedAt && localIsoDate(notice.publishedAt) === today)
+    .sort((a, b) => byDateDesc(a.publishedAt, b.publishedAt))[0];
+
+  const data: HomeFeed = {
+    report: latestReport
+      ? {
+          id: latestReport.id,
+          note: latestReport.teacherNote ?? '',
+          mood: latestReport.mood ?? '—',
+          photoCount: latestReport.photoCount,
+          updateCount: latestReport.itemCount,
+          dateLabel: formatDayMonth(latestReport.reportDate, lang),
+        }
+      : null,
+    album: latestAlbum
+      ? {
+          id: latestAlbum.id,
+          caption: latestAlbum.caption.split('\n')[0] || '',
+          photoCount: latestAlbum.mediaCount,
+          dateLabel: latestAlbum.publishedAt ? formatDayMonth(latestAlbum.publishedAt, lang) : '',
+          previewMedia: (
+            latestAlbum.previewMedia ?? (latestAlbum.coverMedia ? [latestAlbum.coverMedia] : [])
+          ).map((media) => ({ id: media.id, assetId: media.assetId, mediaType: media.mediaType })),
+        }
+      : null,
+    notice: latestNotice
+      ? {
+          title: latestNotice.title,
+          body: latestNotice.bodyPreview,
+          dateLabel: latestNotice.publishedAt ? formatDayMonth(latestNotice.publishedAt, lang) : '',
+        }
+      : null,
+  };
+
+  const isPending =
+    child.isPending ||
+    noticesQuery.isPending ||
+    (!!childId && (reportsQuery.isPending || albumsQuery.isPending));
+
+  return { data, isPending };
+}
+
+// Monthly attendance now lives in data/attendance.ts (the home calendar).
+
+// --- Upcoming events ------------------------------------------------------
+
+export type UpcomingEvent = { id: string; title: string; whenLabel: string };
+
+export function useUpcomingEvents(): Query<UpcomingEvent[]> {
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
+  const lang = i18n.language;
+
+  const query = useQuery({
+    queryKey: queryKeys.calendar.upcoming(childId),
+    queryFn: () => orpc.calendar.upcoming({ childId, limit: 4 }),
+    enabled: !!childId,
+  });
+
+  const events = (query.data ?? []).map((event) => ({
+    id: event.id,
+    title: event.title,
+    whenLabel: formatDayMonth(event.startsAt, lang),
+  }));
+
+  return { data: events, isPending: child.isPending || (!!childId && query.isPending) };
+}
+
+// --- Hardcoded content sections (wired to the API in a follow-up) ----------
+
+export function useChildProfile() {
+  return ready(profile);
+}
+
+export function useDocumentContacts() {
+  return ready(documentContacts);
+}
