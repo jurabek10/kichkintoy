@@ -88,7 +88,16 @@
     "emptyBody": "Bu guruhga yozilgan bolalar shu yerda ko'rinadi.",
     "childrenCount": "{{count}} bola",
     "boys": "O'g'il bolalar",
-    "girls": "Qiz bolalar"
+    "girls": "Qiz bolalar",
+    "kids": "Bolalar",
+    "seats": "Joylar",
+    "free": "Bo'sh",
+    "search": "Ism bo'yicha qidirish",
+    "all": "Hammasi",
+    "filter": "Filtr",
+    "noMatch": "Hech kim topilmadi",
+    "noMatchBody": "Boshqa ism yoki filtr bilan urinib ko'ring.",
+    "page": "{{current}}/{{total}}-sahifa"
   },
   "child": {
     "title": "Bola",
