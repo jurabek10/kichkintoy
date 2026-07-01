@@ -88,7 +88,16 @@
     "emptyBody": "Children enrolled in this class will appear here.",
     "childrenCount": "{{count}} children",
     "boys": "Boys",
-    "girls": "Girls"
+    "girls": "Girls",
+    "kids": "Kids",
+    "seats": "Seats",
+    "free": "Free",
+    "search": "Search by name",
+    "all": "All",
+    "filter": "Filter",
+    "noMatch": "No children match",
+    "noMatchBody": "Try a different name or filter.",
+    "page": "Page {{current}} of {{total}}"
   },
   "child": {
     "title": "Child",
