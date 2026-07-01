@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/common/screen-header';
@@ -17,6 +17,8 @@ const SKY = { bg: '#E1F0FF', ink: '#3E8FE0' };
 const PINK = { bg: '#FFE4EF', ink: '#EC5E92' };
 const GRAPE = { bg: '#EEE6FF', ink: '#7C5CD8' };
 const PAGE_SIZE = 10;
+
+type GenderFilter = 'all' | 'boy' | 'girl';
 
 /** Gender → the tint that colours a child's monogram, so the roster reads as
  *  boys-in-sky / girls-in-pink even before you read a name. */
@@ -73,6 +75,61 @@ function ChildRow({ child }: { child: RosterChild }) {
   );
 }
 
+/** Bottom sheet to filter the roster by sex — the only filter the teacher needs. */
+function FilterSheet({
+  open,
+  value,
+  options,
+  onSelect,
+  onClose,
+  title,
+}: {
+  open: boolean;
+  value: GenderFilter;
+  options: { key: GenderFilter; label: string; count: number }[];
+  onSelect: (key: GenderFilter) => void;
+  onClose: () => void;
+  title: string;
+}) {
+  return (
+    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
+        <Pressable className="rounded-t-xl bg-card p-4 pb-9" onPress={() => {}}>
+          <View className="mb-3 items-center">
+            <View className="h-1 w-10 rounded-full bg-segment" />
+          </View>
+          <Text className="mb-1 text-base font-extrabold text-foreground">{title}</Text>
+          {options.map((o) => {
+            const active = value === o.key;
+            return (
+              <Pressable
+                key={o.key}
+                onPress={() => onSelect(o.key)}
+                className="flex-row items-center justify-between py-3.5">
+                <Text
+                  className={cn(
+                    'text-[15px]',
+                    active ? 'font-bold text-primary' : 'text-foreground',
+                  )}>
+                  {o.label}
+                </Text>
+                <View className="flex-row items-center gap-2.5">
+                  <Text className="text-[13px] text-muted">{o.count}</Text>
+                  {active ? (
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                  ) : (
+                    <View className="h-5 w-5 rounded-full border border-border" />
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 export default function ClassRosterScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const classId = id ?? '';
@@ -83,10 +140,12 @@ export default function ClassRosterScreen() {
   const klass = useMemo(() => classes.data.find((c) => c.id === classId), [classes.data, classId]);
 
   const [query, setQuery] = useState('');
+  const [gender, setGender] = useState<GenderFilter>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(0);
 
-  // A new search starts the list over at page one.
-  useEffect(() => setPage(0), [query]);
+  // A new search or filter starts the list over at page one.
+  useEffect(() => setPage(0), [query, gender]);
 
   const boys = roster.data.filter((c) => c.gender === 'boy').length;
   const girls = roster.data.filter((c) => c.gender === 'girl').length;
@@ -97,12 +156,22 @@ export default function ClassRosterScreen() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return roster.data.filter((c) => q === '' || c.name.toLowerCase().includes(q));
-  }, [roster.data, query]);
+    return roster.data.filter(
+      (c) =>
+        (gender === 'all' || c.gender === gender) &&
+        (q === '' || c.name.toLowerCase().includes(q)),
+    );
+  }, [roster.data, query, gender]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
   const pageItems = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
+
+  const filterOptions: { key: GenderFilter; label: string; count: number }[] = [
+    { key: 'all', label: t('roster.all'), count: kids },
+    { key: 'boy', label: t('roster.boys'), count: boys },
+    { key: 'girl', label: t('roster.girls'), count: girls },
+  ];
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -149,22 +218,36 @@ export default function ClassRosterScreen() {
             ) : null}
           </Card>
 
-          {/* Search. */}
-          <View className="mt-3 h-11 flex-row items-center gap-2 rounded-md border border-border bg-card px-3">
-            <Ionicons name="search" size={18} color={colors.textSecondary} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t('roster.search')}
-              placeholderTextColor={colors.textMuted}
-              className="h-11 flex-1 text-[15px] text-foreground"
-              returnKeyType="search"
-            />
-            {query ? (
-              <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                <Ionicons name="close-circle" size={18} color={colors.textMuted} />
-              </Pressable>
-            ) : null}
+          {/* Search + filter icon. */}
+          <View className="mt-3 flex-row items-center gap-2">
+            <View className="h-11 flex-1 flex-row items-center gap-2 rounded-md border border-border bg-card px-3">
+              <Ionicons name="search" size={18} color={colors.textSecondary} />
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder={t('roster.search')}
+                placeholderTextColor={colors.textMuted}
+                className="h-11 flex-1 text-[15px] text-foreground"
+                returnKeyType="search"
+              />
+              {query ? (
+                <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                  <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+                </Pressable>
+              ) : null}
+            </View>
+            <Pressable
+              onPress={() => setFilterOpen(true)}
+              className={cn(
+                'h-11 w-11 items-center justify-center rounded-md border',
+                gender === 'all' ? 'border-border bg-card' : 'border-primary bg-primary',
+              )}>
+              <Ionicons
+                name="funnel"
+                size={17}
+                color={gender === 'all' ? colors.textSecondary : '#FFFFFF'}
+              />
+            </Pressable>
           </View>
 
           {/* Results. */}
@@ -210,6 +293,18 @@ export default function ClassRosterScreen() {
           ) : null}
         </ScrollView>
       )}
+
+      <FilterSheet
+        open={filterOpen}
+        value={gender}
+        options={filterOptions}
+        title={t('roster.filter')}
+        onSelect={(key) => {
+          setGender(key);
+          setFilterOpen(false);
+        }}
+        onClose={() => setFilterOpen(false)}
+      />
     </SafeAreaView>
   );
 }
