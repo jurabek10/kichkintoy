@@ -182,6 +182,8 @@
     "uploadFailed": "Upload failed.",
     "filesUploaded": "{{count}} file(s) uploaded.",
     "draftSaved": "Draft saved.",
+    "saveFailed": "Couldn't save the report. Please try again.",
+    "reportPublished": "Report published.",
     "reportScheduled": "Report scheduled.",
     "date": "Date",
     "moodPlaceholder": "Happy, calm, tired...",

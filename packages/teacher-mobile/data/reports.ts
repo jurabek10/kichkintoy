@@ -14,7 +14,7 @@ import { queryKeys } from '@/lib/query-keys';
 
 // Derive the API shapes from the typed client so we never drift from the contract.
 type ApiReportSummary = Awaited<ReturnType<typeof orpc.reports.parentList>>[number];
-type ApiReportDetail = Awaited<ReturnType<typeof orpc.reports.parentDetail>>;
+type ApiReportDetail = Awaited<ReturnType<typeof orpc.reports.teacherDetail>>;
 
 // --- View models ----------------------------------------------------------
 

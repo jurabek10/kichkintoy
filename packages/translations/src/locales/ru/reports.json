@@ -182,6 +182,8 @@
     "uploadFailed": "Загрузка не удалась.",
     "filesUploaded": "Загружено файлов: {{count}}.",
     "draftSaved": "Черновик сохранен.",
+    "saveFailed": "Не удалось сохранить отчёт. Попробуйте ещё раз.",
+    "reportPublished": "Отчёт опубликован.",
     "reportScheduled": "Отчет запланирован.",
     "date": "Дата",
     "moodPlaceholder": "Счастлив, спокоен, устал...",
