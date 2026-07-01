@@ -142,6 +142,11 @@
   },
   "medications": {
     "title": "Medication",
+    "homeTitle": "Medication today",
+    "sub": "Doses parents asked you to give.",
+    "viewAll": "Open medications",
+    "more": "+{{count}} more",
+    "emptySub": "Nothing for your class to give today.",
     "empty": "No medicine to give today",
     "atTime": "at {{time}}",
     "toGive": "{{count}} to give",

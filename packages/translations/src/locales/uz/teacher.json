@@ -142,6 +142,11 @@
   },
   "medications": {
     "title": "Dorilar",
+    "homeTitle": "Bugungi dorilar",
+    "sub": "Ota-onalar berishni so'ragan dorilar.",
+    "viewAll": "Dorilarni ochish",
+    "more": "+{{count}} ta yana",
+    "emptySub": "Bugun sinfingizga dori berish shart emas.",
     "empty": "Bugun beriladigan dori yo'q",
     "atTime": "{{time}} da",
     "toGive": "{{count}} ta berish kerak",
