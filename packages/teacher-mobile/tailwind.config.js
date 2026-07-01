@@ -25,6 +25,7 @@ module.exports = {
         grape: { DEFAULT: '#EEE6FF', ink: '#7C5CD8' },
         mint: { DEFAULT: '#DDF3E4', ink: '#46B06A' },
         sunshine: { DEFAULT: '#FFF1CF', ink: '#F4A621' },
+        bubblegum: { DEFAULT: '#FFE4EF', ink: '#EC5E92' },
       },
       borderRadius: {
         sm: '8px',
