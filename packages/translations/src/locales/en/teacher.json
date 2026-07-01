@@ -123,6 +123,7 @@
   },
   "reports": {
     "title": "Daily reports",
+    "todayTitle": "Today's reports",
     "subtitle": "Today's report progress by class",
     "search": "Search by name",
     "filter": "Filter",

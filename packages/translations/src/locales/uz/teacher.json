@@ -123,6 +123,7 @@
   },
   "reports": {
     "title": "Kunlik hisobotlar",
+    "todayTitle": "Bugungi hisobotlar",
     "subtitle": "Bugungi hisobotlar holati guruhlar bo'yicha",
     "search": "Ism bo'yicha qidirish",
     "filter": "Filtr",
