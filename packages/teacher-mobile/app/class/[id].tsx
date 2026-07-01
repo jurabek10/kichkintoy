@@ -1,27 +1,74 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/common/screen-header';
-import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
+import { colors } from '@/constants/theme';
 import { useClassRoster, useTeacherClasses, type RosterChild } from '@/data/teacher';
+import { cn } from '@/lib/utils';
 
-function ChildTile({ child }: { child: RosterChild }) {
+const SKY = { bg: '#E1F0FF', ink: '#3E8FE0' };
+const PINK = { bg: '#FFE4EF', ink: '#EC5E92' };
+const GRAPE = { bg: '#EEE6FF', ink: '#7C5CD8' };
+const PAGE_SIZE = 10;
+
+/** Gender → the tint that colours a child's monogram, so the roster reads as
+ *  boys-in-sky / girls-in-pink even before you read a name. */
+function genderTone(gender: RosterChild['gender']) {
+  if (gender === 'boy') return SKY;
+  if (gender === 'girl') return PINK;
+  return GRAPE;
+}
+
+/** Photo when we have one, otherwise the child's initial on a gender-tinted
+ *  disc — never an anonymous grey blank. */
+function RosterAvatar({ child, size = 48 }: { child: RosterChild; size?: number }) {
+  const dim = { width: size, height: size, borderRadius: size / 2 };
+  if (child.photo) {
+    return <Image source={{ uri: child.photo }} style={dim} className="bg-segment" />;
+  }
+  const tone = genderTone(child.gender);
+  const initial = child.name.trim().charAt(0).toUpperCase() || '·';
+  return (
+    <View style={[dim, { backgroundColor: tone.bg }]} className="items-center justify-center">
+      <Text style={{ color: tone.ink, fontSize: size * 0.4 }} className="font-extrabold">
+        {initial}
+      </Text>
+    </View>
+  );
+}
+
+function Stat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <View className="flex-1 items-center">
+      <Text className="text-2xl font-extrabold text-foreground">{value}</Text>
+      <Text className="mt-0.5 text-[12px] text-muted">{label}</Text>
+    </View>
+  );
+}
+
+function ChildRow({ child }: { child: RosterChild }) {
   const router = useRouter();
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/child/[id]', params: { id: child.id } })}
-      className="w-1/3 items-center gap-1.5 py-3">
-      <Avatar uri={child.photo} size={64} />
-      <Text numberOfLines={1} className="px-1 text-[13px] font-semibold text-foreground">
-        {child.name}
-      </Text>
-      {child.ageLabel ? <Text className="text-[11px] text-muted">{child.ageLabel}</Text> : null}
+      className="flex-row items-center gap-3 rounded-md bg-card p-3">
+      <RosterAvatar child={child} />
+      <View className="flex-1">
+        <Text numberOfLines={1} className="text-[15px] font-bold text-foreground">
+          {child.name}
+        </Text>
+        {child.ageLabel ? (
+          <Text className="mt-0.5 text-[13px] text-muted">{child.ageLabel}</Text>
+        ) : null}
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
     </Pressable>
   );
 }
@@ -34,44 +81,133 @@ export default function ClassRosterScreen() {
   const roster = useClassRoster(classId);
 
   const klass = useMemo(() => classes.data.find((c) => c.id === classId), [classes.data, classId]);
+
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(0);
+
+  // A new search starts the list over at page one.
+  useEffect(() => setPage(0), [query]);
+
   const boys = roster.data.filter((c) => c.gender === 'boy').length;
   const girls = roster.data.filter((c) => c.gender === 'girl').length;
+  const kids = roster.data.length;
+  const seats = klass?.maxChildren ?? null;
+  const free = seats != null ? Math.max(0, seats - kids) : null;
+  const genderTotal = boys + girls;
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return roster.data.filter((c) => q === '' || c.name.toLowerCase().includes(q));
+  }, [roster.data, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pageItems = filtered.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <ScreenHeader title={klass?.name ?? t('roster.title')} back />
       {roster.isPending ? (
         <Loader />
+      ) : roster.data.length === 0 ? (
+        <View className="p-4">
+          <EmptyState icon="people-outline" title={t('roster.empty')} body={t('roster.emptyBody')} />
+        </View>
       ) : (
-        <ScrollView contentContainerClassName="p-4" showsVerticalScrollIndicator={false}>
-          <Card className="flex-row justify-around">
-            <View className="items-center">
-              <Text className="text-xl font-extrabold text-foreground">{roster.data.length}</Text>
-              <Text className="text-[12px] text-muted">{t('roster.title')}</Text>
+        <ScrollView
+          contentContainerClassName="p-4 pb-8"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {/* Capacity + make-up. */}
+          <Card>
+            <View className="flex-row">
+              <Stat value={kids} label={t('roster.kids')} />
+              <View className="w-px bg-border" />
+              <Stat value={seats ?? '—'} label={t('roster.seats')} />
+              <View className="w-px bg-border" />
+              <Stat value={free ?? '—'} label={t('roster.free')} />
             </View>
-            <View className="items-center">
-              <Text className="text-xl font-extrabold text-sky-ink">{boys}</Text>
-              <Text className="text-[12px] text-muted">{t('roster.boys')}</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-xl font-extrabold text-coral-ink">{girls}</Text>
-              <Text className="text-[12px] text-muted">{t('roster.girls')}</Text>
-            </View>
+            {genderTotal > 0 ? (
+              <View className="mt-4">
+                <View className="h-2 flex-row overflow-hidden rounded-full bg-segment">
+                  <View style={{ flex: boys, backgroundColor: SKY.ink }} />
+                  <View style={{ flex: girls, backgroundColor: PINK.ink }} />
+                </View>
+                <View className="mt-2 flex-row justify-between">
+                  <View className="flex-row items-center gap-1.5">
+                    <View style={{ backgroundColor: SKY.ink }} className="h-2.5 w-2.5 rounded-full" />
+                    <Text className="text-[13px] font-bold text-foreground">{boys}</Text>
+                    <Text className="text-[13px] text-muted">{t('roster.boys')}</Text>
+                  </View>
+                  <View className="flex-row items-center gap-1.5">
+                    <View style={{ backgroundColor: PINK.ink }} className="h-2.5 w-2.5 rounded-full" />
+                    <Text className="text-[13px] font-bold text-foreground">{girls}</Text>
+                    <Text className="text-[13px] text-muted">{t('roster.girls')}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
           </Card>
 
-          {roster.data.length === 0 ? (
-            <View className="mt-3">
-              <EmptyState icon="people-outline" title={t('roster.empty')} body={t('roster.emptyBody')} />
+          {/* Search. */}
+          <View className="mt-3 h-11 flex-row items-center gap-2 rounded-md border border-border bg-card px-3">
+            <Ionicons name="search" size={18} color={colors.textSecondary} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder={t('roster.search')}
+              placeholderTextColor={colors.textMuted}
+              className="h-11 flex-1 text-[15px] text-foreground"
+              returnKeyType="search"
+            />
+            {query ? (
+              <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+              </Pressable>
+            ) : null}
+          </View>
+
+          {/* Results. */}
+          {filtered.length === 0 ? (
+            <View className="mt-4">
+              <EmptyState icon="search-outline" title={t('roster.noMatch')} body={t('roster.noMatchBody')} />
             </View>
           ) : (
-            <Card className="mt-3">
-              <View className="flex-row flex-wrap">
-                {roster.data.map((child) => (
-                  <ChildTile key={child.id} child={child} />
-                ))}
-              </View>
-            </Card>
+            <View className="mt-4 gap-2">
+              {pageItems.map((child) => (
+                <ChildRow key={child.id} child={child} />
+              ))}
+            </View>
           )}
+
+          {/* Pager. */}
+          {totalPages > 1 ? (
+            <View className="mt-4 flex-row items-center justify-between">
+              <Pressable
+                disabled={safePage === 0}
+                onPress={() => setPage(safePage - 1)}
+                hitSlop={8}
+                className={cn(
+                  'h-10 w-10 items-center justify-center rounded-full border border-border',
+                  safePage === 0 ? 'opacity-40' : 'bg-card',
+                )}>
+                <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Text className="text-[13px] font-semibold text-muted">
+                {t('roster.page', { current: safePage + 1, total: totalPages })}
+              </Text>
+              <Pressable
+                disabled={safePage >= totalPages - 1}
+                onPress={() => setPage(safePage + 1)}
+                hitSlop={8}
+                className={cn(
+                  'h-10 w-10 items-center justify-center rounded-full border border-border',
+                  safePage >= totalPages - 1 ? 'opacity-40' : 'bg-card',
+                )}>
+                <Ionicons name="chevron-forward" size={20} color={colors.textPrimary} />
+              </Pressable>
+            </View>
+          ) : null}
         </ScrollView>
       )}
     </SafeAreaView>
