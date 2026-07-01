@@ -158,6 +158,8 @@ export type ClassReportStatus = {
   name: string;
   photo: string | null;
   status: 'published' | 'draft' | 'none';
+  /** The report's id when one exists (draft or published), else null. */
+  reportId: string | null;
 };
 
 function toReportStatus(row: ApiClassStatus): ClassReportStatus {
@@ -167,6 +169,7 @@ function toReportStatus(row: ApiClassStatus): ClassReportStatus {
     name: row.name,
     photo: row.photoUrl,
     status: status === 'published' ? 'published' : status ? 'draft' : 'none',
+    reportId: row.report?.id ?? null,
   };
 }
 

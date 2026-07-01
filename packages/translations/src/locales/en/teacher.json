@@ -124,6 +124,12 @@
   "reports": {
     "title": "Daily reports",
     "subtitle": "Today's report progress by class",
+    "search": "Search by name",
+    "filter": "Filter",
+    "all": "All",
+    "page": "Page {{current}} of {{total}}",
+    "noMatch": "No children match",
+    "noMatchBody": "Try a different name or filter.",
     "sent": "{{sent}}/{{total}} sent",
     "allSent": "All sent",
     "pending": "{{count}} left",

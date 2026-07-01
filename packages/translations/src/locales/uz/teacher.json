@@ -124,6 +124,12 @@
   "reports": {
     "title": "Kunlik hisobotlar",
     "subtitle": "Bugungi hisobotlar holati guruhlar bo'yicha",
+    "search": "Ism bo'yicha qidirish",
+    "filter": "Filtr",
+    "all": "Hammasi",
+    "page": "{{current}}/{{total}}-sahifa",
+    "noMatch": "Hech kim topilmadi",
+    "noMatchBody": "Boshqa ism yoki filtr bilan urinib ko'ring.",
     "sent": "{{sent}}/{{total}} yuborildi",
     "allSent": "Hammasi yuborildi",
     "pending": "{{count}} ta qoldi",
