@@ -66,6 +66,8 @@ export type RosterChild = {
   name: string;
   photo: string | null;
   ageLabel: string;
+  /** Raw date of birth, kept so the roster can sort by age. */
+  dob: string | null;
   gender: ApiRosterChild['gender'];
 };
 
@@ -75,6 +77,7 @@ function toRosterChild(child: ApiRosterChild): RosterChild {
     name: child.name,
     photo: child.photoUrl,
     ageLabel: child.dateOfBirth ? ageLabel(child.dateOfBirth) : '',
+    dob: child.dateOfBirth ?? null,
     gender: child.gender,
   };
 }
