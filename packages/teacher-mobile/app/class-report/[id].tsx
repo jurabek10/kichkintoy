@@ -13,6 +13,7 @@ import { colors } from '@/constants/theme';
 import { useClassReportStatuses, useTeacherClasses, type ClassReportStatus } from '@/data/teacher';
 import { todayIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
+import { DatePickerField } from '../../components/common/date-picker-field';
 
 type StatusFilter = 'all' | 'published' | 'draft' | 'none';
 
@@ -119,10 +120,10 @@ function FilterSheet({
 }
 
 export default function ClassReportBoardScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, date: initialDate } = useLocalSearchParams<{ id: string; date?: string }>();
   const classId = id ?? '';
   const { t } = useTranslation('teacher');
-  const date = todayIsoDate();
+  const [date, setDate] = useState(initialDate ?? todayIsoDate());
   const classes = useTeacherClasses();
   const statuses = useClassReportStatuses(classId, date);
 
@@ -134,7 +135,7 @@ export default function ClassReportBoardScreen() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(0);
 
-  useEffect(() => setPage(0), [query, status]);
+  useEffect(() => setPage(0), [date, query, status]);
 
   const sent = rows.filter((r) => r.status === 'published').length;
   const drafts = rows.filter((r) => r.status === 'draft').length;
@@ -162,17 +163,23 @@ export default function ClassReportBoardScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <ScreenHeader title={klass?.name ?? t('reports.title')} back />
-      {statuses.isPending ? (
-        <Loader />
-      ) : rows.length === 0 ? (
-        <View className="p-4">
+      <ScrollView
+        contentContainerClassName="gap-3 p-4"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <DatePickerField
+          value={date}
+          onChange={setDate}
+          label={t('reports.date')}
+          todayLabel={t('attendance.today')}
+        />
+
+        {statuses.isPending ? (
+          <Loader />
+        ) : rows.length === 0 ? (
           <EmptyState icon="document-text-outline" title={t('roster.empty')} body={t('roster.emptyBody')} />
-        </View>
-      ) : (
-        <ScrollView
-          contentContainerClassName="gap-3 p-4"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+        ) : (
+          <>
           {/* Progress + report state summary. */}
           <Card>
             <View className="mb-3 flex-row items-center justify-between">
@@ -250,8 +257,9 @@ export default function ClassReportBoardScreen() {
               </Pressable>
             </View>
           ) : null}
-        </ScrollView>
-      )}
+          </>
+        )}
+      </ScrollView>
 
       <FilterSheet
         open={filterOpen}
