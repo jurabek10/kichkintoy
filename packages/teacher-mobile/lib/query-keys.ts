@@ -5,7 +5,8 @@ export const teacherQueryKeys = {
   child: (childId: string) => ['teacher', 'child', childId] as const,
   classReportStatuses: (classId: string, date: string) =>
     ['teacher', 'report-statuses', classId, date] as const,
-  attendance: (date: string) => ['teacher', 'attendance', date] as const,
+  attendance: (date: string, classId?: string) =>
+    ['teacher', 'attendance', date, classId ?? 'all'] as const,
   medications: (date: string) => ['teacher', 'medications', date] as const,
   meals: (date: string) => ['teacher', 'meals', date] as const,
   albums: ['teacher', 'albums'] as const,

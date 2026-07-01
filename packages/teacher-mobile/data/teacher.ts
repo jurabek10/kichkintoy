@@ -239,11 +239,16 @@ export function useTodayOverview(): Query<TodayOverview> {
 
 // --- Staff feature lists --------------------------------------------------
 
-export function useStaffAttendance(date: string) {
+export function useStaffAttendance(date: string, classId?: string) {
   const centerId = useCenterId();
   return useQuery({
-    queryKey: teacherQueryKeys.attendance(date),
-    queryFn: () => orpc.attendance.staffList({ centerId: centerId ?? '', date }),
+    queryKey: teacherQueryKeys.attendance(date, classId),
+    queryFn: () =>
+      orpc.attendance.staffList({
+        centerId: centerId ?? '',
+        date,
+        classId: classId === 'all' ? undefined : classId,
+      }),
     enabled: !!centerId,
   });
 }
