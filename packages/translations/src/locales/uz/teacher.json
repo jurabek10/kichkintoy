@@ -9,7 +9,9 @@
     "openAttendance": "Davomat",
     "hereNow": "Hozir bor",
     "allHere": "Hammasi keldi",
+    "attendanceRate": "{{pct}}% keldi",
     "here": "Keldi",
+    "onTime": "O'z vaqtida",
     "late": "Kechikdi",
     "absent": "Kelmadi",
     "notIn": "Belgilanmagan",
@@ -20,7 +22,21 @@
     "classInfo": "Guruh tarkibi",
     "emptySeats": "Bo'sh joylar",
     "todayReports": "Bugungi hisobotlar",
+    "todayReportsSub": "Qaysi guruhlar yuborilganini ko'ring.",
+    "allReports": "Barcha hisobotlar",
+    "reportsSent": "Yuborilgan hisobotlar",
+    "reportsPending": "Yozilishi kerak",
     "reportsPct": "Bugungi hisobotlarning {{pct}}% yuborildi"
+  },
+  "classInfo": {
+    "titleMulti": "Mening guruhlarim",
+    "sub": "Guruhingizda kim bor.",
+    "viewAll": "Guruhlarni ochish",
+    "children": "Bolalar",
+    "emptySeats": "Bo'sh joylar",
+    "boys": "O'g'il bolalar",
+    "girls": "Qiz bolalar",
+    "ratio": "{{boys}} o'g'il, {{girls}} qiz"
   },
   "calendar": {
     "title": "Taqvim",

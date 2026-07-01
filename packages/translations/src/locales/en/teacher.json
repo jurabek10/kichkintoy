@@ -9,7 +9,9 @@
     "openAttendance": "Attendance",
     "hereNow": "Here now",
     "allHere": "Everyone is here",
+    "attendanceRate": "{{pct}}% present",
     "here": "Here",
+    "onTime": "On time",
     "late": "Late",
     "absent": "Absent",
     "notIn": "Not in",
@@ -20,7 +22,21 @@
     "classInfo": "Class make-up",
     "emptySeats": "Free seats",
     "todayReports": "Today's reports",
+    "todayReportsSub": "See which classes are sent.",
+    "allReports": "All reports",
+    "reportsSent": "Reports sent",
+    "reportsPending": "Still to write",
     "reportsPct": "{{pct}}% of today's reports sent"
+  },
+  "classInfo": {
+    "titleMulti": "My classes",
+    "sub": "Who's in your room.",
+    "viewAll": "Open classes",
+    "children": "Children",
+    "emptySeats": "Empty seats",
+    "boys": "Boys",
+    "girls": "Girls",
+    "ratio": "{{boys}} boys, {{girls}} girls"
   },
   "calendar": {
     "title": "Calendar",

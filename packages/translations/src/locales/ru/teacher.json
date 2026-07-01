@@ -9,7 +9,9 @@
     "openAttendance": "Посещаемость",
     "hereNow": "Сейчас в группе",
     "allHere": "Все на месте",
+    "attendanceRate": "{{pct}}% на месте",
     "here": "В группе",
+    "onTime": "Вовремя",
     "late": "Опоздали",
     "absent": "Отсутствуют",
     "notIn": "Не отмечены",
@@ -20,7 +22,21 @@
     "classInfo": "Состав группы",
     "emptySeats": "Свободно мест",
     "todayReports": "Отчёты на сегодня",
+    "todayReportsSub": "Видно, какие группы отправлены.",
+    "allReports": "Все отчёты",
+    "reportsSent": "Отчётов отправлено",
+    "reportsPending": "Осталось написать",
     "reportsPct": "Отправлено {{pct}}% отчётов за сегодня"
+  },
+  "classInfo": {
+    "titleMulti": "Мои группы",
+    "sub": "Кто в вашей группе.",
+    "viewAll": "Открыть группы",
+    "children": "Дети",
+    "emptySeats": "Свободные места",
+    "boys": "Мальчики",
+    "girls": "Девочки",
+    "ratio": "{{boys}} мальчиков, {{girls}} девочек"
   },
   "calendar": {
     "title": "Календарь",
