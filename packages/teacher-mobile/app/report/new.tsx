@@ -17,8 +17,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/common/screen-header';
+import { ReportMediaPicker, type ReportMedia } from '@/components/report/report-media-picker';
+import {
+  type ParticipationRow,
+  ReportParticipationSection,
+  participationRowsForAI,
+  participationRowsToItems,
+} from '@/components/report/report-participation-section';
+import { ReportScheduleField } from '@/components/report/report-schedule-field';
 import { Card } from '@/components/ui/card';
 import { colors } from '@/constants/theme';
+import { useCenterId } from '@/data/teacher';
 import { formatLongDate, todayIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
 import { teacherQueryKeys } from '@/lib/query-keys';
@@ -139,17 +148,22 @@ export default function ReportComposerScreen() {
 
   const [obs, setObs] = useState<Obs>(EMPTY);
   const [teacherNote, setTeacherNote] = useState('');
+  const [media, setMedia] = useState<ReportMedia[]>([]);
+  const [participation, setParticipation] = useState<ParticipationRow[]>([]);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const centerId = useCenterId();
 
   const set = <K extends keyof Obs>(key: K, v: Obs[K]) => setObs((p) => ({ ...p, [key]: v }));
+  const mediaUploading = media.some((m) => m.uploading);
 
   const opts = (keys: string[], group: string) =>
     keys.map((k) => ({ value: k, label: t(`composer.${group}.${k}`) }));
 
   function buildItems() {
     type Item = {
-      itemType: 'meal' | 'sleep' | 'activity' | 'health';
+      itemType: 'meal' | 'sleep' | 'activity' | 'health' | 'class_participation';
       title?: string;
       value?: string;
       note?: string;
@@ -162,11 +176,12 @@ export default function ReportComposerScreen() {
     if (obs.activity) items.push({ itemType: 'activity', title: 'mainActivity', value: obs.activity });
     if (obs.healthStatus)
       items.push({ itemType: 'health', value: obs.healthStatus, note: obs.healthNote || undefined });
+    for (const item of participationRowsToItems(participation)) items.push(item);
     return items;
   }
 
   const save = useMutation({
-    mutationFn: (publish: boolean) =>
+    mutationFn: (mode: 'draft' | 'publish' | 'schedule') =>
       orpc.reports.create({
         childId,
         reportDate: date,
@@ -174,8 +189,9 @@ export default function ReportComposerScreen() {
         healthNote: obs.healthNote || undefined,
         teacherNote: teacherNote || undefined,
         items: buildItems(),
-        photoAssetIds: [],
-        publish,
+        photoAssetIds: media.filter((m) => m.id).map((m) => m.id as string),
+        publish: mode === 'publish',
+        scheduledAt: mode === 'schedule' && scheduledAt ? scheduledAt : undefined,
       }),
     onSuccess: async () => {
       if (classId) {
@@ -189,7 +205,14 @@ export default function ReportComposerScreen() {
   });
 
   const hasObservations =
-    !!obs.mood || !!obs.breakfast || !!obs.lunch || !!obs.snack || !!obs.sleep || !!obs.activity || !!obs.healthStatus;
+    !!obs.mood ||
+    !!obs.breakfast ||
+    !!obs.lunch ||
+    !!obs.snack ||
+    !!obs.sleep ||
+    !!obs.activity ||
+    !!obs.healthStatus ||
+    participation.some((r) => r.subject || r.customSubject);
 
   async function generateWithAI() {
     const language = lang === 'ru' ? 'ru' : 'uz';
@@ -204,10 +227,12 @@ export default function ReportComposerScreen() {
     setAiBusy(true);
     setError(null);
     try {
+      const classParticipation = participationRowsForAI(participation);
       const result = await orpc.reports.generateNote({
         language,
         mood: obs.mood ? t(`composer.moodOptions.${obs.mood}`) : undefined,
         items: aiItems.length > 0 ? aiItems : undefined,
+        classParticipation: classParticipation.length > 0 ? classParticipation : undefined,
       });
       const placeholder = language === 'ru' ? 'ребёнок' : 'bola';
       const name = childName.trim() || placeholder;
@@ -219,7 +244,8 @@ export default function ReportComposerScreen() {
     }
   }
 
-  const busy = save.isPending || aiBusy;
+  const busy = save.isPending || aiBusy || mediaUploading;
+  const primaryMode = scheduledAt ? 'schedule' : 'publish';
   const initial = (childName.trim().charAt(0) || '·').toUpperCase();
 
   return (
@@ -268,6 +294,12 @@ export default function ReportComposerScreen() {
             ) : null}
           </Card>
 
+          {/* Class participation */}
+          <ReportParticipationSection rows={participation} onChange={setParticipation} />
+
+          {/* Photos & videos */}
+          <ReportMediaPicker centerId={centerId} value={media} onChange={setMedia} onError={setError} />
+
           {/* Note for parents + AI */}
           <Card className="gap-3">
             <Text className="text-base font-extrabold text-foreground">{t('composer.aiNoteTitle')}</Text>
@@ -299,6 +331,9 @@ export default function ReportComposerScreen() {
             </Pressable>
           </Card>
 
+          {/* Schedule for later */}
+          <ReportScheduleField reportDate={date} value={scheduledAt} onChange={setScheduledAt} />
+
           {error ? (
             <View className="rounded-md bg-coral px-3 py-2.5">
               <Text className="text-[13px] font-semibold text-coral-ink">{error}</Text>
@@ -311,7 +346,7 @@ export default function ReportComposerScreen() {
               disabled={busy}
               onPress={() => {
                 setError(null);
-                save.mutate(false);
+                save.mutate('draft');
               }}
               className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-md border border-border bg-card">
               <Ionicons name="save-outline" size={18} color={colors.textPrimary} />
@@ -321,16 +356,18 @@ export default function ReportComposerScreen() {
               disabled={busy}
               onPress={() => {
                 setError(null);
-                save.mutate(true);
+                save.mutate(primaryMode);
               }}
               style={{ backgroundColor: CORAL }}
               className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-md">
               {save.isPending ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Ionicons name="send" size={17} color="#FFFFFF" />
+                <Ionicons name={scheduledAt ? 'time' : 'send'} size={17} color="#FFFFFF" />
               )}
-              <Text className="text-[15px] font-bold text-white">{t('composer.publish')}</Text>
+              <Text className="text-[15px] font-bold text-white">
+                {scheduledAt ? t('composer.schedule') : t('composer.publish')}
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
