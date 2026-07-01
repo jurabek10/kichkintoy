@@ -8,8 +8,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FeatureGrid } from '@/components/home/feature-grid';
 import { Card } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
-import { ClassesCard } from '@/components/teacher/classes-card';
 import { HomeStats } from '@/components/teacher/home-stats';
+import { MedicationsCard } from '@/components/teacher/medications-card';
 import { TeacherHeader } from '@/components/teacher/teacher-header';
 import { TodayCard } from '@/components/teacher/today-card';
 import { colors } from '@/constants/theme';
@@ -67,23 +67,23 @@ export default function TeacherHomeScreen() {
         <TeacherHeader />
         <Greeting />
 
-        {overview.isPending ? (
-          <View className="mt-6">
-            <Loader />
-          </View>
-        ) : (
-          <TodayCard overview={overview.data} />
-        )}
-
         <Card className="mt-3">
           <Text className="text-base font-extrabold text-foreground">{t('home.shortcuts')}</Text>
           <FeatureGrid />
         </Card>
 
+        {overview.isPending ? (
+          <View className="mt-6">
+            <Loader />
+          </View>
+        ) : (
+          <TodayCard overview={overview.data} classes={classes.data} />
+        )}
+
         {!classes.isPending ? (
           <>
             <HomeStats classes={classes.data} />
-            <ClassesCard classes={classes.data} />
+            <MedicationsCard />
           </>
         ) : null}
       </ScrollView>
