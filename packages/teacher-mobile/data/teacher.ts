@@ -94,14 +94,26 @@ export function useClassRoster(classId: string): Query<RosterChild[]> {
 export type ChildProfile = {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string | null;
   photo: string | null;
   birthLabel: string;
   ageLabel: string;
   gender: ApiChildDetail['gender'];
   className: string | null;
+  /** Whether the child is still actively enrolled (vs. removed). */
+  status: string;
+  /** Formatted enrollment start date, or '' when unknown. */
+  joinedLabel: string;
   allergies: string | null;
   medicalNotes: string | null;
-  guardians: { id: string; name: string; phone: string | null; relationship: string | null }[];
+  guardians: {
+    id: string;
+    name: string;
+    phone: string | null;
+    relationship: string | null;
+    isPrimary: boolean;
+  }[];
 };
 
 function toChildProfile(child: ApiChildDetail): ChildProfile {
@@ -109,11 +121,15 @@ function toChildProfile(child: ApiChildDetail): ChildProfile {
   return {
     id: child.id,
     name: child.name,
+    firstName: child.firstName,
+    lastName: child.lastName,
     photo: child.photoUrl,
     birthLabel: child.dateOfBirth ? formatLongDate(child.dateOfBirth, lang) : '',
     ageLabel: child.dateOfBirth ? ageLabel(child.dateOfBirth) : '',
     gender: child.gender,
     className: child.enrollment?.className ?? null,
+    status: child.status,
+    joinedLabel: child.enrollment?.startedAt ? formatLongDate(child.enrollment.startedAt, lang) : '',
     allergies: child.allergies,
     medicalNotes: child.medicalNotes,
     guardians: child.guardians.map((guardian) => ({
@@ -121,6 +137,7 @@ function toChildProfile(child: ApiChildDetail): ChildProfile {
       name: guardian.fullName,
       phone: guardian.phone,
       relationship: guardian.relationship,
+      isPrimary: guardian.isPrimary,
     })),
   };
 }
