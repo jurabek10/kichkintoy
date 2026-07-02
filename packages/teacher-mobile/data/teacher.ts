@@ -262,15 +262,6 @@ export function useStaffMedications(date: string) {
   });
 }
 
-export function useStaffMeals(date: string) {
-  const centerId = useCenterId();
-  return useQuery({
-    queryKey: teacherQueryKeys.meals(date),
-    queryFn: () => orpc.meals.staffList({ centerId: centerId ?? '', date }),
-    enabled: !!centerId,
-  });
-}
-
 export function useStaffPickups(date: string) {
   const centerId = useCenterId();
   return useQuery({
