@@ -85,7 +85,7 @@ export function ScheduleRow({
   const cancelled = item.status === 'cancelled';
 
   return (
-    <Link href={{ pathname: '/event/[id]', params: { id: item.id } }} asChild>
+    <Link href={{ pathname: '/calendar/[id]', params: { id: item.id } }} asChild>
       <Pressable style={rootStyle} className={rootClass}>
         <DateBlock date={item.date} lang={lang} />
         <View

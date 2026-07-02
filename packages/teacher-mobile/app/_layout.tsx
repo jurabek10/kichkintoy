@@ -44,6 +44,7 @@ function RootNavigator() {
       <Stack.Screen name="child/[id]" />
       <Stack.Screen name="calendar/index" />
       <Stack.Screen name="calendar/[id]" />
+      <Stack.Screen name="calendar/new" />
       <Stack.Screen name="requests/index" />
       <Stack.Screen name="class-report/[id]" />
       <Stack.Screen name="profile-settings" />
@@ -57,7 +58,6 @@ function RootNavigator() {
       <Stack.Screen name="notice/new" />
       <Stack.Screen name="album/[id]" />
       <Stack.Screen name="album/new" />
-      <Stack.Screen name="event/[id]" />
       <Stack.Screen name="meals" />
       <Stack.Screen name="attendance" />
       <Stack.Screen name="medications/index" />
