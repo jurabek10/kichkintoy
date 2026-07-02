@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { type Dispatch, type SetStateAction, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/card';
@@ -42,9 +42,20 @@ export function ReportMediaPicker({
   const { t } = useTranslation('reports');
   const insets = useSafeAreaInsets();
   const [sourceOpen, setSourceOpen] = useState(false);
+  const [pending, setPending] = useState<boolean | null>(null);
+
+  // Close the sheet first, then launch the native picker. On iOS a picker can't
+  // present while the sheet is still dismissing, so we wait for onDismiss.
+  function choose(fromCamera: boolean) {
+    setSourceOpen(false);
+    if (Platform.OS === 'ios') {
+      setPending(fromCamera);
+    } else {
+      void add(fromCamera);
+    }
+  }
 
   async function add(fromCamera: boolean) {
-    setSourceOpen(false);
     if (!centerId) return onError(t('composer.centerIdMissing'));
 
     const permission = fromCamera
@@ -131,7 +142,17 @@ export function ReportMediaPicker({
         ) : null}
       </View>
 
-      <Modal visible={sourceOpen} transparent animationType="slide" onRequestClose={() => setSourceOpen(false)}>
+      <Modal
+        visible={sourceOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSourceOpen(false)}
+        onDismiss={() => {
+          if (pending === null) return;
+          const fromCamera = pending;
+          setPending(null);
+          void add(fromCamera);
+        }}>
         <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setSourceOpen(false)}>
           <Pressable
             className="rounded-t-3xl bg-card px-4 pt-3"
@@ -140,8 +161,8 @@ export function ReportMediaPicker({
             <View className="mb-2 items-center">
               <View className="h-1 w-10 rounded-full bg-segment" />
             </View>
-            <SourceRow icon="camera-outline" label={t('composer.camera')} onPress={() => add(true)} />
-            <SourceRow icon="images-outline" label={t('composer.gallery')} onPress={() => add(false)} />
+            <SourceRow icon="camera-outline" label={t('composer.camera')} onPress={() => choose(true)} />
+            <SourceRow icon="images-outline" label={t('composer.gallery')} onPress={() => choose(false)} />
           </Pressable>
         </Pressable>
       </Modal>
