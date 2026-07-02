@@ -1,49 +1,52 @@
 /**
- * Medication requests (투약의뢰서) data access — the parent's oRPC queries for
- * their child's requests, the detail, and the create / cancel mutations. The
- * backend (incl. the consent + signature requirement) already exists; this is
- * the mobile read/write seam. Mirrors data/notices.ts.
+ * Medication requests (투약의뢰서) data access — staff/author side. The oRPC
+ * queries a teacher uses to see the doses parents asked her to give (today, plus
+ * a month's history) and the detail, with the completion mutation that files the
+ * administration report. Parents create the requests; staff review and complete
+ * them. Mirrors the other staff data layers.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { CompleteMedicationRequestInput } from '@kichkintoy/shared';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
-import { formatLongDate } from '@/lib/date';
+import { useCenterId } from '@/data/teacher';
+import { formatDayMonthTime, formatLongDate, todayIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
-import { queryKeys } from '@/lib/query-keys';
+import { teacherQueryKeys } from '@/lib/query-keys';
 
-// Derive shapes from the typed client so we never drift from the contract.
-type ApiChild = Awaited<ReturnType<typeof orpc.medications.children>>['children'][number];
-type ApiSummary = Awaited<ReturnType<typeof orpc.medications.parentList>>[number];
+type ApiSummary = Awaited<ReturnType<typeof orpc.medications.staffList>>[number];
 type ApiDetail = Awaited<ReturnType<typeof orpc.medications.detail>>;
 
 export type MedicationStatus = ApiSummary['status'];
 
-// --- View models ----------------------------------------------------------
+/** A drawn signature is persisted as `media:<assetId>`. */
+export const SIGNATURE_MEDIA_PREFIX = 'media:';
 
-export type MedicationChildOption = {
-  id: string;
-  name: string;
-  className: string | null;
-  centerId: string;
-};
+// --- View models -----------------------------------------------------------
 
-export type MedicationSummary = {
+export type StaffMedSummary = {
   id: string;
   childName: string;
+  className: string | null;
+  classId: string | null;
   medicineName: string;
   dosage: string;
   medicationTime: string;
+  requestedForDate: string; // "YYYY-MM-DD"
   dateLabel: string;
   status: MedicationStatus;
+  photoAssetId: string | null;
 };
 
-export type MedicationDetail = {
+export type StaffMedDetail = {
   id: string;
   status: MedicationStatus;
   childName: string;
   className: string | null;
+  parentName: string;
   dateLabel: string;
+  submittedLabel: string;
   symptoms: string;
   medicineName: string;
   medicationType: string;
@@ -53,36 +56,37 @@ export type MedicationDetail = {
   storageMethod: string | null;
   instructions: string | null;
   specialNote: string | null;
-  // Signature: a drawn signature is stored as a media asset referenced by id
-  // ("media:<assetId>"); older typed signatures stay as plain text.
+  photoAssetId: string | null;
+  photoCaption: string | null;
   signatureAssetId: string | null;
   signatureText: string | null;
-  photoAssetId: string | null;
-  // Staff outcome (present once completed).
   administeredByName: string | null;
+  administeredAtLabel: string | null;
   administeredDose: string | null;
   staffNote: string | null;
   skippedReason: string | null;
 };
 
-// --- Mappers --------------------------------------------------------------
+// --- Mappers ---------------------------------------------------------------
 
-function toSummary(request: ApiSummary): MedicationSummary {
+function toSummary(request: ApiSummary): StaffMedSummary {
   return {
     id: request.id,
     childName: request.child.name,
+    className: request.child.className,
+    classId: request.child.classId,
     medicineName: request.medicineName,
     dosage: request.dosage,
     medicationTime: request.medicationTime,
+    requestedForDate: request.requestedForDate,
     dateLabel: formatLongDate(request.requestedForDate, i18n.language),
     status: request.status,
+    photoAssetId: request.photo?.assetId ?? null,
   };
 }
 
-/** A drawn signature is persisted as `media:<assetId>`. */
-export const SIGNATURE_MEDIA_PREFIX = 'media:';
-
-function toDetail(request: ApiDetail): MedicationDetail {
+function toDetail(request: ApiDetail): StaffMedDetail {
+  const lang = i18n.language;
   const signature = request.parentSignature ?? '';
   const isMediaSignature = signature.startsWith(SIGNATURE_MEDIA_PREFIX);
   return {
@@ -90,7 +94,9 @@ function toDetail(request: ApiDetail): MedicationDetail {
     status: request.status,
     childName: request.child.name,
     className: request.child.className,
-    dateLabel: formatLongDate(request.requestedForDate, i18n.language),
+    parentName: request.parentName,
+    dateLabel: formatLongDate(request.requestedForDate, lang),
+    submittedLabel: formatDayMonthTime(request.createdAt, lang),
     symptoms: request.symptoms,
     medicineName: request.medicineName,
     medicationType: request.medicationType,
@@ -100,95 +106,88 @@ function toDetail(request: ApiDetail): MedicationDetail {
     storageMethod: request.storageMethod,
     instructions: request.instructions,
     specialNote: request.specialNote,
+    photoAssetId: request.photo?.assetId ?? null,
+    photoCaption: request.photoCaption,
     signatureAssetId: isMediaSignature ? signature.slice(SIGNATURE_MEDIA_PREFIX.length) : null,
     signatureText: isMediaSignature ? null : signature || null,
-    photoAssetId: request.photo?.assetId ?? null,
     administeredByName: request.administeredBy?.fullName ?? null,
+    administeredAtLabel: request.administeredAt ? formatDayMonthTime(request.administeredAt, lang) : null,
     administeredDose: request.administeredDose,
     staffNote: request.staffNote,
     skippedReason: request.skippedReason,
   };
 }
 
-// --- Hooks ----------------------------------------------------------------
+const pad = (n: number) => String(n).padStart(2, '0');
 
-/** The children the parent may request medication for. */
-export function useMedicationChildren(): Query<MedicationChildOption[]> {
-  const query = useQuery({
-    queryKey: queryKeys.medications.children,
-    queryFn: () => orpc.medications.children({}),
-  });
-  const data: MedicationChildOption[] = (query.data?.children ?? []).map((child: ApiChild) => ({
-    id: child.id,
-    name: child.name,
-    className: child.className,
-    centerId: child.centerId,
-  }));
-  return { data, isPending: query.isPending };
+/** A "YYYY-MM" month's date-only bounds. */
+export function monthBounds(month: string) {
+  const [year, monthIndex] = month.split('-').map(Number);
+  const lastDay = new Date(year!, monthIndex!, 0).getDate();
+  return { from: `${month}-01`, to: `${month}-${pad(lastDay)}` };
 }
 
-/** The parent's medication requests, newest first. */
-export function useMedicationRequests(): Query<MedicationSummary[]> {
-  const query = useQuery({
-    queryKey: queryKeys.medications.parentList,
-    queryFn: () => orpc.medications.parentList({}),
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
-  const data = [...(query.data ?? [])]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map(toSummary);
-  return { data, isPending: query.isPending };
+/** Pending first (what still needs giving), then by child name. */
+function byPendingThenName(a: StaffMedSummary, b: StaffMedSummary) {
+  if ((a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1;
+  return a.childName.localeCompare(b.childName);
 }
 
-/** One request's detail. Kept fresh so a staff outcome (administered / skipped)
- *  reaches the parent promptly: always revalidate on open/focus, and while the
- *  request is still `pending`, poll so the status flips live on screen. */
-export function useMedicationRequest(requestId: string): Query<MedicationDetail | null> {
+// --- Hooks -----------------------------------------------------------------
+
+/** Today's medication requests, pending first. */
+export function useTodayMedications(): Query<StaffMedSummary[]> {
+  const centerId = useCenterId();
+  const date = todayIsoDate();
   const query = useQuery({
-    queryKey: queryKeys.medications.detail(requestId),
+    queryKey: teacherQueryKeys.medications(date),
+    queryFn: () => orpc.medications.staffList({ centerId: centerId ?? '', date }),
+    enabled: !!centerId,
+  });
+  return {
+    data: (query.data ?? []).map(toSummary).sort(byPendingThenName),
+    isPending: !!centerId && query.isPending,
+  };
+}
+
+/** A month's medication requests, newest first. */
+export function useMonthMedications(month: string): Query<StaffMedSummary[]> {
+  const centerId = useCenterId();
+  const { from, to } = monthBounds(month);
+  const query = useQuery({
+    queryKey: [...teacherQueryKeys.medications('month'), month] as const,
+    queryFn: () => orpc.medications.staffList({ centerId: centerId ?? '', from, to }),
+    enabled: !!centerId,
+  });
+  const data = (query.data ?? [])
+    .map(toSummary)
+    .sort((a, b) => b.requestedForDate.localeCompare(a.requestedForDate) || byPendingThenName(a, b));
+  return { data, isPending: !!centerId && query.isPending };
+}
+
+export function useStaffMedication(requestId: string): Query<StaffMedDetail | null> {
+  const query = useQuery({
+    queryKey: medDetailKey(requestId),
     queryFn: () => orpc.medications.detail({ requestId }),
     enabled: !!requestId,
     staleTime: 0,
     refetchOnMount: 'always',
-    refetchInterval: (q) => (q.state.data?.status === 'pending' ? 15_000 : false),
   });
-  return { data: query.data ? toDetail(query.data) : null, isPending: query.isPending };
+  return { data: query.data ? toDetail(query.data) : null, isPending: !!requestId && query.isPending };
 }
 
-export type CreateMedicationInput = Parameters<typeof orpc.medications.create>[0];
-
-/** Create a request. Returns the new request so the screen can navigate to it. */
-export function useCreateMedicationRequest() {
+/** File the administration report (administered or skipped). */
+export function useCompleteMedication(requestId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreateMedicationInput) => orpc.medications.create(input),
+    mutationFn: (body: CompleteMedicationRequestInput) => orpc.medications.complete({ requestId, body }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medications.parentList });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'medications'] });
+      queryClient.invalidateQueries({ queryKey: medDetailKey(requestId) });
     },
   });
 }
 
-/** Cancel a pending request, optimistically flipping its status. */
-export function useCancelMedicationRequest(requestId: string) {
-  const queryClient = useQueryClient();
-  const detailKey = queryKeys.medications.detail(requestId);
-  return useMutation({
-    mutationFn: () => orpc.medications.cancel({ requestId }),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: detailKey });
-      const previous = queryClient.getQueryData<ApiDetail>(detailKey);
-      queryClient.setQueryData<ApiDetail>(detailKey, (current) =>
-        current ? { ...current, status: 'cancelled' } : current,
-      );
-      return { previous };
-    },
-    onError: (_error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(detailKey, context.previous);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: detailKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.medications.parentList });
-    },
-  });
+function medDetailKey(requestId: string) {
+  return ['teacher', 'medication', requestId] as const;
 }

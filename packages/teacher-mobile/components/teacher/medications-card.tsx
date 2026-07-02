@@ -5,15 +5,14 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { colors } from '@/constants/theme';
-import { useStaffMedications } from '@/data/teacher';
-import { todayIsoDate } from '@/lib/date';
+import { useTodayMedications, type StaffMedSummary } from '@/data/medications';
 
 const CORAL = '#E8674E';
 const MINT = '#46B06A';
 
 const MAX_ROWS = 4;
 
-type Medication = NonNullable<ReturnType<typeof useStaffMedications>['data']>[number];
+type Medication = StaffMedSummary;
 
 // Status → the pill shown on the right of a row (matches the meds screen).
 const STATUS_TONE: Record<string, { bg: string; text: string }> = {
@@ -30,7 +29,7 @@ function MedRow({ med }: { med: Medication }) {
   const router = useRouter();
   const pending = med.status === 'pending';
   const tone = STATUS_TONE[med.status] ?? STATUS_TONE.pending;
-  const initial = med.child.name.trim().charAt(0).toUpperCase() || '·';
+  const initial = med.childName.trim().charAt(0).toUpperCase() || '·';
 
   return (
     <Pressable
@@ -44,7 +43,7 @@ function MedRow({ med }: { med: Medication }) {
       </View>
       <View className="flex-1">
         <Text numberOfLines={1} className="text-[15px] font-bold text-foreground">
-          {med.child.name}
+          {med.childName}
         </Text>
         <Text numberOfLines={1} className="mt-0.5 text-[13px] text-muted">
           {med.medicineName} · {med.dosage} · {t('medications.atTime', { time: med.medicationTime })}
@@ -85,8 +84,8 @@ function EmptyMeds() {
 export function MedicationsCard() {
   const { t } = useTranslation('teacher');
   const router = useRouter();
-  const query = useStaffMedications(todayIsoDate());
-  const meds = query.data ?? [];
+  const query = useTodayMedications();
+  const meds = query.data;
 
   // Pending rises to the top (stable sort keeps the server order within a group).
   const ordered = [...meds].sort(

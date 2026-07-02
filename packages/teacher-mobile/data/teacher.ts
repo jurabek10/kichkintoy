@@ -253,15 +253,6 @@ export function useStaffAttendance(date: string, classId?: string) {
   });
 }
 
-export function useStaffMedications(date: string) {
-  const centerId = useCenterId();
-  return useQuery({
-    queryKey: teacherQueryKeys.medications(date),
-    queryFn: () => orpc.medications.staffList({ centerId: centerId ?? '', date }),
-    enabled: !!centerId,
-  });
-}
-
 export function useStaffPickups(date: string) {
   const centerId = useCenterId();
   return useQuery({
