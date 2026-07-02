@@ -54,6 +54,7 @@ function RootNavigator() {
       <Stack.Screen name="report/[id]" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="notice/[id]" />
+      <Stack.Screen name="notice/new" />
       <Stack.Screen name="album/[id]" />
       <Stack.Screen name="event/[id]" />
       <Stack.Screen name="meals" />
