@@ -1,42 +1,44 @@
 /**
- * Calendar (jadval) data access — the parent's monthly schedule: staff-created
- * events from `calendar.parentList` merged with classmates' birthdays from
- * `calendar.birthdays` (derived from each child's date of birth). Both are
- * read-only here; staff create events on the web. Mirrors the attendance data
- * layer: one selected month, keyed by ISO date.
+ * Calendar (jadval) data access — staff/author side. The month's schedule for the
+ * teacher's classes (center events from `calendar.staffList` merged with children's
+ * birthdays), plus the event detail and the create / edit / cancel mutations.
+ * Mirrors the parent calendar data layer, but sourced from the staff endpoints
+ * the server already scopes to the classes she teaches.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useCurrentChild, type Query } from '@/data/parent';
+import type {
+  CalendarAudienceType,
+  CalendarEventStatus,
+  CreateCalendarEventInput,
+  UpdateCalendarEventInput,
+} from '@kichkintoy/shared';
+import { useCenterId, type Query } from '@/data/teacher';
 import { formatLongDate, formatTime, localIsoDate, todayIsoDate, weekdayLong } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
-import { queryKeys } from '@/lib/query-keys';
+import { teacherQueryKeys } from '@/lib/query-keys';
 
-type ApiEvent = Awaited<ReturnType<typeof orpc.calendar.parentList>>[number];
+type ApiEvent = Awaited<ReturnType<typeof orpc.calendar.staffList>>[number];
 type ApiBirthday = Awaited<ReturnType<typeof orpc.calendar.birthdays>>[number];
-type ApiEventDetail = Awaited<ReturnType<typeof orpc.calendar.detail>>;
 
-export type CalendarEventStatus = ApiEvent['status'];
-export type CalendarAudience = ApiEvent['audienceType'];
-
-// --- View model -----------------------------------------------------------
+// --- View models -----------------------------------------------------------
 
 type BaseItem = {
   id: string;
   date: string; // local "YYYY-MM-DD"
   sortKey: string;
-  isPast: boolean; // strictly before today (Uzbekistan time)
+  isPast: boolean;
 };
 
 export type EventItem = BaseItem & {
   kind: 'event';
   title: string;
-  timeLabel: string; // "" for all-day, else "09:30"
+  timeLabel: string;
   allDay: boolean;
   locationText: string | null;
   status: CalendarEventStatus;
-  audienceType: CalendarAudience;
-  scopeLabel: string; // class / child name — empty for center-wide events
+  audienceType: CalendarAudienceType;
+  scopeLabel: string;
 };
 
 export type BirthdayItem = BaseItem & {
@@ -49,12 +51,28 @@ export type BirthdayItem = BaseItem & {
 
 export type ScheduleItem = EventItem | BirthdayItem;
 
-/** What a calendar day cell should mark. */
 export type DayMarks = { event: boolean; birthday: boolean };
 
 export type MonthSchedule = {
-  items: ScheduleItem[]; // the month's items, chronological
-  byDay: Map<string, DayMarks>; // per-day markers for the grid
+  items: ScheduleItem[];
+  byDay: Map<string, DayMarks>;
+};
+
+export type StaffEventDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  dateLabel: string;
+  weekdayLabel: string;
+  timeLabel: string;
+  allDay: boolean;
+  locationText: string | null;
+  audienceType: CalendarAudienceType;
+  scopeLabel: string;
+  organizerName: string;
+  status: CalendarEventStatus;
+  cancellationReason: string | null;
+  seenCount: number;
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -72,7 +90,7 @@ export function monthRange(year: number, monthIndex: number) {
   };
 }
 
-// --- Mappers --------------------------------------------------------------
+// --- Mappers ---------------------------------------------------------------
 
 function scopeLabel(event: ApiEvent): string {
   if (event.audienceType === 'class') return event.classNames.join(', ');
@@ -83,7 +101,6 @@ function scopeLabel(event: ApiEvent): string {
 function toEventItem(event: ApiEvent, today: string): EventItem {
   const date = localIsoDate(event.startsAt);
   const timeLabel = event.allDay ? '' : formatTime(event.startsAt);
-  // All-day and birthdays sort before timed events on the same day.
   const sortKey = `${date} ${event.allDay ? '0' : `1 ${timeLabel}`}`;
   return {
     kind: 'event',
@@ -115,25 +132,24 @@ function toBirthdayItem(birthday: ApiBirthday, today: string): BirthdayItem {
   };
 }
 
-// --- Hook -----------------------------------------------------------------
+// --- Hooks -----------------------------------------------------------------
 
-/** The active child's schedule for one month: events + birthdays, chronological,
- *  plus a per-day marker map for the calendar grid. */
-export function useMonthSchedule(year: number, monthIndex: number): Query<MonthSchedule> {
-  const child = useCurrentChild();
-  const childId = child.data?.id ?? '';
+/** The teacher's schedule for one month: events + birthdays, chronological, plus
+ *  a per-day marker map for the calendar grid. */
+export function useStaffMonthSchedule(year: number, monthIndex: number): Query<MonthSchedule> {
+  const centerId = useCenterId();
   const today = todayIsoDate();
   const { fromIso, toIso, fromDate, toDate } = monthRange(year, monthIndex);
 
   const eventsQuery = useQuery({
-    queryKey: queryKeys.calendar.parentList(childId, fromIso, toIso),
-    queryFn: () => orpc.calendar.parentList({ childId, from: fromIso, to: toIso }),
-    enabled: !!childId,
+    queryKey: teacherQueryKeys.calendar(fromIso, toIso),
+    queryFn: () => orpc.calendar.staffList({ centerId: centerId ?? '', from: fromIso, to: toIso }),
+    enabled: !!centerId,
   });
   const birthdaysQuery = useQuery({
-    queryKey: queryKeys.calendar.birthdays(childId, fromDate, toDate),
-    queryFn: () => orpc.calendar.birthdays({ childId, from: fromDate, to: toDate }),
-    enabled: !!childId,
+    queryKey: [...teacherQueryKeys.calendar(fromDate, toDate), 'bday'] as const,
+    queryFn: () => orpc.calendar.birthdays({ centerId: centerId ?? '', from: fromDate, to: toDate }),
+    enabled: !!centerId,
   });
 
   const items: ScheduleItem[] = [
@@ -151,31 +167,11 @@ export function useMonthSchedule(year: number, monthIndex: number): Query<MonthS
 
   return {
     data: { items, byDay },
-    isPending: child.isPending || (!!childId && (eventsQuery.isPending || birthdaysQuery.isPending)),
+    isPending: !!centerId && (eventsQuery.isPending || birthdaysQuery.isPending),
   };
 }
 
-// --- Event detail ---------------------------------------------------------
-
-export type EventDetail = {
-  id: string;
-  title: string;
-  description: string | null;
-  dateLabel: string; // "8 June 2026"
-  weekdayLabel: string; // "Monday"
-  timeLabel: string; // "05:00", "05:00 – 06:30", or "" for all-day
-  allDay: boolean;
-  locationText: string | null;
-  audienceType: CalendarAudience;
-  scopeLabel: string; // class / child names — empty for center-wide
-  organizerName: string;
-  centerName: string;
-  status: CalendarEventStatus;
-  cancellationReason: string | null;
-  seenByMe: boolean;
-};
-
-function toEventDetail(event: ApiEventDetail, lang: string): EventDetail {
+function toStaffDetail(event: Awaited<ReturnType<typeof orpc.calendar.detail>>, lang: string): StaffEventDetail {
   const start = formatTime(event.startsAt);
   const end = event.endsAt ? formatTime(event.endsAt) : '';
   return {
@@ -195,43 +191,62 @@ function toEventDetail(event: ApiEventDetail, lang: string): EventDetail {
           ? event.childNames.join(', ')
           : '',
     organizerName: event.authorName,
-    centerName: event.centerName,
     status: event.status,
     cancellationReason: event.cancellationReason,
-    seenByMe: event.seenByMe,
+    seenCount: event.seenCount,
   };
 }
 
-/** One calendar event for the detail screen. */
-export function useCalendarEvent(eventId: string, lang: string): Query<EventDetail | null> {
+/** One event for the staff detail screen. */
+export function useStaffCalendarEvent(eventId: string, lang: string): Query<StaffEventDetail | null> {
   const query = useQuery({
-    queryKey: queryKeys.calendar.detail(eventId),
+    queryKey: teacherQueryKeys.calendarEvent(eventId),
     queryFn: () => orpc.calendar.detail({ eventId }),
     enabled: !!eventId,
   });
-  return { data: query.data ? toEventDetail(query.data, lang) : null, isPending: query.isPending };
+  return {
+    data: query.data ? toStaffDetail(query.data, lang) : null,
+    isPending: !!eventId && query.isPending,
+  };
 }
 
-/** Mark an event as seen, optimistically flipping the detail's `seenByMe`. */
-export function useMarkEventSeen(eventId: string) {
-  const queryClient = useQueryClient();
-  const detailKey = queryKeys.calendar.detail(eventId);
+/** The raw event, for prefilling the composer when editing. */
+export function useCalendarEventRaw(eventId: string) {
+  return useQuery({
+    queryKey: teacherQueryKeys.calendarEvent(eventId),
+    queryFn: () => orpc.calendar.detail({ eventId }),
+    enabled: !!eventId,
+  });
+}
 
+export function useCreateEvent() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => orpc.calendar.markSeen({ eventId }),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: detailKey });
-      const previous = queryClient.getQueryData<ApiEventDetail>(detailKey);
-      queryClient.setQueryData<ApiEventDetail>(detailKey, (current) =>
-        current ? { ...current, seenByMe: true } : current,
-      );
-      return { previous };
+    mutationFn: (input: CreateCalendarEventInput) => orpc.calendar.create(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['teacher', 'calendar'] }),
+  });
+}
+
+export function useUpdateEvent(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateCalendarEventInput['body']) =>
+      orpc.calendar.update({ eventId, body }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'calendar'] });
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.calendarEvent(eventId) });
     },
-    onError: (_error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(detailKey, context.previous);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: detailKey });
+  });
+}
+
+export function useCancelEvent(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (cancellationReason?: string) =>
+      orpc.calendar.cancel({ eventId, cancellationReason: cancellationReason || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'calendar'] });
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.calendarEvent(eventId) });
     },
   });
 }

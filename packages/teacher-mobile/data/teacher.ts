@@ -280,30 +280,6 @@ export function useStaffPickups(date: string) {
   });
 }
 
-// --- Calendar -------------------------------------------------------------
-
-/** Events in a window around today (30 days back, 120 forward) so the screen
- *  can split them into upcoming / past with a filter. */
-export function useStaffCalendar() {
-  const centerId = useCenterId();
-  const now = new Date();
-  const from = new Date(now.getTime() - 30 * 86_400_000).toISOString();
-  const to = new Date(now.getTime() + 120 * 86_400_000).toISOString();
-  return useQuery({
-    queryKey: teacherQueryKeys.calendar(from, to),
-    queryFn: () => orpc.calendar.staffList({ centerId: centerId ?? '', from, to }),
-    enabled: !!centerId,
-  });
-}
-
-export function useCalendarEvent(eventId: string) {
-  return useQuery({
-    queryKey: teacherQueryKeys.calendarEvent(eventId),
-    queryFn: () => orpc.calendar.detail({ eventId }),
-    enabled: !!eventId,
-  });
-}
-
 // --- Student documents ----------------------------------------------------
 
 export type DocStatus =
