@@ -2,24 +2,39 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ComponentProps, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ConfirmModal } from '@/components/medication/confirm-modal';
 import { SignedImage } from '@/components/medication/signed-image';
 import { StatusChip } from '@/components/medication/status-chip';
+import { TimeField } from '@/components/calendar/time-field';
 import { Loader } from '@/components/ui/loader';
-import {
-  useCancelMedicationRequest,
-  useMedicationRequest,
-  type MedicationDetail,
-} from '@/data/medications';
+import { colors } from '@/constants/theme';
+import { useCompleteMedication, useStaffMedication, type StaffMedDetail } from '@/data/medications';
+import { formatTime, todayIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 type Fact = { icon: IconName; label: string; value: string };
 
 const CORAL = '#E8674E';
+const UZ_OFFSET_H = 5;
+
+/** ISO instant for a UZ wall-clock date + "HH:mm". */
+function toUzIso(date: string, time: string) {
+  const [y, m, d] = date.split('-').map(Number);
+  const [hh, mm] = time.split(':').map(Number);
+  return new Date(Date.UTC(y!, (m ?? 1) - 1, d, (hh ?? 0) - UZ_OFFSET_H, mm ?? 0)).toISOString();
+}
 
 function Header({ title }: { title: string }) {
   const router = useRouter();
@@ -50,7 +65,7 @@ function InfoRow({ icon, label, value, last }: Fact & { last?: boolean }) {
   );
 }
 
-function Card({ label, children }: { label: string; children: React.ReactNode }) {
+function NoteCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="mx-4 mt-3 rounded-2xl border border-border bg-card p-4">
       <Text className="mb-2 text-[11px] font-semibold uppercase text-muted">{label}</Text>
@@ -59,56 +74,152 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function Outcome({ event }: { event: MedicationDetail }) {
+function Line({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return (
+    <Text className="text-sm text-foreground">
+      <Text className="font-semibold">{label}: </Text>
+      {value}
+    </Text>
+  );
+}
+
+/** The completed outcome, once the report is filed. */
+function Outcome({ request }: { request: StaffMedDetail }) {
   const { t } = useTranslation('medications');
-  if (event.status === 'administered') {
+  if (request.status === 'administered') {
     return (
-      <View className="mx-4 mt-3 rounded-2xl bg-mint p-4">
-        <Text className="mb-1 text-xs font-bold text-mint-ink">{t('detail.reportTitle')}</Text>
-        {event.administeredDose ? (
-          <Text className="text-sm text-foreground">
-            <Text className="font-semibold">{t('detail.administeredDose')}: </Text>
-            {event.administeredDose}
-          </Text>
-        ) : null}
-        {event.administeredByName ? (
-          <Text className="mt-0.5 text-sm text-foreground">
-            <Text className="font-semibold">{t('detail.staff')}: </Text>
-            {event.administeredByName}
-          </Text>
-        ) : null}
-        {event.staffNote ? (
-          <Text className="mt-0.5 text-sm text-foreground">
-            <Text className="font-semibold">{t('detail.staffNote')}: </Text>
-            {event.staffNote}
-          </Text>
-        ) : null}
+      <View className="mx-4 mt-3 gap-1 rounded-2xl bg-mint p-4">
+        <View className="mb-1 flex-row items-center gap-2">
+          <Ionicons name="checkmark-circle" size={18} color="#46B06A" />
+          <Text className="text-xs font-bold text-mint-ink">{t('detail.reportTitle')}</Text>
+        </View>
+        <Line label={t('detail.staff')} value={request.administeredByName} />
+        <Line label={t('detail.administeredAt')} value={request.administeredAtLabel} />
+        <Line label={t('detail.administeredDose')} value={request.administeredDose} />
+        <Line label={t('detail.staffNote')} value={request.staffNote} />
       </View>
     );
   }
-  if (event.status === 'skipped') {
+  if (request.status === 'skipped') {
     return (
-      <View className="mx-4 mt-3 rounded-2xl bg-pill p-4">
+      <View className="mx-4 mt-3 gap-1 rounded-2xl bg-pill p-4">
         <Text className="mb-1 text-xs font-bold text-muted">{t('detail.reportTitle')}</Text>
-        <Text className="text-sm text-foreground">
-          <Text className="font-semibold">{t('detail.skippedReason')}: </Text>
-          {event.skippedReason ?? '—'}
-        </Text>
+        <Line label={t('detail.skippedReason')} value={request.skippedReason} />
+        <Line label={t('detail.staffNote')} value={request.staffNote} />
       </View>
     );
-  }
-  if (event.status === 'pending') {
-    return <Text className="mx-4 mt-3 text-sm leading-5 text-muted">{t('detail.noReportYet')}</Text>;
   }
   return null;
+}
+
+/** The staff report editor, shown while a request is still pending. */
+function ReportEditor({ request }: { request: StaffMedDetail }) {
+  const { t } = useTranslation('medications');
+  const complete = useCompleteMedication(request.id);
+  const [outcome, setOutcome] = useState<'administered' | 'skipped'>('administered');
+  const [time, setTime] = useState(formatTime(new Date().toISOString()));
+  const [dose, setDose] = useState('');
+  const [staffNote, setStaffNote] = useState('');
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function save() {
+    setError(null);
+    if (outcome === 'skipped' && !reason.trim()) return setError(t('detail.skippedReason'));
+    complete.mutate({
+      status: outcome,
+      administeredAt: outcome === 'administered' ? toUzIso(todayIsoDate(), time) : undefined,
+      administeredDose: dose.trim() || undefined,
+      staffNote: staffNote.trim() || undefined,
+      skippedReason: outcome === 'skipped' ? reason.trim() : undefined,
+    });
+  }
+
+  return (
+    <View className="mx-4 mt-4 rounded-2xl border border-border bg-card p-4">
+      <Text className="text-base font-bold text-foreground">{t('detail.reportTitle')}</Text>
+
+      <View className="mt-3 flex-row gap-2">
+        {(['administered', 'skipped'] as const).map((value) => {
+          const active = outcome === value;
+          return (
+            <Pressable
+              key={value}
+              onPress={() => setOutcome(value)}
+              className={cn(
+                'flex-1 flex-row items-center justify-center gap-1.5 rounded-md border py-2.5',
+                active ? 'border-coral-ink bg-coral' : 'border-border bg-background',
+              )}>
+              <Ionicons
+                name={value === 'administered' ? 'checkmark-circle-outline' : 'close-circle-outline'}
+                size={16}
+                color={active ? CORAL : colors.textMuted}
+              />
+              <Text className={cn('text-[13px] font-bold', active ? 'text-coral-ink' : 'text-muted')}>
+                {t(`status.${value}`)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {outcome === 'administered' ? (
+        <View className="mt-3 flex-row gap-3">
+          <TimeField label={t('detail.administeredTime')} value={time} placeholder="09:00" doneLabel={t('detail.saveReport')} onChange={setTime} />
+          <View className="flex-1">
+            <Text className="mb-1.5 text-[13px] font-semibold text-muted">{t('detail.administeredDose')}</Text>
+            <TextInput
+              value={dose}
+              onChangeText={setDose}
+              placeholder={request.dosage}
+              placeholderTextColor={colors.textMuted}
+              className="h-11 rounded-md border border-border bg-background px-3 text-[15px] text-foreground"
+            />
+          </View>
+        </View>
+      ) : (
+        <View className="mt-3">
+          <Text className="mb-1.5 text-[13px] font-semibold text-muted">{t('detail.skippedReason')}</Text>
+          <TextInput
+            value={reason}
+            onChangeText={setReason}
+            multiline
+            placeholderTextColor={colors.textMuted}
+            className="min-h-[64px] rounded-md border border-border bg-background p-3 text-[15px] text-foreground"
+          />
+        </View>
+      )}
+
+      <View className="mt-3">
+        <Text className="mb-1.5 text-[13px] font-semibold text-muted">{t('detail.staffNote')}</Text>
+        <TextInput
+          value={staffNote}
+          onChangeText={setStaffNote}
+          multiline
+          placeholderTextColor={colors.textMuted}
+          className="min-h-[56px] rounded-md border border-border bg-background p-3 text-[15px] text-foreground"
+        />
+      </View>
+
+      {error ? <Text className="mt-2 text-[13px] font-semibold text-coral-ink">{error}</Text> : null}
+
+      <Pressable
+        onPress={save}
+        disabled={complete.isPending}
+        style={{ backgroundColor: CORAL }}
+        className="mt-4 h-12 flex-row items-center justify-center gap-2 rounded-md">
+        {complete.isPending ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Ionicons name="save-outline" size={18} color="#FFFFFF" />}
+        <Text className="text-[15px] font-bold text-white">{t('detail.saveReport')}</Text>
+      </Pressable>
+    </View>
+  );
 }
 
 export default function MedicationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation('medications');
-  const { data: request, isPending } = useMedicationRequest(String(id));
-  const cancel = useCancelMedicationRequest(String(id));
-  const [confirming, setConfirming] = useState(false);
+  const { data: request, isPending } = useStaffMedication(String(id));
 
   if (isPending) {
     return (
@@ -132,100 +243,67 @@ export default function MedicationDetailScreen() {
 
   const facts: Fact[] = [
     { icon: 'person-outline', label: t('detail.child'), value: request.childName },
-    ...(request.className
-      ? [{ icon: 'people-outline' as IconName, label: t('detail.class'), value: request.className }]
-      : []),
+    ...(request.className ? [{ icon: 'people-outline' as IconName, label: t('detail.class'), value: request.className }] : []),
+    { icon: 'happy-outline', label: t('detail.parent'), value: request.parentName },
     { icon: 'calendar-outline', label: t('composer.date'), value: request.dateLabel },
     { icon: 'flask-outline', label: t('detail.medicineType'), value: request.medicationType },
     { icon: 'eyedrop-outline', label: t('detail.dosage'), value: request.dosage },
     { icon: 'time-outline', label: t('composer.medicationTime'), value: request.medicationTime },
-    ...(request.medicationCount
-      ? [{ icon: 'repeat-outline' as IconName, label: t('detail.countFrequency'), value: request.medicationCount }]
-      : []),
-    ...(request.storageMethod
-      ? [{ icon: 'snow-outline' as IconName, label: t('detail.storage'), value: request.storageMethod }]
-      : []),
+    ...(request.medicationCount ? [{ icon: 'repeat-outline' as IconName, label: t('detail.countFrequency'), value: request.medicationCount }] : []),
+    ...(request.storageMethod ? [{ icon: 'snow-outline' as IconName, label: t('detail.storage'), value: request.storageMethod }] : []),
   ];
-
-  function confirmCancel() {
-    cancel.mutate(undefined, { onSettled: () => setConfirming(false) });
-  }
 
   return (
     <View className="flex-1 bg-background">
       <Header title={t('title')} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerClassName="pb-8">
-        <View className="flex-row items-center justify-between gap-2 px-4 pb-1 pt-5">
-          <Text className="flex-1 text-2xl font-extrabold leading-8 text-foreground">
-            {request.medicineName}
-          </Text>
-          <StatusChip status={request.status} />
-        </View>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerClassName="pb-10" keyboardShouldPersistTaps="handled">
+          <View className="flex-row items-center justify-between gap-2 px-4 pb-1 pt-5">
+            <Text className="flex-1 text-2xl font-extrabold leading-8 text-foreground">{request.medicineName}</Text>
+            <StatusChip status={request.status} />
+          </View>
 
-        <View className="mx-4 mt-4 overflow-hidden rounded-2xl border border-border bg-card">
-          {facts.map((fact, index) => (
-            <InfoRow key={fact.label} {...fact} last={index === facts.length - 1} />
-          ))}
-        </View>
+          <View className="mx-4 mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+            {facts.map((fact, index) => (
+              <InfoRow key={fact.label} {...fact} last={index === facts.length - 1} />
+            ))}
+          </View>
 
-        <Card label={t('detail.symptoms')}>
-          <Text className="text-[15px] leading-6 text-foreground">{request.symptoms}</Text>
-        </Card>
-        {request.instructions ? (
-          <Card label={t('detail.instructions')}>
-            <Text className="text-[15px] leading-6 text-foreground">{request.instructions}</Text>
-          </Card>
-        ) : null}
-        {request.specialNote ? (
-          <Card label={t('detail.specialNote')}>
-            <Text className="text-[15px] leading-6 text-foreground">{request.specialNote}</Text>
-          </Card>
-        ) : null}
+          <NoteCard label={t('detail.symptoms')}>
+            <Text className="text-[15px] leading-6 text-foreground">{request.symptoms}</Text>
+          </NoteCard>
+          {request.instructions ? (
+            <NoteCard label={t('detail.instructions')}>
+              <Text className="text-[15px] leading-6 text-foreground">{request.instructions}</Text>
+            </NoteCard>
+          ) : null}
+          {request.specialNote ? (
+            <NoteCard label={t('detail.specialNote')}>
+              <Text className="text-[15px] leading-6 text-foreground">{request.specialNote}</Text>
+            </NoteCard>
+          ) : null}
 
-        {request.photoAssetId ? (
-          <Card label={t('composer.medicationPhoto')}>
-            <SignedImage assetId={request.photoAssetId} className="h-48 w-full rounded-xl" />
-          </Card>
-        ) : null}
+          {request.photoAssetId ? (
+            <NoteCard label={t('composer.medicationPhoto')}>
+              <SignedImage assetId={request.photoAssetId} className="h-48 w-full rounded-xl" />
+              {request.photoCaption ? <Text className="mt-2 text-[13px] text-muted">{request.photoCaption}</Text> : null}
+            </NoteCard>
+          ) : null}
 
-        {request.signatureAssetId ? (
-          <Card label={t('detail.signature')}>
-            <SignedImage
-              assetId={request.signatureAssetId}
-              className="h-28 w-full rounded-xl bg-card"
-              resizeMode="contain"
-              fallbackIcon="create-outline"
-            />
-          </Card>
-        ) : request.signatureText ? (
-          <Card label={t('detail.signature')}>
-            <Text className="text-[15px] font-semibold text-foreground">{request.signatureText}</Text>
-          </Card>
-        ) : null}
+          {request.signatureAssetId ? (
+            <NoteCard label={t('detail.signature')}>
+              <SignedImage assetId={request.signatureAssetId} className="h-28 w-full rounded-xl bg-card" resizeMode="contain" fallbackIcon="create-outline" />
+            </NoteCard>
+          ) : request.signatureText ? (
+            <NoteCard label={t('detail.signature')}>
+              <Text className="text-[15px] font-semibold text-foreground">{request.signatureText}</Text>
+            </NoteCard>
+          ) : null}
 
-        <Outcome event={request} />
-
-        {request.status === 'pending' ? (
-          <Pressable
-            onPress={() => setConfirming(true)}
-            className="mx-4 mt-5 flex-row items-center justify-center gap-1.5 rounded-full border border-coral-ink py-3">
-            <Ionicons name="close-circle-outline" size={18} color={CORAL} />
-            <Text className="text-sm font-bold text-coral-ink">{t('detail.cancelRequest')}</Text>
-          </Pressable>
-        ) : null}
-      </ScrollView>
-
-      <ConfirmModal
-        visible={confirming}
-        title={t('cancelConfirm.title')}
-        body={t('cancelConfirm.body')}
-        confirmLabel={t('cancelConfirm.yes')}
-        cancelLabel={t('cancelConfirm.no')}
-        loading={cancel.isPending}
-        onConfirm={confirmCancel}
-        onCancel={() => setConfirming(false)}
-      />
+          {request.status === 'pending' ? <ReportEditor request={request} /> : <Outcome request={request} />}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
