@@ -6,6 +6,12 @@
   "back": "Back to meals",
   "loading": "Loading...",
   "noCenter": "Your account is not linked to a center yet.",
+  "filter": "Filters",
+  "reset": "Reset",
+  "done": "Done",
+  "page": "{{current}} / {{total}}",
+  "servedCount_one": "{{count}} child recorded",
+  "servedCount_other": "{{count}} children recorded",
   "todaySection": "Today's menu",
   "noToday": "No meals posted for today.",
   "menuHistory": "Menu history",
@@ -71,8 +77,14 @@
     "audience": "Audience",
     "classes": "Classes",
     "menuText": "Menu text",
+    "menuPlaceholder": "What's on the menu today?",
     "allergyNote": "Allergy note",
+    "allergyPlaceholder": "Anything families should know about",
     "foodPhotos": "Food photos",
+    "mediaHint": "Add up to 10 food photos or videos.",
+    "camera": "Take a photo",
+    "gallery": "Choose from gallery",
+    "mediaPermission": "Allow photo access to add media.",
     "choosePhotos": "Choose photos or videos",
     "uploadedFiles": "{{count}} uploaded file(s) ready.",
     "eatingStatus": "Eating status",
@@ -105,6 +117,9 @@
     "saveStatus": "Save status",
     "noEatingStatus": "No eating status recorded yet.",
     "noClass": "No class",
-    "notRecorded": "Not recorded"
+    "notRecorded": "Not recorded",
+    "cancel": "Cancel",
+    "deleteConfirmTitle": "Delete meal?",
+    "deleteConfirmBody": "This removes it for everyone. This can't be undone."
   }
 }

@@ -6,6 +6,12 @@
   "back": "Taomlarga qaytish",
   "loading": "Yuklanmoqda...",
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
+  "filter": "Filtrlar",
+  "reset": "Tozalash",
+  "done": "Tayyor",
+  "page": "{{current}} / {{total}}",
+  "servedCount_one": "{{count}} bola kiritildi",
+  "servedCount_other": "{{count}} bola kiritildi",
   "todaySection": "Bugungi menyu",
   "noToday": "Bugunga taom e'lon qilinmagan.",
   "menuHistory": "Menyu tarixi",
@@ -71,8 +77,14 @@
     "audience": "Auditoriya",
     "classes": "Sinflar",
     "menuText": "Menyu matni",
+    "menuPlaceholder": "Bugun menyuda nima bor?",
     "allergyNote": "Allergiya eslatmasi",
+    "allergyPlaceholder": "Oilalar bilishi kerak bo'lgan narsalar",
     "foodPhotos": "Ovqat suratlari",
+    "mediaHint": "10 tagacha ovqat surati yoki video qo'shing.",
+    "camera": "Rasmga olish",
+    "gallery": "Galereyadan tanlash",
+    "mediaPermission": "Media qo'shish uchun rasmlarga ruxsat bering.",
     "choosePhotos": "Rasm yoki video tanlang",
     "uploadedFiles": "{{count}} ta yuklangan fayl tayyor.",
     "eatingStatus": "Ovqatlanish holati",
@@ -105,6 +117,9 @@
     "saveStatus": "Holatni saqlash",
     "noEatingStatus": "Hali ovqatlanish holati kiritilmagan.",
     "noClass": "Sinf yo'q",
-    "notRecorded": "Kiritilmagan"
+    "notRecorded": "Kiritilmagan",
+    "cancel": "Bekor qilish",
+    "deleteConfirmTitle": "Taom o'chirilsinmi?",
+    "deleteConfirmBody": "U hamma uchun o'chiriladi. Buni qaytarib bo'lmaydi."
   }
 }
