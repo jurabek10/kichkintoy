@@ -12,6 +12,11 @@
   "reads": "Reads",
   "scheduledFor": "Goes out {{date}}",
   "draftNotSent": "Draft — not sent yet",
+  "scheduledSoon": "Scheduled to send",
+  "filter": "Filters",
+  "reset": "Reset",
+  "done": "Done",
+  "page": "{{current}} / {{total}}",
   "filters": {
     "all": "All",
     "drafts": "Drafts",
@@ -59,16 +64,21 @@
     "newTitle": "New notice",
     "description": "Send one operational message to a center, classes, or selected children.",
     "title": "Title",
+    "titlePlaceholder": "What is this notice about?",
     "body": "Body",
+    "bodyPlaceholder": "Write the message parents will read...",
     "audience": "Audience",
+    "centerHint": "Goes to every family in the center.",
     "noClasses": "No available classes.",
     "noChildren": "No available children.",
+    "options": "Options",
     "requiresConfirmation": "Requires confirmation",
     "allowComments": "Allow comments",
     "pinNotice": "Pin notice",
     "important": "Important",
     "saveDraft": "Save draft",
-    "publish": "Publish"
+    "publish": "Publish",
+    "saveFailed": "Couldn't save the notice. Try again."
   },
   "validation": {
     "centerRequired": "Your account is not linked to a center.",
@@ -106,6 +116,10 @@
     "readReceipts": "Read receipts",
     "noReceipts": "Receipts appear after publishing.",
     "readAt": "Read: {{date}}",
-    "confirmedAt": "Confirmed: {{date}}"
+    "confirmedAt": "Confirmed: {{date}}",
+    "unread": "Not read yet",
+    "cancel": "Cancel",
+    "deleteConfirmTitle": "Delete notice?",
+    "deleteConfirmBody": "This removes it for everyone. This can't be undone."
   }
 }
