@@ -12,6 +12,10 @@
   "loading": "Loading...",
   "noCenter": "Your account is not linked to a center yet.",
   "updatedAt": "Updated {{date}}",
+  "filter": "Filters",
+  "reset": "Reset",
+  "done": "Done",
+  "page": "{{current}} / {{total}}",
   "filters": {
     "all": "All",
     "drafts": "Drafts"
@@ -60,12 +64,17 @@
     "newTitle": "New album post",
     "description": "Share class photos with parent-safe visibility.",
     "caption": "Caption",
+    "captionPlaceholder": "Say something about these photos...",
     "classes": "Classes",
     "noClasses": "No classes available.",
     "visibility": "Visibility",
     "taggedChildren": "Tagged children",
     "chooseClassForChildren": "Choose a class to tag children.",
-    "media": "Photos",
+    "media": "Photos & videos",
+    "mediaHint": "Add up to 50 photos or videos.",
+    "camera": "Take a photo",
+    "gallery": "Choose from gallery",
+    "mediaPermission": "Allow photo access to add media.",
     "chooseFiles": "Choose photos or videos",
     "allowComments": "Allow comments",
     "allowCommentsDescription": "Parents can comment when the post is published.",
@@ -99,6 +108,9 @@
     "comment": "Comment",
     "commentsDisabled": "Comments are disabled.",
     "noComments": "No comments yet.",
-    "commentDeleted": "Comment deleted."
+    "commentDeleted": "Comment deleted.",
+    "cancel": "Cancel",
+    "deleteConfirmTitle": "Delete album?",
+    "deleteConfirmBody": "This removes it for everyone. This can't be undone."
   }
 }

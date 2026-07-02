@@ -12,6 +12,10 @@
   "loading": "Yuklanmoqda...",
   "noCenter": "Hisobingiz hali markazga bog'lanmagan.",
   "updatedAt": "Yangilangan: {{date}}",
+  "filter": "Filtrlar",
+  "reset": "Tozalash",
+  "done": "Tayyor",
+  "page": "{{current}} / {{total}}",
   "filters": {
     "all": "Barchasi",
     "drafts": "Qoralamalar"
@@ -60,12 +64,17 @@
     "newTitle": "Yangi albom posti",
     "description": "Bolalar uchun xavfsiz ko'rinish bilan sinf rasmlarini ulashing.",
     "caption": "Izoh",
+    "captionPlaceholder": "Bu rasmlar haqida yozing...",
     "classes": "Sinflar",
     "noClasses": "Mavjud sinf yo'q.",
     "visibility": "Ko'rinish",
     "taggedChildren": "Belgilangan bolalar",
     "chooseClassForChildren": "Bolalarni belgilash uchun sinfni tanlang.",
-    "media": "Rasmlar",
+    "media": "Rasm va videolar",
+    "mediaHint": "50 tagacha rasm yoki video qo'shing.",
+    "camera": "Rasmga olish",
+    "gallery": "Galereyadan tanlash",
+    "mediaPermission": "Media qo'shish uchun rasmlarga ruxsat bering.",
     "chooseFiles": "Rasmlar yoki videolarni tanlang",
     "allowComments": "Izohlarga ruxsat berish",
     "allowCommentsDescription": "Post e'lon qilinganda ota-onalar izoh qoldirishi mumkin.",
@@ -99,6 +108,9 @@
     "comment": "Izoh",
     "commentsDisabled": "Izohlar o'chirilgan.",
     "noComments": "Hali izoh yo'q.",
-    "commentDeleted": "Izoh o'chirildi."
+    "commentDeleted": "Izoh o'chirildi.",
+    "cancel": "Bekor qilish",
+    "deleteConfirmTitle": "Albom o'chirilsinmi?",
+    "deleteConfirmBody": "U hamma uchun o'chiriladi. Buni qaytarib bo'lmaydi."
   }
 }
