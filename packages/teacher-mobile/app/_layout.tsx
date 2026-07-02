@@ -58,7 +58,9 @@ function RootNavigator() {
       <Stack.Screen name="notice/new" />
       <Stack.Screen name="album/[id]" />
       <Stack.Screen name="album/new" />
-      <Stack.Screen name="meals" />
+      <Stack.Screen name="meals/index" />
+      <Stack.Screen name="meals/[id]" />
+      <Stack.Screen name="meals/new" />
       <Stack.Screen name="attendance" />
       <Stack.Screen name="medications/index" />
       <Stack.Screen name="medications/new" />
