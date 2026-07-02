@@ -1,149 +1,224 @@
 /**
- * Notices (공지사항) data access — the oRPC queries for the parent notices list
- * and detail, plus the mappers that turn the API responses into the view-model
- * shapes the screens render, and the confirm mutation. Mirrors the daily
- * reports data layer.
+ * Notices (공지사항) data access — staff/author side. These are the oRPC queries
+ * and mutations a teacher uses to compose, publish, and moderate the notices she
+ * sends to parents, plus the mappers that turn API responses into the view-model
+ * shapes the screens render. Mirrors the web dashboard notices feature; the
+ * server already scopes the author list / audience to the classes she teaches.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { CreateNoticeRequest } from '@kichkintoy/shared';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
-import { formatTime, localIsoDate } from '@/lib/date';
-// formatTime / localIsoDate render in Uzbekistan time (UTC+5).
+import { formatDayMonth, formatDayMonthTime, formatTime, localIsoDate } from '@/lib/date';
+// formatTime / formatDayMonth render in Uzbekistan time (UTC+5).
+import { useCenterId } from '@/data/teacher';
 import { orpc } from '@/lib/orpc';
-import { queryKeys } from '@/lib/query-keys';
+import { teacherQueryKeys } from '@/lib/query-keys';
 
 // Derive the API shapes from the typed client so we never drift from the contract.
-type ApiNoticeSummary = Awaited<ReturnType<typeof orpc.notices.parentList>>[number];
-type ApiNoticeDetail = Awaited<ReturnType<typeof orpc.notices.parentDetail>>;
+type ApiNoticeSummary = Awaited<ReturnType<typeof orpc.notices.authorList>>[number];
+type ApiNoticeDetail = Awaited<ReturnType<typeof orpc.notices.authorDetail>>;
+type ApiAudience = Awaited<ReturnType<typeof orpc.notices.audience>>;
 
 // --- View models ----------------------------------------------------------
 
+export type NoticeStatus = 'draft' | 'scheduled' | 'published';
 export type NoticeAudience = 'center' | 'class' | 'child';
 
-export type NoticeSummary = {
+export type StaffNoticeSummary = {
   id: string;
   title: string;
   bodyPreview: string;
-  authorName: string;
-  centerName: string;
+  status: NoticeStatus;
   audience: NoticeAudience;
+  /** First target's label (a class or child name), or '' for center-wide. */
+  targetLabel: string;
+  /** How many targets beyond the first, for a "+N" chip. */
+  extraTargets: number;
   isPinned: boolean;
   isImportant: boolean;
   requiresConfirmation: boolean;
-  allowComments: boolean;
-  publishedDate: string; // local "YYYY-MM-DD"
-  time: string; // "11:13"
+  readCount: number;
+  recipientCount: number;
+  confirmedCount: number;
+  commentCount: number;
+  /** "3-iyul" style date of the notice's last activity. */
+  dateLabel: string;
+  /** Raw timestamps kept for sorting (pinned-then-recent). */
+  publishedAt: string | null;
+  updatedAt: string;
+};
+
+export type NoticeRecipientView = {
+  id: string;
+  userName: string;
+  childName: string | null;
+  className: string | null;
+  /** Formatted read time, or null when the parent hasn't opened it. */
+  readLabel: string | null;
+  confirmedLabel: string | null;
 };
 
 export type NoticeCommentView = {
   id: string;
+  authorId: string;
   authorName: string;
   body: string;
-  createdAt: string;
+  dateLabel: string;
   deleted: boolean;
 };
 
-export type NoticeDetail = NoticeSummary & {
+export type StaffNoticeDetail = StaffNoticeSummary & {
   body: string;
-  isConfirmed: boolean;
+  authorId: string;
+  authorName: string;
+  allowComments: boolean;
+  /** Long date + time the notice went (or will go) out. */
+  publishedLabel: string;
+  recipients: NoticeRecipientView[];
   comments: NoticeCommentView[];
 };
 
 // --- Mappers --------------------------------------------------------------
 
-/** Uzbekistan "HH:mm" for a publish timestamp, blank when not yet published. */
-function timeLabel(iso: string | null): string {
-  return iso ? formatTime(iso) : '';
+function activityIso(notice: ApiNoticeSummary): string {
+  return notice.publishedAt ?? notice.updatedAt;
 }
 
-function toNoticeSummary(notice: ApiNoticeSummary): NoticeSummary {
+function toSummary(notice: ApiNoticeSummary): StaffNoticeSummary {
+  const lang = i18n.language;
   return {
     id: notice.id,
     title: notice.title,
     bodyPreview: notice.bodyPreview,
-    authorName: notice.author.fullName,
-    centerName: notice.centerName,
+    status: notice.status,
     audience: notice.targetType,
+    targetLabel: notice.targets[0]?.label ?? '',
+    extraTargets: Math.max(0, notice.targets.length - 1),
     isPinned: notice.isPinned,
     isImportant: notice.isImportant,
     requiresConfirmation: notice.requiresConfirmation,
-    allowComments: notice.allowComments,
-    publishedDate: notice.publishedAt ? localIsoDate(notice.publishedAt) : '',
-    time: timeLabel(notice.publishedAt),
+    readCount: notice.readCount,
+    recipientCount: notice.recipientCount,
+    confirmedCount: notice.confirmedCount,
+    commentCount: notice.commentCount,
+    dateLabel: formatDayMonth(activityIso(notice), lang),
+    publishedAt: notice.publishedAt,
+    updatedAt: notice.updatedAt,
   };
 }
 
-function toNoticeDetail(notice: ApiNoticeDetail): NoticeDetail {
+function toDetail(notice: ApiNoticeDetail): StaffNoticeDetail {
+  const lang = i18n.language;
   return {
-    ...toNoticeSummary(notice),
+    ...toSummary(notice),
     body: notice.body,
-    isConfirmed: !!notice.myConfirmedAt,
+    authorId: notice.author.id,
+    authorName: notice.author.fullName,
+    allowComments: notice.allowComments,
+    publishedLabel: notice.publishedAt
+      ? formatDayMonthTime(notice.publishedAt, lang)
+      : notice.scheduledAt
+        ? formatDayMonthTime(notice.scheduledAt, lang)
+        : formatDayMonth(notice.updatedAt, lang),
+    recipients: notice.recipients.map((recipient) => ({
+      id: recipient.id,
+      userName: recipient.userName,
+      childName: recipient.childName,
+      className: recipient.className,
+      readLabel: recipient.readAt ? formatDayMonthTime(recipient.readAt, lang) : null,
+      confirmedLabel: recipient.confirmedAt
+        ? formatDayMonthTime(recipient.confirmedAt, lang)
+        : null,
+    })),
     comments: notice.comments.map((comment) => ({
       id: comment.id,
+      authorId: comment.authorUserId,
       authorName: comment.authorName,
       body: comment.deletedAt ? '' : comment.body,
-      createdAt: comment.createdAt,
+      dateLabel: `${formatDayMonth(localIsoDate(comment.createdAt), lang)} · ${formatTime(comment.createdAt)}`,
       deleted: !!comment.deletedAt,
     })),
   };
 }
 
+/** Pinned notices float up; within a group, most recent activity first. */
+function byPinnedThenRecent(a: StaffNoticeSummary, b: StaffNoticeSummary) {
+  if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+  return (b.publishedAt ?? b.updatedAt).localeCompare(a.publishedAt ?? a.updatedAt);
+}
+
 // --- Hooks ----------------------------------------------------------------
 
-export function useNotices(): Query<NoticeSummary[]> {
+/** The teacher's own notices, sorted pinned-then-recent. */
+export function useAuthorNotices(): Query<StaffNoticeSummary[]> {
+  const centerId = useCenterId();
   const query = useQuery({
-    queryKey: queryKeys.notices.parentList,
-    queryFn: () => orpc.notices.parentList({}),
+    queryKey: teacherQueryKeys.notices,
+    queryFn: () => orpc.notices.authorList({ centerId: centerId ?? '' }),
+    enabled: !!centerId,
   });
-
-  const data = (query.data ?? [])
-    .filter((notice) => notice.status === 'published')
-    .sort((a, b) => {
-      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-      return (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '');
-    })
-    .map(toNoticeSummary);
-
-  return { data, isPending: query.isPending };
+  const data = (query.data ?? []).map(toSummary).sort(byPinnedThenRecent);
+  return { data, isPending: !!centerId && query.isPending };
 }
 
-export function useNotice(noticeId: string): Query<NoticeDetail | null> {
+export function useAuthorNotice(noticeId: string): Query<StaffNoticeDetail | null> {
   const query = useQuery({
-    queryKey: queryKeys.notices.detail(noticeId),
-    queryFn: () => orpc.notices.parentDetail({ noticeId }),
+    queryKey: queryKeys(noticeId),
+    queryFn: () => orpc.notices.authorDetail({ noticeId }),
     enabled: !!noticeId,
   });
-
-  return { data: query.data ? toNoticeDetail(query.data) : null, isPending: query.isPending };
+  return {
+    data: query.data ? toDetail(query.data) : null,
+    isPending: !!noticeId && query.isPending,
+  };
 }
 
-/** Confirm a notice that requires confirmation, then refresh its detail. */
-export function useConfirmNotice(noticeId: string) {
+/** Classes and children the teacher may target, split by kind. */
+export function useNoticeAudience(): Query<ApiAudience> {
+  const centerId = useCenterId();
+  const query = useQuery({
+    queryKey: [...teacherQueryKeys.notices, 'audience', centerId] as const,
+    queryFn: () => orpc.notices.audience({ centerId: centerId ?? '' }),
+    enabled: !!centerId,
+  });
+  return {
+    data: query.data ?? { classes: [], children: [] },
+    isPending: !!centerId && query.isPending,
+  };
+}
+
+/** Compose a notice — saved as a draft or published straight away. */
+export function useCreateNotice() {
   const queryClient = useQueryClient();
-  const noticeKey = queryKeys.notices.detail(noticeId);
-
   return useMutation({
-    mutationFn: () => orpc.notices.confirm({ noticeId }),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: noticeKey });
-      const previous = queryClient.getQueryData<ApiNoticeDetail>(noticeKey);
+    mutationFn: (input: CreateNoticeRequest) => orpc.notices.create(input),
+    onSuccess: (notice) => {
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.notices });
+      queryClient.setQueryData(queryKeys(notice.id), notice);
+    },
+  });
+}
 
-      queryClient.setQueryData<ApiNoticeDetail>(noticeKey, (current) => {
-        if (!current) return current;
-        const now = new Date().toISOString();
-        return { ...current, myReadAt: current.myReadAt ?? now, myConfirmedAt: now };
-      });
+/** Publish a draft or scheduled notice now. */
+export function usePublishNotice(noticeId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => orpc.notices.publish({ noticeId, body: {} }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys(noticeId) });
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.notices });
+    },
+  });
+}
 
-      return { previous };
-    },
-    onError: (_error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(noticeKey, context.previous);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: noticeKey });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notices.parentList });
-    },
+/** Delete a notice, then refresh the list. */
+export function useDeleteNotice(noticeId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => orpc.notices.delete({ noticeId }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.notices }),
   });
 }
 
@@ -151,11 +226,21 @@ export function useConfirmNotice(noticeId: string) {
 export function useAddNoticeComment(noticeId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) =>
-      orpc.notices.addComment({ noticeId, body: { body } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notices.detail(noticeId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notices.parentList });
-    },
+    mutationFn: (body: string) => orpc.notices.addComment({ noticeId, body: { body } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys(noticeId) }),
   });
+}
+
+/** Remove a comment (author's own, or any as a manager). */
+export function useDeleteNoticeComment(noticeId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (commentId: string) => orpc.notices.deleteComment({ noticeId, commentId }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys(noticeId) }),
+  });
+}
+
+/** Detail query key — scoped under the teacher notices namespace. */
+function queryKeys(noticeId: string) {
+  return [...teacherQueryKeys.notices, 'detail', noticeId] as const;
 }

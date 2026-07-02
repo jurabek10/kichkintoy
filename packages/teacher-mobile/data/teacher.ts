@@ -280,15 +280,6 @@ export function useStaffAlbums() {
   });
 }
 
-export function useAuthorNotices() {
-  const centerId = useCenterId();
-  return useQuery({
-    queryKey: teacherQueryKeys.notices,
-    queryFn: () => orpc.notices.authorList({ centerId: centerId ?? '' }),
-    enabled: !!centerId,
-  });
-}
-
 export function useStaffPickups(date: string) {
   const centerId = useCenterId();
   return useQuery({
