@@ -17,6 +17,7 @@
   "open": "Open",
   "allDay": "All day",
   "birthdays": "Birthdays",
+  "filterAll": "All",
   "noBirthdays": "No birthdays this month",
   "turns": "Turns {{age}}",
   "yourChild": "Your child",
@@ -107,6 +108,8 @@
     "details": "Details",
     "completed": "Completed",
     "gotIt": "Got it",
-    "seen": "Seen"
+    "seen": "Seen",
+    "edit": "Edit",
+    "seenCount": "Seen by {{count}}"
   }
 }

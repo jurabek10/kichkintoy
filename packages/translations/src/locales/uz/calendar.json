@@ -17,6 +17,7 @@
   "open": "Ochish",
   "allDay": "Kun bo'yi",
   "birthdays": "Tug'ilgan kunlar",
+  "filterAll": "Barchasi",
   "noBirthdays": "Bu oyda tug'ilgan kunlar yo'q",
   "turns": "{{age}} yoshga to'ladi",
   "yourChild": "Sizning farzandingiz",
@@ -107,6 +108,8 @@
     "details": "Tafsilotlar",
     "completed": "Yakunlangan",
     "gotIt": "Tushunarli",
-    "seen": "Ko'rilgan"
+    "seen": "Ko'rilgan",
+    "edit": "Tahrirlash",
+    "seenCount": "{{count}} kishi ko'rgan"
   }
 }
