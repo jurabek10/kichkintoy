@@ -271,15 +271,6 @@ export function useStaffMeals(date: string) {
   });
 }
 
-export function useStaffAlbums() {
-  const centerId = useCenterId();
-  return useQuery({
-    queryKey: teacherQueryKeys.albums,
-    queryFn: () => orpc.albums.staffList({ centerId: centerId ?? '' }),
-    enabled: !!centerId,
-  });
-}
-
 export function useStaffPickups(date: string) {
   const centerId = useCenterId();
   return useQuery({

@@ -1,47 +1,71 @@
 /**
- * Albums (앨범) data access — the oRPC queries for the parent album list and
- * detail, the mappers that turn the API responses into the view-model shapes
- * the screens render, the signed-media resolver, plus the comment and reaction
- * mutations. Mirrors the daily reports / notices data layers.
+ * Albums (앨범) data access — staff/author side. The oRPC queries and mutations a
+ * teacher uses to share, publish, and moderate class photo posts, plus the
+ * mappers that turn API responses into the view-model shapes the screens render.
+ * Mirrors the web dashboard albums feature; the server scopes the staff list and
+ * audience to the classes she teaches.
  */
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useCurrentChild, type Query } from '@/data/parent';
+import type { CreateAlbumPostInput } from '@kichkintoy/shared';
+import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
-import { useAuth } from '@/lib/auth';
-import { formatDayMonthTime, formatTime, localIsoDate } from '@/lib/date';
+import { useCenterId } from '@/data/teacher';
+import { formatDayMonthTime, formatLongDate, formatTime, localIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
-import { queryKeys } from '@/lib/query-keys';
+import { queryKeys, teacherQueryKeys } from '@/lib/query-keys';
 
 // Derive the API shapes from the typed client so we never drift from the contract.
-type ApiAlbumSummary = Awaited<ReturnType<typeof orpc.albums.parentList>>[number];
+type ApiAlbumSummary = Awaited<ReturnType<typeof orpc.albums.staffList>>[number];
 type ApiAlbumDetail = Awaited<ReturnType<typeof orpc.albums.detail>>;
+type ApiAudience = Awaited<ReturnType<typeof orpc.albums.audience>>;
 
 // --- View models ----------------------------------------------------------
 
 export type AlbumMedia = { id: string; assetId: string; mediaType: string };
-export type AlbumComment = { id: string; authorName: string; body: string; dateLabel: string };
+export type AlbumStatus = 'draft' | 'published';
+export type AlbumVisibility = 'class' | 'tagged_children';
 
-export type AlbumSummary = {
+export type StaffAlbumSummary = {
   id: string;
-  caption: string; // first line = title, rest = body
+  caption: string;
+  title: string;
+  bodyPreview: string;
   authorName: string;
+  classes: { id: string; name: string }[];
   className: string;
+  status: AlbumStatus;
+  visibility: AlbumVisibility;
+  mediaCount: number;
   heartCount: number;
   commentCount: number;
-  mediaCount: number;
-  publishedDate: string; // local "YYYY-MM-DD"
-  time: string; // "14:16"
   cover: AlbumMedia | null;
   previewMedia: AlbumMedia[];
+  /** Raw instant the album reads as (publish time, or last edit for a draft). */
+  dateIso: string;
+  /** Local "YYYY-MM-DD" of dateIso, for period filtering. */
+  dateKey: string;
+  /** Long, localized date for display. */
+  dateLabel: string;
+  timeLabel: string;
 };
 
-export type AlbumDetail = AlbumSummary & {
-  taggedFamilies: number;
+export type AlbumCommentView = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  dateLabel: string;
+  deleted: boolean;
+};
+
+export type StaffAlbumDetail = StaffAlbumSummary & {
+  authorId: string;
   allowComments: boolean;
+  taggedChildren: { id: string; name: string }[];
   myReacted: boolean;
   media: AlbumMedia[];
-  comments: AlbumComment[];
+  comments: AlbumCommentView[];
 };
 
 /** Split a caption into its title (first line) and body (the rest). */
@@ -52,152 +76,151 @@ export function splitCaption(caption: string): { title: string; body: string } {
 
 // --- Mappers --------------------------------------------------------------
 
-function timeLabel(iso: string | null): string {
-  if (!iso) return '';
-  return formatTime(iso);
-}
-
 function toMedia(media: { id: string; assetId: string; mediaType: string }): AlbumMedia {
   return { id: media.id, assetId: media.assetId, mediaType: media.mediaType };
 }
 
-function className(classes: ApiAlbumSummary['classes']): string {
-  return classes.map((cls) => cls.name).join(', ');
+/** The album's display title: caption's first line, else a body preview. */
+function albumTitle(post: ApiAlbumSummary): string {
+  return splitCaption(post.caption).title || post.bodyPreview || '';
 }
 
-function toAlbumSummary(post: ApiAlbumSummary): AlbumSummary {
+function toSummary(post: ApiAlbumSummary): StaffAlbumSummary {
+  const lang = i18n.language;
+  const dateIso = post.publishedAt ?? post.updatedAt;
   return {
     id: post.id,
     caption: post.caption,
+    title: albumTitle(post),
+    bodyPreview: post.bodyPreview,
     authorName: post.author.fullName,
-    className: className(post.classes),
+    classes: post.classes.map((klass) => ({ id: klass.id, name: klass.name })),
+    className: post.classes.map((klass) => klass.name).join(', '),
+    status: post.status,
+    visibility: post.visibility,
+    mediaCount: post.mediaCount,
     heartCount: post.reactionSummary.heartCount,
     commentCount: post.commentCount,
-    mediaCount: post.mediaCount,
-    publishedDate: post.publishedAt ? localIsoDate(post.publishedAt) : '',
-    time: timeLabel(post.publishedAt),
     cover: post.coverMedia ? toMedia(post.coverMedia) : null,
     previewMedia: (post.previewMedia ?? (post.coverMedia ? [post.coverMedia] : [])).map(toMedia),
+    dateIso,
+    dateKey: localIsoDate(dateIso),
+    dateLabel: formatLongDate(localIsoDate(dateIso), lang),
+    timeLabel: post.publishedAt ? formatTime(post.publishedAt) : '',
   };
 }
 
-function toAlbumDetail(post: ApiAlbumDetail): AlbumDetail {
+function toDetail(post: ApiAlbumDetail): StaffAlbumDetail {
   const lang = i18n.language;
   return {
-    ...toAlbumSummary(post),
-    taggedFamilies: post.children.length,
+    ...toSummary(post),
+    authorId: post.author.id,
     allowComments: post.allowComments,
+    taggedChildren: post.children.map((child) => ({ id: child.id, name: child.name })),
     myReacted: post.reactionSummary.myReaction !== null,
     media: post.media.map(toMedia),
-    comments: post.comments
-      .filter((comment) => !comment.deletedAt)
-      .map((comment) => ({
-        id: comment.id,
-        authorName: comment.authorName,
-        body: comment.body,
-        dateLabel: formatDayMonthTime(comment.createdAt, lang),
-      })),
+    comments: post.comments.map((comment) => ({
+      id: comment.id,
+      authorId: comment.authorUserId,
+      authorName: comment.authorName,
+      body: comment.deletedAt ? '' : comment.body,
+      dateLabel: formatDayMonthTime(comment.createdAt, lang),
+      deleted: !!comment.deletedAt,
+    })),
   };
 }
 
 // --- Hooks ----------------------------------------------------------------
 
-export function useAlbums(): Query<AlbumSummary[]> {
-  const child = useCurrentChild();
-  const childId = child.data?.id ?? '';
-
+/** The teacher's albums, newest first. */
+export function useStaffAlbums(): Query<StaffAlbumSummary[]> {
+  const centerId = useCenterId();
   const query = useQuery({
-    queryKey: queryKeys.albums.parentList(childId),
-    queryFn: () => orpc.albums.parentList({ childId }),
-    enabled: !!childId,
+    queryKey: teacherQueryKeys.albums,
+    queryFn: () => orpc.albums.staffList({ centerId: centerId ?? '' }),
+    enabled: !!centerId,
   });
-
   const data = (query.data ?? [])
-    .filter((post) => post.status === 'published')
-    .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
-    .map(toAlbumSummary);
-
-  return { data, isPending: child.isPending || (!!childId && query.isPending) };
+    .slice()
+    .sort((a, b) => (b.publishedAt ?? b.updatedAt).localeCompare(a.publishedAt ?? a.updatedAt))
+    .map(toSummary);
+  return { data, isPending: !!centerId && query.isPending };
 }
 
-export function useAlbum(postId: string): Query<AlbumDetail | null> {
+export function useStaffAlbum(postId: string): Query<StaffAlbumDetail | null> {
   const query = useQuery({
-    queryKey: queryKeys.albums.detail(postId),
+    queryKey: albumDetailKey(postId),
     queryFn: () => orpc.albums.detail({ postId }),
     enabled: !!postId,
   });
-
-  return { data: query.data ? toAlbumDetail(query.data) : null, isPending: query.isPending };
+  return { data: query.data ? toDetail(query.data) : null, isPending: !!postId && query.isPending };
 }
 
-/** Resolve signed download URLs for a set of album media (shares the cache with
- *  any SignedAlbumImage rendering the same asset). Returns URLs aligned to the
- *  input order; entries are null until their query resolves. */
-export function useSignedAlbumUrls(media: AlbumMedia[]): (string | null)[] {
-  const results = useQueries({
-    queries: media.map((item) => ({
-      queryKey: queryKeys.media.download(item.assetId),
-      queryFn: () => orpc.media.getDownloadUrl({ mediaAssetId: item.assetId }),
-      staleTime: 4 * 60 * 1000,
-    })),
+/** Classes and children the teacher may share to, split by kind. */
+export function useAlbumAudience(): Query<ApiAudience> {
+  const centerId = useCenterId();
+  const query = useQuery({
+    queryKey: [...teacherQueryKeys.albums, 'audience', centerId] as const,
+    queryFn: () => orpc.albums.audience({ centerId: centerId ?? '' }),
+    enabled: !!centerId,
   });
-  return results.map((result) => result.data?.downloadUrl ?? null);
+  return {
+    data: query.data ?? { classes: [], children: [] },
+    isPending: !!centerId && query.isPending,
+  };
 }
 
-/** Post a comment on an album, then refresh the detail. */
+/** Create an album post — saved as a draft or published straight away. */
+export function useCreateAlbum() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateAlbumPostInput) => orpc.albums.create(input),
+    onSuccess: (post) => {
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.albums });
+      queryClient.setQueryData(albumDetailKey(post.id), post);
+    },
+  });
+}
+
+/** Publish a draft album now. */
+export function usePublishAlbum(postId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => orpc.albums.publish({ postId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: albumDetailKey(postId) });
+      queryClient.invalidateQueries({ queryKey: teacherQueryKeys.albums });
+    },
+  });
+}
+
+/** Delete an album, then refresh the list. */
+export function useDeleteAlbum(postId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => orpc.albums.delete({ postId }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.albums }),
+  });
+}
+
+/** Post a comment, then refresh the detail thread. */
 export function useAddAlbumComment(postId: string) {
   const queryClient = useQueryClient();
-  const { session } = useAuth();
-  const albumKey = queryKeys.albums.detail(postId);
-
   return useMutation({
     mutationFn: (body: string) => orpc.albums.addComment({ postId, body: { body } }),
-    onMutate: async (body) => {
-      await queryClient.cancelQueries({ queryKey: albumKey });
-      const previous = queryClient.getQueryData<ApiAlbumDetail>(albumKey);
-      const now = new Date().toISOString();
-      const optimisticId = `optimistic-${Date.now()}`;
-
-      queryClient.setQueryData<ApiAlbumDetail>(albumKey, (current) => {
-        if (!current) return current;
-        return {
-          ...current,
-          commentCount: current.commentCount + 1,
-          comments: [
-            ...current.comments,
-            {
-              id: optimisticId,
-              authorUserId: session?.user.id ?? optimisticId,
-              authorName: session?.user.fullName ?? '',
-              body,
-              deletedAt: null,
-              createdAt: now,
-              updatedAt: now,
-            },
-          ],
-        };
-      });
-
-      return { previous };
-    },
-    onError: (_error, _body, context) => {
-      if (context?.previous) queryClient.setQueryData(albumKey, context.previous);
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: albumKey }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: albumDetailKey(postId) }),
   });
 }
 
-/** Toggle the heart reaction on an album, reconciling with the server result. */
+/** Toggle the heart reaction, reconciling with the server result. */
 export function useToggleAlbumReaction(postId: string) {
   const queryClient = useQueryClient();
-  const albumKey = queryKeys.albums.detail(postId);
-
+  const albumKey = albumDetailKey(postId);
   return useMutation({
     mutationFn: () => orpc.albums.toggleReaction({ postId }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: albumKey });
       const previous = queryClient.getQueryData<ApiAlbumDetail>(albumKey);
-
       queryClient.setQueryData<ApiAlbumDetail>(albumKey, (current) => {
         if (!current) return current;
         const reacted = current.reactionSummary.myReaction !== null;
@@ -209,7 +232,6 @@ export function useToggleAlbumReaction(postId: string) {
           },
         };
       });
-
       return { previous };
     },
     onError: (_error, _vars, context) => {
@@ -221,4 +243,21 @@ export function useToggleAlbumReaction(postId: string) {
       );
     },
   });
+}
+
+/** Resolve signed download URLs for a set of album media, aligned to input order. */
+export function useSignedAlbumUrls(media: AlbumMedia[]): (string | null)[] {
+  const results = useQueries({
+    queries: media.map((item) => ({
+      queryKey: queryKeys.media.download(item.assetId),
+      queryFn: () => orpc.media.getDownloadUrl({ mediaAssetId: item.assetId }),
+      staleTime: 4 * 60 * 1000,
+    })),
+  });
+  return results.map((result) => result.data?.downloadUrl ?? null);
+}
+
+/** Detail query key — scoped under the teacher albums namespace. */
+function albumDetailKey(postId: string) {
+  return [...teacherQueryKeys.albums, 'detail', postId] as const;
 }
