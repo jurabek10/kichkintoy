@@ -253,15 +253,6 @@ export function useStaffAttendance(date: string, classId?: string) {
   });
 }
 
-export function useStaffPickups(date: string) {
-  const centerId = useCenterId();
-  return useQuery({
-    queryKey: teacherQueryKeys.pickups(date),
-    queryFn: () => orpc.pickups.staffList({ centerId: centerId ?? '', date }),
-    enabled: !!centerId,
-  });
-}
-
 // --- Student documents ----------------------------------------------------
 
 export type DocStatus =
