@@ -74,7 +74,8 @@
     "quietHours": "Quiet hours",
     "quietHoursHint": "Pause notifications during these hours.",
     "from": "From",
-    "to": "To"
+    "to": "To",
+    "quietHoursError": "Enter times as HH:MM (e.g. 22:00)."
   },
   "phoneDialog": {
     "title": "Change phone number",
@@ -100,6 +101,31 @@
     "childPhotoRemoved": "Photo removed."
   },
   "errors": {
-    "uploadFailed": "Could not upload the photo. Please try again."
+    "uploadFailed": "Could not upload the photo. Please try again.",
+    "saveFailed": "Something went wrong. Please try again."
+  },
+  "hub": {
+    "account": "Account",
+    "preferences": "Preferences",
+    "work": "Your classroom",
+    "editProfile": "Edit profile",
+    "editProfileHint": "Name, photo, and bio",
+    "phoneHint": "Used to sign in and reach you",
+    "passwordHint": "Change your sign-in password",
+    "languageHint": "App language",
+    "notificationsHint": "Push, SMS, and quiet hours",
+    "myClasses": "My classes",
+    "signOut": "Sign out",
+    "signOutConfirm": "Sign out of your account?",
+    "signOutConfirmBody": "You'll need your phone and password to sign back in.",
+    "center": "Center",
+    "childrenCount": "{{count}} children",
+    "noClasses": "No classes assigned yet."
+  },
+  "roles": {
+    "director": "Director",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "organization_owner": "Owner"
   }
 }

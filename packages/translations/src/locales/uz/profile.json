@@ -74,7 +74,8 @@
     "quietHours": "Tinch soatlar",
     "quietHoursHint": "Shu soatlarda bildirishnomalar to'xtatiladi.",
     "from": "Dan",
-    "to": "Gacha"
+    "to": "Gacha",
+    "quietHoursError": "Vaqtni SS:DD ko'rinishida kiriting (masalan, 22:00)."
   },
   "phoneDialog": {
     "title": "Telefon raqamini o'zgartirish",
@@ -100,6 +101,31 @@
     "childPhotoRemoved": "Rasm o'chirildi."
   },
   "errors": {
-    "uploadFailed": "Rasmni yuklab bo'lmadi. Qayta urinib ko'ring."
+    "uploadFailed": "Rasmni yuklab bo'lmadi. Qayta urinib ko'ring.",
+    "saveFailed": "Xatolik yuz berdi. Qaytadan urinib ko'ring."
+  },
+  "hub": {
+    "account": "Hisob",
+    "preferences": "Sozlamalar",
+    "work": "Sizning guruhlaringiz",
+    "editProfile": "Profilni tahrirlash",
+    "editProfileHint": "Ism, rasm va bio",
+    "phoneHint": "Kirish va bog'lanish uchun",
+    "passwordHint": "Kirish parolini o'zgartirish",
+    "languageHint": "Ilova tili",
+    "notificationsHint": "Push, SMS va tinch soatlar",
+    "myClasses": "Mening guruhlarim",
+    "signOut": "Chiqish",
+    "signOutConfirm": "Hisobdan chiqasizmi?",
+    "signOutConfirmBody": "Qayta kirish uchun telefon va parol kerak bo'ladi.",
+    "center": "Muassasa",
+    "childrenCount": "{{count}} bola",
+    "noClasses": "Guruh biriktirilmagan."
+  },
+  "roles": {
+    "director": "Direktor",
+    "teacher": "Tarbiyachi",
+    "parent": "Ota-ona",
+    "organization_owner": "Egasi"
   }
 }

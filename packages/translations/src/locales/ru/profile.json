@@ -74,7 +74,8 @@
     "quietHours": "Тихие часы",
     "quietHoursHint": "Приостановить уведомления в эти часы.",
     "from": "С",
-    "to": "До"
+    "to": "До",
+    "quietHoursError": "Введите время в формате ЧЧ:ММ (например, 22:00)."
   },
   "phoneDialog": {
     "title": "Изменить номер телефона",
@@ -100,6 +101,31 @@
     "childPhotoRemoved": "Фото удалено."
   },
   "errors": {
-    "uploadFailed": "Не удалось загрузить фото. Попробуйте снова."
+    "uploadFailed": "Не удалось загрузить фото. Попробуйте снова.",
+    "saveFailed": "Что-то пошло не так. Попробуйте ещё раз."
+  },
+  "hub": {
+    "account": "Аккаунт",
+    "preferences": "Настройки",
+    "work": "Ваши группы",
+    "editProfile": "Изменить профиль",
+    "editProfileHint": "Имя, фото и о себе",
+    "phoneHint": "Для входа и связи с вами",
+    "passwordHint": "Сменить пароль для входа",
+    "languageHint": "Язык приложения",
+    "notificationsHint": "Push, SMS и тихие часы",
+    "myClasses": "Мои группы",
+    "signOut": "Выйти",
+    "signOutConfirm": "Выйти из аккаунта?",
+    "signOutConfirmBody": "Для повторного входа понадобятся телефон и пароль.",
+    "center": "Учреждение",
+    "childrenCount": "{{count}} детей",
+    "noClasses": "Группы не назначены."
+  },
+  "roles": {
+    "director": "Директор",
+    "teacher": "Педагог",
+    "parent": "Родитель",
+    "organization_owner": "Владелец"
   }
 }
