@@ -32,6 +32,7 @@ export type StaffAlbumSummary = {
   title: string;
   bodyPreview: string;
   authorName: string;
+  authorPhoto: string | null;
   classes: { id: string; name: string }[];
   className: string;
   status: AlbumStatus;
@@ -57,6 +58,8 @@ export type AlbumCommentView = {
   body: string;
   dateLabel: string;
   deleted: boolean;
+  photoMediaAssetId: string | null;
+  photoUrl: string | null;
 };
 
 export type StaffAlbumDetail = StaffAlbumSummary & {
@@ -94,6 +97,7 @@ function toSummary(post: ApiAlbumSummary): StaffAlbumSummary {
     title: albumTitle(post),
     bodyPreview: post.bodyPreview,
     authorName: post.author.fullName,
+    authorPhoto: post.author.photoMediaAssetId ?? post.author.photoUrl,
     classes: post.classes.map((klass) => ({ id: klass.id, name: klass.name })),
     className: post.classes.map((klass) => klass.name).join(', '),
     status: post.status,
@@ -122,7 +126,9 @@ function toDetail(post: ApiAlbumDetail): StaffAlbumDetail {
     comments: post.comments.map((comment) => ({
       id: comment.id,
       authorId: comment.authorUserId,
-      authorName: comment.authorName,
+      authorName: comment.authorDisplayName,
+      photoMediaAssetId: comment.authorPhotoMediaAssetId,
+      photoUrl: comment.authorPhotoUrl,
       body: comment.deletedAt ? '' : comment.body,
       dateLabel: formatDayMonthTime(comment.createdAt, lang),
       deleted: !!comment.deletedAt,

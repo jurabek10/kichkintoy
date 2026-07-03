@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SignedAlbumImage } from '@/components/album/signed-album-image';
 import { CommentBar } from '@/components/common/comment-bar';
 import { PhotoViewer } from '@/components/common/photo-viewer';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { Avatar } from '@/components/ui/avatar';
 import { Loader } from '@/components/ui/loader';
 import {
@@ -168,7 +169,7 @@ export default function AlbumDetailScreen() {
           <View className="gap-3 bg-card px-4 pb-4 pt-4">
             <Badges album={album} />
             <View className="flex-row items-center gap-3">
-              <Avatar size={40} />
+              <Avatar uri={album.authorPhoto} size={40} />
               <View className="flex-1">
                 <Text className="text-sm font-bold text-foreground">{album.authorName}</Text>
                 <Text className="text-xs text-muted">
@@ -235,7 +236,14 @@ export default function AlbumDetailScreen() {
             ) : (
               album.comments.map((comment) => (
                 <View key={comment.id} className="mb-3 flex-row gap-3">
-                  <Avatar size={36} />
+                  <ProfileAvatar
+                    avatarMediaAssetId={comment.photoMediaAssetId}
+                    photoUrl={comment.photoUrl}
+                    name={comment.authorName}
+                    size={36}
+                    fallbackClassName="bg-sky"
+                    fallbackTextClassName="text-sky-ink"
+                  />
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2">
                       <Text className="text-sm font-bold text-foreground">{comment.authorName}</Text>

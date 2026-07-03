@@ -22,6 +22,7 @@ export type ReportSummary = {
   id: string;
   reportDate: string;
   authorName: string;
+  authorPhoto: string | null;
   className: string;
   mood: string | null;
   teacherNote: string;
@@ -30,7 +31,7 @@ export type ReportSummary = {
 };
 
 export type ReportItem = { id: string; itemType: string; title: string | null; value: string };
-export type ReportComment = { id: string; authorName: string; body: string; dateLabel: string };
+export type ReportComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null };
 export type ReportMedia = { id: string; mediaType: string };
 
 export type ReportDetail = ReportSummary & {
@@ -61,6 +62,7 @@ function toReportSummary(report: ApiReportSummary): ReportSummary {
     id: report.id,
     reportDate: report.reportDate,
     authorName: report.author.fullName,
+    authorPhoto: report.author.photoMediaAssetId ?? report.author.photoUrl,
     className: report.class.name,
     mood: report.mood,
     teacherNote: report.teacherNote ?? '',
@@ -84,7 +86,9 @@ function toReportDetail(report: ApiReportDetail): ReportDetail {
       .filter((comment) => !comment.deletedAt)
       .map((comment) => ({
         id: comment.id,
-        authorName: comment.authorName,
+        authorName: comment.authorDisplayName,
+        photoMediaAssetId: comment.authorPhotoMediaAssetId,
+        photoUrl: comment.authorPhotoUrl,
         body: comment.body,
         dateLabel: formatDayMonthTime(comment.createdAt, lang),
       })),
@@ -149,6 +153,10 @@ export function useAddReportComment(reportId: string) {
               id: optimisticId,
               authorUserId: session?.user.id ?? optimisticId,
               authorName: session?.user.fullName ?? '',
+              authorRole: 'parent' as const,
+              authorDisplayName: session?.user.fullName ?? '',
+              authorPhotoMediaAssetId: null,
+              authorPhotoUrl: null,
               parentCommentId: null,
               body,
               deletedAt: null,

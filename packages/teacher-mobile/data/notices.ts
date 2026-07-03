@@ -67,12 +67,15 @@ export type NoticeCommentView = {
   body: string;
   dateLabel: string;
   deleted: boolean;
+  photoMediaAssetId: string | null;
+  photoUrl: string | null;
 };
 
 export type StaffNoticeDetail = StaffNoticeSummary & {
   body: string;
   authorId: string;
   authorName: string;
+  authorPhoto: string | null;
   allowComments: boolean;
   /** Long date + time the notice went (or will go) out. */
   publishedLabel: string;
@@ -116,6 +119,7 @@ function toDetail(notice: ApiNoticeDetail): StaffNoticeDetail {
     body: notice.body,
     authorId: notice.author.id,
     authorName: notice.author.fullName,
+    authorPhoto: notice.author.photoMediaAssetId ?? notice.author.photoUrl,
     allowComments: notice.allowComments,
     publishedLabel: notice.publishedAt
       ? formatDayMonthTime(notice.publishedAt, lang)
@@ -135,7 +139,9 @@ function toDetail(notice: ApiNoticeDetail): StaffNoticeDetail {
     comments: notice.comments.map((comment) => ({
       id: comment.id,
       authorId: comment.authorUserId,
-      authorName: comment.authorName,
+      authorName: comment.authorDisplayName,
+      photoMediaAssetId: comment.authorPhotoMediaAssetId,
+      photoUrl: comment.authorPhotoUrl,
       body: comment.deletedAt ? '' : comment.body,
       dateLabel: `${formatDayMonth(localIsoDate(comment.createdAt), lang)} · ${formatTime(comment.createdAt)}`,
       deleted: !!comment.deletedAt,

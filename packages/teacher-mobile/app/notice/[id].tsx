@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CommentBar } from '@/components/common/comment-bar';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Loader } from '@/components/ui/loader';
@@ -197,7 +198,14 @@ function CommentRow({
   const isAuthor = comment.authorId === noticeAuthorId;
   return (
     <View className="flex-row gap-3 border-b border-border py-3">
-      <Avatar size={32} />
+      <ProfileAvatar
+        avatarMediaAssetId={comment.photoMediaAssetId}
+        photoUrl={comment.photoUrl}
+        name={comment.authorName}
+        size={32}
+        fallbackClassName="bg-sky"
+        fallbackTextClassName="text-sky-ink"
+      />
       <View className="flex-1">
         <View className="flex-row items-center gap-2">
           <Text className="text-[13px] font-bold text-foreground">{comment.authorName}</Text>
@@ -276,7 +284,7 @@ export default function NoticeDetailScreen() {
             <Text className="text-[22px] font-extrabold leading-7 text-foreground">{notice.title}</Text>
 
             <View className="flex-row items-center gap-3">
-              <Avatar size={40} />
+              <Avatar uri={notice.authorPhoto} size={40} />
               <View className="flex-1">
                 <Text className="text-[13px] font-bold text-foreground">{notice.authorName}</Text>
                 <Text className="text-[12px] text-muted">{notice.publishedLabel}</Text>
