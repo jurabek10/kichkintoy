@@ -103,7 +103,9 @@ export class StudentDocumentsService {
     userId: string,
     input: { centerId: string; status?: string },
   ) {
-    await this.requireDirector(userId, input.centerId);
+    // Teachers may read the center's templates so they can compose a request;
+    // only directors can create or edit them (see createTemplate/updateTemplate).
+    await this.requireStaff(userId, input.centerId);
     const templates = await this.prisma.studentDocumentTemplate.findMany({
       where: {
         centerId: input.centerId,
@@ -215,7 +217,7 @@ export class StudentDocumentsService {
   }
 
   async sendRequest(userId: string, input: SendStudentDocumentRequestInput) {
-    const center = await this.requireDirector(userId, input.centerId);
+    const scope = await this.requireStaff(userId, input.centerId);
     const template = await this.findTemplate(input.templateId);
     if (template.centerId !== input.centerId || template.status !== "active") {
       throw new BadRequestException("Choose an active template for this center.");
@@ -223,6 +225,19 @@ export class StudentDocumentsService {
     const audience = await this.resolveAudience(input);
     if (audience.childIds.length === 0) {
       throw new BadRequestException("No active children match this request.");
+    }
+    // Teachers may only request documents from children in their own classes;
+    // directors reach the whole center.
+    if (!scope.director) {
+      const outsideScope =
+        input.targetType === "center" ||
+        audience.classIds.length === 0 ||
+        audience.classIds.some((classId) => !scope.classIds.includes(classId));
+      if (outsideScope) {
+        throw new ForbiddenException(
+          "You can only request documents for your own classes.",
+        );
+      }
     }
 
     const request = await this.prisma.$transaction(async (tx) => {
@@ -257,7 +272,7 @@ export class StudentDocumentsService {
       });
       await this.audit.log(
         {
-          organizationId: center.organizationId,
+          organizationId: scope.organizationId,
           centerId: input.centerId,
           actorUserId: userId,
           action: "student_document.request_sent",
@@ -393,7 +408,15 @@ export class StudentDocumentsService {
     input: ReviewStudentDocumentSubmissionInput,
   ) {
     const existing = await this.findSubmission(input.submissionId);
-    const center = await this.requireDirector(userId, existing.centerId);
+    const scope = await this.requireStaff(userId, existing.centerId);
+    if (!scope.director) {
+      const enrollment = existing.child.childEnrollments[0];
+      if (!enrollment?.classId || !scope.classIds.includes(enrollment.classId)) {
+        throw new ForbiddenException(
+          "You can only review documents for your own classes.",
+        );
+      }
+    }
     if (
       input.decision === "needs_correction" &&
       !input.correctionNote?.trim()
@@ -416,7 +439,7 @@ export class StudentDocumentsService {
       });
       await this.audit.log(
         {
-          organizationId: center.organizationId,
+          organizationId: scope.organizationId,
           centerId: existing.centerId,
           actorUserId: userId,
           action:
@@ -617,7 +640,13 @@ export class StudentDocumentsService {
       },
       select: { id: true },
     });
-    if (director) return { director: true, classIds: [] as string[] };
+    if (director) {
+      return {
+        director: true,
+        classIds: [] as string[],
+        organizationId: center.organizationId,
+      };
+    }
     const assignments = await this.prisma.teacherClassAssignment.findMany({
       where: {
         teacherUserId: userId,
@@ -632,6 +661,7 @@ export class StudentDocumentsService {
     return {
       director: false,
       classIds: assignments.map((assignment) => assignment.classId),
+      organizationId: center.organizationId,
     };
   }
 
@@ -684,7 +714,13 @@ export class StudentDocumentsService {
     if (parent) return;
     const scope = await this.requireStaff(userId, submission.centerId);
     if (scope.director) return;
-    throw new ForbiddenException("Only directors can access full submissions.");
+    const enrollment = submission.child.childEnrollments[0];
+    if (enrollment?.classId && scope.classIds.includes(enrollment.classId)) {
+      return;
+    }
+    throw new ForbiddenException(
+      "You can only view documents for your own classes.",
+    );
   }
 
   private async resolveAudience(input: SendStudentDocumentRequestInput) {
@@ -951,6 +987,7 @@ export class StudentDocumentsService {
       submittedAt: submission.submittedAt?.toISOString() ?? null,
       reviewedAt: submission.reviewedAt?.toISOString() ?? null,
       attachmentCount: submission.attachments.length,
+      createdAt: submission.createdAt.toISOString(),
       updatedAt: submission.updatedAt.toISOString(),
     };
   }

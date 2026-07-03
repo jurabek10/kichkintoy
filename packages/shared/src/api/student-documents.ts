@@ -234,6 +234,7 @@ export const studentDocumentSubmissionSummarySchema = z.object({
   submittedAt: isoDateTimeSchema.nullable(),
   reviewedAt: isoDateTimeSchema.nullable(),
   attachmentCount: z.number().int().min(0),
+  createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
 });
 export type StudentDocumentSubmissionSummary = z.infer<
