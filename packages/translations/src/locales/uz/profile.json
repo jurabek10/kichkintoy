@@ -120,7 +120,11 @@
     "signOutConfirmBody": "Qayta kirish uchun telefon va parol kerak bo'ladi.",
     "center": "Muassasa",
     "childrenCount": "{{count}} bola",
-    "noClasses": "Guruh biriktirilmagan."
+    "noClasses": "Guruh biriktirilmagan.",
+    "myChildren": "Mening bolalarim",
+    "addChild": "Muassasa qo'shish",
+    "addChildHint": "Bolangizni bog'chaga bog'lang",
+    "noChildren": "Hali bola bog'lanmagan"
   },
   "roles": {
     "director": "Direktor",

@@ -120,7 +120,11 @@
     "signOutConfirmBody": "You'll need your phone and password to sign back in.",
     "center": "Center",
     "childrenCount": "{{count}} children",
-    "noClasses": "No classes assigned yet."
+    "noClasses": "No classes assigned yet.",
+    "myChildren": "My children",
+    "addChild": "Add a center",
+    "addChildHint": "Link your child to a kindergarten",
+    "noChildren": "No children linked yet"
   },
   "roles": {
     "director": "Director",
