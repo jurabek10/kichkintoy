@@ -99,7 +99,7 @@ export default function AlbumDetailScreen() {
           showsVerticalScrollIndicator={false}>
           {/* Author */}
           <View className="flex-row items-center gap-3 px-4 py-4">
-            <Avatar size={40} />
+            <Avatar uri={album.authorPhoto} size={40} />
             <View className="flex-1">
               <Text className="text-sm font-bold text-foreground">{album.authorName}</Text>
               <Text className="text-xs text-muted">

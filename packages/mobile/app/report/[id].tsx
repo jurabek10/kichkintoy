@@ -70,7 +70,7 @@ export default function ReportDetailScreen() {
           showsVerticalScrollIndicator={false}>
           {/* Author */}
           <View className="flex-row items-center gap-3 border-b border-border bg-card px-4 py-3">
-            <Avatar size={40} />
+            <Avatar uri={report.authorPhoto} size={40} />
             <View className="flex-1">
               <Text className="text-sm font-bold text-foreground">{report.authorName}</Text>
               <Text className="text-xs text-muted">

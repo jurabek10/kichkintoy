@@ -20,12 +20,13 @@ type ApiAlbumDetail = Awaited<ReturnType<typeof orpc.albums.detail>>;
 // --- View models ----------------------------------------------------------
 
 export type AlbumMedia = { id: string; assetId: string; mediaType: string };
-export type AlbumComment = { id: string; authorName: string; body: string; dateLabel: string };
+export type AlbumComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null };
 
 export type AlbumSummary = {
   id: string;
   caption: string; // first line = title, rest = body
   authorName: string;
+  authorPhoto: string | null;
   className: string;
   heartCount: number;
   commentCount: number;
@@ -70,6 +71,7 @@ function toAlbumSummary(post: ApiAlbumSummary): AlbumSummary {
     id: post.id,
     caption: post.caption,
     authorName: post.author.fullName,
+    authorPhoto: post.author.photoMediaAssetId ?? post.author.photoUrl,
     className: className(post.classes),
     heartCount: post.reactionSummary.heartCount,
     commentCount: post.commentCount,
@@ -93,7 +95,9 @@ function toAlbumDetail(post: ApiAlbumDetail): AlbumDetail {
       .filter((comment) => !comment.deletedAt)
       .map((comment) => ({
         id: comment.id,
-        authorName: comment.authorName,
+        authorName: comment.authorDisplayName,
+        photoMediaAssetId: comment.authorPhotoMediaAssetId,
+        photoUrl: comment.authorPhotoUrl,
         body: comment.body,
         dateLabel: formatDayMonthTime(comment.createdAt, lang),
       })),
@@ -169,6 +173,10 @@ export function useAddAlbumComment(postId: string) {
               id: optimisticId,
               authorUserId: session?.user.id ?? optimisticId,
               authorName: session?.user.fullName ?? '',
+              authorRole: 'parent' as const,
+              authorDisplayName: session?.user.fullName ?? '',
+              authorPhotoMediaAssetId: null,
+              authorPhotoUrl: null,
               body,
               deletedAt: null,
               createdAt: now,

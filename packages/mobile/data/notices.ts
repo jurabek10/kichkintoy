@@ -7,7 +7,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Query } from '@/data/parent';
-import i18n from '@/i18n';
 import { formatTime, localIsoDate } from '@/lib/date';
 // formatTime / localIsoDate render in Uzbekistan time (UTC+5).
 import { orpc } from '@/lib/orpc';
@@ -26,6 +25,7 @@ export type NoticeSummary = {
   title: string;
   bodyPreview: string;
   authorName: string;
+  authorPhoto: string | null;
   centerName: string;
   audience: NoticeAudience;
   isPinned: boolean;
@@ -42,6 +42,8 @@ export type NoticeCommentView = {
   body: string;
   createdAt: string;
   deleted: boolean;
+  photoMediaAssetId: string | null;
+  photoUrl: string | null;
 };
 
 export type NoticeDetail = NoticeSummary & {
@@ -63,6 +65,7 @@ function toNoticeSummary(notice: ApiNoticeSummary): NoticeSummary {
     title: notice.title,
     bodyPreview: notice.bodyPreview,
     authorName: notice.author.fullName,
+    authorPhoto: notice.author.photoMediaAssetId ?? notice.author.photoUrl,
     centerName: notice.centerName,
     audience: notice.targetType,
     isPinned: notice.isPinned,
@@ -81,7 +84,9 @@ function toNoticeDetail(notice: ApiNoticeDetail): NoticeDetail {
     isConfirmed: !!notice.myConfirmedAt,
     comments: notice.comments.map((comment) => ({
       id: comment.id,
-      authorName: comment.authorName,
+      authorName: comment.authorDisplayName,
+      photoMediaAssetId: comment.authorPhotoMediaAssetId,
+      photoUrl: comment.authorPhotoUrl,
       body: comment.deletedAt ? '' : comment.body,
       createdAt: comment.createdAt,
       deleted: !!comment.deletedAt,

@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
-import { Avatar } from '@/components/ui/avatar';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import type { ReportComment } from '@/data/reports';
 
-/** Comment thread under a report. */
+/** Comment thread under a report. A parent's comment shows their child's name +
+ *  photo; staff show their own. */
 export function ReportComments({ comments }: { comments: ReportComment[] }) {
   const { t } = useTranslation('reports');
 
@@ -16,7 +17,14 @@ export function ReportComments({ comments }: { comments: ReportComment[] }) {
       ) : (
         comments.map((comment) => (
           <View key={comment.id} className="mb-3 flex-row gap-3">
-            <Avatar size={36} />
+            <ProfileAvatar
+              avatarMediaAssetId={comment.photoMediaAssetId}
+              photoUrl={comment.photoUrl}
+              name={comment.authorName}
+              size={36}
+              fallbackClassName="bg-sky"
+              fallbackTextClassName="text-sky-ink"
+            />
             <View className="flex-1">
               <View className="flex-row items-center gap-2">
                 <Text className="text-sm font-bold text-foreground">{comment.authorName}</Text>
