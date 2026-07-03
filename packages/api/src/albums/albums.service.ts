@@ -12,18 +12,24 @@ import {
   albumPostDetailSchema,
   albumReactionSummarySchema,
   albumVisibilitySchema,
+  type CommentAuthorDisplay,
   type CreateAlbumPostInput,
   type UpdateAlbumPostBody,
 } from "@kichkintoy/shared";
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../database/prisma.service";
+import {
+  commentAuthorFallback,
+  resolveCommentAuthors,
+  splitPhotoRef,
+} from "../common/comment-author";
 import { NotificationsService } from "../notifications/notifications.service";
 
 type Tx = Prisma.TransactionClient;
 
 const albumInclude = {
   center: { select: { id: true, name: true, organizationId: true } },
-  authorUser: { select: { id: true, fullName: true } },
+  authorUser: { select: { id: true, fullName: true, avatarUrl: true } },
   classes: { include: { class: { select: { id: true, name: true } } } },
   children: {
     include: {
@@ -160,7 +166,7 @@ export class AlbumsService {
     if (!(await this.canViewPost(userId, post))) {
       throw new ForbiddenException("You cannot access this album post.");
     }
-    return albumPostDetailSchema.parse(this.toDetail(post, userId));
+    return albumPostDetailSchema.parse(await this.toDetail(post, userId));
   }
 
   async create(userId: string, input: CreateAlbumPostInput) {
@@ -214,7 +220,7 @@ export class AlbumsService {
       if (input.publish) await this.notifyPublished(tx, created.id);
       return created;
     });
-    return albumPostDetailSchema.parse(this.toDetail(post, userId));
+    return albumPostDetailSchema.parse(await this.toDetail(post, userId));
   }
 
   async update(userId: string, postId: string, input: UpdateAlbumPostBody) {
@@ -290,7 +296,7 @@ export class AlbumsService {
       );
       return updated;
     });
-    return albumPostDetailSchema.parse(this.toDetail(post, userId));
+    return albumPostDetailSchema.parse(await this.toDetail(post, userId));
   }
 
   async publish(userId: string, postId: string) {
@@ -319,7 +325,7 @@ export class AlbumsService {
       );
       return updated;
     });
-    return albumPostDetailSchema.parse(this.toDetail(post, userId));
+    return albumPostDetailSchema.parse(await this.toDetail(post, userId));
   }
 
   async delete(userId: string, postId: string) {
@@ -361,7 +367,10 @@ export class AlbumsService {
       await this.notifyComment(tx, post, userId);
       return created;
     });
-    return albumCommentSchema.parse(toComment(comment));
+    const authors = await this.albumCommentAuthors(post, [comment]);
+    return albumCommentSchema.parse(
+      toComment(comment, authors.get(comment.authorUserId)),
+    );
   }
 
   async deleteComment(userId: string, postId: string, commentId: string) {
@@ -624,7 +633,11 @@ export class AlbumsService {
       id: post.id,
       centerId: post.centerId,
       centerName: post.center.name,
-      author: post.authorUser,
+      author: {
+        id: post.authorUser.id,
+        fullName: post.authorUser.fullName,
+        ...splitPhotoRef(post.authorUser.avatarUrl),
+      },
       caption: post.caption,
       bodyPreview: post.caption.slice(0, 180),
       visibility: post.visibility,
@@ -642,11 +655,63 @@ export class AlbumsService {
     };
   }
 
-  private toDetail(post: AlbumPayload, userId: string) {
+  /** Resolve each comment author for an album: staff show themselves, a parent
+   *  shows the child they guard in this album (a tagged child, or their child in
+   *  one of the album's classes). */
+  private async albumCommentAuthors(
+    post: AlbumPayload,
+    comments: { authorUserId: string; authorUser: { fullName: string } }[],
+  ) {
+    const authorIds = [...new Set(comments.map((c) => c.authorUserId))];
+    const taggedChildIds = post.children.map((row) => row.child.id);
+    const classIds = post.classes.map((row) => row.class.id);
+    const childMatch: Prisma.ChildWhereInput[] = [];
+    if (taggedChildIds.length) childMatch.push({ id: { in: taggedChildIds } });
+    if (classIds.length)
+      childMatch.push({
+        childEnrollments: {
+          some: { classId: { in: classIds }, enrollmentStatus: "active" },
+        },
+      });
+
+    const childByUser = new Map<string, { name: string; photoUrl: string | null }>();
+    if (authorIds.length && childMatch.length) {
+      const guardians = await this.prisma.childGuardian.findMany({
+        where: { userId: { in: authorIds }, child: { OR: childMatch } },
+        select: {
+          userId: true,
+          child: { select: { firstName: true, lastName: true, photoUrl: true } },
+        },
+      });
+      for (const guardian of guardians) {
+        if (childByUser.has(guardian.userId)) continue;
+        childByUser.set(guardian.userId, {
+          name: [guardian.child.firstName, guardian.child.lastName]
+            .filter(Boolean)
+            .join(" "),
+          photoUrl: guardian.child.photoUrl,
+        });
+      }
+    }
+
+    return resolveCommentAuthors(this.prisma, {
+      centerId: post.centerId,
+      authors: comments.map((c) => ({
+        userId: c.authorUserId,
+        fullName: c.authorUser.fullName,
+      })),
+      parentChild: (userId) => childByUser.get(userId) ?? null,
+    });
+  }
+
+  private async toDetail(post: AlbumPayload, userId: string) {
+    const authors = await this.albumCommentAuthors(post, post.comments);
     return {
       ...this.toSummary(post, userId),
       media: post.media.map((item) => toMedia(item)),
-      comments: post.comments.map(toComment),
+      comments: post.comments.map((comment) =>
+        toComment(comment, authors.get(comment.authorUserId)),
+      ),
     };
   }
 
@@ -703,6 +768,7 @@ function toComment(
     | Prisma.AlbumCommentGetPayload<{
         include: { authorUser: { select: { id: true; fullName: true } } };
       }>,
+  display: CommentAuthorDisplay | undefined,
 ) {
   return {
     id: comment.id,
@@ -712,5 +778,6 @@ function toComment(
     deletedAt: comment.deletedAt?.toISOString() ?? null,
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
+    ...commentAuthorFallback(comment, display),
   };
 }

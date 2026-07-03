@@ -11,6 +11,7 @@ import {
   noticeDetailSchema,
   noticeRecipientActionResponseSchema,
   noticeSummarySchema,
+  type CommentAuthorDisplay,
   type CreateNoticeRequest,
   type NoticeTargetType,
   type PublishNoticeRequest,
@@ -18,6 +19,11 @@ import {
 } from "@kichkintoy/shared";
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../database/prisma.service";
+import {
+  commentAuthorFallback,
+  resolveCommentAuthors,
+  splitPhotoRef,
+} from "../common/comment-author";
 import { NotificationsService } from "../notifications/notifications.service";
 
 type Tx = Prisma.TransactionClient;
@@ -28,7 +34,7 @@ type AuthorAccess =
 const DIRECTOR_ROLE_NAMES = ["director", "organization_owner"];
 const noticeInclude = {
   center: { select: { id: true, name: true, organizationId: true } },
-  authorUser: { select: { id: true, fullName: true } },
+  authorUser: { select: { id: true, fullName: true, avatarUrl: true } },
   targets: { orderBy: { createdAt: "asc" } },
   recipients: {
     include: {
@@ -38,6 +44,7 @@ const noticeInclude = {
           id: true,
           firstName: true,
           lastName: true,
+          photoUrl: true,
           childEnrollments: {
             where: { enrollmentStatus: "active" },
             include: { class: { select: { id: true, name: true } } },
@@ -386,7 +393,10 @@ export class NoticesService {
       await this.notifyComment(tx, notice, userId);
       return created;
     });
-    return noticeCommentSchema.parse(toNoticeComment(comment));
+    const authors = await this.noticeCommentAuthors(notice, [comment]);
+    return noticeCommentSchema.parse(
+      toNoticeComment(comment, authors.get(comment.authorUserId)),
+    );
   }
 
   async deleteComment(userId: string, noticeId: string, commentId: string) {
@@ -794,15 +804,45 @@ export class NoticesService {
     }
   }
 
+  /** Resolve each comment author for a notice: staff show themselves, a parent
+   *  shows the child they guard in this notice (from the recipient rows). */
+  private noticeCommentAuthors(
+    notice: NoticePayload,
+    comments: { authorUserId: string; authorUser: { fullName: string } }[],
+  ) {
+    const childByUser = new Map<string, { name: string; photoUrl: string | null }>();
+    for (const recipient of notice.recipients) {
+      if (!recipient.user || !recipient.child) continue;
+      if (childByUser.has(recipient.user.id)) continue;
+      childByUser.set(recipient.user.id, {
+        name: [recipient.child.firstName, recipient.child.lastName]
+          .filter(Boolean)
+          .join(" "),
+        photoUrl: recipient.child.photoUrl,
+      });
+    }
+    return resolveCommentAuthors(this.prisma, {
+      centerId: notice.centerId,
+      authors: comments.map((c) => ({
+        userId: c.authorUserId,
+        fullName: c.authorUser.fullName,
+      })),
+      parentChild: (userId) => childByUser.get(userId) ?? null,
+    });
+  }
+
   private async toDetail(
     notice: NoticePayload,
     viewer?: { userId: string; childId?: string | null },
   ) {
     const summary = await this.toSummary(notice, viewer);
+    const authors = await this.noticeCommentAuthors(notice, notice.comments);
     return noticeDetailSchema.parse({
       ...summary,
       body: notice.body,
-      comments: notice.comments.map(toNoticeComment),
+      comments: notice.comments.map((comment) =>
+        toNoticeComment(comment, authors.get(comment.authorUserId)),
+      ),
       recipients: notice.recipients.map((recipient) => {
         const childEnrollment = recipient.child?.childEnrollments[0];
         return {
@@ -844,6 +884,7 @@ export class NoticesService {
       author: {
         id: notice.authorUser.id,
         fullName: notice.authorUser.fullName,
+        ...splitPhotoRef(notice.authorUser.avatarUrl),
       },
       title: notice.title,
       bodyPreview:
@@ -971,7 +1012,10 @@ function childName(child: { firstName: string; lastName?: string | null }) {
   return [child.firstName, child.lastName].filter(Boolean).join(" ");
 }
 
-function toNoticeComment(comment: NoticePayload["comments"][number]) {
+function toNoticeComment(
+  comment: NoticePayload["comments"][number],
+  display: CommentAuthorDisplay | undefined,
+) {
   return {
     id: comment.id,
     authorUserId: comment.authorUserId,
@@ -980,5 +1024,6 @@ function toNoticeComment(comment: NoticePayload["comments"][number]) {
     deletedAt: comment.deletedAt?.toISOString() ?? null,
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
+    ...commentAuthorFallback(comment, display),
   };
 }

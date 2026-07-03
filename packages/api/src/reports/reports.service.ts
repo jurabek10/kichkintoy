@@ -14,6 +14,11 @@ import {
 } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import { withIdempotency } from "../common/idempotency";
+import {
+  commentAuthorFallback,
+  resolveCommentAuthors,
+  splitPhotoRef,
+} from "../common/comment-author";
 import { AuditService } from "../audit/audit.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import type {
@@ -41,7 +46,7 @@ const reportInclude = {
       gender: true,
     },
   },
-  authorUser: { select: { id: true, fullName: true } },
+  authorUser: { select: { id: true, fullName: true, avatarUrl: true } },
   items: { orderBy: { createdAt: "asc" } },
   reads: {
     include: {
@@ -600,6 +605,7 @@ export class ReportsService {
         return created;
       });
 
+      const authors = await this.reportCommentAuthors(report, [comment]);
       return {
         id: comment.id,
         authorUserId: comment.authorUserId,
@@ -609,6 +615,7 @@ export class ReportsService {
         deletedAt: null,
         createdAt: comment.createdAt.toISOString(),
         updatedAt: comment.updatedAt.toISOString(),
+        ...commentAuthorFallback(comment, authors.get(comment.authorUserId)),
       };
     });
   }
@@ -947,6 +954,7 @@ export class ReportsService {
       author: {
         id: report.authorUser.id,
         fullName: report.authorUser.fullName,
+        ...splitPhotoRef(report.authorUser.avatarUrl),
       },
       reportDate: toIsoDate(report.reportDate),
       status: report.status,
@@ -963,7 +971,30 @@ export class ReportsService {
     });
   }
 
+  /** Resolve each comment author for a report: staff show themselves, a parent
+   *  shows the report's child (name + photo) instead of their own name. */
+  private reportCommentAuthors(
+    report: ReportPayload,
+    comments: { authorUserId: string; authorUser: { fullName: string } }[],
+  ) {
+    const child = {
+      name: [report.child.firstName, report.child.lastName]
+        .filter(Boolean)
+        .join(" "),
+      photoUrl: report.child.photoUrl,
+    };
+    return resolveCommentAuthors(this.prisma, {
+      centerId: report.centerId,
+      authors: comments.map((c) => ({
+        userId: c.authorUserId,
+        fullName: c.authorUser.fullName,
+      })),
+      parentChild: () => child,
+    });
+  }
+
   private async toDetail(report: ReportPayload) {
+    const authors = await this.reportCommentAuthors(report, report.comments);
     return dailyReportDetailSchema.parse({
       ...(await this.toSummary(report)),
       healthNote: report.healthNote,
@@ -986,6 +1017,7 @@ export class ReportsService {
         deletedAt: comment.deletedAt?.toISOString() ?? null,
         createdAt: comment.createdAt.toISOString(),
         updatedAt: comment.updatedAt.toISOString(),
+        ...commentAuthorFallback(comment, authors.get(comment.authorUserId)),
       })),
     });
   }
