@@ -275,10 +275,17 @@ export function useStaffDocuments(status?: DocStatus) {
 
 // --- Join requests --------------------------------------------------------
 
-export function useJoinRequests(status?: 'pending' | 'approved' | 'rejected') {
+/** Lifecycle states a request can be filtered by (mirrors the web screen). */
+export type JoinRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+/** Who is asking to join — a parent enrolling a child, or a staff member. */
+export type JoinRequestKind = 'parent' | 'teacher' | 'director';
+/** One request row, shaped by the oRPC contract so it never drifts. */
+export type JoinRequest = Awaited<ReturnType<typeof orpc.director.joinRequests>>[number];
+
+export function useJoinRequests(status: JoinRequestStatus) {
   const centerId = useCenterId();
   return useQuery({
-    queryKey: teacherQueryKeys.joinRequests(status ?? 'all'),
+    queryKey: teacherQueryKeys.joinRequests(status),
     queryFn: () => orpc.director.joinRequests({ centerId: centerId ?? '', status }),
     enabled: !!centerId,
   });
