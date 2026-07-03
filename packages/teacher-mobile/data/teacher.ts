@@ -263,6 +263,15 @@ export type DocStatus =
   | 'accepted'
   | 'closed';
 
+/** One row of a staff submission list, shaped by the oRPC contract. */
+export type StaffDocument = Awaited<
+  ReturnType<typeof orpc.studentDocuments.staffSubmissions>
+>[number];
+/** A submission with its template fields, answers, and attachments. */
+export type StaffDocumentDetail = Awaited<
+  ReturnType<typeof orpc.studentDocuments.submissionDetail>
+>;
+
 export function useStaffDocuments(status?: DocStatus) {
   const centerId = useCenterId();
   return useQuery({
@@ -270,6 +279,15 @@ export function useStaffDocuments(status?: DocStatus) {
     queryFn: () =>
       orpc.studentDocuments.staffSubmissions({ centerId: centerId ?? '', status }),
     enabled: !!centerId,
+  });
+}
+
+/** A single submission's read-only detail for staff (scoped to their classes). */
+export function useStaffDocumentDetail(submissionId: string) {
+  return useQuery({
+    queryKey: teacherQueryKeys.documentDetail(submissionId),
+    queryFn: () => orpc.studentDocuments.submissionDetail({ submissionId }),
+    enabled: !!submissionId,
   });
 }
 

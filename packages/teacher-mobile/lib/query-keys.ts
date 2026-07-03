@@ -15,6 +15,7 @@ export const teacherQueryKeys = {
   calendar: (from: string, to: string) => ['teacher', 'calendar', from, to] as const,
   calendarEvent: (eventId: string) => ['teacher', 'calendar-event', eventId] as const,
   documents: (status: string) => ['teacher', 'documents', status] as const,
+  documentDetail: (submissionId: string) => ['teacher', 'document', submissionId] as const,
   joinRequests: (status: string) => ['teacher', 'join-requests', status] as const,
 };
 
