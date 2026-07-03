@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
+import { commentAuthorDisplaySchema } from "./comment-author.js";
 
 export const albumVisibilityValues = ["class", "tagged_children"] as const;
 export const albumVisibilitySchema = z.enum(albumVisibilityValues);
@@ -16,6 +17,8 @@ export type AlbumReactionKind = z.infer<typeof albumReactionKindSchema>;
 export const albumAuthorSchema = z.object({
   id: uuidSchema,
   fullName: z.string(),
+  photoMediaAssetId: uuidSchema.nullable(),
+  photoUrl: z.string().nullable(),
 });
 export type AlbumAuthor = z.infer<typeof albumAuthorSchema>;
 
@@ -44,15 +47,17 @@ export const albumMediaSchema = z.object({
 });
 export type AlbumMedia = z.infer<typeof albumMediaSchema>;
 
-export const albumCommentSchema = z.object({
-  id: uuidSchema,
-  authorUserId: uuidSchema,
-  authorName: z.string(),
-  body: z.string(),
-  deletedAt: isoDateTimeSchema.nullable(),
-  createdAt: isoDateTimeSchema,
-  updatedAt: isoDateTimeSchema,
-});
+export const albumCommentSchema = z
+  .object({
+    id: uuidSchema,
+    authorUserId: uuidSchema,
+    authorName: z.string(),
+    body: z.string(),
+    deletedAt: isoDateTimeSchema.nullable(),
+    createdAt: isoDateTimeSchema,
+    updatedAt: isoDateTimeSchema,
+  })
+  .merge(commentAuthorDisplaySchema);
 export type AlbumComment = z.infer<typeof albumCommentSchema>;
 
 export const albumReactionSummarySchema = z.object({

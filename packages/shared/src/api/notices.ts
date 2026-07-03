@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
+import { commentAuthorDisplaySchema } from "./comment-author.js";
 
 export const noticeStatusValues = ["draft", "scheduled", "published"] as const;
 export const noticeStatusSchema = z.enum(noticeStatusValues);
@@ -27,18 +28,22 @@ export type NoticeTarget = z.infer<typeof noticeTargetSchema>;
 export const noticeAuthorSchema = z.object({
   id: uuidSchema,
   fullName: z.string(),
+  photoMediaAssetId: uuidSchema.nullable(),
+  photoUrl: z.string().nullable(),
 });
 export type NoticeAuthor = z.infer<typeof noticeAuthorSchema>;
 
-export const noticeCommentSchema = z.object({
-  id: uuidSchema,
-  authorUserId: uuidSchema,
-  authorName: z.string(),
-  body: z.string(),
-  deletedAt: isoDateTimeSchema.nullable(),
-  createdAt: isoDateTimeSchema,
-  updatedAt: isoDateTimeSchema,
-});
+export const noticeCommentSchema = z
+  .object({
+    id: uuidSchema,
+    authorUserId: uuidSchema,
+    authorName: z.string(),
+    body: z.string(),
+    deletedAt: isoDateTimeSchema.nullable(),
+    createdAt: isoDateTimeSchema,
+    updatedAt: isoDateTimeSchema,
+  })
+  .merge(commentAuthorDisplaySchema);
 export type NoticeComment = z.infer<typeof noticeCommentSchema>;
 
 export const addNoticeCommentInputSchema = z.object({

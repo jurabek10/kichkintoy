@@ -4,6 +4,7 @@ export * from "./albums.js";
 export * from "./calendar.js";
 export * from "./centers.js";
 export * from "./classes.js";
+export * from "./comment-author.js";
 export * from "./daily-reports.js";
 export * from "./geo.js";
 export * from "./media.js";

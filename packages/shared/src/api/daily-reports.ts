@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { childGenderSchema } from "../child/gender.js";
 import { isoDateSchema, isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
+import { commentAuthorDisplaySchema } from "./comment-author.js";
 
 export const dailyReportStatusValues = [
   "draft",
@@ -164,6 +165,8 @@ export type DailyReportClass = z.infer<typeof dailyReportClassSchema>;
 export const dailyReportAuthorSchema = z.object({
   id: uuidSchema,
   fullName: z.string(),
+  photoMediaAssetId: uuidSchema.nullable(),
+  photoUrl: z.string().nullable(),
 });
 export type DailyReportAuthor = z.infer<typeof dailyReportAuthorSchema>;
 
@@ -184,16 +187,18 @@ export const dailyReportReadSchema = z.object({
 });
 export type DailyReportRead = z.infer<typeof dailyReportReadSchema>;
 
-export const dailyReportCommentSchema = z.object({
-  id: uuidSchema,
-  authorUserId: uuidSchema,
-  authorName: z.string(),
-  parentCommentId: uuidSchema.nullable(),
-  body: z.string(),
-  deletedAt: isoDateTimeSchema.nullable(),
-  createdAt: isoDateTimeSchema,
-  updatedAt: isoDateTimeSchema,
-});
+export const dailyReportCommentSchema = z
+  .object({
+    id: uuidSchema,
+    authorUserId: uuidSchema,
+    authorName: z.string(),
+    parentCommentId: uuidSchema.nullable(),
+    body: z.string(),
+    deletedAt: isoDateTimeSchema.nullable(),
+    createdAt: isoDateTimeSchema,
+    updatedAt: isoDateTimeSchema,
+  })
+  .merge(commentAuthorDisplaySchema);
 export type DailyReportComment = z.infer<typeof dailyReportCommentSchema>;
 
 export const dailyReportSummarySchema = z.object({
