@@ -53,7 +53,9 @@
     "empty": "No submissions",
     "emptyBody": "Enrollment document submissions from parents will appear here.",
     "due": "Due {{date}}",
-    "filter": { "all": "All" },
+    "filter": {
+      "all": "All"
+    },
     "status": {
       "not_started": "Not started",
       "in_progress": "In progress",
@@ -67,11 +69,66 @@
     "title": "Join requests",
     "empty": "No requests",
     "emptyBody": "Parent and teacher requests to join the center will appear here.",
+    "emptyFiltered": "No requests match your filters",
+    "emptyFilteredBody": "Try another month, status, or clear the search.",
     "byParent": "Requested by {{name}}",
     "approve": "Approve",
     "reject": "Reject",
+    "working": "Working…",
     "readOnly": "Only staff with permission can approve requests.",
-    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected" }
+    "search": "Search by name…",
+    "filter": "Filters",
+    "reset": "Reset",
+    "done": "Done",
+    "page": "{{current}} / {{total}}",
+    "count": "{{count}} request",
+    "count_other": "{{count}} requests",
+    "sections": {
+      "period": "Period",
+      "status": "Status",
+      "type": "Type"
+    },
+    "period": {
+      "all": "All time",
+      "month": "By month"
+    },
+    "filters": {
+      "allTypes": "All types"
+    },
+    "kind": {
+      "parent": "Parent",
+      "teacher": "Teacher",
+      "director": "Director"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "review": {
+      "title": "Review request",
+      "viewTitle": "Request details",
+      "child": "Child",
+      "dateOfBirth": "Date of birth",
+      "gender": "Gender",
+      "requestedClass": "Requested class",
+      "relationship": "Relationship",
+      "notPicked": "Not picked",
+      "noPhone": "No phone",
+      "noUsername": "No username",
+      "message": "Message from applicant",
+      "assignClass": "Assign to a class",
+      "assignClassHint": "Choose where this child will be placed.",
+      "pickClass": "Pick a class first",
+      "rejectionNote": "Rejection note",
+      "rejectionPlaceholder": "Let them know why (optional)",
+      "noClasses": "You have no classes to assign yet.",
+      "pendingReadOnly": "This request is waiting for a director to review.",
+      "reviewedBy": "Reviewed by {{name}}",
+      "reviewerNote": "Reviewer note",
+      "actionError": "Something went wrong. Please try again."
+    }
   },
   "classes": {
     "title": "My classes",

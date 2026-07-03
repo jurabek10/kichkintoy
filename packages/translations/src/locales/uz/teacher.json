@@ -53,7 +53,9 @@
     "empty": "Topshiriq yo'q",
     "emptyBody": "Ota-onalardan kelgan qabul hujjatlari shu yerda ko'rinadi.",
     "due": "Muddat {{date}}",
-    "filter": { "all": "Hammasi" },
+    "filter": {
+      "all": "Hammasi"
+    },
     "status": {
       "not_started": "Boshlanmagan",
       "in_progress": "Jarayonda",
@@ -67,11 +69,66 @@
     "title": "Qo'shilish so'rovlari",
     "empty": "So'rov yo'q",
     "emptyBody": "Ota-ona va tarbiyachilarning qo'shilish so'rovlari shu yerda ko'rinadi.",
+    "emptyFiltered": "Filtrlarga mos so'rov yo'q",
+    "emptyFilteredBody": "Boshqa oy yoki holatni tanlang yoki qidiruvni tozalang.",
     "byParent": "Yuborgan: {{name}}",
     "approve": "Tasdiqlash",
     "reject": "Rad etish",
+    "working": "Bajarilmoqda…",
     "readOnly": "Faqat ruxsati bor xodimlar so'rovlarni tasdiqlay oladi.",
-    "status": { "pending": "Kutilmoqda", "approved": "Tasdiqlangan", "rejected": "Rad etilgan" }
+    "search": "Ism bo'yicha qidirish…",
+    "filter": "Filtrlar",
+    "reset": "Tozalash",
+    "done": "Tayyor",
+    "page": "{{current}} / {{total}}",
+    "count": "{{count}} ta so'rov",
+    "count_other": "{{count}} ta so'rov",
+    "sections": {
+      "period": "Davr",
+      "status": "Holat",
+      "type": "Turi"
+    },
+    "period": {
+      "all": "Barcha vaqt",
+      "month": "Oy bo'yicha"
+    },
+    "filters": {
+      "allTypes": "Barcha turlar"
+    },
+    "kind": {
+      "parent": "Ota-ona",
+      "teacher": "Tarbiyachi",
+      "director": "Direktor"
+    },
+    "status": {
+      "pending": "Kutilmoqda",
+      "approved": "Tasdiqlangan",
+      "rejected": "Rad etilgan",
+      "cancelled": "Bekor qilingan"
+    },
+    "review": {
+      "title": "So'rovni ko'rib chiqish",
+      "viewTitle": "So'rov tafsilotlari",
+      "child": "Bola",
+      "dateOfBirth": "Tug'ilgan sana",
+      "gender": "Jinsi",
+      "requestedClass": "So'ralgan guruh",
+      "relationship": "Qarindoshligi",
+      "notPicked": "Tanlanmagan",
+      "noPhone": "Telefon yo'q",
+      "noUsername": "Foydalanuvchi nomi yo'q",
+      "message": "Arizachidan xabar",
+      "assignClass": "Guruhga biriktirish",
+      "assignClassHint": "Bola qaysi guruhga joylashtirilishini tanlang.",
+      "pickClass": "Avval guruhni tanlang",
+      "rejectionNote": "Rad etish izohi",
+      "rejectionPlaceholder": "Sababini yozing (ixtiyoriy)",
+      "noClasses": "Sizda biriktirish uchun guruh yo'q.",
+      "pendingReadOnly": "Bu so'rov direktor ko'rib chiqishini kutmoqda.",
+      "reviewedBy": "Ko'rib chiqdi: {{name}}",
+      "reviewerNote": "Ko'rib chiquvchi izohi",
+      "actionError": "Xatolik yuz berdi. Qaytadan urinib ko'ring."
+    }
   },
   "classes": {
     "title": "Mening guruhlarim",

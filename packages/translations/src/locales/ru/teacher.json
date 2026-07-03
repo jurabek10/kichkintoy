@@ -53,7 +53,9 @@
     "empty": "Нет заявок",
     "emptyBody": "Документы на зачисление от родителей появятся здесь.",
     "due": "Срок {{date}}",
-    "filter": { "all": "Все" },
+    "filter": {
+      "all": "Все"
+    },
     "status": {
       "not_started": "Не начато",
       "in_progress": "В процессе",
@@ -67,11 +69,68 @@
     "title": "Заявки на вступление",
     "empty": "Нет заявок",
     "emptyBody": "Заявки родителей и педагогов на вступление появятся здесь.",
+    "emptyFiltered": "Нет заявок по фильтрам",
+    "emptyFilteredBody": "Выберите другой месяц или статус либо очистите поиск.",
     "byParent": "От: {{name}}",
     "approve": "Принять",
     "reject": "Отклонить",
+    "working": "Обработка…",
     "readOnly": "Только сотрудники с правами могут одобрять заявки.",
-    "status": { "pending": "Ожидают", "approved": "Приняты", "rejected": "Отклонены" }
+    "search": "Поиск по имени…",
+    "filter": "Фильтры",
+    "reset": "Сбросить",
+    "done": "Готово",
+    "page": "{{current}} / {{total}}",
+    "count": "{{count}} заявка",
+    "count_few": "{{count}} заявки",
+    "count_many": "{{count}} заявок",
+    "count_other": "{{count}} заявок",
+    "sections": {
+      "period": "Период",
+      "status": "Статус",
+      "type": "Тип"
+    },
+    "period": {
+      "all": "За всё время",
+      "month": "По месяцу"
+    },
+    "filters": {
+      "allTypes": "Все типы"
+    },
+    "kind": {
+      "parent": "Родитель",
+      "teacher": "Педагог",
+      "director": "Директор"
+    },
+    "status": {
+      "pending": "Ожидают",
+      "approved": "Приняты",
+      "rejected": "Отклонены",
+      "cancelled": "Отменены"
+    },
+    "review": {
+      "title": "Рассмотреть заявку",
+      "viewTitle": "Детали заявки",
+      "child": "Ребёнок",
+      "dateOfBirth": "Дата рождения",
+      "gender": "Пол",
+      "requestedClass": "Запрошенная группа",
+      "relationship": "Родство",
+      "notPicked": "Не выбрана",
+      "noPhone": "Нет телефона",
+      "noUsername": "Нет имени пользователя",
+      "message": "Сообщение от заявителя",
+      "assignClass": "Определить в группу",
+      "assignClassHint": "Выберите, в какую группу поместить ребёнка.",
+      "pickClass": "Сначала выберите группу",
+      "rejectionNote": "Причина отклонения",
+      "rejectionPlaceholder": "Укажите причину (необязательно)",
+      "noClasses": "У вас пока нет групп для назначения.",
+      "pendingReadOnly": "Заявка ожидает рассмотрения директором.",
+      "reviewedBy": "Рассмотрел: {{name}}",
+      "reviewerNote": "Комментарий рассмотревшего",
+      "actionError": "Что-то пошло не так. Попробуйте ещё раз."
+    }
   },
   "classes": {
     "title": "Мои группы",
