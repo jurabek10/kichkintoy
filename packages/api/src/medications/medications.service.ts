@@ -27,6 +27,7 @@ const medicationInclude = {
       id: true,
       firstName: true,
       lastName: true,
+      photoUrl: true,
       childEnrollments: {
         where: { enrollmentStatus: "active" },
         select: {
@@ -72,7 +73,7 @@ export class MedicationsService {
         },
         include: {
           center: { select: { name: true } },
-          child: { select: { id: true, firstName: true, lastName: true } },
+          child: { select: { id: true, firstName: true, lastName: true, photoUrl: true } },
           class: { select: { id: true, name: true } },
         },
         orderBy: { child: { firstName: "asc" } },
@@ -81,6 +82,7 @@ export class MedicationsService {
         children: enrollments.map((enrollment) => ({
           id: enrollment.child.id,
           name: childName(enrollment.child),
+          photoUrl: enrollment.child.photoUrl,
           centerId: enrollment.centerId,
           centerName: enrollment.center.name,
           classId: enrollment.classId,
@@ -96,6 +98,7 @@ export class MedicationsService {
         .map((enrollment) => ({
           id: enrollment.childId,
           name: enrollment.childName,
+          photoUrl: enrollment.childPhotoUrl,
           centerId: enrollment.centerId,
           centerName: enrollment.centerName,
           classId: enrollment.classId,
@@ -431,6 +434,7 @@ export class MedicationsService {
       guardian.child.childEnrollments.map((enrollment) => ({
         childId: guardian.childId,
         childName: childName(guardian.child),
+        childPhotoUrl: guardian.child.photoUrl,
         centerId: enrollment.centerId,
         centerName: enrollment.center.name,
         classId: enrollment.classId,
@@ -622,6 +626,7 @@ function toChild(request: MedicationPayload) {
   return {
     id: request.child.id,
     name: childName(request.child),
+    photoUrl: request.child.photoUrl,
     centerId: request.centerId,
     centerName: request.center.name,
     classId: request.classId ?? enrollment?.classId ?? null,

@@ -18,6 +18,8 @@ export const attendanceChildSchema = z.object({
   id: uuidSchema,
   name: z.string(),
   gender: childGenderSchema.nullable(),
+  // A media-asset id or legacy URL for the child's photo (resolved client-side).
+  photoUrl: z.string().nullable(),
   centerId: uuidSchema,
   centerName: z.string(),
   classId: uuidSchema.nullable(),

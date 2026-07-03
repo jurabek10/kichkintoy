@@ -28,7 +28,7 @@ type Tx = Prisma.TransactionClient;
 const attendanceInclude = {
   center: { select: { id: true, name: true, organizationId: true } },
   class: { select: { id: true, name: true } },
-  child: { select: { id: true, firstName: true, lastName: true, gender: true } },
+  child: { select: { id: true, firstName: true, lastName: true, gender: true, photoUrl: true } },
   checkInByUser: { select: { id: true, fullName: true } },
   checkOutByUser: { select: { id: true, fullName: true } },
 } satisfies Prisma.AttendanceRecordInclude;
@@ -41,6 +41,7 @@ type EnrollmentSummary = {
   childId: string;
   childName: string;
   childGender: ChildGender | null;
+  childPhotoUrl: string | null;
   centerId: string;
   centerName: string;
   organizationId: string;
@@ -68,6 +69,7 @@ export class AttendanceService {
           id: enrollment.childId,
           name: enrollment.childName,
           gender: enrollment.childGender,
+          photoUrl: enrollment.childPhotoUrl,
           centerId: enrollment.centerId,
           centerName: enrollment.centerName,
           classId: enrollment.classId,
@@ -84,6 +86,7 @@ export class AttendanceService {
           id: enrollment.childId,
           name: enrollment.childName,
           gender: enrollment.childGender,
+          photoUrl: enrollment.childPhotoUrl,
           centerId: enrollment.centerId,
           centerName: enrollment.centerName,
           classId: enrollment.classId,
@@ -584,7 +587,7 @@ export class AttendanceService {
       },
       include: {
         center: { select: { name: true, organizationId: true } },
-        child: { select: { id: true, firstName: true, lastName: true, gender: true } },
+        child: { select: { id: true, firstName: true, lastName: true, gender: true, photoUrl: true } },
         class: { select: { id: true, name: true } },
       },
       orderBy: [{ class: { name: "asc" } }, { child: { firstName: "asc" } }],
@@ -637,7 +640,7 @@ export class AttendanceService {
       where: { childId, enrollmentStatus: "active" },
       include: {
         center: { select: { name: true, organizationId: true } },
-        child: { select: { id: true, firstName: true, lastName: true, gender: true } },
+        child: { select: { id: true, firstName: true, lastName: true, gender: true, photoUrl: true } },
         class: { select: { id: true, name: true } },
       },
       orderBy: { startedAt: "desc" },
@@ -774,6 +777,7 @@ export class AttendanceService {
         id: record.child.id,
         name: childName(record.child),
         gender: normalizeChildGender(record.child.gender),
+        photoUrl: record.child.photoUrl,
         centerId: record.centerId,
         centerName: record.center.name,
         classId: record.classId,
@@ -809,6 +813,7 @@ export class AttendanceService {
         id: enrollment.childId,
         name: enrollment.childName,
         gender: enrollment.childGender,
+        photoUrl: enrollment.childPhotoUrl,
         centerId: enrollment.centerId,
         centerName: enrollment.centerName,
         classId: enrollment.classId,
@@ -879,12 +884,14 @@ function toEnrollment(row: {
     firstName: string;
     lastName: string | null;
     gender: string | null;
+    photoUrl: string | null;
   };
 }): EnrollmentSummary {
   return {
     childId: row.childId,
     childName: childName(row.child),
     childGender: normalizeChildGender(row.child.gender),
+    childPhotoUrl: row.child.photoUrl,
     centerId: row.centerId,
     centerName: row.center.name,
     organizationId: row.center.organizationId,

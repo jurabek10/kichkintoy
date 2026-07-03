@@ -13,6 +13,8 @@ export type MedicationStatus = z.infer<typeof medicationStatusSchema>;
 export const medicationChildSchema = z.object({
   id: uuidSchema,
   name: z.string(),
+  // A media-asset id or legacy URL for the child's photo (resolved client-side).
+  photoUrl: z.string().nullable(),
   centerId: uuidSchema,
   centerName: z.string().nullable(),
   classId: uuidSchema.nullable(),
