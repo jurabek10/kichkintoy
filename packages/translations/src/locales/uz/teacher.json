@@ -53,9 +53,7 @@
     "empty": "Topshiriq yo'q",
     "emptyBody": "Ota-onalardan kelgan qabul hujjatlari shu yerda ko'rinadi.",
     "due": "Muddat {{date}}",
-    "filter": {
-      "all": "Hammasi"
-    },
+    "filter": "Filtrlar",
     "status": {
       "not_started": "Boshlanmagan",
       "in_progress": "Jarayonda",
@@ -63,7 +61,24 @@
       "needs_correction": "Tuzatish kerak",
       "accepted": "Qabul qilindi",
       "closed": "Yopilgan"
-    }
+    },
+    "search": "Bola bo'yicha qidirish…",
+    "reset": "Tozalash",
+    "done": "Tayyor",
+    "page": "{{current}} / {{total}}",
+    "sections": {
+      "status": "Holat",
+      "period": "Davr",
+      "class": "Guruh"
+    },
+    "period": {
+      "all": "Barcha vaqt",
+      "month": "Oy bo'yicha"
+    },
+    "allStatuses": "Barcha holatlar",
+    "allClasses": "Barcha guruhlar",
+    "emptyFiltered": "Mos hujjat yo'q",
+    "emptyFilteredBody": "Boshqa oy yoki holatni tanlang yoki qidiruvni tozalang."
   },
   "requests": {
     "title": "Qo'shilish so'rovlari",

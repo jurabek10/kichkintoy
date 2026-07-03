@@ -95,7 +95,9 @@
     "empty": "Hozircha topshiriqlar yo'q.",
     "filterChildren": "Bolalarni filtrlash...",
     "class": "Sinf",
-    "status": "Holat"
+    "status": "Holat",
+    "teacherDescription": "Guruhingizdagi har bir bolaning hujjat holatini ko'ring.",
+    "allTime": "Barcha vaqt"
   },
   "safety": {
     "class": "Sinf",
@@ -113,10 +115,15 @@
     "saveDraft": "Qoralamani saqlash",
     "submit": "Yuborish",
     "uploadedCount": "{{count}} ta yuklangan",
-    "uploading": "Yuklanmoqda"
+    "uploading": "Yuklanmoqda",
+    "responses": "Javoblar",
+    "noAnswer": "Javob berilmagan",
+    "openFile": "Faylni ochish",
+    "staffLocked": "Buni ota-onalar to'ldiradi — javoblarni shu yerda ko'ring.",
+    "openFailed": "Faylni ochib bo'lmadi. Qaytadan urinib ko'ring."
   },
   "review": {
-    "title": "Direktor ko'rib chiqishi",
+    "title": "Ko'rib chiqish",
     "correctionNote": "Tuzatish izohi",
     "needsCorrection": "Tuzatish kerak",
     "accept": "Qabul qilish"
@@ -149,5 +156,6 @@
     "lockedNote": "Siz buni yubordingiz. Xodimlar ko'rib chiqadi.",
     "requiredError": "{{label}} majburiy.",
     "fileRequiredError": "{{label}} uchun kamida bitta fayl kerak."
-  }
+  },
+  "teacherDescription": "Guruhingizdagi bolalar uchun hujjatlarni so'rang va kuzating."
 }

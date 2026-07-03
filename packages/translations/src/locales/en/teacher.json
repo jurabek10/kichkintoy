@@ -53,9 +53,7 @@
     "empty": "No submissions",
     "emptyBody": "Enrollment document submissions from parents will appear here.",
     "due": "Due {{date}}",
-    "filter": {
-      "all": "All"
-    },
+    "filter": "Filters",
     "status": {
       "not_started": "Not started",
       "in_progress": "In progress",
@@ -63,7 +61,24 @@
       "needs_correction": "Needs fix",
       "accepted": "Accepted",
       "closed": "Closed"
-    }
+    },
+    "search": "Search by child…",
+    "reset": "Reset",
+    "done": "Done",
+    "page": "{{current}} / {{total}}",
+    "sections": {
+      "status": "Status",
+      "period": "Period",
+      "class": "Class"
+    },
+    "period": {
+      "all": "All time",
+      "month": "By month"
+    },
+    "allStatuses": "All statuses",
+    "allClasses": "All classes",
+    "emptyFiltered": "No documents match",
+    "emptyFilteredBody": "Try another month, status, or clear the search."
   },
   "requests": {
     "title": "Join requests",

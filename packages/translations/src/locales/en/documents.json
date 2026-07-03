@@ -95,7 +95,9 @@
     "empty": "No submissions yet.",
     "filterChildren": "Filter children...",
     "class": "Class",
-    "status": "Status"
+    "status": "Status",
+    "teacherDescription": "Review each child's document status for your classes.",
+    "allTime": "All time"
   },
   "safety": {
     "class": "Class",
@@ -113,10 +115,15 @@
     "saveDraft": "Save draft",
     "submit": "Submit",
     "uploadedCount": "{{count}} uploaded",
-    "uploading": "Uploading"
+    "uploading": "Uploading",
+    "responses": "Responses",
+    "noAnswer": "Not answered",
+    "openFile": "Open file",
+    "staffLocked": "Parents fill this in — review their answers here.",
+    "openFailed": "Couldn't open this file. Try again."
   },
   "review": {
-    "title": "Director review",
+    "title": "Review",
     "correctionNote": "Correction note",
     "needsCorrection": "Needs correction",
     "accept": "Accept"
@@ -149,5 +156,6 @@
     "lockedNote": "You have submitted this. Staff will review it.",
     "requiredError": "{{label}} is required.",
     "fileRequiredError": "{{label}} needs at least one file."
-  }
+  },
+  "teacherDescription": "Request and track documents for the children in your classes."
 }

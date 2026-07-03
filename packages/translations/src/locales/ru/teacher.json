@@ -53,9 +53,7 @@
     "empty": "Нет заявок",
     "emptyBody": "Документы на зачисление от родителей появятся здесь.",
     "due": "Срок {{date}}",
-    "filter": {
-      "all": "Все"
-    },
+    "filter": "Фильтры",
     "status": {
       "not_started": "Не начато",
       "in_progress": "В процессе",
@@ -63,7 +61,24 @@
       "needs_correction": "Исправить",
       "accepted": "Принято",
       "closed": "Закрыто"
-    }
+    },
+    "search": "Поиск по ребёнку…",
+    "reset": "Сбросить",
+    "done": "Готово",
+    "page": "{{current}} / {{total}}",
+    "sections": {
+      "status": "Статус",
+      "period": "Период",
+      "class": "Группа"
+    },
+    "period": {
+      "all": "За всё время",
+      "month": "По месяцу"
+    },
+    "allStatuses": "Все статусы",
+    "allClasses": "Все группы",
+    "emptyFiltered": "Нет подходящих документов",
+    "emptyFilteredBody": "Выберите другой месяц или статус либо очистите поиск."
   },
   "requests": {
     "title": "Заявки на вступление",
