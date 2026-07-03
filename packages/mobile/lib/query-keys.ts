@@ -4,6 +4,10 @@ export const queryKeys = {
     children: ['parent', 'children'] as const,
     childReports: (childId: string) => ['parent', 'reports', childId] as const,
   },
+  profile: {
+    me: ['profile', 'me'] as const,
+    children: ['profile', 'children'] as const,
+  },
   reports: {
     detail: (reportId: string) => ['reports', 'detail', reportId] as const,
   },

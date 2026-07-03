@@ -40,6 +40,10 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="children" options={{ presentation: 'modal' }} />
       <Stack.Screen name="profile-settings" />
+      <Stack.Screen name="profile-settings/child" />
+      <Stack.Screen name="profile-settings/phone" />
+      <Stack.Screen name="profile-settings/password" />
+      <Stack.Screen name="profile-settings/notifications" />
       <Stack.Screen name="admission-documents" />
       <Stack.Screen name="find-center" />
       <Stack.Screen name="language" options={{ presentation: 'modal' }} />

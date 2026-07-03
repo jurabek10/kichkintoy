@@ -1,106 +1,156 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useRouter } from 'expo-router';
-import { ComponentProps } from 'react';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ChildRow } from '@/components/common/child-row';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
+import { SettingRow, SettingsGroupLabel } from '@/components/profile/setting-row';
 import { StackHeader } from '@/components/common/stack-header';
-import { Loader } from '@/components/ui/loader';
-import { account } from '@/constants/data';
 import { colors } from '@/constants/theme';
-import { useChildren } from '@/data/parent';
+import { useParentChildren, useProfile } from '@/data/profile';
+import { ageLabel } from '@/lib/date';
 import { useAuth } from '@/lib/auth';
 
-type IoniconName = ComponentProps<typeof Ionicons>['name'];
-
-export default function ChildrenScreen() {
+export default function MyPageScreen() {
   const router = useRouter();
-  const { t } = useTranslation(['account', 'nav', 'common', 'app']);
-  const { data: children, isPending } = useChildren();
-  const { signOut } = useAuth();
+  const { t, i18n } = useTranslation('profile');
+  const { session, signOut } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: children = [], isPending: childrenLoading } = useParentChildren();
 
-  const goToFindCenter = () => router.push('/find-center');
+  const fullName = profile?.fullName ?? session?.user.fullName ?? '';
+  const role = profile?.role ?? 'parent';
+  const languageLabel = t(`language.${i18n.language}`, { ns: 'common' });
 
-  async function handleSignOut() {
-    await signOut();
-    router.replace('/login');
+  function confirmSignOut() {
+    Alert.alert(t('hub.signOutConfirm'), t('hub.signOutConfirmBody'), [
+      { text: t('actions.cancel'), style: 'cancel' },
+      {
+        text: t('hub.signOut'),
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/login');
+        },
+      },
+    ]);
   }
-
-  const menu: { key: string; label: string; icon: IoniconName; onPress?: () => void }[] = [
-    { key: 'invitations', label: t('menu.invitations'), icon: 'person-add-outline' },
-    { key: 'notifications', label: t('menu.notifications'), icon: 'notifications-outline' },
-    { key: 'language', label: t('menu.language'), icon: 'language-outline', onPress: () => router.push('/language') },
-    { key: 'support', label: t('menu.support'), icon: 'chatbubble-ellipses-outline' },
-    { key: 'help', label: t('menu.help'), icon: 'headset-outline' },
-    { key: 'signOut', label: t('menu.signOut'), icon: 'log-out-outline', onPress: handleSignOut },
-  ];
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-header-blue">
-      <StackHeader title={account.username} left="close" />
+      <StackHeader title={t('title')} left="close" />
 
-      <View className="flex-row justify-center gap-12 pb-4">
-        <Link href="/profile-settings" asChild>
-          <Pressable className="flex-row items-center gap-2">
-            <Ionicons name="settings-sharp" size={18} color="#FFFFFF" />
-            <Text className="text-[15px] font-semibold text-white">{t('myInfo')}</Text>
-          </Pressable>
-        </Link>
-        <Pressable onPress={goToFindCenter} className="flex-row items-center gap-2">
-          <Ionicons name="person-add" size={18} color="#FFFFFF" />
-          <Text className="text-[15px] font-semibold text-white">{t('addChild')}</Text>
-        </Pressable>
-      </View>
-
-      {isPending ? (
-        <View className="flex-1 bg-background">
-          <Loader />
+      {/* Hero — who you are */}
+      <View className="items-center gap-2.5 px-6 pb-6 pt-1">
+        <ProfileAvatar name={fullName} size={84} />
+        <Text className="text-xl font-extrabold text-white" numberOfLines={1}>
+          {fullName}
+        </Text>
+        <View className="rounded-full bg-white/20 px-3 py-1">
+          <Text className="text-[12px] font-bold text-white">{t(`roles.${role}`)}</Text>
         </View>
-      ) : (
-        <ScrollView className="flex-1 bg-background" contentContainerClassName="pt-4">
-          {children.map((child, index) => (
-            <View key={child.id}>
-              <ChildRow
-                child={child}
-                avatarAction={index === 0 ? 'gear' : 'none'}
-                memoriesLabel={t('viewMemories')}
-                addLabel={t('addAffiliation')}
-                onAddAffiliation={goToFindCenter}
-              />
-              {child.className ? (
-                <Link href="/(tabs)" asChild>
-                  <Pressable className="mx-4 mb-2 mt-1 flex-row items-center justify-between rounded-md bg-[#79B6F7] px-4 py-3">
-                    <View>
-                      <Text className="text-base font-bold text-white">
-                        {child.centerName ?? ''}
-                      </Text>
-                      <Text className="mt-0.5 text-[13px] text-white/95">
-                        {t('childClass', { ns: 'app', name: child.className })}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
-                  </Pressable>
-                </Link>
-              ) : null}
-            </View>
-          ))}
-        </ScrollView>
-      )}
-
-      {/* Bottom menu grid */}
-      <View className="flex-row flex-wrap border-t border-border bg-card">
-        {menu.map((item) => (
-          <Pressable
-            key={item.key}
-            onPress={item.onPress}
-            className="w-1/3 flex-row items-center justify-center gap-2 py-4">
-            <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
-            <Text className="text-sm text-foreground">{item.label}</Text>
-          </Pressable>
-        ))}
       </View>
+
+      <ScrollView className="flex-1 bg-background" contentContainerClassName="px-4 pb-10">
+        {/* Children — the heart of a parent's page */}
+        <SettingsGroupLabel>{t('hub.myChildren')}</SettingsGroupLabel>
+        <View className="overflow-hidden rounded-2xl border border-border">
+          {childrenLoading ? (
+            <View className="bg-card px-4 py-5">
+              <Text className="text-[13px] text-muted">…</Text>
+            </View>
+          ) : (
+            <>
+              {children.map((child) => (
+                <Pressable
+                  key={child.id}
+                  onPress={() =>
+                    router.push({ pathname: '/profile-settings/child', params: { childId: child.id } })
+                  }
+                  className="flex-row items-center gap-3 border-b border-border bg-card px-4 py-3 active:bg-pill">
+                  <ProfileAvatar
+                    avatarMediaAssetId={child.photoMediaAssetId}
+                    photoUrl={child.photoUrl}
+                    name={child.name}
+                    size={44}
+                    fallbackClassName="bg-sky"
+                    fallbackTextClassName="text-sky-ink"
+                  />
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[15px] font-bold text-foreground" numberOfLines={1}>
+                      {child.name}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+                      {[child.dateOfBirth ? ageLabel(child.dateOfBirth) : null, child.centerName, child.className]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                </Pressable>
+              ))}
+              <SettingRow
+                icon="add-circle-outline"
+                tone="mint"
+                label={t('hub.addChild')}
+                hint={t('hub.addChildHint')}
+                onPress={() => router.push('/find-center')}
+                last
+              />
+            </>
+          )}
+        </View>
+
+        <SettingsGroupLabel>{t('hub.account')}</SettingsGroupLabel>
+        <View className="overflow-hidden rounded-2xl border border-border">
+          <SettingRow
+            icon="person-outline"
+            tone="sky"
+            label={t('hub.editProfile')}
+            hint={t('hub.editProfileHint')}
+            onPress={() => router.push('/profile-settings')}
+          />
+          <SettingRow
+            icon="call-outline"
+            tone="grape"
+            label={t('fields.phone')}
+            value={profile?.phone ?? '—'}
+            onPress={() => router.push('/profile-settings/phone')}
+          />
+          <SettingRow
+            icon="lock-closed-outline"
+            tone="bubblegum"
+            label={t('actions.changePassword')}
+            hint={t('hub.passwordHint')}
+            onPress={() => router.push('/profile-settings/password')}
+            last
+          />
+        </View>
+
+        <SettingsGroupLabel>{t('hub.preferences')}</SettingsGroupLabel>
+        <View className="overflow-hidden rounded-2xl border border-border">
+          <SettingRow
+            icon="globe-outline"
+            tone="sunshine"
+            label={t('fields.language')}
+            value={languageLabel}
+            onPress={() => router.push('/language')}
+          />
+          <SettingRow
+            icon="notifications-outline"
+            tone="coral"
+            label={t('notifications.title')}
+            hint={t('hub.notificationsHint')}
+            onPress={() => router.push('/profile-settings/notifications')}
+            last
+          />
+        </View>
+
+        <View className="mt-5 overflow-hidden rounded-2xl border border-border">
+          <SettingRow icon="log-out-outline" tone="coral" label={t('hub.signOut')} onPress={confirmSignOut} danger last />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

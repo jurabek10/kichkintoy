@@ -2,21 +2,33 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
-import { Avatar } from '@/components/ui/avatar';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import type { Child } from '@/constants/data';
 import { colors } from '@/constants/theme';
 import { useUnreadNotificationsCount } from '@/data/notifications';
+import { useParentChildren } from '@/data/profile';
 
 /** Top bar: tappable child profile (opens the account hub) + notifications. */
 export function HomeHeader({ child }: { child: Child }) {
   const unread = useUnreadNotificationsCount();
   const count = unread.data;
+  // The child's photo may be a media asset; listChildren resolves it correctly
+  // (reports.parentChildren returns the raw asset id, which isn't a URL).
+  const { data: editableChildren = [] } = useParentChildren();
+  const editable = editableChildren.find((c) => c.id === child.id);
 
   return (
     <View className="flex-row items-center justify-between py-3">
       <Link href="/children" asChild>
         <Pressable hitSlop={8} className="flex-row items-center gap-2">
-          <Avatar uri={child.photo} size={34} />
+          <ProfileAvatar
+            avatarMediaAssetId={editable?.photoMediaAssetId ?? null}
+            photoUrl={editable?.photoUrl ?? null}
+            name={child.name}
+            size={34}
+            fallbackClassName="bg-sky"
+            fallbackTextClassName="text-sky-ink"
+          />
           <Text className="text-lg font-bold text-foreground">{child.name}</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </Pressable>
