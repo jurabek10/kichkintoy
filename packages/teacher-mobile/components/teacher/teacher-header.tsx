@@ -2,26 +2,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { colors } from '@/constants/theme';
 import { useUnreadNotificationsCount } from '@/data/notifications';
+import { useProfile } from '@/data/profile';
 import { useAuth } from '@/lib/auth';
 
 /** Top bar: tappable teacher identity (opens the account hub) + notifications. */
 export function TeacherHeader() {
   const { session } = useAuth();
+  const { data: profile } = useProfile();
   const unread = useUnreadNotificationsCount();
   const count = unread.data;
 
-  const fullName = session?.user.fullName ?? '';
-  const initial = fullName.trim().charAt(0).toUpperCase() || '·';
+  const fullName = profile?.fullName ?? session?.user.fullName ?? '';
 
   return (
     <View className="flex-row items-center justify-between py-3">
       <Link href="/children" asChild>
         <Pressable hitSlop={8} className="flex-row items-center gap-2">
-          <View className="h-9 w-9 items-center justify-center rounded-full bg-header-blue">
-            <Text className="text-base font-extrabold text-white">{initial}</Text>
-          </View>
+          <ProfileAvatar
+            avatarMediaAssetId={profile?.avatarMediaAssetId ?? null}
+            name={fullName}
+            size={36}
+            fallbackClassName="bg-header-blue"
+            fallbackTextClassName="text-white"
+          />
           <Text className="text-lg font-bold text-foreground">{fullName}</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </Pressable>

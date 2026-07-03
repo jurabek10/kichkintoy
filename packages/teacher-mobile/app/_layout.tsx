@@ -48,6 +48,9 @@ function RootNavigator() {
       <Stack.Screen name="requests/index" />
       <Stack.Screen name="class-report/[id]" />
       <Stack.Screen name="profile-settings" />
+      <Stack.Screen name="profile-settings/phone" />
+      <Stack.Screen name="profile-settings/password" />
+      <Stack.Screen name="profile-settings/notifications" />
       <Stack.Screen name="admission-documents" />
       <Stack.Screen name="find-center" />
       <Stack.Screen name="language" options={{ presentation: 'modal' }} />
