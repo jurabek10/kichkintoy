@@ -427,6 +427,14 @@ export class MediaService {
     if (documentAttachment) {
       const submission = documentAttachment.submission;
       if (submission.submittedByUserId === userId) return true;
+      // Teachers assigned to the child's class may view the document's files
+      // (mirrors their scoped access to the submission itself).
+      const classIds = submission.child.childEnrollments
+        .map((enrollment) => enrollment.classId)
+        .filter((id): id is string => Boolean(id));
+      if (staff && (await this.teacherHasClassAccess(userId, classIds))) {
+        return true;
+      }
       const guardian = await this.prisma.childGuardian.findFirst({
         where: { userId, childId: submission.childId },
         select: { id: true },
