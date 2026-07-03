@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Send, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import type {
-  CenterClassSummary,
-  StudentDocumentTemplateSummary,
-} from "@kichkintoy/shared";
+import type { StudentDocumentTemplateSummary } from "@kichkintoy/shared";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,17 +33,24 @@ import { queryKeys } from "@/lib/query-keys";
 import { buildDefaultMedicalFields, templateTypeKey } from "./document-utils";
 
 type ChildOption = { id: string; name: string };
+type ClassOption = { id: string; name: string };
 
 export function RequestComposerDialog({
   centerId,
   templates,
   classes,
   children,
+  /** Directors can spin up a starter template inline; teachers only reuse existing ones. */
+  canCreateTemplate = true,
+  /** Directors can target the whole center; teachers are scoped to a class or child. */
+  allowCenterTarget = true,
 }: {
   centerId: string;
   templates: StudentDocumentTemplateSummary[];
-  classes: CenterClassSummary[];
+  classes: ClassOption[];
   children: ChildOption[];
+  canCreateTemplate?: boolean;
+  allowCenterTarget?: boolean;
 }) {
   const { t } = useLayoutTranslation("documents");
   const queryClient = useQueryClient();
@@ -157,21 +161,23 @@ export function RequestComposerDialog({
                 {t("composer.noTemplate")}
               </p>
             )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="justify-self-start"
-              disabled={createTemplate.isPending || !title.trim()}
-              onClick={() => createTemplate.mutate()}
-            >
-              {templates.length > 0 ? (
-                <Sparkles className="h-4 w-4" />
-              ) : (
-                <ShieldCheck className="h-4 w-4" />
-              )}
-              {t("composer.createTemplate")}
-            </Button>
+            {canCreateTemplate ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="justify-self-start"
+                disabled={createTemplate.isPending || !title.trim()}
+                onClick={() => createTemplate.mutate()}
+              >
+                {templates.length > 0 ? (
+                  <Sparkles className="h-4 w-4" />
+                ) : (
+                  <ShieldCheck className="h-4 w-4" />
+                )}
+                {t("composer.createTemplate")}
+              </Button>
+            ) : null}
           </div>
 
           <div className="grid gap-2">
@@ -186,7 +192,9 @@ export function RequestComposerDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="center">{t("target.center")}</SelectItem>
+                {allowCenterTarget ? (
+                  <SelectItem value="center">{t("target.center")}</SelectItem>
+                ) : null}
                 <SelectItem value="class">{t("target.class")}</SelectItem>
                 <SelectItem value="child">{t("target.child")}</SelectItem>
               </SelectContent>

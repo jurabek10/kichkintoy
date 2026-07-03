@@ -107,6 +107,25 @@ export function DocumentSubmissionScreen({
     });
   }
 
+  /** Open an uploaded file (PDF, image, …) in a new tab. The tab is opened
+   *  synchronously on the click so popup blockers allow it, then redirected to
+   *  the signed URL once it resolves. The stored content-type makes a PDF render
+   *  inline instead of downloading. */
+  async function openAttachment(mediaAssetId: string) {
+    const tab = window.open("about:blank", "_blank");
+    try {
+      const signed = await orpc.media.getDownloadUrl({ mediaAssetId });
+      if (tab) {
+        tab.location.href = signed.downloadUrl;
+      } else {
+        window.open(signed.downloadUrl, "_blank", "noopener,noreferrer");
+      }
+    } catch (err) {
+      tab?.close();
+      toast.error(toApiError(err).message);
+    }
+  }
+
   async function uploadFile(field: StudentDocumentField, event: ChangeEvent<HTMLInputElement>) {
     const files = [...(event.target.files ?? [])];
     if (!data || files.length === 0) return;
@@ -224,12 +243,7 @@ export function DocumentSubmissionScreen({
                     type="button"
                     variant="outline"
                     className="justify-start"
-                    onClick={async () => {
-                      const signed = await orpc.media.getDownloadUrl({
-                        mediaAssetId: attachment.mediaAssetId,
-                      });
-                      window.open(signed.downloadUrl, "_blank", "noopener,noreferrer");
-                    }}
+                    onClick={() => openAttachment(attachment.mediaAssetId)}
                   >
                     {attachment.fieldKey} · {attachment.mimeType ?? t("detail.file")}
                   </Button>
