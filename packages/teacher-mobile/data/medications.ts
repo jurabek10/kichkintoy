@@ -43,6 +43,7 @@ export type StaffMedDetail = {
   id: string;
   status: MedicationStatus;
   childName: string;
+  childPhoto: string | null;
   className: string | null;
   parentName: string;
   dateLabel: string;
@@ -93,6 +94,7 @@ function toDetail(request: ApiDetail): StaffMedDetail {
     id: request.id,
     status: request.status,
     childName: request.child.name,
+    childPhoto: request.child.photoUrl,
     className: request.child.className,
     parentName: request.parentName,
     dateLabel: formatLongDate(request.requestedForDate, lang),

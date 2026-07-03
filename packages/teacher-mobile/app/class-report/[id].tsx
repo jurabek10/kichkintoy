@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { ScreenHeader } from '@/components/common/screen-header';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -29,7 +30,6 @@ function ChildRow({ row, classId, date }: { row: ClassReportStatus; classId: str
   const { t } = useTranslation('teacher');
   const router = useRouter();
   const tone = STATUS_TONE[row.status];
-  const initial = row.name.trim().charAt(0).toUpperCase() || '·';
 
   // A child with no report opens the composer; an existing draft/published one
   // opens its report page.
@@ -47,13 +47,13 @@ function ChildRow({ row, classId, date }: { row: ClassReportStatus; classId: str
   return (
     <Pressable onPress={open}>
       <Card className="flex-row items-center gap-3">
-        {row.photo ? (
-          <Image source={{ uri: row.photo }} className="h-10 w-10 rounded-full bg-segment" />
-        ) : (
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-grape">
-            <Text className="font-extrabold text-grape-ink">{initial}</Text>
-          </View>
-        )}
+        <ProfileAvatar
+          photo={row.photo}
+          name={row.name}
+          size={40}
+          fallbackClassName="bg-grape"
+          fallbackTextClassName="text-grape-ink"
+        />
         <Text className="flex-1 text-[15px] font-bold text-foreground">{row.name}</Text>
         <View className={`rounded-full px-2.5 py-1 ${tone.bg}`}>
           <Text className={`text-[11px] font-bold ${tone.text}`}>{t(`reports.status.${row.status}`)}</Text>

@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { ScreenHeader } from '@/components/common/screen-header';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -15,34 +16,30 @@ import { cn } from '@/lib/utils';
 
 const SKY = { bg: '#E1F0FF', ink: '#3E8FE0' };
 const PINK = { bg: '#FFE4EF', ink: '#EC5E92' };
-const GRAPE = { bg: '#EEE6FF', ink: '#7C5CD8' };
 const PAGE_SIZE = 10;
 
 type GenderFilter = 'all' | 'boy' | 'girl';
 
 /** Gender → the tint that colours a child's monogram, so the roster reads as
  *  boys-in-sky / girls-in-pink even before you read a name. */
-function genderTone(gender: RosterChild['gender']) {
-  if (gender === 'boy') return SKY;
-  if (gender === 'girl') return PINK;
-  return GRAPE;
+function genderFallback(gender: RosterChild['gender']) {
+  if (gender === 'boy') return { bg: 'bg-sky', text: 'text-sky-ink' };
+  if (gender === 'girl') return { bg: 'bg-bubblegum', text: 'text-bubblegum-ink' };
+  return { bg: 'bg-grape', text: 'text-grape-ink' };
 }
 
-/** Photo when we have one, otherwise the child's initial on a gender-tinted
- *  disc — never an anonymous grey blank. */
+/** Photo when we have one (a media asset or legacy URL), otherwise the child's
+ *  initial on a gender-tinted disc — never an anonymous grey blank. */
 function RosterAvatar({ child, size = 48 }: { child: RosterChild; size?: number }) {
-  const dim = { width: size, height: size, borderRadius: size / 2 };
-  if (child.photo) {
-    return <Image source={{ uri: child.photo }} style={dim} className="bg-segment" />;
-  }
-  const tone = genderTone(child.gender);
-  const initial = child.name.trim().charAt(0).toUpperCase() || '·';
+  const tone = genderFallback(child.gender);
   return (
-    <View style={[dim, { backgroundColor: tone.bg }]} className="items-center justify-center">
-      <Text style={{ color: tone.ink, fontSize: size * 0.4 }} className="font-extrabold">
-        {initial}
-      </Text>
-    </View>
+    <ProfileAvatar
+      photo={child.photo}
+      name={child.name}
+      size={size}
+      fallbackClassName={tone.bg}
+      fallbackTextClassName={tone.text}
+    />
   );
 }
 

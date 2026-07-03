@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SignedImage } from '@/components/medication/signed-image';
 import { StatusChip } from '@/components/medication/status-chip';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { TimeField } from '@/components/calendar/time-field';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';
@@ -242,8 +243,6 @@ export default function MedicationDetailScreen() {
   }
 
   const facts: Fact[] = [
-    { icon: 'person-outline', label: t('detail.child'), value: request.childName },
-    ...(request.className ? [{ icon: 'people-outline' as IconName, label: t('detail.class'), value: request.className }] : []),
     { icon: 'happy-outline', label: t('detail.parent'), value: request.parentName },
     { icon: 'calendar-outline', label: t('composer.date'), value: request.dateLabel },
     { icon: 'flask-outline', label: t('detail.medicineType'), value: request.medicationType },
@@ -264,7 +263,28 @@ export default function MedicationDetailScreen() {
             <StatusChip status={request.status} />
           </View>
 
-          <View className="mx-4 mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+          {/* Who the medicine is for */}
+          <View className="mx-4 mt-3 flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
+            <ProfileAvatar
+              photo={request.childPhoto}
+              name={request.childName}
+              size={44}
+              fallbackClassName="bg-coral"
+              fallbackTextClassName="text-coral-ink"
+            />
+            <View className="min-w-0 flex-1">
+              <Text className="text-[15px] font-bold text-foreground" numberOfLines={1}>
+                {request.childName}
+              </Text>
+              {request.className ? (
+                <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+                  {request.className}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          <View className="mx-4 mt-3 overflow-hidden rounded-2xl border border-border bg-card">
             {facts.map((fact, index) => (
               <InfoRow key={fact.label} {...fact} last={index === facts.length - 1} />
             ))}

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import { TeacherMarkAbsentSheet } from '@/components/attendance/teacher-mark-absent-sheet';
+import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { Card } from '@/components/ui/card';
 import { useStaffAttendance } from '@/data/teacher';
 import { formatTime } from '@/lib/date';
@@ -15,8 +16,6 @@ type AttendanceRecord = NonNullable<ReturnType<typeof useStaffAttendance>['data'
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
 const SKY = { bg: '#E1F0FF', ink: '#3E8FE0' };
-const PINK = { bg: '#FFE4EF', ink: '#EC5E92' };
-const GRAPE = { bg: '#EEE6FF', ink: '#7C5CD8' };
 
 // Present tone / absent tone reused by the action buttons so the button colour
 // matches the state it produces.
@@ -38,10 +37,11 @@ const STATUS_META: Record<
   not_checked_in: { bg: 'bg-pill', text: 'text-muted', ink: '#D6D9DE', icon: 'ellipse-outline', label: 'notIn' },
 };
 
-function genderTone(gender: AttendanceRecord['child']['gender']) {
-  if (gender === 'boy') return SKY;
-  if (gender === 'girl') return PINK;
-  return GRAPE;
+/** Gender → the tint for a child's monogram fallback (boys sky, girls pink). */
+function genderFallback(gender: AttendanceRecord['child']['gender']) {
+  if (gender === 'boy') return { bg: 'bg-sky', text: 'text-sky-ink' };
+  if (gender === 'girl') return { bg: 'bg-bubblegum', text: 'text-bubblegum-ink' };
+  return { bg: 'bg-grape', text: 'text-grape-ink' };
 }
 
 export function TeacherAttendanceRow({ record, date }: { record: AttendanceRecord; date: string }) {
@@ -63,8 +63,7 @@ export function TeacherAttendanceRow({ record, date }: { record: AttendanceRecor
   const busy = checkIn.isPending || checkOut.isPending;
 
   const meta = STATUS_META[record.status] ?? STATUS_META.not_checked_in;
-  const avatar = genderTone(record.child.gender);
-  const initial = record.child.name.trim().charAt(0).toUpperCase() || '·';
+  const avatarTone = genderFallback(record.child.gender);
   const pending = record.status === 'not_checked_in';
   const here = record.status === 'present' || record.status === 'late';
   const sub = record.checkedOutAt
@@ -80,13 +79,13 @@ export function TeacherAttendanceRow({ record, date }: { record: AttendanceRecor
         <View className="absolute bottom-0 left-0 top-0 w-1.5" style={{ backgroundColor: meta.ink }} />
 
         <View className="flex-row items-center gap-3">
-          <View
-            style={{ backgroundColor: avatar.bg }}
-            className="h-11 w-11 items-center justify-center rounded-full">
-            <Text style={{ color: avatar.ink }} className="text-base font-extrabold">
-              {initial}
-            </Text>
-          </View>
+          <ProfileAvatar
+            photo={record.child.photoUrl}
+            name={record.child.name}
+            size={44}
+            fallbackClassName={avatarTone.bg}
+            fallbackTextClassName={avatarTone.text}
+          />
           <View className="flex-1">
             <Text numberOfLines={1} className="text-[15px] font-bold text-foreground">
               {record.child.name}
