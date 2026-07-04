@@ -10,6 +10,7 @@
   "allChildren": "Все дети",
   "selectChild": "Выберите ребенка",
   "search": "Поиск ребенка",
+  "page": "{{current}} / {{total}}",
   "summary": {
     "total": "Всего",
     "present": "Пришли",

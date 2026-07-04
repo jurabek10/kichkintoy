@@ -224,14 +224,15 @@ export function ReportAbsenceSheet({
               />
             </View>
 
-            {/* Submit */}
+            {/* Submit — coral to match the "report absence" action it completes. */}
             <Pressable
               onPress={submit}
               disabled={!canSubmit}
               className={cn(
                 'mt-1 flex-row items-center justify-center gap-2 rounded-xl py-3.5',
-                canSubmit ? 'bg-primary' : 'bg-pill',
-              )}>
+                canSubmit ? '' : 'bg-pill',
+              )}
+              style={canSubmit ? { backgroundColor: '#E8674E' } : undefined}>
               <Ionicons
                 name="paper-plane"
                 size={17}

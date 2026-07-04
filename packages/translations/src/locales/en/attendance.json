@@ -10,6 +10,7 @@
   "allChildren": "All children",
   "selectChild": "Select child",
   "search": "Search child",
+  "page": "{{current}} / {{total}}",
   "summary": {
     "total": "Total",
     "present": "Present",

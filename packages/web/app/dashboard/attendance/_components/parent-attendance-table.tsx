@@ -232,7 +232,7 @@ export function ParentAttendanceTable({ days }: { days: AttendanceDay[] }) {
     <DataTable
       columns={columns}
       data={days}
-      pageSize={31}
+      pageSize={10}
       emptyMessage={t("noMatchesTitle")}
       toolbar={(table) => {
         const statusFilter =

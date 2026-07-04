@@ -10,6 +10,7 @@
   "allChildren": "Barcha bolalar",
   "selectChild": "Bolani tanlang",
   "search": "Bolani qidirish",
+  "page": "{{current}} / {{total}}",
   "summary": {
     "total": "Jami",
     "present": "Kelgan",
