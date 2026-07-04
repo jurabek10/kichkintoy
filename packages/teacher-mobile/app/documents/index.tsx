@@ -14,6 +14,7 @@ import {
 import { ScreenHeader } from '@/components/common/screen-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Loader } from '@/components/ui/loader';
+import { Pager } from '@/components/ui/pager';
 import { colors } from '@/constants/theme';
 import { useStaffDocuments, type StaffDocument } from '@/data/teacher';
 import { formatMonthYear, todayIsoDate } from '@/lib/date';
@@ -155,33 +156,13 @@ export default function DocumentsScreen() {
               <DocCard key={doc.id} doc={doc} />
             ))}
 
-            {totalPages > 1 ? (
-              <View className="mt-1 flex-row items-center justify-between">
-                <Pressable
-                  disabled={safePage === 0}
-                  onPress={() => setPage(safePage - 1)}
-                  hitSlop={8}
-                  className={cn(
-                    'h-10 w-10 items-center justify-center rounded-full border border-border',
-                    safePage === 0 ? 'opacity-40' : 'bg-card',
-                  )}>
-                  <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
-                </Pressable>
-                <Text className="text-[13px] font-semibold text-muted">
-                  {t('documents.page', { current: safePage + 1, total: totalPages })}
-                </Text>
-                <Pressable
-                  disabled={safePage >= totalPages - 1}
-                  onPress={() => setPage(safePage + 1)}
-                  hitSlop={8}
-                  className={cn(
-                    'h-10 w-10 items-center justify-center rounded-full border border-border',
-                    safePage >= totalPages - 1 ? 'opacity-40' : 'bg-card',
-                  )}>
-                  <Ionicons name="chevron-forward" size={20} color={colors.textPrimary} />
-                </Pressable>
-              </View>
-            ) : null}
+            <Pager
+              page={safePage}
+              totalPages={totalPages}
+              onPage={setPage}
+              label={t('documents.page', { current: safePage + 1, total: totalPages })}
+              className="mt-1"
+            />
           </>
         )}
       </ScrollView>
