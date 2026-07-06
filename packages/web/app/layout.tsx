@@ -43,6 +43,7 @@ const layoutNamespaces = [
   "nav",
   "app",
   "errors",
+  "chat",
   "reports",
   "classes",
   "attendance",

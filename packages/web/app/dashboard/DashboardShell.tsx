@@ -18,6 +18,7 @@ import {
   Mail,
   Pill,
   School,
+  Sparkles,
   UserCheck,
   Utensils,
   X,
@@ -101,6 +102,7 @@ const navByRole: Record<
   ],
   parent: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
+    { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", labelKey: "items.attendance", Icon: ClipboardCheck },
@@ -115,6 +117,7 @@ const navByRole: Record<
 
 const navColors: Record<string, string> = {
   "/dashboard": "text-coral-ink",
+  "/dashboard/chat": "text-grape-ink",
   "/dashboard/classes": "text-sky-ink",
   "/dashboard/attendance": "text-mint-ink",
   "/dashboard/notices": "text-coral-ink",
@@ -133,7 +136,12 @@ const navColors: Record<string, string> = {
 const navGroups = [
   {
     labelKey: "groups.main",
-    hrefs: ["/dashboard", "/dashboard/classes", "/dashboard/attendance"],
+    hrefs: [
+      "/dashboard",
+      "/dashboard/chat",
+      "/dashboard/classes",
+      "/dashboard/attendance",
+    ],
   },
   {
     labelKey: "groups.communication",

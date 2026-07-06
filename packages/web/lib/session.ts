@@ -99,10 +99,9 @@ export async function logoutAndClear(token: string | null) {
 }
 
 export function routeForMembership(
-  role: AuthResponse["user"]["role"],
+  _role: AuthResponse["user"]["role"],
   membership: Membership,
 ): string {
   if (membership.status === "pending") return "/pending";
-  if (role === "director" || role === "teacher") return "/dashboard";
   return "/dashboard";
 }
