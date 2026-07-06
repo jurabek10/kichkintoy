@@ -20,7 +20,7 @@ import { useMeals, type Meal } from '@/data/meals';
 import { formatLongDate, todayIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 function matchesSearch(meal: Meal, query: string) {
   return `${meal.menuText} ${meal.allergyNote ?? ''} ${meal.className}`.toLowerCase().includes(query);

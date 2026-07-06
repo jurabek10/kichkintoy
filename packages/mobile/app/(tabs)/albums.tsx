@@ -20,7 +20,7 @@ import { useAlbums, type AlbumSummary } from '@/data/albums';
 import { todayIsoDate } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 function matchesSearch(album: AlbumSummary, query: string) {
   return `${album.caption} ${album.authorName} ${album.className}`.toLowerCase().includes(query);
