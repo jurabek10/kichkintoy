@@ -1,12 +1,11 @@
 /**
- * Meals (식단) data access — the oRPC queries for the parent meals list, the
- * mappers that turn the API responses into the view-model shapes the screen
- * renders, plus the signed-media resolver. Mirrors the daily reports / notices
- * / albums data layers.
+ * Meals (식단) data access — the oRPC queries for the parent meal history and a
+ * single meal's detail, plus the mappers that turn the API responses into the
+ * view-model shapes the screens render and the signed-media resolver. Mirrors
+ * the daily reports / notices / albums data layers.
  *
  * Called without a date, `meals.parentList` returns the child's full published
- * meal history newest-first (mirroring the daily reports list), so we fetch it
- * in one query and group the meals by date for the screen.
+ * meal history newest-first; the screen splits that into "today" and history.
  */
 import { useQueries, useQuery } from '@tanstack/react-query';
 
@@ -14,8 +13,9 @@ import { useCurrentChild, type Query } from '@/data/parent';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
-// Derive the API shape from the typed client so we never drift from the contract.
+// Derive the API shapes from the typed client so we never drift from the contract.
 type ApiMealSummary = Awaited<ReturnType<typeof orpc.meals.parentList>>[number];
+type ApiMealDetail = Awaited<ReturnType<typeof orpc.meals.detail>>;
 
 // --- View models ----------------------------------------------------------
 
@@ -29,14 +29,31 @@ export type Meal = {
   mealType: MealType;
   menuText: string;
   allergyNote: string | null;
+  className: string;
   eatingStatus: MealEatingStatus; // the active child's status for this meal
-  media: MealMedia[];
+  media: MealMedia[]; // list payload carries only the cover
 };
 
-export type MealDay = { date: string; meals: Meal[] };
+export type MealChildStatus = {
+  childId: string;
+  name: string;
+  className: string | null;
+  status: MealEatingStatus;
+};
 
-/** Display order for a day's meals. */
-const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+export type MealDetail = {
+  id: string;
+  mealDate: string;
+  mealType: MealType;
+  menuText: string;
+  allergyNote: string | null;
+  className: string;
+  media: MealMedia[];
+  childStatuses: MealChildStatus[]; // scoped to this parent's children
+};
+
+/** Display order for a day's meals, shared with the filter sheet. */
+export const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
 
 /** Map the API's snake_case eating status onto the screen's camelCase enum. */
 const EATING_STATUS: Record<string, MealEatingStatus> = {
@@ -46,10 +63,19 @@ const EATING_STATUS: Record<string, MealEatingStatus> = {
   did_not_eat: 'didNotEat',
 };
 
+/** The i18n key for an eating status (e.g. "eatingStatus.ateAll"). */
+export function eatingStatusKey(status: MealEatingStatus): string {
+  return `eatingStatus.${status}`;
+}
+
 // --- Mappers --------------------------------------------------------------
 
 function toMedia(media: { id: string; assetId: string; mediaType: string }): MealMedia {
   return { id: media.id, assetId: media.assetId, mediaType: media.mediaType };
+}
+
+function className(classes: { name: string }[]): string {
+  return classes.map((cls) => cls.name).join(', ');
 }
 
 /** The active child's eating status for a meal, or "notRecorded" when none. */
@@ -65,34 +91,35 @@ function toMeal(meal: ApiMealSummary): Meal {
     mealType: meal.mealType,
     menuText: meal.menuText,
     allergyNote: meal.allergyNote,
+    className: className(meal.classes),
     eatingStatus: eatingStatusFor(meal),
-    // The list payload only carries the cover; the screen shows that one photo.
     media: meal.coverMedia ? [toMedia(meal.coverMedia)] : [],
   };
 }
 
-/** Group a flat, date-sorted meal list into days (newest first), each day's
- *  meals in breakfast → dinner order. */
-function groupByDate(meals: Meal[]): MealDay[] {
-  const byDate = new Map<string, Meal[]>();
-  for (const meal of meals) {
-    const list = byDate.get(meal.mealDate) ?? [];
-    list.push(meal);
-    byDate.set(meal.mealDate, list);
-  }
-  return [...byDate.keys()]
-    .sort((a, b) => b.localeCompare(a))
-    .map((date) => ({
-      date,
-      meals: byDate
-        .get(date)!
-        .sort((a, b) => MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType)),
-    }));
+function toMealDetail(meal: ApiMealDetail): MealDetail {
+  return {
+    id: meal.id,
+    mealDate: meal.mealDate,
+    mealType: meal.mealType,
+    menuText: meal.menuText,
+    allergyNote: meal.allergyNote,
+    className: className(meal.classes) || meal.centerName,
+    media: meal.media.map(toMedia),
+    childStatuses: meal.childStatuses.map((row) => ({
+      childId: row.child.id,
+      name: row.child.name,
+      className: row.child.className,
+      status: EATING_STATUS[row.status] ?? 'notRecorded',
+    })),
+  };
 }
 
 // --- Hooks ----------------------------------------------------------------
 
-export function useMealsByDate(): Query<MealDay[]> {
+/** The child's full published meal history, newest first, oldest meal-type-first
+ *  within a day — a flat list the screen splits into today + history. */
+export function useMeals(): Query<Meal[]> {
   const child = useCurrentChild();
   const childId = child.data?.id ?? '';
 
@@ -102,9 +129,24 @@ export function useMealsByDate(): Query<MealDay[]> {
     enabled: !!childId,
   });
 
-  const days = groupByDate((query.data ?? []).map(toMeal));
+  const meals = (query.data ?? [])
+    .map(toMeal)
+    .sort((a, b) => {
+      if (a.mealDate !== b.mealDate) return b.mealDate.localeCompare(a.mealDate);
+      return MEAL_ORDER.indexOf(a.mealType) - MEAL_ORDER.indexOf(b.mealType);
+    });
 
-  return { data: days, isPending: child.isPending || (!!childId && query.isPending) };
+  return { data: meals, isPending: child.isPending || (!!childId && query.isPending) };
+}
+
+export function useMeal(mealId: string): Query<MealDetail | null> {
+  const query = useQuery({
+    queryKey: queryKeys.meals.detail(mealId),
+    queryFn: () => orpc.meals.detail({ mealId }),
+    enabled: !!mealId,
+  });
+
+  return { data: query.data ? toMealDetail(query.data) : null, isPending: query.isPending };
 }
 
 /** Resolve signed download URLs for a set of meal media (shares the cache with

@@ -9,6 +9,7 @@
   "filter": "Filtrlar",
   "reset": "Tozalash",
   "done": "Tayyor",
+  "today": "Bugun",
   "page": "{{current}} / {{total}}",
   "servedCount_one": "{{count}} bola kiritildi",
   "servedCount_other": "{{count}} bola kiritildi",
@@ -39,7 +40,8 @@
     "staffTitle": "Bu sana uchun taom yo'q",
     "staffBody": "Tayyor bo'lganda kunlik taom menyusini e'lon qiling.",
     "parentTitle": "Hali taom yo'q",
-    "parentBody": "Bugungi ovqat menyusi shu yerda ko'rinadi."
+    "parentBody": "Bugungi ovqat menyusi shu yerda ko'rinadi.",
+    "filterBody": "Boshqa tur yoki sanani tanlang."
   },
   "status": {
     "draft": "Qoralama",

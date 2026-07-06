@@ -9,6 +9,7 @@
   "filter": "Filters",
   "reset": "Reset",
   "done": "Done",
+  "today": "Today",
   "page": "{{current}} / {{total}}",
   "servedCount_one": "{{count}} child recorded",
   "servedCount_other": "{{count}} children recorded",
@@ -39,7 +40,8 @@
     "staffTitle": "No meals for this date",
     "staffBody": "Publish the daily food menu when it is ready.",
     "parentTitle": "No meals yet",
-    "parentBody": "Today's food menu will appear here."
+    "parentBody": "Today's food menu will appear here.",
+    "filterBody": "Try a different type or date."
   },
   "status": {
     "draft": "Draft",
