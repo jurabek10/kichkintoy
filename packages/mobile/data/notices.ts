@@ -32,6 +32,8 @@ export type NoticeSummary = {
   isImportant: boolean;
   requiresConfirmation: boolean;
   allowComments: boolean;
+  isRead: boolean; // this parent has opened it
+  isConfirmed: boolean; // this parent has confirmed it
   publishedDate: string; // local "YYYY-MM-DD"
   time: string; // "11:13"
 };
@@ -72,6 +74,8 @@ function toNoticeSummary(notice: ApiNoticeSummary): NoticeSummary {
     isImportant: notice.isImportant,
     requiresConfirmation: notice.requiresConfirmation,
     allowComments: notice.allowComments,
+    isRead: !!notice.myReadAt,
+    isConfirmed: !!notice.myConfirmedAt,
     publishedDate: notice.publishedAt ? localIsoDate(notice.publishedAt) : '',
     time: timeLabel(notice.publishedAt),
   };
