@@ -106,7 +106,8 @@
         "teacherRequests": "Teacher requests waiting",
         "classesWithoutTeacher": "Classes without teacher",
         "unpaidChildren": "Unpaid children",
-        "missingDocuments": "Missing documents"
+        "missingDocuments": "Missing documents",
+        "allClear": "You're all caught up — nothing needs you right now."
       },
       "classes": {
         "title": "Class overview",

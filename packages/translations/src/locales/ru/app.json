@@ -110,7 +110,8 @@
         "teacherRequests": "Заявки воспитателей в ожидании",
         "classesWithoutTeacher": "Группы без воспитателя",
         "unpaidChildren": "Дети с задолженностью",
-        "missingDocuments": "Недостающие документы"
+        "missingDocuments": "Недостающие документы",
+        "allClear": "Всё под контролем — сейчас ничего не требует вашего внимания."
       },
       "classes": {
         "title": "Обзор групп",

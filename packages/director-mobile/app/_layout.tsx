@@ -1,0 +1,86 @@
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+
+import '../global.css';
+import '@/i18n';
+import { Loader } from '@/components/ui/loader';
+import { AuthProvider, useAuth } from '@/lib/auth';
+import { queryClient } from '@/lib/query';
+import { useRealtimeNotifications } from '@/lib/use-realtime-notifications';
+
+function RootNavigator() {
+  const { session, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  useRealtimeNotifications(session);
+
+  // Redirect between the auth screen and the app based on the session.
+  useEffect(() => {
+    if (loading) return;
+    const onAuthScreen = segments[0] === 'login' || segments[0] === 'signup';
+    if (!session && !onAuthScreen) router.replace('/login');
+    else if (session && onAuthScreen) router.replace('/(tabs)');
+  }, [session, loading, segments, router]);
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-background">
+        <Loader />
+      </View>
+    );
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="signup" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="children" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="classes/index" />
+      <Stack.Screen name="class/[id]" />
+      <Stack.Screen name="child/[id]" />
+      <Stack.Screen name="calendar/index" />
+      <Stack.Screen name="calendar/[id]" />
+      <Stack.Screen name="calendar/new" />
+      <Stack.Screen name="requests/index" />
+      <Stack.Screen name="class-report/[id]" />
+      <Stack.Screen name="profile-settings" />
+      <Stack.Screen name="profile-settings/phone" />
+      <Stack.Screen name="profile-settings/password" />
+      <Stack.Screen name="profile-settings/notifications" />
+      <Stack.Screen name="admission-documents" />
+      <Stack.Screen name="find-center" />
+      <Stack.Screen name="language" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="feature/[key]" />
+      <Stack.Screen name="report/[id]" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="notice/[id]" />
+      <Stack.Screen name="notice/new" />
+      <Stack.Screen name="album/[id]" />
+      <Stack.Screen name="album/new" />
+      <Stack.Screen name="meals/index" />
+      <Stack.Screen name="meals/[id]" />
+      <Stack.Screen name="meals/new" />
+      <Stack.Screen name="attendance" />
+      <Stack.Screen name="medications/index" />
+      <Stack.Screen name="medications/[id]" />
+      <Stack.Screen name="pickups/[id]" />
+      <Stack.Screen name="documents/index" />
+      <Stack.Screen name="documents/[id]" />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RootNavigator />
+        <StatusBar style="dark" />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}

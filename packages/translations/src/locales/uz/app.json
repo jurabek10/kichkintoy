@@ -106,7 +106,8 @@
         "teacherRequests": "Tarbiyachi so'rovlari kutilmoqda",
         "classesWithoutTeacher": "Tarbiyachisiz guruhlar",
         "unpaidChildren": "To'lov qilmagan bolalar",
-        "missingDocuments": "Yetishmayotgan hujjatlar"
+        "missingDocuments": "Yetishmayotgan hujjatlar",
+        "allClear": "Hammasi joyida — hozircha e'tiboringizni talab qiladigan narsa yo'q."
       },
       "classes": {
         "title": "Guruhlar bo'yicha ko'rinish",
