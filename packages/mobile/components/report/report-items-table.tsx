@@ -10,7 +10,7 @@ export function ReportItemsTable({ items }: { items: ReportItem[] }) {
   const { t } = useTranslation('reports');
 
   return (
-    <View className="mx-4 mt-4 overflow-hidden rounded-lg border border-border bg-card">
+    <View className="mx-4 overflow-hidden rounded-lg border border-border bg-card">
       {items.map((item, index) => {
         const typeLabel = t(`itemTypes.${item.itemType}`, { defaultValue: item.itemType });
         const label =
