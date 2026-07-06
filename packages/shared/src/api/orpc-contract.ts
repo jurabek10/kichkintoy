@@ -2,6 +2,7 @@ import { authContract } from "./orpc/auth.contract.js";
 import { attendanceContract } from "./orpc/attendance.contract.js";
 import { albumsContract } from "./orpc/albums.contract.js";
 import { calendarContract } from "./orpc/calendar.contract.js";
+import { chatContract } from "./orpc/chat.contract.js";
 import {
   centersContract,
   geoContract,
@@ -24,6 +25,7 @@ export const appContract = {
   attendance: attendanceContract,
   albums: albumsContract,
   calendar: calendarContract,
+  chat: chatContract,
   geo: geoContract,
   centers: centersContract,
   teacher: teacherContract,

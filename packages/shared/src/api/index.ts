@@ -3,6 +3,7 @@ export * from "./attendance.js";
 export * from "./albums.js";
 export * from "./calendar.js";
 export * from "./centers.js";
+export * from "./chat.js";
 export * from "./classes.js";
 export * from "./comment-author.js";
 export * from "./daily-reports.js";
