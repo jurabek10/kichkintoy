@@ -109,13 +109,14 @@ export default function PickupDetailScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="pb-10">
-          {/* Time-forward hero */}
+          {/* Time-forward hero — when the child heads home, and who for */}
           <View className="items-center gap-1 bg-sunshine px-4 pb-6 pt-6">
             <PickupStatusChip status={notice.status} />
             <Text className="mt-2 text-5xl font-extrabold tabular-nums text-foreground">
               {notice.pickupTime}
             </Text>
             <Text className="text-sm font-semibold text-foreground/70">{notice.dateLabel}</Text>
+            <Text className="mt-1 text-[15px] font-bold text-foreground">{notice.childName}</Text>
           </View>
 
           {editing ? (

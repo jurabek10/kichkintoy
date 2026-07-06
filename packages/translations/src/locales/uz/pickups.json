@@ -13,6 +13,7 @@
   "todaySection": "Bugun",
   "thisMonth": "Shu oy",
   "records": "Yozuvlar",
+  "sections": { "who": "Kim olib ketadi", "when": "Qachon", "note": "Izoh" },
   "parentRecordsDescription": "Tanlangan oydagi olib ketish xabarlaringiz.",
   "schedulePickup": "Olib ketishni rejalashtirish",
   "view": {

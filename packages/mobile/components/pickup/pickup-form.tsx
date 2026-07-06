@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { ComponentProps, ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -11,6 +11,24 @@ import { cn } from '@/lib/utils';
 
 const SUNSHINE = '#F4A621';
 const RELATIONSHIPS: PickupRelationship[] = ['mother', 'father', 'grandparent', 'other'];
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+/** A titled, iconed card grouping related fields — gives the form a scannable
+ *  rhythm (Who's collecting → When → Note). */
+function Section({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
+  return (
+    <View className="gap-4 rounded-2xl border border-border bg-card p-4">
+      <View className="flex-row items-center gap-2">
+        <View className="h-7 w-7 items-center justify-center rounded-full bg-sunshine">
+          <Ionicons name={icon} size={15} color={SUNSHINE} />
+        </View>
+        <Text className="text-[14px] font-extrabold text-foreground">{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
 
 export type PickupFormValues = {
   childId: string;
@@ -87,93 +105,99 @@ export function PickupForm({
         </View>
       ) : null}
 
-      {mode === 'create' ? (
+      <Section icon="walk-outline" title={t('sections.who')}>
+        {mode === 'create' ? (
+          <View className="gap-1.5">
+            <Text className="text-[11px] font-semibold uppercase text-muted">
+              {t('composer.child')}
+              <Text className="text-sunshine-ink"> *</Text>
+            </Text>
+            <SelectField
+              placeholder={t('composer.chooseChild')}
+              title={t('composer.chooseChild')}
+              value={selectedChild ? { id: selectedChild.id, label: selectedChild.name } : null}
+              options={options}
+              onChange={(option) => setChildId(option.id)}
+            />
+            {selectedChild?.className ? (
+              <Text className="text-xs text-muted">{selectedChild.className}</Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        <FormField
+          label={t('composer.personName')}
+          value={personName}
+          onChange={setPersonName}
+          required
+        />
+
+        {/* Relationship — chips beat a dropdown for four fixed choices */}
         <View className="gap-1.5">
           <Text className="text-[11px] font-semibold uppercase text-muted">
-            {t('composer.child')}
+            {t('composer.relationship')}
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {RELATIONSHIPS.map((value) => {
+              const selected = value === relationship;
+              return (
+                <Pressable
+                  key={value}
+                  onPress={() => setRelationship(value)}
+                  className={cn(
+                    'rounded-full border px-4 py-2',
+                    selected ? 'border-sunshine-ink bg-sunshine' : 'border-border bg-card',
+                  )}>
+                  <Text
+                    className={cn(
+                      'text-sm font-bold',
+                      selected ? 'text-sunshine-ink' : 'text-muted',
+                    )}>
+                    {t(`relationship.${value}`)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </Section>
+
+      <Section icon="time-outline" title={t('sections.when')}>
+        <FormDateField
+          label={t('composer.date')}
+          title={t('composer.date')}
+          value={pickupDate}
+          onChange={setPickupDate}
+          lang={lang}
+        />
+
+        {/* Time — opens the 24-hour wheel */}
+        <View className="gap-1.5">
+          <Text className="text-[11px] font-semibold uppercase text-muted">
+            {t('composer.time')}
             <Text className="text-sunshine-ink"> *</Text>
           </Text>
-          <SelectField
-            placeholder={t('composer.chooseChild')}
-            title={t('composer.chooseChild')}
-            value={selectedChild ? { id: selectedChild.id, label: selectedChild.name } : null}
-            options={options}
-            onChange={(option) => setChildId(option.id)}
-          />
-          {selectedChild?.className ? (
-            <Text className="text-xs text-muted">{selectedChild.className}</Text>
-          ) : null}
+          <Pressable
+            onPress={() => setTimeOpen(true)}
+            className="flex-row items-center justify-between rounded-2xl border border-border bg-background px-4 py-3">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="time-outline" size={18} color={SUNSHINE} />
+              <Text className="text-[17px] font-bold tabular-nums text-foreground">{pickupTime}</Text>
+            </View>
+            <Ionicons name="chevron-down" size={18} color="#8A8F99" />
+          </Pressable>
         </View>
-      ) : null}
+      </Section>
 
-      <FormDateField
-        label={t('composer.date')}
-        title={t('composer.date')}
-        value={pickupDate}
-        onChange={setPickupDate}
-        lang={lang}
-      />
-
-      {/* Time — opens the 24-hour wheel */}
-      <View className="gap-1.5">
-        <Text className="text-[11px] font-semibold uppercase text-muted">
-          {t('composer.time')}
-          <Text className="text-sunshine-ink"> *</Text>
-        </Text>
-        <Pressable
-          onPress={() => setTimeOpen(true)}
-          className="flex-row items-center justify-between rounded-2xl border border-border bg-card px-4 py-3">
-          <View className="flex-row items-center gap-2">
-            <Ionicons name="time-outline" size={18} color={SUNSHINE} />
-            <Text className="text-[17px] font-bold tabular-nums text-foreground">{pickupTime}</Text>
-          </View>
-          <Ionicons name="chevron-down" size={18} color="#8A8F99" />
-        </Pressable>
-      </View>
-
-      <FormField
-        label={t('composer.personName')}
-        value={personName}
-        onChange={setPersonName}
-        required
-      />
-
-      {/* Relationship — chips beat a dropdown for four fixed choices */}
-      <View className="gap-1.5">
-        <Text className="text-[11px] font-semibold uppercase text-muted">
-          {t('composer.relationship')}
-        </Text>
-        <View className="flex-row flex-wrap gap-2">
-          {RELATIONSHIPS.map((value) => {
-            const selected = value === relationship;
-            return (
-              <Pressable
-                key={value}
-                onPress={() => setRelationship(value)}
-                className={cn(
-                  'rounded-full border px-4 py-2',
-                  selected ? 'border-sunshine-ink bg-sunshine' : 'border-border bg-card',
-                )}>
-                <Text
-                  className={cn(
-                    'text-sm font-bold',
-                    selected ? 'text-sunshine-ink' : 'text-muted',
-                  )}>
-                  {t(`relationship.${value}`)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <FormField
-        label={t('composer.note')}
-        value={note}
-        onChange={setNote}
-        multiline
-        maxLength={500}
-      />
+      <Section icon="chatbubble-outline" title={t('sections.note')}>
+        <FormField
+          label={t('composer.note')}
+          value={note}
+          onChange={setNote}
+          multiline
+          maxLength={500}
+        />
+      </Section>
 
       <Pressable
         onPress={submit}

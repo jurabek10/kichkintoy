@@ -13,6 +13,7 @@
   "todaySection": "Today",
   "thisMonth": "This month",
   "records": "Records",
+  "sections": { "who": "Who's collecting", "when": "When", "note": "Note" },
   "parentRecordsDescription": "Your pickup notices for the selected month.",
   "schedulePickup": "Schedule a pickup",
   "view": {

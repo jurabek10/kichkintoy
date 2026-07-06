@@ -31,6 +31,7 @@ export type PickupChildOption = {
 
 export type PickupSummary = {
   id: string;
+  childId: string;
   childName: string;
   personName: string;
   relationship: PickupRelationship;
@@ -61,6 +62,7 @@ export type PickupDetail = {
 function toSummary(notice: ApiSummary): PickupSummary {
   return {
     id: notice.id,
+    childId: notice.child.id,
     childName: notice.child.name,
     personName: notice.pickupPersonName,
     relationship: notice.relationship,

@@ -13,6 +13,7 @@
   "todaySection": "Сегодня",
   "thisMonth": "Этот месяц",
   "records": "Записи",
+  "sections": { "who": "Кто забирает", "when": "Когда", "note": "Заметка" },
   "parentRecordsDescription": "Ваши записи о выдаче за выбранный месяц.",
   "schedulePickup": "Запланировать выдачу",
   "view": {
