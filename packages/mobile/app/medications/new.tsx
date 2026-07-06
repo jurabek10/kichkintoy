@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { ReactNode, useEffect, useState } from 'react';
+import { ComponentProps, ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -27,10 +27,17 @@ import { cn } from '@/lib/utils';
 
 const CORAL = '#E8674E';
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+function Section({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
   return (
     <View className="gap-4 rounded-2xl border border-border bg-card p-4">
-      <Text className="text-[11px] font-bold uppercase tracking-wide text-coral-ink">{title}</Text>
+      <View className="flex-row items-center gap-2">
+        <View className="h-7 w-7 items-center justify-center rounded-full bg-coral">
+          <Ionicons name={icon} size={15} color={CORAL} />
+        </View>
+        <Text className="text-[14px] font-extrabold text-foreground">{title}</Text>
+      </View>
       {children}
     </View>
   );
@@ -193,7 +200,9 @@ export default function NewMedicationScreen() {
             </View>
           ) : null}
 
-          <Section title={t('sections.who')}>
+          <Text className="px-1 text-[13px] leading-5 text-muted">{t('parentDescription')}</Text>
+
+          <Section icon="person-outline" title={t('sections.who')}>
             <View className="gap-1.5">
               <Text className="text-[11px] font-semibold uppercase text-muted">
                 {t('composer.child')}
@@ -216,7 +225,7 @@ export default function NewMedicationScreen() {
             />
           </Section>
 
-          <Section title={t('sections.medicine')}>
+          <Section icon="medkit-outline" title={t('sections.medicine')}>
             <FormField label={t('composer.symptoms')} value={symptoms} onChange={setSymptoms} required multiline />
             <FormField label={t('composer.medicineName')} value={medicineName} onChange={setMedicineName} required />
             <FormField label={t('composer.medicationType')} value={medicationType} onChange={setMedicationType} required />
@@ -257,12 +266,12 @@ export default function NewMedicationScreen() {
             </View>
           </Section>
 
-          <Section title={t('sections.notes')}>
+          <Section icon="document-text-outline" title={t('sections.notes')}>
             <FormField label={t('composer.instructions')} value={instructions} onChange={setInstructions} multiline />
             <FormField label={t('composer.specialNote')} value={specialNote} onChange={setSpecialNote} multiline />
           </Section>
 
-          <Section title={t('sections.authorize')}>
+          <Section icon="create-outline" title={t('sections.authorize')}>
             {/* Finger-drawn signature */}
             <View className="gap-1.5">
               <Text className="text-[11px] font-semibold uppercase text-muted">

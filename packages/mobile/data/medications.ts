@@ -34,6 +34,7 @@ export type MedicationSummary = {
   medicineName: string;
   dosage: string;
   medicationTime: string;
+  requestedForDate: string; // "YYYY-MM-DD" — drives the today tray + period filter
   dateLabel: string;
   status: MedicationStatus;
 };
@@ -74,6 +75,7 @@ function toSummary(request: ApiSummary): MedicationSummary {
     medicineName: request.medicineName,
     dosage: request.dosage,
     medicationTime: request.medicationTime,
+    requestedForDate: request.requestedForDate,
     dateLabel: formatLongDate(request.requestedForDate, i18n.language),
     status: request.status,
   };

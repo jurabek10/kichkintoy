@@ -36,6 +36,39 @@ function Header({ title }: { title: string }) {
   );
 }
 
+/** The hero answers the parent's one question — was it given? — with a
+ *  status-tinted band: pending coral, administered mint, skipped sunshine,
+ *  cancelled grey. */
+const STATUS_TONE: Record<MedicationDetail['status'], { bg: string; ink: string; icon: IconName }> = {
+  pending: { bg: 'bg-coral', ink: '#E8674E', icon: 'hourglass-outline' },
+  administered: { bg: 'bg-mint', ink: '#46B06A', icon: 'checkmark-circle' },
+  skipped: { bg: 'bg-sunshine', ink: '#F4A621', icon: 'remove-circle-outline' },
+  cancelled: { bg: 'bg-pill', ink: '#8A8F99', icon: 'ban-outline' },
+};
+
+function StatusHero({ request }: { request: MedicationDetail }) {
+  const tone = STATUS_TONE[request.status];
+  return (
+    <View className={cn('mx-4 mt-4 rounded-2xl p-4', tone.bg)}>
+      <View className="flex-row items-center gap-3">
+        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-card">
+          <Ionicons name={tone.icon} size={24} color={tone.ink} />
+        </View>
+        <View className="min-w-0 flex-1">
+          <Text className="text-[11px] font-bold uppercase tracking-wide" style={{ color: tone.ink }}>
+            {request.childName}
+          </Text>
+          <Text numberOfLines={2} className="text-xl font-extrabold leading-7 text-foreground">
+            {request.medicineName}
+          </Text>
+          <Text className="text-xs text-muted">{request.dateLabel}</Text>
+        </View>
+        <StatusChip status={request.status} />
+      </View>
+    </View>
+  );
+}
+
 function InfoRow({ icon, label, value, last }: Fact & { last?: boolean }) {
   return (
     <View className={cn('flex-row items-center gap-3 px-4 py-3', !last && 'border-b border-border')}>
@@ -131,11 +164,9 @@ export default function MedicationDetailScreen() {
   }
 
   const facts: Fact[] = [
-    { icon: 'person-outline', label: t('detail.child'), value: request.childName },
     ...(request.className
       ? [{ icon: 'people-outline' as IconName, label: t('detail.class'), value: request.className }]
       : []),
-    { icon: 'calendar-outline', label: t('composer.date'), value: request.dateLabel },
     { icon: 'flask-outline', label: t('detail.medicineType'), value: request.medicationType },
     { icon: 'eyedrop-outline', label: t('detail.dosage'), value: request.dosage },
     { icon: 'time-outline', label: t('composer.medicationTime'), value: request.medicationTime },
@@ -156,14 +187,9 @@ export default function MedicationDetailScreen() {
       <Header title={t('title')} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerClassName="pb-8">
-        <View className="flex-row items-center justify-between gap-2 px-4 pb-1 pt-5">
-          <Text className="flex-1 text-2xl font-extrabold leading-8 text-foreground">
-            {request.medicineName}
-          </Text>
-          <StatusChip status={request.status} />
-        </View>
+        <StatusHero request={request} />
 
-        <View className="mx-4 mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+        <View className="mx-4 mt-3 overflow-hidden rounded-2xl border border-border bg-card">
           {facts.map((fact, index) => (
             <InfoRow key={fact.label} {...fact} last={index === facts.length - 1} />
           ))}
