@@ -1,7 +1,2 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-/** Merge Tailwind class strings, with later conflicting utilities winning. */
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// Re-exported from @kichkintoy/mobile-shared — single source of truth for both apps.
+export * from '@kichkintoy/mobile-shared/utils';

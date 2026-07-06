@@ -1,0 +1,31 @@
+{
+  "name": "@kichkintoy/mobile-shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Code shared by the parent (mobile) and teacher (teacher-mobile) Expo apps — consumed as source, transpiled by each app's Metro/Babel.",
+  "exports": {
+    "./theme": { "types": "./src/theme.ts", "default": "./src/theme.ts" },
+    "./utils": { "types": "./src/utils.ts", "default": "./src/utils.ts" },
+    "./date": { "types": "./src/date.ts", "default": "./src/date.ts" },
+    "./config": { "types": "./src/config.ts", "default": "./src/config.ts" },
+    "./report-item-i18n": { "types": "./src/report-item-i18n.ts", "default": "./src/report-item-i18n.ts" },
+    "./notification-visuals": { "types": "./src/notification-visuals.ts", "default": "./src/notification-visuals.ts" }
+  },
+  "dependencies": {
+    "@kichkintoy/shared": "workspace:*",
+    "@kichkintoy/translations": "workspace:*",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.6.0",
+    "expo-constants": "~18.0.13",
+    "@expo/vector-icons": "^15.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "i18next": "*",
+    "react-i18next": "*"
+  }
+}
