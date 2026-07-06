@@ -10,6 +10,7 @@ import type { AuthenticatedUser } from "../auth/session.guard";
 import type { AttendanceService } from "../attendance/attendance.service";
 import type { AlbumsService } from "../albums/albums.service";
 import type { CentersService } from "../centers/centers.service";
+import type { ChatService } from "../chat/chat.service";
 import type { PrismaService } from "../database/prisma.service";
 import type { ClassService } from "../director/class.service";
 import type { DirectorAccessLevel } from "../director/director.guard";
@@ -42,6 +43,7 @@ export type ORPCDeps = {
   albumsService: AlbumsService;
   calendarService: CalendarService;
   centersService: CentersService;
+  chatService: ChatService;
   classService: ClassService;
   directorService: DirectorService;
   geoService: GeoService;

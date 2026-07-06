@@ -9,6 +9,7 @@ import { AlbumsModule } from "./albums/albums.module";
 import { AuthModule } from "./auth/auth.module";
 import { CalendarModule } from "./calendar/calendar.module";
 import { CentersModule } from "./centers/centers.module";
+import { ChatModule } from "./chat/chat.module";
 import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
@@ -40,6 +41,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     AttendanceModule,
     AlbumsModule,
     CalendarModule,
+    ChatModule,
     MembershipsModule,
     MediaModule,
     MedicationsModule,

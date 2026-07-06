@@ -1431,6 +1431,47 @@ model DeviceToken {
   @@map("device_tokens")
 }
 
+enum ChatRole {
+  user
+  assistant
+
+  @@map("chat_role")
+}
+
+/// A parent's AI chat conversation. All access is scoped by parentUserId; the
+/// AI can only ever reach this parent's own child's data (see chat tools).
+model ChatThread {
+  id           String        @id @default(uuid()) @db.Uuid
+  parentUserId String        @map("parent_user_id") @db.Uuid
+  childId      String?       @map("child_id") @db.Uuid
+  centerId     String        @map("center_id") @db.Uuid
+  title        String
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  messages ChatMessage[]
+
+  @@index([parentUserId, updatedAt])
+  @@map("chat_threads")
+}
+
+/// A single turn in a chat thread. `content` is the final text; `toolTrace`
+/// records which scoped tools the assistant called (debugging, not shown).
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  threadId  String   @map("thread_id") @db.Uuid
+  role      ChatRole
+  content   String
+  language  String?
+  toolTrace Json?    @map("tool_trace") @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("chat_messages")
+}
+
 model AuditLog {
   id             String   @id @default(uuid()) @db.Uuid
   organizationId String?  @map("organization_id") @db.Uuid

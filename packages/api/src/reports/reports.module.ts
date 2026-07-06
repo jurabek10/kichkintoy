@@ -6,5 +6,6 @@ import { ReportsService } from "./reports.service";
 @Module({
   imports: [AuthModule],
   providers: [ReportsService, GeminiService],
+  exports: [ReportsService],
 })
 export class ReportsModule {}

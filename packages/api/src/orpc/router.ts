@@ -9,6 +9,7 @@ import { AttendanceService } from "../attendance/attendance.service";
 import { AuthService } from "../auth/auth.service";
 import { CalendarService } from "../calendar/calendar.service";
 import { CentersService } from "../centers/centers.service";
+import { ChatService } from "../chat/chat.service";
 import { ClassService } from "../director/class.service";
 import { DirectorService } from "../director/director.service";
 import { GeoService } from "../geo/geo.service";
@@ -32,6 +33,7 @@ import { createAttendanceRouter } from "../attendance/attendance.router";
 import { createAuthRouter } from "../auth/auth.router";
 import { createCalendarRouter } from "../calendar/calendar.router";
 import { createCentersRouter } from "../centers/centers.router";
+import { createChatRouter } from "../chat/chat.router";
 import { createGeoRouter } from "../geo/geo.router";
 import { createTeacherRouter } from "../teacher/teacher.router";
 import { createDirectorRouter } from "../director/director.router";
@@ -53,6 +55,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     albumsService: app.get(AlbumsService, { strict: false }),
     calendarService: app.get(CalendarService, { strict: false }),
     centersService: app.get(CentersService, { strict: false }),
+    chatService: app.get(ChatService, { strict: false }),
     classService: app.get(ClassService, { strict: false }),
     directorService: app.get(DirectorService, { strict: false }),
     geoService: app.get(GeoService, { strict: false }),
@@ -111,6 +114,7 @@ function createORPCRouter(deps: ORPCDeps) {
     attendance: createAttendanceRouter(os, deps),
     albums: createAlbumsRouter(os, deps),
     calendar: createCalendarRouter(os, deps),
+    chat: createChatRouter(os, deps),
     geo: createGeoRouter(os, deps),
     centers: createCentersRouter(os, deps),
     teacher: createTeacherRouter(os, deps),
