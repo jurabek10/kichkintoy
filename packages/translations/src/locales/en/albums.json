@@ -108,6 +108,7 @@
     "comment": "Comment",
     "commentsDisabled": "Comments are disabled.",
     "noComments": "No comments yet.",
+    "taggedFamilies": "+{{count}} families",
     "commentDeleted": "Comment deleted.",
     "cancel": "Cancel",
     "deleteConfirmTitle": "Delete album?",

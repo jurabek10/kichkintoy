@@ -17,11 +17,13 @@ import {
   useAlbum,
   useSignedAlbumUrls,
   useToggleAlbumReaction,
+  type AlbumDetail,
 } from '@/data/albums';
 import { formatLongDate } from '@/lib/date';
 
 const GRAPE = '#7C5CD8';
 const LIKE = '#FF5C7A';
+const MUTED = '#AEB4BE';
 
 function Header({ title }: { title: string }) {
   const router = useRouter();
@@ -38,22 +40,45 @@ function Header({ title }: { title: string }) {
   );
 }
 
-function HeartButton({
-  count,
-  reacted,
-  onPress,
-}: {
-  count: number;
-  reacted: boolean;
-  onPress: () => void;
-}) {
+/** Grouped header: who shared it, to which class(es), and when — the same block
+ *  the teacher board opens with, minus the staff manage controls. */
+function AlbumHeaderBlock({ album, lang }: { album: AlbumDetail; lang: string }) {
+  const { t } = useTranslation('albums');
+  const classNames = album.className ? album.className.split(', ').filter(Boolean) : [];
+
   return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center gap-1.5 self-start rounded-full border border-border px-3 py-1.5">
-      <Ionicons name={reacted ? 'heart' : 'heart-outline'} size={16} color={LIKE} />
-      <Text className="text-sm font-semibold text-foreground">{count}</Text>
-    </Pressable>
+    <View className="gap-3 bg-card px-4 pb-4 pt-4">
+      {classNames.length > 0 || album.taggedFamilies > 0 ? (
+        <View className="flex-row flex-wrap items-center gap-2">
+          {classNames.map((name) => (
+            <View key={name} className="rounded-full bg-grape px-2.5 py-1">
+              <Text className="text-[11px] font-bold text-grape-ink">{name}</Text>
+            </View>
+          ))}
+          {album.taggedFamilies > 0 ? (
+            <View className="rounded-full bg-pill px-2.5 py-1">
+              <Text className="text-[11px] font-semibold text-muted">
+                {t('detail.taggedFamilies', {
+                  count: album.taggedFamilies,
+                  defaultValue: '+{{count}} families',
+                })}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      <View className="flex-row items-center gap-3">
+        <Avatar uri={album.authorPhoto} size={40} />
+        <View className="flex-1">
+          <Text className="text-sm font-bold text-foreground">{album.authorName}</Text>
+          <Text className="text-xs text-muted">
+            {formatLongDate(album.publishedDate, lang)}
+            {album.time ? ` · ${album.time}` : ''}
+          </Text>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -95,29 +120,10 @@ export default function AlbumDetailScreen() {
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           className="flex-1"
+          contentContainerClassName="pb-6"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          {/* Author */}
-          <View className="flex-row items-center gap-3 px-4 py-4">
-            <Avatar uri={album.authorPhoto} size={40} />
-            <View className="flex-1">
-              <Text className="text-sm font-bold text-foreground">{album.authorName}</Text>
-              <Text className="text-xs text-muted">
-                {formatLongDate(album.publishedDate, i18n.language)} · {album.time}
-              </Text>
-            </View>
-          </View>
-
-          {/* Recipients */}
-          {album.className ? (
-            <View className="mx-4 flex-row items-center gap-2 self-start rounded-full bg-pill px-3 py-1.5">
-              <Avatar size={22} />
-              <Text className="text-xs font-semibold text-muted">
-                {album.className}
-                {album.taggedFamilies > 0 ? ` · +${album.taggedFamilies}` : ''}
-              </Text>
-            </View>
-          ) : null}
+          <AlbumHeaderBlock album={album} lang={i18n.language} />
 
           {/* Caption */}
           {title ? <Text className="px-4 pt-4 text-base font-bold text-foreground">{title}</Text> : null}
@@ -137,13 +143,18 @@ export default function AlbumDetailScreen() {
             ))}
           </View>
 
-          {/* Reaction */}
-          <View className="px-4">
-            <HeartButton
-              count={album.heartCount}
-              reacted={album.myReacted}
+          {/* Engagement — heart toggle + comment count */}
+          <View className="flex-row items-center gap-3 px-4">
+            <Pressable
               onPress={() => toggleReaction.mutate()}
-            />
+              className="flex-row items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
+              <Ionicons name={album.myReacted ? 'heart' : 'heart-outline'} size={16} color={LIKE} />
+              <Text className="text-sm font-semibold text-foreground">{album.heartCount}</Text>
+            </Pressable>
+            <View className="flex-row items-center gap-1.5">
+              <Ionicons name="chatbubble-outline" size={15} color={MUTED} />
+              <Text className="text-sm text-muted">{album.commentCount}</Text>
+            </View>
           </View>
 
           {/* Comments */}
@@ -151,7 +162,6 @@ export default function AlbumDetailScreen() {
             <Text className="mb-3 text-base font-bold text-foreground">{t('detail.comments')}</Text>
             <CommentList comments={album.comments} emptyLabel={t('detail.noComments')} />
           </View>
-          <View className="h-6" />
         </ScrollView>
 
         {album.allowComments ? (

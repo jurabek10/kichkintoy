@@ -110,6 +110,7 @@
     "comment": "Комментировать",
     "commentsDisabled": "Комментарии отключены.",
     "noComments": "Комментариев пока нет.",
+    "taggedFamilies": "+{{count}} семей",
     "commentDeleted": "Комментарий удален.",
     "cancel": "Отмена",
     "deleteConfirmTitle": "Удалить альбом?",

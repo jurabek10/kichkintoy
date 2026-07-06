@@ -108,6 +108,7 @@
     "comment": "Izoh",
     "commentsDisabled": "Izohlar o'chirilgan.",
     "noComments": "Hali izoh yo'q.",
+    "taggedFamilies": "+{{count}} oila",
     "commentDeleted": "Izoh o'chirildi.",
     "cancel": "Bekor qilish",
     "deleteConfirmTitle": "Albom o'chirilsinmi?",

@@ -28,6 +28,7 @@ export type AlbumSummary = {
   authorName: string;
   authorPhoto: string | null;
   className: string;
+  classes: { id: string; name: string }[];
   heartCount: number;
   commentCount: number;
   mediaCount: number;
@@ -73,6 +74,7 @@ function toAlbumSummary(post: ApiAlbumSummary): AlbumSummary {
     authorName: post.author.fullName,
     authorPhoto: post.author.photoMediaAssetId ?? post.author.photoUrl,
     className: className(post.classes),
+    classes: post.classes.map((cls) => ({ id: cls.id, name: cls.name })),
     heartCount: post.reactionSummary.heartCount,
     commentCount: post.commentCount,
     mediaCount: post.mediaCount,
