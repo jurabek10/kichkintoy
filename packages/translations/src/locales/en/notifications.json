@@ -12,6 +12,13 @@
     "markRead": "Mark read",
     "markAllRead": "Mark all read"
   },
+  "unread": "{{count}} unread",
+  "groups": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This week",
+    "earlier": "Earlier"
+  },
   "empty": {
     "title": "No notifications yet",
     "body": "New reports, notices, albums, meals, medication, and pickup updates will appear here."

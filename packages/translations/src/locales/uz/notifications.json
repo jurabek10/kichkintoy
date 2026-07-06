@@ -12,6 +12,13 @@
     "markRead": "O‘qildi",
     "markAllRead": "Hammasini o‘qildi"
   },
+  "unread": "{{count}} o‘qilmagan",
+  "groups": {
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "thisWeek": "Shu hafta",
+    "earlier": "Avvalroq"
+  },
   "empty": {
     "title": "Hozircha bildirishnoma yo‘q",
     "body": "Yangi hisobotlar, e'lonlar, albomlar, taomlar, dori so‘rovlari va olib ketish yangiliklari shu yerda ko‘rinadi."
