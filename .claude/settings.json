@@ -1,16 +1,41 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
-      "Bash(pnpm --filter @kichkintoy/shared build)",
       "Bash(pnpm --filter @kichkintoy/api typecheck)",
-      "Bash(node -e \"const p=require\\('./packages/mobile/package.json'\\); const d={...p.dependencies,...p.devDependencies}; console.log\\(Object.keys\\(d\\).filter\\(k=>/orpc|axios|query/i.test\\(k\\)\\).join\\(', '\\)||'\\(none orpc/axios/query\\)'\\)\")",
-      "Bash(pnpm --filter @kichkintoy/web typecheck)",
-      "Bash(git add *)",
-      "Bash(git commit -q -m ' *)",
-      "Bash(node -e \"const p=require\\('./packages/web/package.json'\\);const d={...p.dependencies,...p.devDependencies};console.log\\(Object.keys\\(d\\).filter\\(k=>/tanstack|idb/i.test\\(k\\)\\).join\\('\\\\n'\\)\\)\")",
       "Bash(pnpm --filter @kichkintoy/api build)",
-      "Bash(pnpm --filter @kichkintoy/web build)"
+      "Bash(pnpm --filter @kichkintoy/api lint)",
+      "Bash(pnpm --filter @kichkintoy/web typecheck)",
+      "Bash(pnpm --filter @kichkintoy/web build)",
+      "Bash(pnpm --filter @kichkintoy/web lint)",
+      "Bash(pnpm --filter @kichkintoy/shared typecheck)",
+      "Bash(pnpm --filter @kichkintoy/shared build)",
+      "Bash(pnpm --filter @kichkintoy/mobile typecheck)",
+      "Bash(pnpm --filter @kichkintoy/mobile lint)",
+      "Bash(pnpm --filter @kichkintoy/teacher-mobile typecheck)",
+      "Bash(pnpm --filter @kichkintoy/teacher-mobile lint)",
+      "Bash(pnpm --filter @kichkintoy/director-mobile typecheck)",
+      "Bash(pnpm --filter @kichkintoy/director-mobile lint)",
+      "Bash(pnpm --filter @kichkintoy/mobile-shared typecheck)",
+      "Bash(pnpm --filter @kichkintoy/translations typecheck)",
+      "Bash(pnpm --filter @kichkintoy/translations build)",
+      "Bash(pnpm dev:api)",
+      "Bash(pnpm stop:api)",
+      "Bash(pnpm db:up)",
+      "Bash(pnpm db:migrate)",
+      "Bash(pnpm db:generate)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npx expo install:*)",
+      "Bash(rm -rf packages/web/.next)",
+      "WebFetch(domain:www.kidsnote.com)",
+      "WebFetch(domain:kidsnote.com)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(pnpm db:reset)",
+      "Bash(pnpm --filter @kichkintoy/api db:reset)",
+      "Bash(docker compose down:*)"
     ]
   }
 }
