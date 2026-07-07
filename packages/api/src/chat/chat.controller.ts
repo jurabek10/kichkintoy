@@ -89,11 +89,16 @@ export class ChatController {
   }
 }
 
-/** A teacher (even a dual parent+teacher) gets the teacher toolset; else parent. */
+/**
+ * Pick the widest scope the user legitimately holds: director (their center) >
+ * teacher (her classes) > parent (their child). A dual-role account gets the
+ * widest toolset it is entitled to.
+ */
 function ownerRoleFor(user: NonNullable<RequestWithUser["user"]>): ChatOwnerRole {
-  return user.roles.some((role) => role.name === "teacher")
-    ? "teacher"
-    : "parent";
+  const names = new Set(user.roles.map((role) => role.name));
+  if (names.has("director") || names.has("organization_owner")) return "director";
+  if (names.has("teacher")) return "teacher";
+  return "parent";
 }
 
 function fallbackAnswer(): string {

@@ -2,13 +2,17 @@ import { type ORPCDeps, type ORPCImplementer } from "../orpc/context";
 import { createAccess } from "../orpc/access";
 import type { ChatOwnerRole } from "./chat.service";
 
-/** A teacher (even a dual parent+teacher) gets the teacher toolset; else parent. */
+/**
+ * Pick the widest scope the user legitimately holds: director (their center) >
+ * teacher (her classes) > parent (their child).
+ */
 function ownerRoleFor(user: {
   roles: Array<{ name: string }>;
 }): ChatOwnerRole {
-  return user.roles.some((role) => role.name === "teacher")
-    ? "teacher"
-    : "parent";
+  const names = new Set(user.roles.map((role) => role.name));
+  if (names.has("director") || names.has("organization_owner")) return "director";
+  if (names.has("teacher")) return "teacher";
+  return "parent";
 }
 
 export function createChatRouter(os: ORPCImplementer, deps: ORPCDeps) {

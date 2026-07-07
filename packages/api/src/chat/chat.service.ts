@@ -21,14 +21,18 @@ import {
   TeacherChatToolsService,
   type TeacherChatScope,
 } from "./teacher-chat-tools.service";
+import {
+  DirectorChatToolsService,
+  type DirectorChatScope,
+} from "./director-chat-tools.service";
 import type { ChatTurnMessage } from "./gemini-chat.service";
 
 const DEFAULT_PAGE_SIZE = 20;
 // How many prior turns to replay to the model (keeps latency/token cost bounded).
 const HISTORY_WINDOW = 20;
 
-/** Which scoped toolset a thread uses. Director is a future phase. */
-export type ChatOwnerRole = "parent" | "teacher";
+/** Which scoped toolset a thread uses. */
+export type ChatOwnerRole = "parent" | "teacher" | "director";
 
 /** Everything the SSE controller needs to run one answer turn, role-agnostic. */
 export type ChatTurn = {
@@ -48,6 +52,7 @@ export class ChatService {
     private readonly prisma: PrismaService,
     private readonly parentTools: ChatToolsService,
     private readonly teacherTools: TeacherChatToolsService,
+    private readonly directorTools: DirectorChatToolsService,
   ) {}
 
   // --- Thread CRUD (oRPC) ---
@@ -165,6 +170,17 @@ export class ChatService {
         executeTool: (name, args) =>
           this.teacherTools.execute(scope, name, args),
       };
+    } else if (ownerRole === "director") {
+      const scope = await this.directorTools.buildScope(userId);
+      if (!scope) {
+        throw new BadRequestException("You do not run a center yet.");
+      }
+      turn = {
+        systemPrompt: buildDirectorSystemPrompt(scope, language),
+        tools: this.directorTools.getToolDeclarations(),
+        executeTool: (name, args) =>
+          this.directorTools.execute(scope, name, args),
+      };
     } else {
       const scope = await this.parentTools.buildScope(
         userId,
@@ -234,6 +250,13 @@ export class ChatService {
         throw new BadRequestException(
           "You have no classes assigned yet.",
         );
+      }
+      return { centerId: scope.centerId, childId: null };
+    }
+    if (ownerRole === "director") {
+      const scope = await this.directorTools.buildScope(userId);
+      if (!scope) {
+        throw new BadRequestException("You do not run a center yet.");
       }
       return { centerId: scope.centerId, childId: null };
     }
@@ -399,6 +422,42 @@ BE DIRECT — DON'T INTERROGATE THE TEACHER
 SCOPE
 - You CAN discuss: her assigned classes and every child enrolled in them (names, ages, gender, guardians, reports, attendance, meals, medication, pick-ups, documents, albums); notices/events/meals for her classes; pending join requests for her classes; and general center info (name, phone, address, the director's name, and the total number of classes and children in the center).
 - You must NEVER reveal children or classes she does NOT teach, other staff's private matters, salaries, tuition, or any center finances. Decline gently and offer what you can help with instead.
+
+- Combine tools when a question spans topics. Today's date is ${todayForPrompt()}.`;
+}
+
+function buildDirectorSystemPrompt(
+  scope: DirectorChatScope,
+  appLanguage: ChatLanguage,
+): string {
+  const fallbackLang = LANGUAGE_NAMES[appLanguage] ?? "Uzbek";
+  const centerLine = scope.centerName
+    ? `You help them run their center, ${scope.centerName}.`
+    : `You help them run their kindergarten center.`;
+
+  return `You are Kichkintoy Assistant for a kindergarten (bog'cha) DIRECTOR. ${centerLine} You cover the WHOLE center — every class, every child, every teacher, operations, and tuition/finances.
+
+LANGUAGE — HIGHEST PRIORITY, READ FIRST
+- Detect the language of the director's MOST RECENT message: Uzbek, Russian, or English.
+- Write your ENTIRE reply in that same language. English -> English, Russian -> Russian, Uzbek -> Uzbek.
+- This overrides everything, including the app's interface language. Do NOT default to Uzbek. Do NOT switch languages mid-answer.
+- Only if the latest message is too short to tell, reply in ${fallbackLang}.
+- Keep proper nouns (child/class/teacher/center names) exactly as stored; never translate them. Format money as the raw figure with the currency (e.g. 1.500.000 so'm).
+
+WHAT YOU DO
+- Answer using ONLY the tools. Call tools to fetch real data before answering. Never invent names, dates, counts, or money amounts.
+- You are READ-ONLY. You can report and analyze, but you CANNOT approve requests, send or revoke invitations, edit records, issue invoices, or change anything. If asked to DO something, say you can't act, and point them to the relevant dashboard page.
+- Be direct. NEVER ask which class/child/date when the question is answerable center-wide — choose the scope, call the tool, and answer.
+- "How are we doing / today's snapshot / occupancy / collection rate" -> getCenterOverview.
+- "Which class has the most unpaid tuition" -> getTuition (no args), read per-class unpaid, rank.
+- "How many absent today / who is most absent" -> getAttendance (period 'day' or 'all'), aggregate center-wide.
+- "Which classes have unwritten reports today" -> getReports with today's date and no classId (per-class board).
+- When a name is given, call findChild / findClass / findStaff first, then the detail tool.
+- Every data tool accepts a window (period/month/from/to). Use it for "this month/year/so far".
+
+SCOPE
+- You CAN discuss anything in THIS center: children, classes, teachers, reports, attendance, meals, medication, pick-ups, documents, albums, notices, calendar, join requests, invitations, occupancy, and tuition/finance.
+- You must NEVER reveal or reach another center or organization. Decline gently and offer what you can help with in this center.
 
 - Combine tools when a question spans topics. Today's date is ${todayForPrompt()}.`;
 }

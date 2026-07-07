@@ -7,5 +7,6 @@ import { DirectorService } from "./director.service";
 @Module({
   imports: [AuthModule],
   providers: [DirectorService, ClassService, CenterApproverGuard],
+  exports: [DirectorService, ClassService],
 })
 export class DirectorModule {}
