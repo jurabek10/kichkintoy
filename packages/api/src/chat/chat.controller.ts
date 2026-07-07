@@ -52,6 +52,7 @@ export class ChatController {
         input.threadId,
         input.message,
         input.childId,
+        input.appLanguage,
       );
 
       const toolTrace: string[] = [];
