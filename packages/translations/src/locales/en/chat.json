@@ -42,5 +42,17 @@
     "events": "Any events or holidays this week?",
     "notices": "What notices did I miss?",
     "meals": "What's on the menu today?"
+  },
+  "teacher": {
+    "emptyTitle": "Ask anything about your classes",
+    "emptySubtitle": "I read attendance, reports, medication, pick-ups and notices so you don't have to.",
+    "composerPlaceholder": "Ask about your class…",
+    "suggestions": {
+      "absentToday": "Who is absent today?",
+      "mostAbsent": "Which child has the most absences this month?",
+      "unwrittenReports": "Which reports are still unwritten?",
+      "medicationDue": "Whose medication is due today?",
+      "events": "Any events this week?"
+    }
   }
 }

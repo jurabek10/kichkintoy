@@ -42,5 +42,17 @@
     "events": "Shu hafta tadbir yoki bayramlar bormi?",
     "notices": "Qaysi e'lonlarni o'tkazib yubordim?",
     "meals": "Bugun menyuda nima bor?"
+  },
+  "teacher": {
+    "emptyTitle": "Sinflaringiz haqida istagan narsangizni so'rang",
+    "emptySubtitle": "Davomat, hisobotlar, dori-darmon, olib ketish va e'lonlarni siz uchun o'qib beraman.",
+    "composerPlaceholder": "Sinfingiz haqida so'rang…",
+    "suggestions": {
+      "absentToday": "Bugun kim kelmadi?",
+      "mostAbsent": "Bu oyda eng ko'p kim qatnashmadi?",
+      "unwrittenReports": "Qaysi hisobotlar hali yozilmagan?",
+      "medicationDue": "Bugun kimning dorisi bor?",
+      "events": "Shu hafta tadbirlar bormi?"
+    }
   }
 }
