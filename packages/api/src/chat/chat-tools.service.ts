@@ -10,6 +10,16 @@ import { PickupsService } from "../pickups/pickups.service";
 import { ProfileService } from "../profile/profile.service";
 import { ReportsService } from "../reports/reports.service";
 import { StudentDocumentsService } from "../student-documents/student-documents.service";
+import {
+  ageFromDob,
+  daysFromTodayIso,
+  filterByDate,
+  hasRangeArgs,
+  limit,
+  normalizePeriod,
+  resolveRange,
+  todayIso,
+} from "./chat-range.util";
 
 /**
  * A Gemini function declaration (subset of the OpenAPI schema Gemini accepts).
@@ -41,16 +51,6 @@ export type ChatScope = {
     centerId: string | null;
   }>;
 };
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function daysFromTodayIso(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 
 /**
  * The tools the parent chatroom AI may call. Every tool delegates to an
@@ -511,109 +511,4 @@ export class ChatToolsService {
     });
     return center ?? { note: "Center not found." };
   }
-}
-
-/** Whole years between a date-of-birth ISO string and today. */
-function ageFromDob(dob: string): number | null {
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - birth.getFullYear();
-  const m = now.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
-  return age;
-}
-
-type Period = "day" | "week" | "month" | "year" | "all";
-
-function normalizePeriod(value: unknown): Period {
-  return value === "day" ||
-    value === "month" ||
-    value === "year" ||
-    value === "all"
-    ? value
-    : "week";
-}
-
-/** Trim a report list to a sensible count for the period to bound token cost. */
-function limit<T>(items: T[], period: Period): T[] {
-  const max =
-    period === "day"
-      ? 1
-      : period === "week"
-        ? 7
-        : period === "month"
-          ? 31
-          : 90;
-  return items.slice(0, max);
-}
-
-type DateRange = { from: string; to: string };
-
-/** True when the model asked for any explicit time window (vs. a bare call). */
-function hasRangeArgs(args: Record<string, unknown>): boolean {
-  return (
-    typeof args.period === "string" ||
-    typeof args.month === "string" ||
-    typeof args.from === "string" ||
-    typeof args.to === "string"
-  );
-}
-
-/**
- * Resolve a {from,to} window from model args: explicit from/to, a specific
- * month (YYYY-MM), or a named period. Falls back to the current month.
- */
-function resolveRange(args: Record<string, unknown>): DateRange {
-  const from = typeof args.from === "string" ? args.from : undefined;
-  const to = typeof args.to === "string" ? args.to : undefined;
-  if (from || to) {
-    return { from: from ?? "2000-01-01", to: to ?? todayIso() };
-  }
-  const month = typeof args.month === "string" ? args.month : undefined;
-  if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [y, m] = month.split("-").map(Number);
-    return { from: `${month}-01`, to: isoDate(new Date(Date.UTC(y, m, 0))) };
-  }
-  return rangeForPeriod(normalizePeriod(args.period ?? "month"));
-}
-
-/** A calendar-aligned {from,to} for a named period, relative to today. */
-function rangeForPeriod(period: Period): DateRange {
-  const now = new Date();
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
-  const today = isoDate(now);
-  switch (period) {
-    case "day":
-      return { from: today, to: today };
-    case "week": {
-      const start = new Date(now);
-      start.setUTCDate(start.getUTCDate() - 6);
-      return { from: isoDate(start), to: today };
-    }
-    case "month":
-      return {
-        from: isoDate(new Date(Date.UTC(y, m, 1))),
-        to: isoDate(new Date(Date.UTC(y, m + 1, 0))),
-      };
-    case "year":
-      return { from: `${y}-01-01`, to: `${y}-12-31` };
-    case "all":
-      return { from: "2000-01-01", to: isoDate(new Date(Date.UTC(y + 1, m, 1))) };
-  }
-}
-
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-/** Keep list items whose date field (YYYY-MM-DD or ISO datetime) is in range. */
-function filterByDate<T>(items: T[], field: keyof T & string, range: DateRange): T[] {
-  return items.filter((item) => {
-    const value = (item as Record<string, unknown>)[field];
-    if (typeof value !== "string") return false;
-    const day = value.slice(0, 10);
-    return day >= range.from && day <= range.to;
-  });
 }

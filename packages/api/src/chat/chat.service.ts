@@ -12,29 +12,54 @@ import type {
 } from "@kichkintoy/shared";
 import { PrismaService } from "../database/prisma.service";
 import type { ChatMessage as PrismaChatMessage, ChatThread } from "@prisma/client";
-import { ChatToolsService, type ChatScope } from "./chat-tools.service";
+import {
+  ChatToolsService,
+  type ChatScope,
+  type ToolDeclaration,
+} from "./chat-tools.service";
+import {
+  TeacherChatToolsService,
+  type TeacherChatScope,
+} from "./teacher-chat-tools.service";
 import type { ChatTurnMessage } from "./gemini-chat.service";
 
 const DEFAULT_PAGE_SIZE = 20;
 // How many prior turns to replay to the model (keeps latency/token cost bounded).
 const HISTORY_WINDOW = 20;
 
+/** Which scoped toolset a thread uses. Director is a future phase. */
+export type ChatOwnerRole = "parent" | "teacher";
+
+/** Everything the SSE controller needs to run one answer turn, role-agnostic. */
+export type ChatTurn = {
+  history: ChatTurnMessage[];
+  systemPrompt: string;
+  isFirstTurn: boolean;
+  tools: ToolDeclaration[];
+  executeTool: (
+    name: string,
+    args: Record<string, unknown>,
+  ) => Promise<unknown>;
+};
+
 @Injectable()
 export class ChatService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly toolsService: ChatToolsService,
+    private readonly parentTools: ChatToolsService,
+    private readonly teacherTools: TeacherChatToolsService,
   ) {}
 
   // --- Thread CRUD (oRPC) ---
 
   async listThreads(
     userId: string,
+    ownerRole: ChatOwnerRole,
     cursor?: string,
     limit = DEFAULT_PAGE_SIZE,
   ): Promise<ChatThreadListResponse> {
     const rows = await this.prisma.chatThread.findMany({
-      where: { parentUserId: userId },
+      where: { ownerUserId: userId, ownerRole },
       orderBy: { updatedAt: "desc" },
       take: limit + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -46,14 +71,19 @@ export class ChatService {
 
   async createThread(
     userId: string,
+    ownerRole: ChatOwnerRole,
     requestedChildId?: string,
   ): Promise<ChatThreadSummary> {
-    const scope = await this.toolsService.buildScope(userId, requestedChildId);
-    const centerId = resolveCenterId(scope);
+    const { centerId, childId } = await this.resolveOwnerContext(
+      userId,
+      ownerRole,
+      requestedChildId,
+    );
     const thread = await this.prisma.chatThread.create({
       data: {
-        parentUserId: userId,
-        childId: scope.childId,
+        ownerUserId: userId,
+        ownerRole,
+        childId,
         centerId,
         title: "New chat",
       },
@@ -63,9 +93,10 @@ export class ChatService {
 
   async getThread(
     userId: string,
+    ownerRole: ChatOwnerRole,
     threadId: string,
   ): Promise<ChatThreadDetail> {
-    const thread = await this.requireOwnedThread(userId, threadId);
+    const thread = await this.requireOwnedThread(userId, ownerRole, threadId);
     const messages = await this.prisma.chatMessage.findMany({
       where: { threadId },
       orderBy: { createdAt: "asc" },
@@ -75,10 +106,11 @@ export class ChatService {
 
   async renameThread(
     userId: string,
+    ownerRole: ChatOwnerRole,
     threadId: string,
     title: string,
   ): Promise<ChatThreadSummary> {
-    await this.requireOwnedThread(userId, threadId);
+    await this.requireOwnedThread(userId, ownerRole, threadId);
     const thread = await this.prisma.chatThread.update({
       where: { id: threadId },
       data: { title },
@@ -88,9 +120,10 @@ export class ChatService {
 
   async deleteThread(
     userId: string,
+    ownerRole: ChatOwnerRole,
     threadId: string,
   ): Promise<{ success: boolean }> {
-    await this.requireOwnedThread(userId, threadId);
+    await this.requireOwnedThread(userId, ownerRole, threadId);
     await this.prisma.chatThread.delete({ where: { id: threadId } });
     return { success: true };
   }
@@ -99,21 +132,13 @@ export class ChatService {
 
   async beginTurn(
     userId: string,
+    ownerRole: ChatOwnerRole,
     threadId: string,
     userMessage: string,
     requestedChildId?: string,
     appLanguage?: ChatLanguage,
-  ): Promise<{
-    scope: ChatScope;
-    history: ChatTurnMessage[];
-    systemPrompt: string;
-    isFirstTurn: boolean;
-  }> {
-    const thread = await this.requireOwnedThread(userId, threadId);
-    const scope = await this.toolsService.buildScope(
-      userId,
-      requestedChildId ?? thread.childId ?? undefined,
-    );
+  ): Promise<ChatTurn> {
+    const thread = await this.requireOwnedThread(userId, ownerRole, threadId);
 
     const priorCount = await this.prisma.chatMessage.count({
       where: { threadId },
@@ -128,12 +153,36 @@ export class ChatService {
         language: detectLanguage(userMessage),
       },
     });
-    // Persist the chosen child on the thread if it changed.
-    if (scope.childId && scope.childId !== thread.childId) {
-      await this.prisma.chatThread.update({
-        where: { id: threadId },
-        data: { childId: scope.childId },
-      });
+
+    const language = appLanguage ?? detectLanguage(userMessage);
+
+    let turn: Pick<ChatTurn, "systemPrompt" | "tools" | "executeTool">;
+    if (ownerRole === "teacher") {
+      const scope = await this.teacherTools.buildScope(userId);
+      turn = {
+        systemPrompt: buildTeacherSystemPrompt(scope, language),
+        tools: this.teacherTools.getToolDeclarations(),
+        executeTool: (name, args) =>
+          this.teacherTools.execute(scope, name, args),
+      };
+    } else {
+      const scope = await this.parentTools.buildScope(
+        userId,
+        requestedChildId ?? thread.childId ?? undefined,
+      );
+      // Persist the chosen child on the thread if it changed.
+      if (scope.childId && scope.childId !== thread.childId) {
+        await this.prisma.chatThread.update({
+          where: { id: threadId },
+          data: { childId: scope.childId },
+        });
+      }
+      turn = {
+        systemPrompt: buildParentSystemPrompt(scope, language),
+        tools: this.parentTools.getToolDeclarations(),
+        executeTool: (name, args) =>
+          this.parentTools.execute(scope, name, args),
+      };
     }
 
     const recent = await this.prisma.chatMessage.findMany({
@@ -145,12 +194,7 @@ export class ChatService {
       .reverse()
       .map((m) => ({ role: m.role, content: m.content }));
 
-    return {
-      scope,
-      history,
-      systemPrompt: buildSystemPrompt(scope, appLanguage ?? detectLanguage(userMessage)),
-      isFirstTurn,
-    };
+    return { history, isFirstTurn, ...turn };
   }
 
   async finishTurn(
@@ -178,22 +222,42 @@ export class ChatService {
     });
   }
 
+  /** Resolve the tenant center (and, for parents, the child) for a new thread. */
+  private async resolveOwnerContext(
+    userId: string,
+    ownerRole: ChatOwnerRole,
+    requestedChildId?: string,
+  ): Promise<{ centerId: string; childId: string | null }> {
+    if (ownerRole === "teacher") {
+      const scope = await this.teacherTools.buildScope(userId);
+      if (!scope.centerId) {
+        throw new BadRequestException(
+          "You have no classes assigned yet.",
+        );
+      }
+      return { centerId: scope.centerId, childId: null };
+    }
+    const scope = await this.parentTools.buildScope(userId, requestedChildId);
+    return { centerId: resolveParentCenterId(scope), childId: scope.childId };
+  }
+
   private async requireOwnedThread(
     userId: string,
+    ownerRole: ChatOwnerRole,
     threadId: string,
   ): Promise<ChatThread> {
     const thread = await this.prisma.chatThread.findUnique({
       where: { id: threadId },
     });
     if (!thread) throw new NotFoundException("Chat not found.");
-    if (thread.parentUserId !== userId) {
+    if (thread.ownerUserId !== userId || thread.ownerRole !== ownerRole) {
       throw new ForbiddenException("Chat not found.");
     }
     return thread;
   }
 }
 
-function resolveCenterId(scope: ChatScope): string {
+function resolveParentCenterId(scope: ChatScope): string {
   const centerId =
     scope.children.find((c) => c.id === scope.childId)?.centerId ??
     scope.children.find((c) => c.centerId)?.centerId ??
@@ -244,7 +308,10 @@ function detectLanguage(text: string): ChatLanguage {
   return "en";
 }
 
-function buildSystemPrompt(scope: ChatScope, appLanguage: ChatLanguage): string {
+function buildParentSystemPrompt(
+  scope: ChatScope,
+  appLanguage: ChatLanguage,
+): string {
   const childLine = scope.childName
     ? `You are helping the parent of a kindergarten child named ${scope.childName}.`
     : `You are helping a parent at the kindergarten.`;
@@ -295,7 +362,47 @@ TOOL GUIDANCE
 - events/holidays/"school tomorrow" or "events this month/year" -> getCalendarEvents
 - missed notices -> listNotices(unreadOnly)
 - meals (today or over a month/year) -> getMeals; medication -> getMedications; pick-up times -> getPickups; documents/forms -> getDocuments; photos -> listAlbums; attendance -> getAttendance
-- Combine tools when a question spans topics. Today's date is ${new Date()
-    .toISOString()
-    .slice(0, 10)}.`;
+- Combine tools when a question spans topics. Today's date is ${todayForPrompt()}.`;
+}
+
+function buildTeacherSystemPrompt(
+  scope: TeacherChatScope,
+  appLanguage: ChatLanguage,
+): string {
+  const fallbackLang = LANGUAGE_NAMES[appLanguage] ?? "Uzbek";
+  const classList = scope.classes.length
+    ? scope.classes.map((c) => c.name).join(", ")
+    : "no classes yet";
+
+  return `You are Kichkintoy Assistant for a kindergarten (bog'cha) TEACHER. You help her with HER classes and the children in them, and with general center information. Her classes: ${classList}.
+
+LANGUAGE — HIGHEST PRIORITY, READ FIRST
+- Detect the language of the teacher's MOST RECENT message: Uzbek, Russian, or English.
+- Write your ENTIRE reply in that same language. English -> English, Russian -> Russian, Uzbek -> Uzbek.
+- This overrides everything, including the app's interface language. Do NOT default to Uzbek. Do NOT switch languages mid-answer.
+- Only if the latest message is too short to tell, reply in ${fallbackLang}.
+- Keep proper nouns (child names, class names, event/album titles) exactly as stored; never translate them.
+
+WHAT YOU DO
+- Answer using ONLY the tools. Call tools to fetch real data before answering. Never invent names, dates, counts, or facts.
+- If a tool returns no data, say so plainly. Be warm, direct and concise. No medical advice.
+
+BE DIRECT — DON'T INTERROGATE THE TEACHER
+- NEVER ask her to name a child or pick a date when the question is answerable across the class or a time window. Choose the window, call the tool, and answer.
+- "Which child has the most absences so far / until today" -> getAttendance at CLASS level with period "all" (or the span she named), then read perChild (already sorted by most absences) and answer the ranking directly.
+- "Who is absent today / who hasn't arrived" -> getAttendance for period "day" and read today's statuses.
+- "Which reports are still unwritten / who has no report today" -> getDailyReports with the class (and today's date) and list the children whose report is null.
+- "Whose medication is due today" -> getMedications for today. "Who is picked up early today" -> getPickups for today.
+- When she names ONE child, call findChild first to get the childId, then the per-child tool (getChildProfile / getDevelopmentSummary / getDailyReports).
+- Every data tool accepts a window: period ("day"/"week"/"month"/"year"/"all"), a month ("2026-06"), or from/to. Use it for "this month/this year/so far" — do not fall back to a single day.
+
+SCOPE
+- You CAN discuss: her assigned classes and every child enrolled in them (names, ages, gender, guardians, reports, attendance, meals, medication, pick-ups, documents, albums); notices/events/meals for her classes; pending join requests for her classes; and general center info (name, phone, address, the director's name, and the total number of classes and children in the center).
+- You must NEVER reveal children or classes she does NOT teach, other staff's private matters, salaries, tuition, or any center finances. Decline gently and offer what you can help with instead.
+
+- Combine tools when a question spans topics. Today's date is ${todayForPrompt()}.`;
+}
+
+function todayForPrompt(): string {
+  return new Date().toISOString().slice(0, 10);
 }

@@ -1,29 +1,21 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
 import type { Response } from "express";
 import { sendChatMessageInputSchema } from "@kichkintoy/shared";
 import { SessionGuard, type RequestWithUser } from "../auth/session.guard";
-import { ChatService } from "./chat.service";
-import { ChatToolsService } from "./chat-tools.service";
+import { ChatService, type ChatOwnerRole } from "./chat.service";
 import { GeminiChatService } from "./gemini-chat.service";
 
 /**
- * Streaming answer turn for the parent chatroom. Separate from the oRPC thread
- * CRUD because assistant-ui consumes a token stream. Emits newline-delimited SSE
+ * Streaming answer turn for the AI chatroom (parent or teacher). Separate from
+ * the oRPC thread CRUD because assistant-ui consumes a token stream. Emits SSE
  * frames: {type:"delta",value}, {type:"tool",name}, {type:"done"}, {type:"error"}.
+ * The owner role is derived from the session, which selects the scoped toolset.
  */
-@Controller("parent/chat")
+@Controller("chat")
 @UseGuards(SessionGuard)
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
-    private readonly toolsService: ChatToolsService,
     private readonly geminiChat: GeminiChatService,
   ) {}
 
@@ -34,6 +26,7 @@ export class ChatController {
     @Res() res: Response,
   ): Promise<void> {
     const userId = req.user!.id;
+    const ownerRole = ownerRoleFor(req.user!);
     const input = sendChatMessageInputSchema.parse(body);
 
     res.setHeader("Content-Type", "text/event-stream");
@@ -49,6 +42,7 @@ export class ChatController {
     try {
       const turn = await this.chatService.beginTurn(
         userId,
+        ownerRole,
         input.threadId,
         input.message,
         input.childId,
@@ -61,10 +55,10 @@ export class ChatController {
       for await (const event of this.geminiChat.streamAnswer({
         systemPrompt: turn.systemPrompt,
         history: turn.history,
-        tools: this.toolsService.getToolDeclarations(),
+        tools: turn.tools,
         executeTool: (name, args) => {
           toolTrace.push(name);
-          return this.toolsService.execute(turn.scope, name, args);
+          return turn.executeTool(name, args);
         },
       })) {
         if (event.type === "text") {
@@ -78,9 +72,7 @@ export class ChatController {
       const finalText = answer.trim();
       await this.chatService.finishTurn(
         input.threadId,
-        finalText.length > 0
-          ? finalText
-          : fallbackAnswer(),
+        finalText.length > 0 ? finalText : fallbackAnswer(),
         toolTrace,
         turn.isFirstTurn,
         input.message,
@@ -95,6 +87,13 @@ export class ChatController {
       res.end();
     }
   }
+}
+
+/** A teacher (even a dual parent+teacher) gets the teacher toolset; else parent. */
+function ownerRoleFor(user: NonNullable<RequestWithUser["user"]>): ChatOwnerRole {
+  return user.roles.some((role) => role.name === "teacher")
+    ? "teacher"
+    : "parent";
 }
 
 function fallbackAnswer(): string {
