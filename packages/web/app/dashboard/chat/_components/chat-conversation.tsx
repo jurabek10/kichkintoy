@@ -36,17 +36,41 @@ function AssistantMessage() {
 
 type Suggestion = { key: string; prompt: string; accent: string };
 
-function EmptyState({ childName }: { childName: string | null }) {
+const ACCENTS = {
+  coral: "bg-coral/12 text-coral-ink ring-coral/25 hover:bg-coral/20",
+  mint: "bg-mint/12 text-mint-ink ring-mint/25 hover:bg-mint/20",
+  sky: "bg-sky/12 text-sky-ink ring-sky/25 hover:bg-sky/20",
+  sunshine:
+    "bg-sunshine/15 text-sunshine-ink ring-sunshine/30 hover:bg-sunshine/25",
+  grape: "bg-grape/12 text-grape-ink ring-grape/25 hover:bg-grape/20",
+} as const;
+
+function EmptyState({
+  variant,
+  childName,
+}: {
+  variant: "parent" | "teacher";
+  childName: string | null;
+}) {
   const { t } = useLayoutTranslation("chat");
   const name = childName ?? "";
   const withName = (k: string, generic: string) =>
     childName ? t(k, { name }) : t(generic);
 
-  const suggestions: Suggestion[] = [
+  // Teacher chips are class-wide (no child name); each carries a domain accent.
+  const teacherSuggestions: Suggestion[] = [
+    { key: "absentToday", prompt: t("teacher.suggestions.absentToday"), accent: ACCENTS.coral },
+    { key: "mostAbsent", prompt: t("teacher.suggestions.mostAbsent"), accent: ACCENTS.sunshine },
+    { key: "unwrittenReports", prompt: t("teacher.suggestions.unwrittenReports"), accent: ACCENTS.mint },
+    { key: "medicationDue", prompt: t("teacher.suggestions.medicationDue"), accent: ACCENTS.sky },
+    { key: "events", prompt: t("teacher.suggestions.events"), accent: ACCENTS.grape },
+  ];
+
+  const parentSuggestions: Suggestion[] = [
     {
       key: "today",
       prompt: withName("suggestions.today", "suggestions.todayGeneric"),
-      accent: "bg-coral/12 text-coral-ink ring-coral/25 hover:bg-coral/20",
+      accent: ACCENTS.coral,
     },
     {
       key: "development",
@@ -54,37 +78,32 @@ function EmptyState({ childName }: { childName: string | null }) {
         "suggestions.development",
         "suggestions.developmentGeneric",
       ),
-      accent: "bg-mint/12 text-mint-ink ring-mint/25 hover:bg-mint/20",
+      accent: ACCENTS.mint,
     },
-    {
-      key: "events",
-      prompt: t("suggestions.events"),
-      accent: "bg-sky/12 text-sky-ink ring-sky/25 hover:bg-sky/20",
-    },
-    {
-      key: "notices",
-      prompt: t("suggestions.notices"),
-      accent:
-        "bg-sunshine/15 text-sunshine-ink ring-sunshine/30 hover:bg-sunshine/25",
-    },
-    {
-      key: "meals",
-      prompt: t("suggestions.meals"),
-      accent: "bg-grape/12 text-grape-ink ring-grape/25 hover:bg-grape/20",
-    },
+    { key: "events", prompt: t("suggestions.events"), accent: ACCENTS.sky },
+    { key: "notices", prompt: t("suggestions.notices"), accent: ACCENTS.sunshine },
+    { key: "meals", prompt: t("suggestions.meals"), accent: ACCENTS.grape },
   ];
+
+  const suggestions =
+    variant === "teacher" ? teacherSuggestions : parentSuggestions;
+
+  const title =
+    variant === "teacher"
+      ? t("teacher.emptyTitle")
+      : childName
+        ? t("emptyTitle", { name })
+        : t("emptyTitleGeneric");
+  const subtitle =
+    variant === "teacher" ? t("teacher.emptySubtitle") : t("emptySubtitle");
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 text-center">
       <AssistantAvatar className="h-16 w-16" />
       <h2 className="mt-5 font-kids text-2xl font-bold text-foreground">
-        {childName
-          ? t("emptyTitle", { name })
-          : t("emptyTitleGeneric")}
+        {title}
       </h2>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        {t("emptySubtitle")}
-      </p>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">{subtitle}</p>
       <div className="mt-7 flex max-w-xl flex-wrap justify-center gap-2.5">
         {suggestions.map((s) => (
           <ThreadPrimitive.Suggestion
@@ -105,17 +124,26 @@ function EmptyState({ childName }: { childName: string | null }) {
   );
 }
 
-export function ChatConversation({ childName }: { childName: string | null }) {
+export function ChatConversation({
+  variant = "parent",
+  childName,
+}: {
+  variant?: "parent" | "teacher";
+  childName: string | null;
+}) {
   const { t } = useLayoutTranslation("chat");
-  const placeholder = childName
-    ? t("composerPlaceholder", { name: childName })
-    : t("composerPlaceholderGeneric");
+  const placeholder =
+    variant === "teacher"
+      ? t("teacher.composerPlaceholder")
+      : childName
+        ? t("composerPlaceholder", { name: childName })
+        : t("composerPlaceholderGeneric");
 
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col bg-background">
       <ThreadPrimitive.Viewport className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-6 md:px-8">
         <ThreadPrimitive.Empty>
-          <EmptyState childName={childName} />
+          <EmptyState variant={variant} childName={childName} />
         </ThreadPrimitive.Empty>
 
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">

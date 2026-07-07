@@ -12,9 +12,14 @@ import { ChatSidebar } from "./chat-sidebar";
 import { ChatThread } from "./chat-thread";
 import { DeleteChatDialog } from "./delete-chat-dialog";
 
-export function ChatApp() {
+export function ChatApp({
+  variant = "parent",
+}: {
+  variant?: "parent" | "teacher";
+}) {
   const { t } = useLayoutTranslation("chat");
   const queryClient = useQueryClient();
+  const isTeacher = variant === "teacher";
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
@@ -23,16 +28,18 @@ export function ChatApp() {
   const creatingRef = useRef(false);
 
   const threadsQuery = useQuery({
-    queryKey: ["chat", "threads"],
+    queryKey: ["chat", variant, "threads"],
     queryFn: () => orpc.chat.listThreads({}),
   });
+  // Teachers have no child-picker — the assistant is scoped to their classes.
   const childrenQuery = useQuery({
     queryKey: ["chat", "children"],
     queryFn: () => orpc.profile.listChildren({}),
+    enabled: !isTeacher,
   });
 
   const threads = threadsQuery.data?.items ?? [];
-  const children = childrenQuery.data ?? [];
+  const children = isTeacher ? [] : childrenQuery.data ?? [];
   const activeChild =
     children.find((c) => c.id === selectedChildId) ??
     children.find((c) => c.isPrimary) ??
@@ -40,8 +47,9 @@ export function ChatApp() {
 
   // Default the child selection once children load.
   useEffect(() => {
+    if (isTeacher) return;
     if (!selectedChildId && activeChild) setSelectedChildId(activeChild.id);
-  }, [activeChild, selectedChildId]);
+  }, [activeChild, selectedChildId, isTeacher]);
 
   const createThread = useMutation({
     mutationFn: () =>
@@ -51,7 +59,7 @@ export function ChatApp() {
     onSuccess: (thread) => {
       setActiveThreadId(thread.id);
       setMobileOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
+      void queryClient.invalidateQueries({ queryKey: ["chat", variant, "threads"] });
     },
     onError: (error) => toast.error(toApiError(error).message),
   });
@@ -75,7 +83,7 @@ export function ChatApp() {
     mutationFn: (input: { threadId: string; title: string }) =>
       orpc.chat.renameThread(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
+      void queryClient.invalidateQueries({ queryKey: ["chat", variant, "threads"] });
     },
     onError: (error) => toast.error(toApiError(error).message),
   });
@@ -85,7 +93,7 @@ export function ChatApp() {
     onSuccess: (_res, id) => {
       if (id === activeThreadId) setActiveThreadId(null);
       setDeleteTarget(null);
-      void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
+      void queryClient.invalidateQueries({ queryKey: ["chat", variant, "threads"] });
     },
     onError: (error) => toast.error(toApiError(error).message),
   });
@@ -94,8 +102,8 @@ export function ChatApp() {
     renameThread.mutate({ threadId: id, title });
 
   const onTurnComplete = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
-  }, [queryClient]);
+    void queryClient.invalidateQueries({ queryKey: ["chat", variant, "threads"] });
+  }, [queryClient, variant]);
 
   return (
     <div
@@ -156,7 +164,7 @@ export function ChatApp() {
           <span className="flex-1 truncate font-kids text-sm font-semibold text-foreground md:hidden">
             {t("title")}
           </span>
-          {children.length > 1 && (
+          {!isTeacher && children.length > 1 && (
             <label className="ml-auto flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">{t("childPicker")}</span>
               <select
@@ -179,8 +187,9 @@ export function ChatApp() {
             <ChatThread
               key={activeThreadId}
               threadId={activeThreadId}
-              childId={selectedChildId}
-              childName={activeChild?.firstName ?? null}
+              variant={variant}
+              childId={isTeacher ? undefined : selectedChildId}
+              childName={isTeacher ? null : activeChild?.firstName ?? null}
               onTurnComplete={onTurnComplete}
             />
           ) : (

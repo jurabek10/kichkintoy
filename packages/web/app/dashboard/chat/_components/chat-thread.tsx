@@ -25,11 +25,13 @@ function normalizeLanguage(lang: string | undefined): string | undefined {
  */
 export function ChatThread({
   threadId,
+  variant = "parent",
   childId,
   childName,
   onTurnComplete,
 }: {
   threadId: string;
+  variant?: "parent" | "teacher";
   childId: string | undefined;
   childName: string | null;
   onTurnComplete: () => void;
@@ -83,7 +85,7 @@ export function ChatThread({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatConversation childName={childName} />
+      <ChatConversation variant={variant} childName={childName} />
     </AssistantRuntimeProvider>
   );
 }

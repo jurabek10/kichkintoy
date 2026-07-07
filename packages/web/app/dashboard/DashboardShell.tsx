@@ -88,6 +88,7 @@ const navByRole: Record<
   ],
   teacher: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
+    { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/classes", labelKey: "items.myClasses", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },

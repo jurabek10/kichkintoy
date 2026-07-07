@@ -6,11 +6,12 @@ export type ChatStreamEvent =
   | { type: "done" }
   | { type: "error"; message: string };
 
-const STREAM_URL = `${apiBaseUrl}/parent/chat/stream`;
+const STREAM_URL = `${apiBaseUrl}/chat/stream`;
 
 /**
- * POST a turn to the parent chat SSE endpoint and yield parsed events as they
- * arrive. The backend runs the Gemini tool-loop and streams text deltas.
+ * POST a turn to the chat SSE endpoint and yield parsed events as they arrive.
+ * The backend derives the owner role from the session (parent or teacher),
+ * runs the Gemini tool-loop with the scoped toolset, and streams text deltas.
  */
 export async function* streamChatTurn(input: {
   threadId: string;
