@@ -54,5 +54,17 @@
       "medicationDue": "Bugun kimning dorisi bor?",
       "events": "Shu hafta tadbirlar bormi?"
     }
+  },
+  "director": {
+    "emptyTitle": "Markazingiz haqida istagan narsangizni so'rang",
+    "emptySubtitle": "Guruhlar, bolalar, tarbiyachilar, davomat va to'lovlar — butun markaz bo'yicha men hisoblab beraman.",
+    "composerPlaceholder": "Markaz haqida so'rang…",
+    "suggestions": {
+      "snapshot": "Bugungi umumiy holat qanday?",
+      "unpaidTuition": "Qaysi guruhlarda to'lov qarzi ko'p?",
+      "absentToday": "Bugun nechta bola kelmadi?",
+      "joinRequests": "Kutilayotgan qo'shilish so'rovlari bormi?",
+      "emptySeats": "Qaysi guruhlarda bo'sh o'rin bor?"
+    }
   }
 }

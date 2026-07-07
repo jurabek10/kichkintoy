@@ -54,5 +54,17 @@
       "medicationDue": "Whose medication is due today?",
       "events": "Any events this week?"
     }
+  },
+  "director": {
+    "emptyTitle": "Ask anything about your center",
+    "emptySubtitle": "Classes, children, teachers, attendance and tuition — I add it up across the whole center.",
+    "composerPlaceholder": "Ask about your center…",
+    "suggestions": {
+      "snapshot": "Give me today's snapshot",
+      "unpaidTuition": "Which classes have the most unpaid tuition?",
+      "absentToday": "How many children are absent today?",
+      "joinRequests": "Any pending join requests?",
+      "emptySeats": "Which classes have empty seats?"
+    }
   }
 }
