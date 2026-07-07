@@ -9,6 +9,7 @@ import { NoticesService } from "../notices/notices.service";
 import { PickupsService } from "../pickups/pickups.service";
 import { ProfileService } from "../profile/profile.service";
 import { ReportsService } from "../reports/reports.service";
+import { StudentDocumentsService } from "../student-documents/student-documents.service";
 
 /**
  * A Gemini function declaration (subset of the OpenAPI schema Gemini accepts).
@@ -69,6 +70,7 @@ export class ChatToolsService {
     private readonly medicationsService: MedicationsService,
     private readonly albumsService: AlbumsService,
     private readonly pickupsService: PickupsService,
+    private readonly studentDocumentsService: StudentDocumentsService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -103,8 +105,20 @@ export class ChatToolsService {
   getToolDeclarations(): ToolDeclaration[] {
     const periodProp = {
       type: "string",
-      enum: ["day", "week", "month"],
-      description: "Time range to look back over. Defaults to week.",
+      enum: ["day", "week", "month", "year", "all"],
+      description:
+        "Named time range: 'day' (today), 'week' (last 7 days), 'month' (this calendar month), 'year' (this calendar year), or 'all' (everything to date). Use this for questions like 'this month' or 'this year'. Defaults to month.",
+    };
+    // Reusable window params so any period question (month/year/specific day)
+    // can be answered without asking the parent to pick an exact date.
+    const rangeProps = {
+      period: periodProp,
+      month: {
+        type: "string",
+        description: "A specific calendar month as YYYY-MM (e.g. 2026-06 for June).",
+      },
+      from: { type: "string", description: "Explicit start day YYYY-MM-DD." },
+      to: { type: "string", description: "Explicit end day YYYY-MM-DD." },
     };
     return [
       {
@@ -153,7 +167,7 @@ export class ChatToolsService {
       {
         name: "getDevelopmentSummary",
         description:
-          "Get the child's aggregated development signals (strengths, needs-practice, participation, mood) across a period. Use for 'how is my child developing' questions.",
+          "Get the child's aggregated development signals (strengths, needs-practice, participation, mood) across a period. Use for 'how is my child developing' and 'what is he good at / what needs practice' questions. When the parent asks generally (no time range), pass period 'all' to cover every report to date — do NOT ask the parent to pick a date.",
         parameters: {
           type: "object",
           properties: { period: periodProp },
@@ -163,13 +177,10 @@ export class ChatToolsService {
       {
         name: "getAttendance",
         description:
-          "Get the child's attendance (present/absent days) over a date range.",
+          "Get the child's attendance (present/absent days). Pass a period ('month', 'year', ...), a specific month, or explicit from/to to cover any span. Never ask the parent for an exact date.",
         parameters: {
           type: "object",
-          properties: {
-            from: { type: "string", description: "Start day YYYY-MM-DD." },
-            to: { type: "string", description: "End day YYYY-MM-DD." },
-          },
+          properties: { ...rangeProps },
           required: [],
         },
       },
@@ -189,15 +200,17 @@ export class ChatToolsService {
         },
       },
       {
-        name: "getUpcomingEvents",
+        name: "getCalendarEvents",
         description:
-          "Get upcoming calendar events for the child's class/center (holidays, meetings, parties).",
+          "Get calendar events for the child's class/center (holidays, meetings, parties). By default returns upcoming events; pass a period ('month', 'year'), a specific month, or from/to to get events across any span, including past ones. Use this for 'what events were there this month/year' as well as 'is there school tomorrow'.",
         parameters: {
           type: "object",
           properties: {
+            ...rangeProps,
             withinDays: {
               type: "number",
-              description: "Look-ahead window in days. Defaults to 14.",
+              description:
+                "Upcoming look-ahead window in days (used only when no period/month/from/to is given). Defaults to 14.",
             },
           },
           required: [],
@@ -205,14 +218,16 @@ export class ChatToolsService {
       },
       {
         name: "getMeals",
-        description: "Get the meal menu for a day.",
+        description:
+          "Get the meal menu. With no arguments returns today's menu. Pass a period ('month', 'year'), a specific month, or from/to to get EVERY meal served over that span — use this to answer aggregate questions like 'which meal was served most in June'. Never ask the parent to pick one day for a month question.",
         parameters: {
           type: "object",
           properties: {
             date: {
               type: "string",
-              description: "Day YYYY-MM-DD. Defaults to today.",
+              description: "A single day YYYY-MM-DD. Defaults to today.",
             },
+            ...rangeProps,
           },
           required: [],
         },
@@ -220,14 +235,40 @@ export class ChatToolsService {
       {
         name: "getMedications",
         description:
-          "Get the child's medication requests/schedule, optionally for a specific day.",
+          "Get the child's medication requests/records. With NO arguments, returns the FULL medication history to date — use this for 'what medicine has my child taken / until now'. Pass a period/month/from/to to limit to a span, or a date for one day. Never ask the parent for a date first; summarise whatever range they asked about.",
         parameters: {
           type: "object",
           properties: {
-            date: { type: "string", description: "Day YYYY-MM-DD." },
+            date: {
+              type: "string",
+              description: "Optional single day YYYY-MM-DD.",
+            },
+            ...rangeProps,
           },
           required: [],
         },
+      },
+      {
+        name: "getPickups",
+        description:
+          "Get the child's pick-up time notices (who collects the child and when). With no arguments returns the full history; pass a period/month/from/to for a span, or a date for one day.",
+        parameters: {
+          type: "object",
+          properties: {
+            date: {
+              type: "string",
+              description: "Optional single day YYYY-MM-DD.",
+            },
+            ...rangeProps,
+          },
+          required: [],
+        },
+      },
+      {
+        name: "getDocuments",
+        description:
+          "List the child's document requests/submissions the center has sent to this parent (forms, consents, files to fill in) and their status (draft, submitted, etc.).",
+        parameters: { type: "object", properties: {}, required: [] },
       },
       {
         name: "listAlbums",
@@ -306,12 +347,15 @@ export class ChatToolsService {
         };
       }
 
-      case "getAttendance":
-        return this.attendanceService.listForParent(userId, {
+      case "getAttendance": {
+        const range = hasRangeArgs(args) ? resolveRange(args) : null;
+        const attendance = await this.attendanceService.listForParent(userId, {
           childId,
-          from: typeof args.from === "string" ? args.from : undefined,
-          to: typeof args.to === "string" ? args.to : undefined,
+          from: range?.from,
+          to: range?.to,
         });
+        return range ? { range, attendance } : attendance;
+      }
 
       case "listNotices": {
         const notices = await this.noticesService.listForParent(
@@ -321,7 +365,18 @@ export class ChatToolsService {
         return notices;
       }
 
-      case "getUpcomingEvents": {
+      case "getCalendarEvents": {
+        if (hasRangeArgs(args)) {
+          const range = resolveRange(args);
+          return {
+            range,
+            events: await this.calendarService.listForParent(userId, {
+              childId,
+              from: range.from,
+              to: range.to,
+            }),
+          };
+        }
         const withinDays =
           typeof args.withinDays === "number" ? args.withinDays : 14;
         return this.calendarService.listForParent(userId, {
@@ -331,18 +386,60 @@ export class ChatToolsService {
         });
       }
 
-      case "getMeals":
+      case "getMeals": {
+        if (hasRangeArgs(args)) {
+          const range = resolveRange(args);
+          const all = await this.mealsService.listForParent(userId, childId);
+          const inRange = filterByDate(all, "mealDate", range);
+          return {
+            range,
+            count: inRange.length,
+            meals: inRange.slice(0, 150),
+            note: "These are the meals served in the range. Count/aggregate by mealType or dish to answer 'which meal was served most'.",
+          };
+        }
         return this.mealsService.listForParent(
           userId,
           childId,
           typeof args.date === "string" ? args.date : todayIso(),
         );
+      }
 
-      case "getMedications":
-        return this.medicationsService.listForParent(userId, {
+      case "getMedications": {
+        if (typeof args.date === "string") {
+          return this.medicationsService.listForParent(userId, {
+            childId,
+            date: args.date,
+          });
+        }
+        const all = await this.medicationsService.listForParent(userId, {
           childId,
-          date: typeof args.date === "string" ? args.date : undefined,
         });
+        if (!hasRangeArgs(args)) return all;
+        const range = resolveRange(args);
+        return {
+          range,
+          medications: filterByDate(all, "requestedForDate", range),
+        };
+      }
+
+      case "getPickups": {
+        if (typeof args.date === "string") {
+          return this.pickupsService.listForParent(userId, {
+            childId,
+            date: args.date,
+          });
+        }
+        const all = await this.pickupsService.listForParent(userId, {
+          childId,
+        });
+        if (!hasRangeArgs(args)) return all;
+        const range = resolveRange(args);
+        return { range, pickups: filterByDate(all, "pickupDate", range) };
+      }
+
+      case "getDocuments":
+        return this.studentDocumentsService.parentRequests(userId, { childId });
 
       case "listAlbums":
         return this.albumsService.listForParent(userId, childId);
@@ -427,12 +524,96 @@ function ageFromDob(dob: string): number | null {
   return age;
 }
 
-function normalizePeriod(value: unknown): "day" | "week" | "month" {
-  return value === "day" || value === "month" ? value : "week";
+type Period = "day" | "week" | "month" | "year" | "all";
+
+function normalizePeriod(value: unknown): Period {
+  return value === "day" ||
+    value === "month" ||
+    value === "year" ||
+    value === "all"
+    ? value
+    : "week";
 }
 
 /** Trim a report list to a sensible count for the period to bound token cost. */
-function limit<T>(items: T[], period: "day" | "week" | "month"): T[] {
-  const max = period === "day" ? 1 : period === "week" ? 7 : 31;
+function limit<T>(items: T[], period: Period): T[] {
+  const max =
+    period === "day"
+      ? 1
+      : period === "week"
+        ? 7
+        : period === "month"
+          ? 31
+          : 90;
   return items.slice(0, max);
+}
+
+type DateRange = { from: string; to: string };
+
+/** True when the model asked for any explicit time window (vs. a bare call). */
+function hasRangeArgs(args: Record<string, unknown>): boolean {
+  return (
+    typeof args.period === "string" ||
+    typeof args.month === "string" ||
+    typeof args.from === "string" ||
+    typeof args.to === "string"
+  );
+}
+
+/**
+ * Resolve a {from,to} window from model args: explicit from/to, a specific
+ * month (YYYY-MM), or a named period. Falls back to the current month.
+ */
+function resolveRange(args: Record<string, unknown>): DateRange {
+  const from = typeof args.from === "string" ? args.from : undefined;
+  const to = typeof args.to === "string" ? args.to : undefined;
+  if (from || to) {
+    return { from: from ?? "2000-01-01", to: to ?? todayIso() };
+  }
+  const month = typeof args.month === "string" ? args.month : undefined;
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [y, m] = month.split("-").map(Number);
+    return { from: `${month}-01`, to: isoDate(new Date(Date.UTC(y, m, 0))) };
+  }
+  return rangeForPeriod(normalizePeriod(args.period ?? "month"));
+}
+
+/** A calendar-aligned {from,to} for a named period, relative to today. */
+function rangeForPeriod(period: Period): DateRange {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const today = isoDate(now);
+  switch (period) {
+    case "day":
+      return { from: today, to: today };
+    case "week": {
+      const start = new Date(now);
+      start.setUTCDate(start.getUTCDate() - 6);
+      return { from: isoDate(start), to: today };
+    }
+    case "month":
+      return {
+        from: isoDate(new Date(Date.UTC(y, m, 1))),
+        to: isoDate(new Date(Date.UTC(y, m + 1, 0))),
+      };
+    case "year":
+      return { from: `${y}-01-01`, to: `${y}-12-31` };
+    case "all":
+      return { from: "2000-01-01", to: isoDate(new Date(Date.UTC(y + 1, m, 1))) };
+  }
+}
+
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Keep list items whose date field (YYYY-MM-DD or ISO datetime) is in range. */
+function filterByDate<T>(items: T[], field: keyof T & string, range: DateRange): T[] {
+  return items.filter((item) => {
+    const value = (item as Record<string, unknown>)[field];
+    if (typeof value !== "string") return false;
+    const day = value.slice(0, 10);
+    return day >= range.from && day <= range.to;
+  });
 }

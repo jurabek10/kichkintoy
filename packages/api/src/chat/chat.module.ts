@@ -9,6 +9,7 @@ import { NoticesModule } from "../notices/notices.module";
 import { PickupsModule } from "../pickups/pickups.module";
 import { ProfileModule } from "../profile/profile.module";
 import { ReportsModule } from "../reports/reports.module";
+import { StudentDocumentsModule } from "../student-documents/student-documents.module";
 import { ChatController } from "./chat.controller";
 import { ChatService } from "./chat.service";
 import { ChatToolsService } from "./chat-tools.service";
@@ -26,6 +27,7 @@ import { GeminiChatService } from "./gemini-chat.service";
     MedicationsModule,
     AlbumsModule,
     PickupsModule,
+    StudentDocumentsModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatToolsService, GeminiChatService],
