@@ -31,7 +31,7 @@ export function ChatThread({
   onTurnComplete,
 }: {
   threadId: string;
-  variant?: "parent" | "teacher";
+  variant?: "parent" | "teacher" | "director";
   childId: string | undefined;
   childName: string | null;
   onTurnComplete: () => void;

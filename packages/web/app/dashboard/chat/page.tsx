@@ -22,7 +22,7 @@ export default function DashboardChatPage() {
   }
 
   const role = session.user.role;
-  if (role !== "parent" && role !== "teacher") {
+  if (role !== "parent" && role !== "teacher" && role !== "director") {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
         <AssistantAvatar className="h-16 w-16" />
@@ -36,5 +36,5 @@ export default function DashboardChatPage() {
     );
   }
 
-  return <ChatApp variant={role === "teacher" ? "teacher" : "parent"} />;
+  return <ChatApp variant={role} />;
 }

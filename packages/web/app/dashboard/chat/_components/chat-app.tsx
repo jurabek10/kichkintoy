@@ -15,11 +15,12 @@ import { DeleteChatDialog } from "./delete-chat-dialog";
 export function ChatApp({
   variant = "parent",
 }: {
-  variant?: "parent" | "teacher";
+  variant?: "parent" | "teacher" | "director";
 }) {
   const { t } = useLayoutTranslation("chat");
   const queryClient = useQueryClient();
-  const isTeacher = variant === "teacher";
+  // Only parents pick a child; teacher and director scopes are class/center-wide.
+  const isParent = variant === "parent";
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
@@ -31,15 +32,14 @@ export function ChatApp({
     queryKey: ["chat", variant, "threads"],
     queryFn: () => orpc.chat.listThreads({}),
   });
-  // Teachers have no child-picker — the assistant is scoped to their classes.
   const childrenQuery = useQuery({
     queryKey: ["chat", "children"],
     queryFn: () => orpc.profile.listChildren({}),
-    enabled: !isTeacher,
+    enabled: isParent,
   });
 
   const threads = threadsQuery.data?.items ?? [];
-  const children = isTeacher ? [] : childrenQuery.data ?? [];
+  const children = isParent ? childrenQuery.data ?? [] : [];
   const activeChild =
     children.find((c) => c.id === selectedChildId) ??
     children.find((c) => c.isPrimary) ??
@@ -47,9 +47,9 @@ export function ChatApp({
 
   // Default the child selection once children load.
   useEffect(() => {
-    if (isTeacher) return;
+    if (!isParent) return;
     if (!selectedChildId && activeChild) setSelectedChildId(activeChild.id);
-  }, [activeChild, selectedChildId, isTeacher]);
+  }, [activeChild, selectedChildId, isParent]);
 
   const createThread = useMutation({
     mutationFn: () =>
@@ -164,7 +164,7 @@ export function ChatApp({
           <span className="flex-1 truncate font-kids text-sm font-semibold text-foreground md:hidden">
             {t("title")}
           </span>
-          {!isTeacher && children.length > 1 && (
+          {isParent && children.length > 1 && (
             <label className="ml-auto flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">{t("childPicker")}</span>
               <select
@@ -188,8 +188,8 @@ export function ChatApp({
               key={activeThreadId}
               threadId={activeThreadId}
               variant={variant}
-              childId={isTeacher ? undefined : selectedChildId}
-              childName={isTeacher ? null : activeChild?.firstName ?? null}
+              childId={isParent ? selectedChildId : undefined}
+              childName={isParent ? activeChild?.firstName ?? null : null}
               onTurnComplete={onTurnComplete}
             />
           ) : (

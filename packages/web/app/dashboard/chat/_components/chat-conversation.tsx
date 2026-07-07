@@ -49,7 +49,7 @@ function EmptyState({
   variant,
   childName,
 }: {
-  variant: "parent" | "teacher";
+  variant: "parent" | "teacher" | "director";
   childName: string | null;
 }) {
   const { t } = useLayoutTranslation("chat");
@@ -64,6 +64,15 @@ function EmptyState({
     { key: "unwrittenReports", prompt: t("teacher.suggestions.unwrittenReports"), accent: ACCENTS.mint },
     { key: "medicationDue", prompt: t("teacher.suggestions.medicationDue"), accent: ACCENTS.sky },
     { key: "events", prompt: t("teacher.suggestions.events"), accent: ACCENTS.grape },
+  ];
+
+  // Director chips are center-wide, spanning operations and tuition.
+  const directorSuggestions: Suggestion[] = [
+    { key: "snapshot", prompt: t("director.suggestions.snapshot"), accent: ACCENTS.sky },
+    { key: "unpaidTuition", prompt: t("director.suggestions.unpaidTuition"), accent: ACCENTS.mint },
+    { key: "absentToday", prompt: t("director.suggestions.absentToday"), accent: ACCENTS.coral },
+    { key: "joinRequests", prompt: t("director.suggestions.joinRequests"), accent: ACCENTS.sunshine },
+    { key: "emptySeats", prompt: t("director.suggestions.emptySeats"), accent: ACCENTS.grape },
   ];
 
   const parentSuggestions: Suggestion[] = [
@@ -86,16 +95,26 @@ function EmptyState({
   ];
 
   const suggestions =
-    variant === "teacher" ? teacherSuggestions : parentSuggestions;
+    variant === "teacher"
+      ? teacherSuggestions
+      : variant === "director"
+        ? directorSuggestions
+        : parentSuggestions;
 
   const title =
     variant === "teacher"
       ? t("teacher.emptyTitle")
-      : childName
-        ? t("emptyTitle", { name })
-        : t("emptyTitleGeneric");
+      : variant === "director"
+        ? t("director.emptyTitle")
+        : childName
+          ? t("emptyTitle", { name })
+          : t("emptyTitleGeneric");
   const subtitle =
-    variant === "teacher" ? t("teacher.emptySubtitle") : t("emptySubtitle");
+    variant === "teacher"
+      ? t("teacher.emptySubtitle")
+      : variant === "director"
+        ? t("director.emptySubtitle")
+        : t("emptySubtitle");
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 text-center">
@@ -128,16 +147,18 @@ export function ChatConversation({
   variant = "parent",
   childName,
 }: {
-  variant?: "parent" | "teacher";
+  variant?: "parent" | "teacher" | "director";
   childName: string | null;
 }) {
   const { t } = useLayoutTranslation("chat");
   const placeholder =
     variant === "teacher"
       ? t("teacher.composerPlaceholder")
-      : childName
-        ? t("composerPlaceholder", { name: childName })
-        : t("composerPlaceholderGeneric");
+      : variant === "director"
+        ? t("director.composerPlaceholder")
+        : childName
+          ? t("composerPlaceholder", { name: childName })
+          : t("composerPlaceholderGeneric");
 
   return (
     <ThreadPrimitive.Root className="flex h-full flex-col bg-background">

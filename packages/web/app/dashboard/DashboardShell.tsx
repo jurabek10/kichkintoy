@@ -72,6 +72,7 @@ const navByRole: Record<
 > = {
   director: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
+    { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/classes", labelKey: "items.classes", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
