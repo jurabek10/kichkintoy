@@ -16,6 +16,7 @@ export async function* streamChatTurn(input: {
   threadId: string;
   message: string;
   childId?: string;
+  appLanguage?: string;
   signal?: AbortSignal;
 }): AsyncGenerator<ChatStreamEvent> {
   const token =
@@ -33,6 +34,7 @@ export async function* streamChatTurn(input: {
       threadId: input.threadId,
       message: input.message,
       ...(input.childId ? { childId: input.childId } : {}),
+      ...(input.appLanguage ? { appLanguage: input.appLanguage } : {}),
     }),
     signal: input.signal,
   });

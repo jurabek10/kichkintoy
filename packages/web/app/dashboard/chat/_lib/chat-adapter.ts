@@ -24,6 +24,7 @@ function lastUserText(messages: readonly ThreadMessage[]): string {
 export function createChatAdapter(refs: {
   threadId: string;
   getChildId: () => string | undefined;
+  getAppLanguage: () => string | undefined;
   onDone?: () => void;
 }): ChatModelAdapter {
   return {
@@ -35,6 +36,7 @@ export function createChatAdapter(refs: {
         threadId: refs.threadId,
         message,
         childId: refs.getChildId(),
+        appLanguage: refs.getAppLanguage(),
         signal: abortSignal,
       })) {
         if (event.type === "delta") {

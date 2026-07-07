@@ -76,5 +76,11 @@ export const sendChatMessageInputSchema = z.object({
   threadId: uuidSchema,
   message: z.string().trim().min(1).max(2000),
   childId: uuidSchema.optional(),
+  /**
+   * The parent's current app UI language. Used only as a tie-breaker when the
+   * message itself is too short to detect a language; the reply always mirrors
+   * the language of the message when it can be told.
+   */
+  appLanguage: z.enum(["uz", "ru", "en"]).optional(),
 });
 export type SendChatMessageInput = z.infer<typeof sendChatMessageInputSchema>;
