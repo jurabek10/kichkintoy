@@ -8,12 +8,12 @@ import {
 import { ArrowUp } from "lucide-react";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
-import { MascotAvatar } from "./mascot-avatar";
+import { AssistantAvatar } from "./assistant-avatar";
 
 function UserMessage() {
   return (
     <MessagePrimitive.Root className="flex justify-end">
-      <div className="max-w-[82%] rounded-lg rounded-br-sm bg-primary px-4 py-2.5 text-primary-foreground shadow-sm">
+      <div className="max-w-[82%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground shadow-sm">
         <MessagePrimitive.Parts />
       </div>
     </MessagePrimitive.Root>
@@ -23,8 +23,8 @@ function UserMessage() {
 function AssistantMessage() {
   return (
     <MessagePrimitive.Root className="flex items-start gap-3">
-      <MascotAvatar className="mt-0.5 h-8 w-8" />
-      <div className="max-w-[82%] whitespace-pre-wrap rounded-lg rounded-tl-sm bg-card px-4 py-2.5 text-card-foreground shadow-sm ring-1 ring-border/60 [&_p]:leading-relaxed">
+      <AssistantAvatar className="mt-0.5 h-8 w-8" />
+      <div className="max-w-[82%] whitespace-pre-wrap rounded-2xl rounded-tl-md bg-card px-4 py-2.5 text-card-foreground shadow-sm ring-1 ring-border/60 [&_p]:leading-relaxed">
         <MessagePrimitive.Parts />
         <MessagePrimitive.Error>
           <p className="text-sm text-destructive">·</p>
@@ -76,7 +76,7 @@ function EmptyState({ childName }: { childName: string | null }) {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 text-center">
-      <MascotAvatar className="h-16 w-16" />
+      <AssistantAvatar className="h-16 w-16" />
       <h2 className="mt-5 font-kids text-2xl font-bold text-foreground">
         {childName
           ? t("emptyTitle", { name })
@@ -118,7 +118,7 @@ export function ChatConversation({ childName }: { childName: string | null }) {
           <EmptyState childName={childName} />
         </ThreadPrimitive.Empty>
 
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
           <ThreadPrimitive.Messages
             components={{ UserMessage, AssistantMessage }}
           />
@@ -126,7 +126,7 @@ export function ChatConversation({ childName }: { childName: string | null }) {
       </ThreadPrimitive.Viewport>
 
       <div className="border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur md:px-8">
-        <ComposerPrimitive.Root className="mx-auto flex w-full max-w-2xl items-end gap-2 rounded-lg border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring/40">
+        <ComposerPrimitive.Root className="mx-auto flex w-full max-w-3xl items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring/40">
           <ComposerPrimitive.Input
             rows={1}
             autoFocus

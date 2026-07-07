@@ -3,7 +3,7 @@
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { useSession } from "@/lib/session";
 import { ChatApp } from "./_components/chat-app";
-import { MascotAvatar } from "./_components/mascot-avatar";
+import { AssistantAvatar } from "./_components/assistant-avatar";
 
 export default function DashboardChatPage() {
   const { session, loading } = useSession();
@@ -24,7 +24,7 @@ export default function DashboardChatPage() {
   if (session.user.role !== "parent") {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
-        <MascotAvatar className="h-16 w-16" />
+        <AssistantAvatar className="h-16 w-16" />
         <h2 className="font-kids text-2xl font-bold text-foreground">
           {t("notParentTitle")}
         </h2>

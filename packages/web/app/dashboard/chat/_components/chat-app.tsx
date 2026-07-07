@@ -10,6 +10,7 @@ import { orpc } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
 import { ChatSidebar } from "./chat-sidebar";
 import { ChatThread } from "./chat-thread";
+import { DeleteChatDialog } from "./delete-chat-dialog";
 
 export function ChatApp() {
   const { t } = useLayoutTranslation("chat");
@@ -18,6 +19,7 @@ export function ChatApp() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const creatingRef = useRef(false);
 
   const threadsQuery = useQuery({
@@ -69,33 +71,53 @@ export function ChatApp() {
     }
   }, [threadsQuery.isLoading, threads, activeThreadId, createThread]);
 
-  const deleteThread = useMutation({
-    mutationFn: (id: string) => orpc.chat.deleteThread({ threadId: id }),
-    onSuccess: (_res, id) => {
-      if (id === activeThreadId) setActiveThreadId(null);
+  const renameThread = useMutation({
+    mutationFn: (input: { threadId: string; title: string }) =>
+      orpc.chat.renameThread(input),
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
     },
     onError: (error) => toast.error(toApiError(error).message),
   });
 
-  const handleDelete = (id: string) => {
-    if (window.confirm(t("deleteConfirm"))) deleteThread.mutate(id);
-  };
+  const deleteThread = useMutation({
+    mutationFn: (id: string) => orpc.chat.deleteThread({ threadId: id }),
+    onSuccess: (_res, id) => {
+      if (id === activeThreadId) setActiveThreadId(null);
+      setDeleteTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
+    },
+    onError: (error) => toast.error(toApiError(error).message),
+  });
+
+  const handleRename = (id: string, title: string) =>
+    renameThread.mutate({ threadId: id, title });
 
   const onTurnComplete = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ["chat", "threads"] });
   }, [queryClient]);
 
   return (
-    <div className="flex h-[75dvh] min-h-[460px] overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div
+      className={cn(
+        "flex overflow-hidden bg-card",
+        // Break out of the dashboard's padded, max-width content box so the
+        // chat fills the screen like a real app surface, not a floating card.
+        "-mx-4 -mt-6 -mb-24 sm:-mx-6 lg:-mx-8 lg:-my-8",
+        // Full height minus the sticky top bar; leave room for the parent
+        // bottom tab bar on mobile so the composer never hides behind it.
+        "h-[calc(100dvh-8.5rem)] lg:h-[calc(100dvh-4rem)]",
+      )}
+    >
       {/* Thread list — persistent on desktop, drawer on mobile */}
-      <aside className="hidden w-64 shrink-0 border-r border-sidebar-border md:block">
+      <aside className="hidden w-72 shrink-0 border-r border-sidebar-border md:block">
         <ChatSidebar
           threads={threads}
           activeId={activeThreadId}
           onSelect={setActiveThreadId}
           onNew={() => createThread.mutate()}
-          onDelete={handleDelete}
+          onRename={handleRename}
+          onDelete={setDeleteTarget}
         />
       </aside>
 
@@ -114,7 +136,8 @@ export function ChatApp() {
                 setMobileOpen(false);
               }}
               onNew={() => createThread.mutate()}
-              onDelete={handleDelete}
+              onRename={handleRename}
+              onDelete={setDeleteTarget}
             />
           </aside>
         </div>
@@ -171,6 +194,13 @@ export function ChatApp() {
           )}
         </main>
       </div>
+
+      <DeleteChatDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        loading={deleteThread.isPending}
+        onConfirm={() => deleteTarget && deleteThread.mutate(deleteTarget)}
+      />
     </div>
   );
 }
