@@ -1438,20 +1438,33 @@ enum ChatRole {
   @@map("chat_role")
 }
 
-/// A parent's AI chat conversation. All access is scoped by parentUserId; the
-/// AI can only ever reach this parent's own child's data (see chat tools).
+/// Which role a chat thread belongs to. The owner's role selects the scoped
+/// toolset (parent = own child, teacher = own classes, director = the center)
+/// and keeps a dual-role user's threads separate.
+enum ChatOwnerRole {
+  parent
+  teacher
+  director
+
+  @@map("chat_owner_role")
+}
+
+/// A user's AI chat conversation. Access is scoped by ownerUserId + ownerRole;
+/// the role selects a hard-scoped toolset so the AI can only ever reach the
+/// data that owner is already entitled to (see the chat tools services).
 model ChatThread {
-  id           String        @id @default(uuid()) @db.Uuid
-  parentUserId String        @map("parent_user_id") @db.Uuid
-  childId      String?       @map("child_id") @db.Uuid
-  centerId     String        @map("center_id") @db.Uuid
-  title        String
-  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String        @id @default(uuid()) @db.Uuid
+  ownerUserId String        @map("owner_user_id") @db.Uuid
+  ownerRole   ChatOwnerRole @default(parent) @map("owner_role")
+  childId     String?       @map("child_id") @db.Uuid
+  centerId    String        @map("center_id") @db.Uuid
+  title       String
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   messages ChatMessage[]
 
-  @@index([parentUserId, updatedAt])
+  @@index([ownerUserId, ownerRole, updatedAt])
   @@map("chat_threads")
 }
 

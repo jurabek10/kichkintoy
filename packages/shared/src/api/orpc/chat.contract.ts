@@ -11,9 +11,9 @@ import {
 import { successResponseSchema } from "./common.contract.js";
 
 /**
- * Parent AI chatroom — thread management. The live answer turn is NOT here; it
- * streams over the SSE endpoint (POST /api/v1/parent/chat/stream). Every
- * procedure is scoped server-side to the authenticated parent.
+ * AI chatroom — thread management (parent + teacher). The live answer turn is
+ * NOT here; it streams over the SSE endpoint (POST /api/v1/chat/stream). Every
+ * procedure is scoped server-side to the authenticated user and their role.
  */
 export const chatContract = {
   listThreads: oc

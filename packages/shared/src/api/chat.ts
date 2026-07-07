@@ -69,7 +69,8 @@ export type RenameChatThreadInput = z.infer<
 >;
 
 /**
- * Body for the SSE streaming endpoint (POST /api/v1/parent/chat/stream).
+ * Body for the SSE streaming endpoint (POST /api/v1/chat/stream). The owner
+ * role (parent/teacher) is derived from the session, not sent in the body.
  * Not an oRPC procedure — the live answer streams tokens over SSE.
  */
 export const sendChatMessageInputSchema = z.object({
