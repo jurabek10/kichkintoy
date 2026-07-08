@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
+import { SignedAvatar } from "@/components/signed-avatar";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
@@ -342,6 +343,12 @@ export function DirectorClassDetail({
                   className="flex items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
                 >
                   <div className="flex items-center gap-2">
+                    <SignedAvatar
+                      mediaAssetId={teacher.avatarUrl}
+                      name={teacher.fullName}
+                      className="h-9 w-9"
+                      textClassName="text-xs"
+                    />
                     <span className="font-semibold">{teacher.fullName}</span>
                     <Badge variant="info">
                       {t(

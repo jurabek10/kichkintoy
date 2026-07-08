@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
+import { SignedAvatar } from "@/components/signed-avatar";
 import {
   Dialog,
   DialogContent,
@@ -299,7 +300,13 @@ function ClassCard({
         {klass.teachers.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {klass.teachers.map((teacher) => (
-              <Badge key={teacher.userId} variant="info">
+              <Badge key={teacher.userId} variant="info" className="gap-1.5 py-0.5 pl-1">
+                <SignedAvatar
+                  mediaAssetId={teacher.avatarUrl}
+                  name={teacher.fullName}
+                  className="h-5 w-5 ring-0"
+                  textClassName="text-[9px]"
+                />
                 {teacher.fullName}
               </Badge>
             ))}
