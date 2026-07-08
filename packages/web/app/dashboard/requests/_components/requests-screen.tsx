@@ -21,6 +21,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import { Input } from "@/components/ui/input";
+import { ChildAvatar } from "@/components/child-avatar";
 import { KidsLoader } from "@/components/kids-loader";
 import {
   Dialog,
@@ -216,7 +217,13 @@ export function RequestsScreen({
         ),
         cell: ({ row }) =>
           row.original.child?.name ? (
-            <span>{row.original.child.name}</span>
+            <span className="flex items-center gap-2">
+              <ChildAvatar
+                name={row.original.child.name}
+                photoUrl={row.original.child.photoUrl}
+              />
+              {row.original.child.name}
+            </span>
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
@@ -396,11 +403,21 @@ export function RequestsScreen({
             </DialogHeader>
 
             {selected.kind === "parent" && selected.child ? (
-              <dl className="grid gap-3 rounded-xl border bg-muted/40 p-4 sm:grid-cols-2">
-                <Detail
-                  label={t("detail.childName")}
-                  value={selected.child.name}
-                />
+              <div className="rounded-xl border bg-muted/40 p-4">
+                <div className="mb-3 flex items-center gap-3">
+                  <ChildAvatar
+                    name={selected.child.name}
+                    photoUrl={selected.child.photoUrl}
+                    className="h-11 w-11 text-sm"
+                  />
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t("detail.childName")}
+                    </p>
+                    <p className="font-bold">{selected.child.name}</p>
+                  </div>
+                </div>
+                <dl className="grid gap-3 sm:grid-cols-2">
                 <Detail
                   label={t("detail.dateOfBirth")}
                   value={formatDate(selected.child.dateOfBirth)}
@@ -423,7 +440,8 @@ export function RequestsScreen({
                     "—"
                   }
                 />
-              </dl>
+                </dl>
+              </div>
             ) : null}
 
             {selected.message ? (

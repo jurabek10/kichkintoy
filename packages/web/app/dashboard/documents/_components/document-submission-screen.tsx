@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChildAvatar } from "@/components/child-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -205,9 +206,16 @@ export function DocumentSubmissionScreen({
             ) : null}
           </div>
           <CardTitle className="text-xl">{data.requestTitle}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {data.childName} {data.className ? `· ${data.className}` : ""}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ChildAvatar
+              name={data.childName}
+              photoUrl={data.childPhotoUrl}
+              className="h-7 w-7 text-[10px]"
+            />
+            <span>
+              {data.childName} {data.className ? `· ${data.className}` : ""}
+            </span>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-5">
           {data.correctionNote ? (

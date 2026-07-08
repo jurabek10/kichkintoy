@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChildAvatar } from "@/components/child-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import {
   Select,
@@ -237,11 +238,17 @@ export function MealDetailScreen({ mealId }: { mealId: string }) {
                 key={status.child.id}
                 className="grid gap-2 rounded-md border p-3 sm:grid-cols-[1fr_180px]"
               >
-                <div>
-                  <p className="text-sm font-semibold">{status.child.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {status.child.className ?? t("detail.noClass")}
-                  </p>
+                <div className="flex items-center gap-2.5">
+                  <ChildAvatar
+                    name={status.child.name}
+                    photoUrl={status.child.photoUrl}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{status.child.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {status.child.className ?? t("detail.noClass")}
+                    </p>
+                  </div>
                 </div>
                 {staff ? (
                   <Select

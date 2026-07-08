@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { KidsLoader } from "@/components/kids-loader";
+import { ChildAvatar } from "@/components/child-avatar";
 import { DataTable } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
@@ -221,6 +222,7 @@ export function ClassReports({
 type DirectorReportRow = {
   childId: string;
   childName: string;
+  childPhotoUrl: string | null;
   className: string;
   birthday: string | null;
   checkedInAt: string | null;
@@ -259,6 +261,7 @@ function DirectorClassReportTable({
         return {
           childId: record.child.id,
           childName: record.child.name,
+          childPhotoUrl: record.child.photoUrl,
           className: record.className ?? reportRow?.class.name ?? t("directorTable.class"),
           birthday: reportRow?.dateOfBirth ?? null,
           checkedInAt: record.checkedInAt,
@@ -283,7 +286,15 @@ function DirectorClassReportTable({
           />
         ),
         cell: ({ row }) => (
-          <p className="truncate font-semibold">{row.original.childName}</p>
+          <span className="flex min-w-0 items-center gap-2.5">
+            <ChildAvatar
+              name={row.original.childName}
+              photoUrl={row.original.childPhotoUrl}
+            />
+            <span className="truncate font-semibold">
+              {row.original.childName}
+            </span>
+          </span>
         ),
       },
       {

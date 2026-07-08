@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChildAvatar } from "@/components/child-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -177,7 +178,14 @@ export function PickupDetailScreen({ noticeId }: { noticeId: string }) {
             <Badge variant="outline">{formatDate(notice.pickupDate)}</Badge>
             <Badge variant="outline">{notice.pickupTime}</Badge>
           </div>
-          <CardTitle className="text-xl">{notice.child.name}</CardTitle>
+          <div className="flex items-center gap-3">
+            <ChildAvatar
+              name={notice.child.name}
+              photoUrl={notice.child.photoUrl}
+              className="h-11 w-11 text-sm"
+            />
+            <CardTitle className="text-xl">{notice.child.name}</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <InfoGrid

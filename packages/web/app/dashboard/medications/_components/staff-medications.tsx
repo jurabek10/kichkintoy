@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ChildAvatar } from "@/components/child-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
 import { DataTable } from "@/components/ui/data-table";
@@ -222,6 +223,11 @@ function MedicationRoundRow({
 
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-2">
+          <ChildAvatar
+            name={request.child.name}
+            photoUrl={request.child.photoUrl}
+            className="h-6 w-6 text-[10px]"
+          />
           <span className="truncate text-sm font-semibold">
             {request.child.name}
           </span>
@@ -302,7 +308,13 @@ function MedicationTable({
           <DataTableColumnHeader column={column} title={t("table.child")} />
         ),
         cell: ({ row }) => (
-          <span className="font-semibold">{row.original.child.name}</span>
+          <span className="flex items-center gap-2.5">
+            <ChildAvatar
+              name={row.original.child.name}
+              photoUrl={row.original.child.photoUrl}
+            />
+            <span className="font-semibold">{row.original.child.name}</span>
+          </span>
         ),
       },
       {

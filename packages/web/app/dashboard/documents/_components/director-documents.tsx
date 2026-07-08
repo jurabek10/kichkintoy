@@ -26,6 +26,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
 import { DataTableFacetedFilter } from "@/components/ui/data-table-faceted-filter";
 import { DataTableViewOptions } from "@/components/ui/data-table-view-options";
 import { Input } from "@/components/ui/input";
+import { ChildAvatar } from "@/components/child-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -74,7 +75,13 @@ export function DirectorDocuments({ centerId }: { centerId: string | null }) {
         ),
         accessorKey: "childName",
         cell: ({ row }) => (
-          <span className="font-semibold">{row.original.childName}</span>
+          <span className="flex items-center gap-2.5">
+            <ChildAvatar
+              name={row.original.childName}
+              photoUrl={row.original.childPhotoUrl}
+            />
+            <span className="font-semibold">{row.original.childName}</span>
+          </span>
         ),
       },
       {

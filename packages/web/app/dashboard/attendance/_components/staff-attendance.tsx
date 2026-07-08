@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ChildAvatar } from "@/components/child-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
 import { formatTime } from "@/lib/date";
@@ -362,11 +363,17 @@ function TeacherAttendanceTable({
         <DataTableColumnHeader column={column} title={t("table.child")} />
       ),
       cell: ({ row }) => (
-        <div className="min-w-0">
-          <p className="truncate font-semibold">{row.original.child.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {genderText(row.original.child.gender, t)}
-          </p>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <ChildAvatar
+            name={row.original.child.name}
+            photoUrl={row.original.child.photoUrl}
+          />
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{row.original.child.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {genderText(row.original.child.gender, t)}
+            </p>
+          </div>
         </div>
       ),
     },
@@ -758,7 +765,13 @@ function ClassAttendanceTable({
           <DataTableColumnHeader column={column} title={t("table.child")} />
         ),
         cell: ({ row }) => (
-          <span className="font-semibold">{row.original.child.name}</span>
+          <span className="flex items-center gap-2.5">
+            <ChildAvatar
+              name={row.original.child.name}
+              photoUrl={row.original.child.photoUrl}
+            />
+            <span className="font-semibold">{row.original.child.name}</span>
+          </span>
         ),
       },
       {
