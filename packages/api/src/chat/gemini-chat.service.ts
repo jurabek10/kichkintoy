@@ -1,5 +1,10 @@
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import type { ToolDeclaration } from "./chat-tools.service";
+import type {
+  ChatEngine,
+  ChatStreamOptions,
+  ChatStreamEvent,
+} from "./chat-engine";
 
 const GEMINI_STREAM_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent";
@@ -14,24 +19,13 @@ type GeminiPart = {
 
 type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-export type ChatTurnMessage = { role: "user" | "assistant"; content: string };
-
-export type ToolExecutor = (
-  name: string,
-  args: Record<string, unknown>,
-) => Promise<unknown>;
-
-export type ChatStreamEvent =
-  | { type: "text"; value: string }
-  | { type: "tool"; name: string };
-
 /**
- * Runs the Gemini 2.5 Flash tool-loop for a parent chat turn and streams the
- * final answer as text deltas. Tool calls are executed via the injected
- * executor (scoped server-side); their results are fed back to the model.
+ * Runs the Gemini 2.5 Flash tool-loop for a chat turn and streams the final
+ * answer as text deltas. Tool calls are executed via the injected executor
+ * (scoped server-side); their results are fed back to the model.
  */
 @Injectable()
-export class GeminiChatService {
+export class GeminiChatService implements ChatEngine {
   private readonly apiKey: string;
 
   constructor() {
@@ -44,12 +38,7 @@ export class GeminiChatService {
     this.apiKey = key;
   }
 
-  async *streamAnswer(opts: {
-    systemPrompt: string;
-    history: ChatTurnMessage[];
-    tools: ToolDeclaration[];
-    executeTool: ToolExecutor;
-  }): AsyncGenerator<ChatStreamEvent> {
+  async *streamAnswer(opts: ChatStreamOptions): AsyncGenerator<ChatStreamEvent> {
     const contents: GeminiContent[] = opts.history.map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
@@ -99,11 +88,22 @@ export class GeminiChatService {
       contents.push({ role: "user", parts: responseParts });
     }
 
-    // Tool budget exhausted without a final answer.
-    yield {
-      type: "text",
-      value: " ",
-    };
+    // Tool budget exhausted: force one final turn with NO tools so the model
+    // must answer in text instead of leaving the user with a blank bubble.
+    let produced = false;
+    for await (const part of this.streamParts(opts.systemPrompt, contents, [])) {
+      if (part.text) {
+        produced = true;
+        yield { type: "text", value: part.text };
+      }
+    }
+    if (!produced) {
+      yield {
+        type: "text",
+        value:
+          "I gathered the data but couldn't finish the summary — please ask again.",
+      };
+    }
   }
 
   /** One streamed model call; yields text deltas and any functionCall parts. */

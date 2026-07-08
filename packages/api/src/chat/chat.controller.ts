@@ -1,9 +1,17 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import type { Response } from "express";
 import { sendChatMessageInputSchema } from "@kichkintoy/shared";
 import { SessionGuard, type RequestWithUser } from "../auth/session.guard";
 import { ChatService, type ChatOwnerRole } from "./chat.service";
-import { GeminiChatService } from "./gemini-chat.service";
+import { CHAT_ENGINE, type ChatEngine } from "./chat-engine";
 
 /**
  * Streaming answer turn for the AI chatroom (parent or teacher). Separate from
@@ -16,7 +24,7 @@ import { GeminiChatService } from "./gemini-chat.service";
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
-    private readonly geminiChat: GeminiChatService,
+    @Inject(CHAT_ENGINE) private readonly chatEngine: ChatEngine,
   ) {}
 
   @Post("stream")
@@ -52,7 +60,7 @@ export class ChatController {
       const toolTrace: string[] = [];
       let answer = "";
 
-      for await (const event of this.geminiChat.streamAnswer({
+      for await (const event of this.chatEngine.streamAnswer({
         systemPrompt: turn.systemPrompt,
         history: turn.history,
         tools: turn.tools,

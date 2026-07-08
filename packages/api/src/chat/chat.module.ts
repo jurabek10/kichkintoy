@@ -18,6 +18,24 @@ import { ChatToolsService } from "./chat-tools.service";
 import { TeacherChatToolsService } from "./teacher-chat-tools.service";
 import { DirectorChatToolsService } from "./director-chat-tools.service";
 import { GeminiChatService } from "./gemini-chat.service";
+import { OpenAiChatService } from "./openai-chat.service";
+import { CHAT_ENGINE, type ChatEngine } from "./chat-engine";
+
+/**
+ * Select the chat backend by env. Default is Gemini (unchanged); set
+ * CHAT_PROVIDER to any non-"gemini" value (openrouter / groq / ollama / openai)
+ * to use the OpenAI-compatible engine with a free model instead. Only the chosen
+ * engine is instantiated, so an unused provider's missing key never breaks boot.
+ */
+const chatEngineProvider = {
+  provide: CHAT_ENGINE,
+  useFactory: (): ChatEngine => {
+    const provider = (process.env.CHAT_PROVIDER ?? "gemini").toLowerCase();
+    return provider === "gemini"
+      ? new GeminiChatService()
+      : new OpenAiChatService();
+  },
+};
 
 @Module({
   imports: [
@@ -41,7 +59,7 @@ import { GeminiChatService } from "./gemini-chat.service";
     ChatToolsService,
     TeacherChatToolsService,
     DirectorChatToolsService,
-    GeminiChatService,
+    chatEngineProvider,
   ],
   exports: [ChatService],
 })

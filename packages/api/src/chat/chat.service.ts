@@ -25,7 +25,7 @@ import {
   DirectorChatToolsService,
   type DirectorChatScope,
 } from "./director-chat-tools.service";
-import type { ChatTurnMessage } from "./gemini-chat.service";
+import type { ChatTurnMessage } from "./chat-engine";
 
 const DEFAULT_PAGE_SIZE = 20;
 // How many prior turns to replay to the model (keeps latency/token cost bounded).
