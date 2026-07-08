@@ -186,6 +186,19 @@ export function genderLabel(value: string | null | undefined): string {
   return translate(gender, value);
 }
 
+/**
+ * Tuition sums in UZS, grouped with dots so large numbers stay readable at a
+ * glance — e.g. 250000000 → "250.000.000 soʻm". The dot grouping is applied
+ * directly (not locale-dependent) since directors asked for this exact style.
+ */
+export function formatMoney(amount: number): string {
+  const rounded = Math.round(amount);
+  const grouped = Math.abs(rounded)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${rounded < 0 ? "-" : ""}${grouped} soʻm`;
+}
+
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
   const date = toUzbekistanDate(value);

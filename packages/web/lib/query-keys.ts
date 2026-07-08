@@ -87,6 +87,13 @@ export const queryKeys = {
     latestForChild: (childId: string) =>
       ["medications", "latest", childId] as const,
   },
+  payments: {
+    all: () => ["payments"] as const,
+    overview: () => ["payments", "overview"] as const,
+    history: () => ["payments", "history"] as const,
+    invoiceStatus: (invoiceId: string) =>
+      ["payments", "invoice", invoiceId] as const,
+  },
   pickups: {
     all: () => ["pickups"] as const,
     children: (centerId?: string | null) =>

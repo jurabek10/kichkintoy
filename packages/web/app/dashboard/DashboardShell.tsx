@@ -21,6 +21,7 @@ import {
   Sparkles,
   UserCheck,
   Utensils,
+  Wallet,
   X,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
@@ -114,6 +115,7 @@ const navByRole: Record<
     { href: "/dashboard/meals", labelKey: "items.meals", Icon: Utensils },
     { href: "/dashboard/medications", labelKey: "items.medications", Icon: Pill },
     { href: "/dashboard/pickups", labelKey: "items.pickups", Icon: UserCheck },
+    { href: "/dashboard/payments", labelKey: "items.payments", Icon: Wallet },
   ],
 };
 
@@ -129,6 +131,7 @@ const navColors: Record<string, string> = {
   "/dashboard/meals": "text-sunshine-ink",
   "/dashboard/medications": "text-bubblegum-ink",
   "/dashboard/pickups": "text-grape-ink",
+  "/dashboard/payments": "text-mint-ink",
   "/dashboard/documents": "text-sky-ink",
   "/dashboard/teachers": "text-coral-ink",
   "/dashboard/requests": "text-mint-ink",
@@ -157,6 +160,7 @@ const navGroups = [
       "/dashboard/medications",
       "/dashboard/pickups",
       "/dashboard/documents",
+      "/dashboard/payments",
     ],
   },
   {

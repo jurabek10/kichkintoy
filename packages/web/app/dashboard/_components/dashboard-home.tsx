@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { LoadingCard } from "@/components/loading-card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
+import { formatMoney } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
 import { useSession } from "@/lib/session";
@@ -187,13 +188,13 @@ function DirectorHome({
       <section className="grid gap-3 sm:grid-cols-2">
         <StatCard
           label={t("dashboardHome.director.stats.expected")}
-          value={formatMoney(summary.money.expectedAmount, i18n.language)}
+          value={formatMoney(summary.money.expectedAmount)}
           Icon={WalletCards}
           tone="sun"
         />
         <StatCard
           label={t("dashboardHome.director.stats.unpaid")}
-          value={formatMoney(summary.money.unpaidAmount, i18n.language)}
+          value={formatMoney(summary.money.unpaidAmount)}
           Icon={AlertTriangle}
           tone="warning"
         />
@@ -275,7 +276,7 @@ function MoneySnapshot({
         </CardTitle>
         <CardDescription>
           {t("dashboardHome.director.money.description", {
-            amount: formatMoney(summary.money.monthlyTuitionAmount, language),
+            amount: formatMoney(summary.money.monthlyTuitionAmount),
           })}
         </CardDescription>
       </CardHeader>
@@ -307,16 +308,16 @@ function MoneySnapshot({
             <div className="grid gap-3 sm:grid-cols-3">
               <MoneyFigure
                 label={t("dashboardHome.director.money.expected")}
-                value={formatMoney(summary.money.expectedAmount, language)}
+                value={formatMoney(summary.money.expectedAmount)}
               />
               <MoneyFigure
                 label={t("dashboardHome.director.money.paid")}
-                value={formatMoney(summary.money.paidAmount, language)}
+                value={formatMoney(summary.money.paidAmount)}
                 positive
               />
               <MoneyFigure
                 label={t("dashboardHome.director.money.unpaid")}
-                value={formatMoney(summary.money.unpaidAmount, language)}
+                value={formatMoney(summary.money.unpaidAmount)}
                 warning
               />
             </div>
@@ -705,7 +706,7 @@ function ClassOverview({
                         )}
                       </td>
                       <td className="px-4 py-3 text-right align-middle font-semibold">
-                        {formatMoney(klass.expectedAmount, language)}
+                        {formatMoney(klass.expectedAmount)}
                       </td>
                       <td className="py-3 pl-4 align-middle">
                         <div className="flex items-center gap-2.5">
@@ -802,15 +803,3 @@ function percent(part: number, total: number) {
   return Math.min(100, Math.max(0, Math.round((part / total) * 100)));
 }
 
-/**
- * Tuition sums in UZS, grouped with dots so large numbers stay readable at a
- * glance — e.g. 250000000 → "250.000.000 soʻm". The dot grouping is applied
- * directly (not locale-dependent) since directors asked for this exact style.
- */
-function formatMoney(amount: number, _language: string) {
-  const rounded = Math.round(amount);
-  const grouped = Math.abs(rounded)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `${rounded < 0 ? "-" : ""}${grouped} soʻm`;
-}

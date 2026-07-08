@@ -55,6 +55,7 @@ const layoutNamespaces = [
   "invitations",
   "meals",
   "medications",
+  "payments",
   "pickups",
   "teachers",
   "profile",

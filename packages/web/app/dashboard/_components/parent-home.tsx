@@ -20,6 +20,7 @@ import {
   IoRestaurant,
   IoSunny,
   IoWalk,
+  IoWallet,
 } from "react-icons/io5";
 import type { IconType } from "react-icons";
 import { KidsLoader } from "@/components/kids-loader";
@@ -71,6 +72,7 @@ const FEATURES: FeatureTile[] = [
   { key: "medications", navKey: "items.medications", href: "/dashboard/medications", Icon: IoMedkit, bg: "#FFE0E0", fg: "#F0594C" },
   { key: "pickups", navKey: "items.pickups", href: "/dashboard/pickups", Icon: IoWalk, bg: "#DBECFF", fg: "#4D9FEC" },
   { key: "documents", navKey: "items.documents", href: "/dashboard/documents", Icon: IoDocumentText, bg: "#DCF2E3", fg: "#46B06A" },
+  { key: "payments", navKey: "items.payments", href: "/dashboard/payments", Icon: IoWallet, bg: "#E5E4FF", fg: "#7C5CD8" },
 ];
 
 // Per-kind feed tokens — identical to the mobile FEED_KIND_TOKENS map: a soft
