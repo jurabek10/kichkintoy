@@ -435,10 +435,26 @@ export class DirectorChatToolsService {
         };
       }
 
-      case "getMeals":
-        return this.mealsService.listForStaff(userId, centerId, {
-          date: typeof args.date === "string" ? args.date : todayIso(),
-        });
+      case "getMeals": {
+        // A specific date returns that day's menu; otherwise honor the
+        // period/month/from-to window (defaulting to this month) by filtering
+        // the center's meal history — the meals service has no range param.
+        if (typeof args.date === "string") {
+          return this.mealsService.listForStaff(userId, centerId, {
+            date: args.date,
+          });
+        }
+        const range = hasRangeArgs(args)
+          ? resolveRange(args)
+          : resolveRange({ period: "month" });
+        const all = await this.mealsService.listForStaff(userId, centerId, {});
+        return {
+          range,
+          meals: all.filter(
+            (m) => m.mealDate >= range.from && m.mealDate <= range.to,
+          ),
+        };
+      }
 
       case "getDocuments":
         return this.studentDocumentsService.staffRequests(userId, { centerId });
