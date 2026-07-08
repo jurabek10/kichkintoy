@@ -46,6 +46,7 @@ export class OpenAiChatService implements ChatEngine {
   private readonly baseUrl: string;
   private readonly apiKey: string;
   private readonly model: string;
+  private readonly fallbackModels: string[];
 
   constructor() {
     // Read lazily-validated config; a missing key surfaces per-request (below)
@@ -56,6 +57,12 @@ export class OpenAiChatService implements ChatEngine {
     this.apiKey = process.env.CHAT_API_KEY ?? "";
     this.model =
       process.env.CHAT_MODEL ?? "meta-llama/llama-3.1-8b-instruct:free";
+    // OpenRouter-only: free-pool models get rate-limited upstream, so route
+    // through a fallback chain instead of surfacing the 429 to the user.
+    this.fallbackModels = (process.env.CHAT_MODEL_FALLBACKS ?? "")
+      .split(",")
+      .map((m) => m.trim())
+      .filter(Boolean);
   }
 
   async *streamAnswer(opts: ChatStreamOptions): AsyncGenerator<ChatStreamEvent> {
@@ -167,6 +174,12 @@ export class OpenAiChatService implements ChatEngine {
       },
       body: JSON.stringify({
         model: this.model,
+        // OpenRouter fallback routing: tries each model in order when the
+        // previous one errors or is rate-limited. Omitted for other providers.
+        models:
+          this.fallbackModels.length > 0
+            ? [this.model, ...this.fallbackModels]
+            : undefined,
         messages,
         tools: tools.length > 0 ? tools : undefined,
         tool_choice: tools.length > 0 ? "auto" : undefined,

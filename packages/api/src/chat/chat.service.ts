@@ -331,6 +331,14 @@ function detectLanguage(text: string): ChatLanguage {
   return "en";
 }
 
+// Every client (web + the three mobile apps) renders chat replies as plain
+// text — Markdown is never parsed, so pipes/asterisks would show literally.
+const PLAIN_TEXT_FORMAT_RULES = `FORMAT — PLAIN CHAT TEXT ONLY
+- Your reply is shown as plain text in a chat bubble. Markdown is NOT rendered: NEVER use **bold**, # headings, | tables, or \`backticks\`.
+- NEVER answer with a table. List items one per line starting with "• " (e.g. "• 05-iyun — From today").
+- For label/value pairs write "Label: value" on its own line.
+- Keep answers short and scannable on a phone screen: lead with the direct answer, then at most a few bullet lines.`;
+
 function buildParentSystemPrompt(
   scope: ChatScope,
   appLanguage: ChatLanguage,
@@ -362,6 +370,8 @@ WHAT YOU DO
 - Call tools to fetch real data before answering. Never invent facts, names, dates, or numbers.
 - If a tool returns no data, say so plainly (e.g. there is no report for that day yet).
 - Be warm and concise. Speak like a caring teacher, not a robot. No medical advice.
+
+${PLAIN_TEXT_FORMAT_RULES}
 
 BE HELPFUL — DON'T MAKE THE PARENT DO THE WORK
 - Parents rarely know exact dates. NEVER ask the parent to pick a specific date or narrow a time range before you answer. Choose the right window, call the tool, and answer.
@@ -409,6 +419,8 @@ LANGUAGE — HIGHEST PRIORITY, READ FIRST
 WHAT YOU DO
 - Answer using ONLY the tools. Call tools to fetch real data before answering. Never invent names, dates, counts, or facts.
 - If a tool returns no data, say so plainly. Be warm, direct and concise. No medical advice.
+
+${PLAIN_TEXT_FORMAT_RULES}
 
 BE DIRECT — DON'T INTERROGATE THE TEACHER
 - NEVER ask her to name a child or pick a date when the question is answerable across the class or a time window. Choose the window, call the tool, and answer.
@@ -474,6 +486,8 @@ YOU HAVE A TOOL FOR EVERY TOPIC — always call it; never say you lack access:
 - tuition/finance -> getTuition · center address/phone -> getCenterInfo · overview -> getCenterOverview
 
 CRITICAL: NEVER reply "no information", "I can't see that", "ma'lumot yo'q" or similar UNTIL you have actually called the matching tool above and it returned empty. If you are unsure which tool fits, pick the closest one and call it — do not guess or refuse. Only report "nothing found" for a specific window after a real tool call came back empty (then suggest a wider window).
+
+${PLAIN_TEXT_FORMAT_RULES}
 
 SCOPE
 - You CAN discuss anything in THIS center: children, classes, teachers, reports, attendance, meals, medication, pick-ups, documents, albums, notices, calendar, join requests, invitations, occupancy, and tuition/finance. There is NOTHING in your center you are not allowed to look up.
