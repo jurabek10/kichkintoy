@@ -82,12 +82,26 @@ export class OpenAiChatService implements ChatEngine {
 
     for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
       let assistantText = "";
+      // Weak models sometimes emit their tool-call arguments as plain text
+      // (e.g. a bubble reading `{"period": "all"}`). Until the first
+      // non-whitespace character arrives we don't know if this round is such a
+      // leak, so text is held back while it looks like JSON and only shown if
+      // it turns out to be a real answer.
+      let holding: boolean | undefined;
       const pending = new Map<number, PendingToolCall>();
 
       for await (const delta of this.streamCompletion(messages, tools)) {
         if (delta.content) {
           assistantText += delta.content;
-          yield { type: "text", value: delta.content };
+          if (holding === undefined) {
+            const lead = assistantText.trimStart();
+            if (lead) {
+              holding = lead.startsWith("{") || lead.startsWith("```");
+              if (!holding) yield { type: "text", value: assistantText };
+            }
+          } else if (!holding) {
+            yield { type: "text", value: delta.content };
+          }
         }
         for (const tc of delta.toolCalls) {
           const cur = pending.get(tc.index) ?? { id: "", name: "", args: "" };
@@ -100,6 +114,23 @@ export class OpenAiChatService implements ChatEngine {
 
       const calls = [...pending.values()].filter((c) => c.name);
       if (calls.length === 0) {
+        if (holding && looksLikeToolJson(assistantText)) {
+          // Leaked tool args instead of an answer: hide them from the user and
+          // send the model a correction so the next round calls the tool.
+          messages.push(
+            { role: "assistant", content: assistantText, tool_calls: undefined },
+            {
+              role: "system",
+              content:
+                "Your previous message was raw JSON tool arguments, which the user must never see. Do not write JSON in replies. Invoke the appropriate tool via function calling instead, then answer in plain text.",
+            },
+          );
+          continue;
+        }
+        if (holding) {
+          // Started with "{" or a code fence but is a real answer — release it.
+          yield { type: "text", value: assistantText };
+        }
         return; // model produced a final text answer
       }
 
@@ -258,6 +289,24 @@ function toOpenAiTool(tool: ToolDeclaration) {
       parameters: tool.parameters,
     },
   };
+}
+
+/**
+ * True when a text-only reply is really a leaked tool invocation: a bare JSON
+ * object (optionally inside a ``` fence), i.e. tool arguments the model wrote
+ * out instead of calling the tool.
+ */
+function looksLikeToolJson(text: string): boolean {
+  let body = text.trim();
+  const fence = body.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (fence) body = fence[1].trim();
+  if (!body.startsWith("{") || !body.endsWith("}")) return false;
+  try {
+    const parsed = JSON.parse(body);
+    return typeof parsed === "object" && parsed !== null;
+  } catch {
+    return false;
+  }
 }
 
 /** Tool-call arguments arrive as a JSON string; tolerate empty/partial. */

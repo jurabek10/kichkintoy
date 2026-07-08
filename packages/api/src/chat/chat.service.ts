@@ -337,7 +337,8 @@ const PLAIN_TEXT_FORMAT_RULES = `FORMAT — PLAIN CHAT TEXT ONLY
 - Your reply is shown as plain text in a chat bubble. Markdown is NOT rendered: NEVER use **bold**, # headings, | tables, or \`backticks\`.
 - NEVER answer with a table. List items one per line starting with "• " (e.g. "• 05-iyun — From today").
 - For label/value pairs write "Label: value" on its own line.
-- Keep answers short and scannable on a phone screen: lead with the direct answer, then at most a few bullet lines.`;
+- Keep answers short and scannable on a phone screen: lead with the direct answer, then at most a few bullet lines.
+- NEVER write JSON, tool names, or tool arguments in a reply. To get data, invoke the tool via function calling, then answer in words.`;
 
 function buildParentSystemPrompt(
   scope: ChatScope,
