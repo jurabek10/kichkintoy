@@ -1,0 +1,46 @@
+{
+  "title": "To'lovlar",
+  "description": "Farzandingizning oylik to'lovini Payme yoki Click orqali to'lang.",
+  "loading": "To'lovlar yuklanmoqda…",
+  "currentMonth": "Shu oy",
+  "monthFee": "Oylik to'lov",
+  "payWith": "{{provider}} orqali to'lash",
+  "waitingConfirmation": "To'lov tasdig'i kutilmoqda…",
+  "status": {
+    "issued": "To'lanmagan",
+    "partial": "Qisman to'langan",
+    "paid": "To'langan",
+    "cancelled": "Bekor qilingan"
+  },
+  "empty": {
+    "title": "Hozircha hisoblar yo'q",
+    "body": "Farzandingiz qabul qilingach, oylik hisoblar shu yerda ko'rinadi."
+  },
+  "history": {
+    "title": "To'lovlar tarixi",
+    "description": "Barcha oylik hisoblar va ularning to'lovlari.",
+    "empty": "Hozircha hisoblar yo'q."
+  },
+  "table": {
+    "row": "№",
+    "child": "Farzand",
+    "month": "Oy",
+    "amount": "Summa",
+    "provider": "Xizmat",
+    "status": "Holat",
+    "paidAt": "To'langan sana",
+    "search": "Farzand bo'yicha qidirish…",
+    "empty": "Hech narsa topilmadi.",
+    "sandboxTag": "(sinov)"
+  },
+  "sandbox": {
+    "title": "Sinov to'lovi",
+    "body": "To'lov xizmatlari hali ulanmagan. Jarayonni ko'rish uchun {{provider}} orqali muvaffaqiyatli to'lovni sinab ko'rishingiz mumkin.",
+    "confirm": "To'lovni sinash",
+    "cancel": "Bekor qilish"
+  },
+  "toast": {
+    "paid": "To'lov qabul qilindi — rahmat!",
+    "error": "To'lovni boshlab bo'lmadi."
+  }
+}

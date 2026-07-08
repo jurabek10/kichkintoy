@@ -1,0 +1,46 @@
+{
+  "title": "Payments",
+  "description": "Pay your child's monthly tuition with Payme or Click.",
+  "loading": "Loading payments…",
+  "currentMonth": "This month",
+  "monthFee": "Monthly fee",
+  "payWith": "Pay with {{provider}}",
+  "waitingConfirmation": "Waiting for payment confirmation…",
+  "status": {
+    "issued": "Not paid",
+    "partial": "Partially paid",
+    "paid": "Paid",
+    "cancelled": "Cancelled"
+  },
+  "empty": {
+    "title": "No invoices yet",
+    "body": "Monthly tuition invoices will appear here once your child is enrolled."
+  },
+  "history": {
+    "title": "Payment history",
+    "description": "All monthly invoices and their payments.",
+    "empty": "No invoices yet."
+  },
+  "table": {
+    "row": "#",
+    "child": "Child",
+    "month": "Month",
+    "amount": "Amount",
+    "provider": "Provider",
+    "status": "Status",
+    "paidAt": "Paid on",
+    "search": "Search by child…",
+    "empty": "Nothing found.",
+    "sandboxTag": "(test)"
+  },
+  "sandbox": {
+    "title": "Test payment",
+    "body": "Payment providers are not connected yet. You can simulate a successful {{provider}} payment to try the flow.",
+    "confirm": "Simulate payment",
+    "cancel": "Cancel"
+  },
+  "toast": {
+    "paid": "Payment received — thank you!",
+    "error": "The payment could not be started."
+  }
+}
