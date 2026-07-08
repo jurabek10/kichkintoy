@@ -47,6 +47,7 @@ const mealInclude = {
           id: true,
           firstName: true,
           lastName: true,
+          photoUrl: true,
           childEnrollments: {
             where: { enrollmentStatus: "active" },
             select: {
@@ -91,7 +92,9 @@ export class MealsService {
         classId: { in: classes.map((item) => item.id) },
       },
       include: {
-        child: { select: { id: true, firstName: true, lastName: true } },
+        child: {
+          select: { id: true, firstName: true, lastName: true, photoUrl: true },
+        },
         class: { select: { id: true, name: true } },
       },
       orderBy: { child: { firstName: "asc" } },
@@ -101,6 +104,7 @@ export class MealsService {
       children: children.map((enrollment) => ({
         id: enrollment.child.id,
         name: childName(enrollment.child),
+        photoUrl: enrollment.child.photoUrl,
         classId: enrollment.classId,
         className: enrollment.class?.name ?? null,
       })),
@@ -728,6 +732,7 @@ function toChild(child: MealPayload["childStatuses"][number]["child"]) {
   return {
     id: child.id,
     name: childName(child),
+    photoUrl: child.photoUrl,
     classId: enrollment?.classId ?? null,
     className: enrollment?.class?.name ?? null,
   };

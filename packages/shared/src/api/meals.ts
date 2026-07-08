@@ -37,6 +37,8 @@ export type MealClass = z.infer<typeof mealClassSchema>;
 export const mealChildSchema = z.object({
   id: uuidSchema,
   name: z.string(),
+  // A media-asset id or legacy URL for the child's photo (resolved client-side).
+  photoUrl: z.string().nullable(),
   classId: uuidSchema.nullable(),
   className: z.string().nullable(),
 });

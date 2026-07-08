@@ -38,7 +38,9 @@ export class ClassService {
         teacherClassAssignments: {
           where: { endedAt: null },
           include: {
-            teacherUser: { select: { id: true, fullName: true } },
+            teacherUser: {
+              select: { id: true, fullName: true, avatarUrl: true },
+            },
           },
         },
       },
@@ -59,7 +61,9 @@ export class ClassService {
         teacherClassAssignments: {
           where: { endedAt: null },
           include: {
-            teacherUser: { select: { id: true, fullName: true } },
+            teacherUser: {
+              select: { id: true, fullName: true, avatarUrl: true },
+            },
           },
         },
         childEnrollments: {
@@ -664,7 +668,7 @@ export class ClassService {
     _count: { childEnrollments: number };
     teacherClassAssignments: Array<{
       assignmentRole: string;
-      teacherUser: { id: string; fullName: string };
+      teacherUser: { id: string; fullName: string; avatarUrl: string | null };
     }>;
   }) {
     return {
@@ -679,6 +683,7 @@ export class ClassService {
       teachers: klass.teacherClassAssignments.map((assignment) => ({
         userId: assignment.teacherUser.id,
         fullName: assignment.teacherUser.fullName,
+        avatarUrl: assignment.teacherUser.avatarUrl,
         assignmentRole: assignment.assignmentRole,
       })),
     };

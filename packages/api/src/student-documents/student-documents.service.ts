@@ -975,6 +975,7 @@ export class StudentDocumentsService {
       centerId: submission.centerId,
       childId: submission.childId,
       childName: childName(submission.child),
+      childPhotoUrl: submission.child.photoUrl,
       classId: enrollment?.classId ?? null,
       className: enrollment?.class?.name ?? null,
       requestTitle: submission.request.title,

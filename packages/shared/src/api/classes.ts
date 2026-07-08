@@ -34,6 +34,8 @@ export type ClassCapacity = z.infer<typeof classCapacitySchema>;
 export const classTeacherChipSchema = z.object({
   userId: uuidSchema,
   fullName: z.string(),
+  // A media-asset id or legacy URL for the teacher's photo (resolved client-side).
+  avatarUrl: z.string().nullable(),
   assignmentRole: assignmentRoleSchema,
 });
 export type ClassTeacherChip = z.infer<typeof classTeacherChipSchema>;

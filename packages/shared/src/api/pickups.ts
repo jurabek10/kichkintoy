@@ -25,6 +25,8 @@ export type PickupNoticeStatus = z.infer<typeof pickupNoticeStatusSchema>;
 export const pickupChildSchema = z.object({
   id: uuidSchema,
   name: z.string(),
+  // A media-asset id or legacy URL for the child's photo (resolved client-side).
+  photoUrl: z.string().nullable(),
   centerId: uuidSchema,
   centerName: z.string(),
   classId: uuidSchema.nullable(),

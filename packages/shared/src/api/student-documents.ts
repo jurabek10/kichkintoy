@@ -224,6 +224,8 @@ export const studentDocumentSubmissionSummarySchema = z.object({
   centerId: uuidSchema,
   childId: uuidSchema,
   childName: z.string(),
+  // A media-asset id or legacy URL for the child's photo (resolved client-side).
+  childPhotoUrl: z.string().nullable(),
   classId: uuidSchema.nullable(),
   className: z.string().nullable(),
   requestTitle: z.string(),
