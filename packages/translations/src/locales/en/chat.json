@@ -44,6 +44,7 @@
     "meals": "What's on the menu today?"
   },
   "teacher": {
+    "subtitle": "Ask anything about your classes",
     "emptyTitle": "Ask anything about your classes",
     "emptySubtitle": "I read attendance, reports, medication, pick-ups and notices so you don't have to.",
     "composerPlaceholder": "Ask about your class…",
@@ -56,6 +57,7 @@
     }
   },
   "director": {
+    "subtitle": "Ask anything about your center",
     "emptyTitle": "Ask anything about your center",
     "emptySubtitle": "Classes, children, teachers, attendance and tuition — I add it up across the whole center.",
     "composerPlaceholder": "Ask about your center…",

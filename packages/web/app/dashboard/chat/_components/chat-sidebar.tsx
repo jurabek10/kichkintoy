@@ -57,6 +57,7 @@ export function ChatSidebar({
   onNew,
   onRename,
   onDelete,
+  variant = "parent",
 }: {
   threads: ChatThreadSummary[];
   activeId: string | null;
@@ -64,8 +65,15 @@ export function ChatSidebar({
   onNew: () => void;
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
+  variant?: "parent" | "teacher" | "director";
 }) {
   const { t } = useLayoutTranslation("chat");
+  const subtitle =
+    variant === "teacher"
+      ? t("teacher.subtitle")
+      : variant === "director"
+        ? t("director.subtitle")
+        : t("subtitle");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +105,7 @@ export function ChatSidebar({
             {t("title")}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {t("subtitle")}
+            {subtitle}
           </p>
         </div>
       </div>

@@ -126,6 +126,7 @@ export function ChatApp({
           onNew={() => createThread.mutate()}
           onRename={handleRename}
           onDelete={setDeleteTarget}
+          variant={variant}
         />
       </aside>
 
@@ -146,6 +147,7 @@ export function ChatApp({
               onNew={() => createThread.mutate()}
               onRename={handleRename}
               onDelete={setDeleteTarget}
+              variant={variant}
             />
           </aside>
         </div>

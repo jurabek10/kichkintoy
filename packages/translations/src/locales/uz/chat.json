@@ -44,6 +44,7 @@
     "meals": "Bugun menyuda nima bor?"
   },
   "teacher": {
+    "subtitle": "Sinflaringiz haqida istagan narsani so'rang",
     "emptyTitle": "Sinflaringiz haqida istagan narsangizni so'rang",
     "emptySubtitle": "Davomat, hisobotlar, dori-darmon, olib ketish va e'lonlarni siz uchun o'qib beraman.",
     "composerPlaceholder": "Sinfingiz haqida so'rang…",
@@ -56,6 +57,7 @@
     }
   },
   "director": {
+    "subtitle": "Markazingiz haqida istagan narsani so'rang",
     "emptyTitle": "Markazingiz haqida istagan narsangizni so'rang",
     "emptySubtitle": "Guruhlar, bolalar, tarbiyachilar, davomat va to'lovlar — butun markaz bo'yicha men hisoblab beraman.",
     "composerPlaceholder": "Markaz haqida so'rang…",
