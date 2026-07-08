@@ -40,6 +40,9 @@ model Center {
   region         String?
   district       String?
   status         String   @default("active")
+  // Monthly tuition fee in UZS charged per enrolled child; the source of truth
+  // for lazily generated monthly invoices and the director tuition console.
+  monthlyTuitionUzs Decimal @default(1000000) @map("monthly_tuition_uzs") @db.Decimal(14, 2)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -1362,9 +1365,15 @@ model Invoice {
 
 model Payment {
   id                    String    @id @default(uuid()) @db.Uuid
+  // Sequential integer id: Click's SHOP-API expects an integer merchant_prepare_id.
+  seq                   Int       @unique @default(autoincrement())
   invoiceId             String    @map("invoice_id") @db.Uuid
   provider              String
   providerTransactionId String?   @map("provider_transaction_id")
+  // Payme Merchant API transaction state: 1 created, 2 performed, -1/-2 cancelled.
+  providerState         Int?      @map("provider_state")
+  cancelReason          Int?      @map("cancel_reason")
+  cancelledAt           DateTime? @map("cancelled_at") @db.Timestamptz(6)
   amount                Decimal   @db.Decimal(14, 2)
   currency              String    @default("UZS")
   status                String    @default("pending")
@@ -1374,6 +1383,7 @@ model Payment {
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 
+  @@unique([provider, providerTransactionId])
   @@index([invoiceId])
   @@map("payments")
 }

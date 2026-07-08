@@ -18,6 +18,7 @@ import { MedicationsService } from "../medications/medications.service";
 import { MealsService } from "../meals/meals.service";
 import { NoticesService } from "../notices/notices.service";
 import { NotificationsQueryService } from "../notifications/notifications-query.service";
+import { PaymentsService } from "../payments/payments.service";
 import { PickupsService } from "../pickups/pickups.service";
 import { PrismaService } from "../database/prisma.service";
 import { RealtimeService } from "../realtime/realtime.service";
@@ -42,6 +43,7 @@ import { createMedicationsRouter } from "../medications/medications.router";
 import { createMealsRouter } from "../meals/meals.router";
 import { createNoticesRouter } from "../notices/notices.router";
 import { createNotificationsRouter } from "../notifications/notifications.router";
+import { createPaymentsRouter } from "../payments/payments.router";
 import { createPickupsRouter } from "../pickups/pickups.router";
 import { createProfileRouter } from "../profile/profile.router";
 import { createRealtimeRouter } from "../realtime/realtime.router";
@@ -66,6 +68,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     notificationsQueryService: app.get(NotificationsQueryService, {
       strict: false,
     }),
+    paymentsService: app.get(PaymentsService, { strict: false }),
     pickupsService: app.get(PickupsService, { strict: false }),
     profileService: app.get(ProfileService, { strict: false }),
     prisma: app.get(PrismaService, { strict: false }),
@@ -126,6 +129,7 @@ function createORPCRouter(deps: ORPCDeps) {
     studentDocuments: createStudentDocumentsRouter(os, deps),
     notices: createNoticesRouter(os, deps),
     notifications: createNotificationsRouter(os, deps),
+    payments: createPaymentsRouter(os, deps),
     pickups: createPickupsRouter(os, deps),
     profile: createProfileRouter(os, deps),
     realtime: createRealtimeRouter(os, deps),

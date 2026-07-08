@@ -21,6 +21,7 @@ import type { MedicationsService } from "../medications/medications.service";
 import type { MealsService } from "../meals/meals.service";
 import type { NoticesService } from "../notices/notices.service";
 import type { NotificationsQueryService } from "../notifications/notifications-query.service";
+import type { PaymentsService } from "../payments/payments.service";
 import type { PickupsService } from "../pickups/pickups.service";
 import type { ProfileService } from "../profile/profile.service";
 import type { RealtimeService } from "../realtime/realtime.service";
@@ -53,6 +54,7 @@ export type ORPCDeps = {
   prisma: PrismaService;
   noticesService: NoticesService;
   notificationsQueryService: NotificationsQueryService;
+  paymentsService: PaymentsService;
   pickupsService: PickupsService;
   profileService: ProfileService;
   realtimeService: RealtimeService;

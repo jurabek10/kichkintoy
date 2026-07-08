@@ -9,6 +9,7 @@ import { directorHomeSummarySchema } from "@kichkintoy/shared";
 import { randomBytes } from "node:crypto";
 import { PrismaService } from "../database/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { currentTashkentMonth, dateOnly } from "../common/tashkent-month";
 import { MembershipsService } from "../memberships/memberships.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import type {
@@ -40,12 +41,17 @@ export class DirectorService {
     const month = currentTashkentMonth();
 
     const [
+      center,
       classes,
       activeEnrollments,
       teacherRoles,
       pendingRequests,
       missingDocuments,
     ] = await Promise.all([
+      this.prisma.center.findUnique({
+        where: { id: centerId },
+        select: { monthlyTuitionUzs: true },
+      }),
       this.prisma.class.findMany({
         where: { centerId, status: "active" },
         orderBy: { name: "asc" },
@@ -146,7 +152,9 @@ export class DirectorService {
       );
     }
 
-    const monthlyTuitionAmount = DEFAULT_MONTHLY_TUITION_UZS;
+    const monthlyTuitionAmount = center
+      ? Number(center.monthlyTuitionUzs)
+      : DEFAULT_MONTHLY_TUITION_UZS;
     const childPaymentState = new Map<
       string,
       { paidAmount: number; unpaidAmount: number; paid: boolean }
@@ -849,31 +857,6 @@ export class DirectorService {
 
 function buildApprovedSms(centerName: string) {
   return `Kichkintoy: your request to join ${centerName} was approved. Open the app to see your child.`;
-}
-
-function currentTashkentMonth() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Tashkent",
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(new Date());
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
-  const periodStartDate = new Date(Date.UTC(year, month - 1, 1));
-  const nextPeriodStartDate = new Date(Date.UTC(year, month, 1));
-  const periodEndDate = new Date(nextPeriodStartDate);
-  periodEndDate.setUTCDate(periodEndDate.getUTCDate() - 1);
-
-  return {
-    periodStartDate,
-    nextPeriodStartDate,
-    periodEndDate,
-    label: `${year}-${String(month).padStart(2, "0")}`,
-  };
-}
-
-function dateOnly(date: Date) {
-  return date.toISOString().slice(0, 10);
 }
 
 function normalizeClassCapacity(value: number | null) {

@@ -19,6 +19,7 @@ import { MealsModule } from "./meals/meals.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { NoticesModule } from "./notices/notices.module";
+import { PaymentsModule } from "./payments/payments.module";
 import { PickupsModule } from "./pickups/pickups.module";
 import { ProfileModule } from "./profile/profile.module";
 import { RealtimeModule } from "./realtime/realtime.module";
@@ -48,6 +49,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     MealsModule,
     NotificationsModule,
     NoticesModule,
+    PaymentsModule,
     PickupsModule,
     ProfileModule,
     RealtimeModule,
