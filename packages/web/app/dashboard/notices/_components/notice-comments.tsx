@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import type { NoticeComment } from "@kichkintoy/shared";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CommentAvatar } from "@/components/comment-avatar";
+import { CurrentUserAvatar } from "@/components/current-user-avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
@@ -85,7 +87,11 @@ export function NoticeComments({
 
       {canComment ? (
         <form className="flex items-start gap-3" onSubmit={submit}>
-          <Avatar name={t("detail.you")} self />
+          <CurrentUserAvatar
+            fallbackName={t("detail.you")}
+            className="h-9 w-9"
+            textClassName="text-xs"
+          />
           <div className="flex flex-1 flex-col gap-2">
             <Textarea
               value={draft}
@@ -120,11 +126,15 @@ export function NoticeComments({
               (canModerate || comment.authorUserId === currentUserId);
             return (
               <li key={comment.id} className="flex items-start gap-3">
-                <Avatar name={comment.authorName} self={isAuthor} />
+                <CommentAvatar
+                  name={comment.authorDisplayName}
+                  mediaAssetId={comment.authorPhotoMediaAssetId}
+                  photoUrl={comment.authorPhotoUrl}
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                     <span className="text-sm font-bold text-foreground">
-                      {comment.authorName}
+                      {comment.authorDisplayName}
                     </span>
                     {isAuthor ? (
                       <span className="rounded-full bg-sky/30 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-ink">
@@ -170,26 +180,3 @@ export function NoticeComments({
   );
 }
 
-function Avatar({ name, self }: { name: string; self: boolean }) {
-  return (
-    <span
-      className={cn(
-        "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold",
-        self ? "bg-sky/30 text-sky-ink" : "bg-grape/20 text-grape-ink",
-      )}
-    >
-      {initials(name)}
-    </span>
-  );
-}
-
-function initials(name: string) {
-  return (
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "?"
-  );
-}

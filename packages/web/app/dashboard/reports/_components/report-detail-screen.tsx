@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CommentAvatar } from "@/components/comment-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -801,13 +802,19 @@ function CommentList({
     <ul className="flex flex-col gap-3">
       {report.comments.map((row) => (
         <li key={row.id} className="rounded-lg border p-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-semibold">{row.authorName}</p>
-            <span className="text-xs text-muted-foreground">
+          <div className="flex items-center gap-2.5">
+            <CommentAvatar
+              name={row.authorDisplayName}
+              mediaAssetId={row.authorPhotoMediaAssetId}
+              photoUrl={row.authorPhotoUrl}
+              className="h-8 w-8 text-[10px]"
+            />
+            <p className="font-semibold">{row.authorDisplayName}</p>
+            <span className="ml-auto text-xs text-muted-foreground">
               {formatDateTime(row.createdAt)}
             </span>
           </div>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+          <p className="mt-1.5 whitespace-pre-wrap text-sm text-muted-foreground">
             {row.deletedAt ? t("detail.commentDeleted") : row.body}
           </p>
         </li>

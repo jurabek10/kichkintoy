@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CommentAvatar } from "@/components/comment-avatar";
 import { LoadingCard } from "@/components/loading-card";
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -248,13 +249,21 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
             ) : (
               post.comments.map((item) => (
                 <div key={item.id} className="rounded-md border p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold">{item.authorName}</p>
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2.5">
+                    <CommentAvatar
+                      name={item.authorDisplayName}
+                      mediaAssetId={item.authorPhotoMediaAssetId}
+                      photoUrl={item.authorPhotoUrl}
+                      className="h-8 w-8 text-[10px]"
+                    />
+                    <p className="text-sm font-semibold">
+                      {item.authorDisplayName}
+                    </p>
+                    <span className="ml-auto text-xs text-muted-foreground">
                       {formatDateTime(item.createdAt)}
                     </span>
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm">
+                  <p className="mt-1.5 whitespace-pre-wrap text-sm">
                     {item.deletedAt ? t("detail.commentDeleted") : item.body}
                   </p>
                 </div>
