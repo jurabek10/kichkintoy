@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "home",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": [".claude/dev-home.sh"],
+      "port": 3002,
+      "autoPort": true
+    }
+  ]
+}
