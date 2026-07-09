@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "title": "Kichkintoy — bog'cha va oilani bog'laydigan ilova",
+    "description": "Kundalik, davomat, fotoalbomlar, e'lonlar va to'lovlar — ota-onalar, tarbiyachilar va mudirlar uchun bitta ilovada."
+  },
+  "nav": {
+    "features": "Imkoniyatlar",
+    "roles": "Kimlar uchun",
+    "payments": "To'lovlar",
+    "getStarted": "Boshlash",
+    "login": "Kirish",
+    "signup": "Ro'yxatdan o'tish",
+    "openMenu": "Menyuni ochish",
+    "closeMenu": "Menyuni yopish"
+  },
+  "hero": {
+    "eyebrow": "O'zbekiston bog'chalari uchun",
+    "title": "Bog'cha va oilani bog'laydi",
+    "subtitle": "Farzandingizning bog'chadagi har bir kuni — kundalik, davomat, suratlar, e'lonlar va to'lovlar bitta ilovada.",
+    "ctaPrimary": "Bepul boshlash",
+    "ctaSecondary": "Kirish",
+    "note": "Ota-onalar uchun doim bepul"
+  },
+  "phone": {
+    "greeting": "Salom, Aziza!",
+    "childName": "Omina",
+    "childClass": "Quyoshcha guruhi",
+    "today": "Bugun",
+    "todaySub": "Farzandingizning kuni shu yerda",
+    "centerName": "Kichkintoy bog'chasi",
+    "tiles": {
+      "reports": "Kundalik",
+      "albums": "Albom",
+      "attendance": "Davomat",
+      "calendar": "Taqvim",
+      "notices": "E'lonlar",
+      "payments": "To'lovlar",
+      "meals": "Ovqatlar",
+      "medications": "Dori so'rovi",
+      "pickups": "Olib ketish",
+      "chat": "Chat"
+    },
+    "checkedIn": "Keldi",
+    "reportTitle": "Bugungi kundalik",
+    "reportMeta": "Tarbiyachidan yangi yozuv",
+    "feedDate": "12-iyun",
+    "statMood": "Kayfiyat",
+    "statPhotos": "Suratlar",
+    "statUpdates": "Yozuvlar",
+    "cardAttendanceTitle": "Davomat belgilandi",
+    "cardAttendanceMeta": "Bugun, 08:45",
+    "cardAlbumTitle": "3 ta yangi surat",
+    "cardAlbumMeta": "Bahor sayli albomi"
+  },
+  "stats": {
+    "roles": {
+      "value": "3 ta rol",
+      "label": "Ota-ona, tarbiyachi va mudir — bitta dizayn"
+    },
+    "languages": {
+      "value": "3 til",
+      "label": "O'zbek, rus va ingliz tillarida"
+    },
+    "modules": {
+      "value": "15+ modul",
+      "label": "Kundalikdan to'lovlargacha"
+    },
+    "free": {
+      "value": "0 so'm",
+      "label": "Ota-onalar uchun doim bepul"
+    }
+  },
+  "mission": {
+    "eyebrow": "Bizning maqsad",
+    "title": "Har bir kun — muhim",
+    "body": "Har bir ota-ona farzandining bog'chada qanday kun o'tkazganini bilishni istaydi. Har bir tarbiyachi buni qog'ozsiz, tez va chiroyli yetkazishni xohlaydi. Kichkintoy ana shu ikki istakni bitta ilovada birlashtiradi — bog'cha hayoti oilaga yaqinlashadi."
+  },
+  "values": {
+    "title": "Nega Kichkintoy?",
+    "subtitle": "Bog'cha, tarbiyachi va oila uchun qulay bo'lishi uchun yaratilgan",
+    "free": {
+      "title": "Ota-onalarga bepul",
+      "description": "Ota-onalar ilovadan cheklovsiz va mutlaqo bepul foydalanadi."
+    },
+    "devices": {
+      "title": "Telefon va kompyuterda",
+      "description": "Mobil ilova va veb-sayt — ma'lumotlar hamma joyda bir xil."
+    },
+    "languages": {
+      "title": "3 tilda ishlaydi",
+      "description": "O'zbek, rus va ingliz — har bir oila o'ziga qulay tilni tanlaydi."
+    },
+    "payments": {
+      "title": "Xavfsiz to'lovlar",
+      "description": "Bog'cha to'lovlari Payme va Click orqali xavfsiz amalga oshiriladi."
+    }
+  },
+  "features": {
+    "eyebrow": "Imkoniyatlar",
+    "title": "Bog'cha hayoti — bitta ilovada",
+    "subtitle": "Kichkintoy bog'chadagi kundalik ishlarning barchasini qamrab oladi",
+    "reports": {
+      "title": "Kundalik",
+      "description": "Tarbiyachi har kuni bolaning ovqati, uyqusi va kayfiyati haqida yozadi.",
+      "more": "Har bir kundalikda kayfiyat, ovqat, uyqu vaqti va suratlar bor. Tarbiyachi matnni AI yordamchi bilan yozishi, ota-ona esa izoh bilan javob berishi mumkin."
+    },
+    "albums": {
+      "title": "Fotoalbomlar",
+      "description": "Bayramlar va mashg'ulotlardan suratlar to'g'ridan-to'g'ri ota-onaga yetib boradi.",
+      "more": "Tarbiyachi suratlarni guruh bo'yicha yuklaydi. Ota-onaga bildirishnoma keladi va farzandining har bir yangi suratini bosh sahifada ko'radi."
+    },
+    "attendance": {
+      "title": "Davomat",
+      "description": "Kelish-ketish bir tegishda belgilanadi, ota-ona darhol xabardor bo'ladi.",
+      "more": "Kelish va ketish bir bosishda belgilanadi. Ota-ona vaqtni darhol ko'radi, mudir esa har bir guruh statistikasini kuzatadi."
+    },
+    "calendar": {
+      "title": "Taqvim va e'lonlar",
+      "description": "Bayramlar, yig'ilishlar va muhim xabarlar — hech narsa o'tkazib yuborilmaydi.",
+      "more": "Bayramlar, ota-onalar yig'ilishi va tadbirlar bitta taqvimda — eng yaqinlari doim bosh sahifada ko'rinib turadi."
+    },
+    "meals": {
+      "title": "Ovqatlanish menyusi",
+      "description": "Haftalik menyu oldindan e'lon qilinadi — bugun nima berilishini bilasiz.",
+      "more": "Oshxona haftalik menyuni oldindan e'lon qiladi — har bir kun uchun nonushta, tushlik va yengil tamaddi."
+    },
+    "medications": {
+      "title": "Dori va olib ketish",
+      "description": "Dori berish va bolani olib ketish so'rovlari rasmiy tarzda yuboriladi.",
+      "more": "Ota-ona doza va vaqtini ko'rsatib rasmiy so'rov yuboradi. Tarbiyachi ilovada tasdiqlaydi — og'zaki gap qolmaydi."
+    },
+    "chat": {
+      "title": "Chat va AI yordamchi",
+      "description": "Tarbiyachi bilan yozishing yoki AI yordamchidan bog'cha bo'yicha so'rang.",
+      "more": "Tarbiyachi bilan to'g'ridan-to'g'ri yozishing yoki AI chatdan so'rang — u ota-ona, tarbiyachi va mudirga haqiqiy ma'lumotlardan javob beradi."
+    },
+    "documents": {
+      "title": "Hujjatlar",
+      "description": "Arizalar va hujjatlar qog'ozsiz to'ldiriladi va onlayn topshiriladi.",
+      "more": "Qabul arizalari va ma'lumotnomalar onlayn topshiriladi, tarbiyachi yoki mudir ko'rib chiqadi, holati doim ko'rinib turadi."
+    }
+  },
+  "showcase": {
+    "chat": {
+      "kicker": "Farzandingiz kuni haqida so'rang —",
+      "title": "Har bir rol uchun AI chat",
+      "body": "Kichkintoyda ichki AI yordamchi bor — ota-ona, tarbiyachi va mudir uchun. U bog'chaning haqiqiy ma'lumotlaridan javob beradi: kundalik, davomat, albomlar va to'lovlar.",
+      "bullets": [
+        "Ota-ona so'raydi: «Omina kuni qanday o'tdi?» — AI kundalik, ovqat va suratlar bilan javob beradi",
+        "Tarbiyachi kundalik va javoblarni AI yordamida yozadi",
+        "Mudir guruhlar, xodimlar va to'lovlar bo'yicha tezkor xulosalar oladi"
+      ],
+      "screen": {
+        "title": "AI yordamchi",
+        "status": "Onlayn",
+        "question": "Omina bugun qanday o'tkazdi?",
+        "answerIntro": "Omina kunni zo'r o'tkazdi! 🌟",
+        "answerAttendance": "08:45 da keldi",
+        "answerMeal": "Tushlikni yaxshi yedi",
+        "answerPhotos": "Albomda 4 ta yangi surat",
+        "placeholder": "Xabar yozing…"
+      }
+    },
+    "reports": {
+      "kicker": "Har bir kun chiroyli yozib boriladi —",
+      "title": "Kundalik hisobotlar",
+      "body": "Tarbiyachi har kuni kayfiyat, ovqat, uyqu va suratlarni yozib boradi. Ota-ona kechqurun ilovani ochib, butun kunni qaytadan ko'radi.",
+      "bullets": [
+        "Kayfiyat, ovqat va uyqu — bitta kartada",
+        "Suratlar to'g'ridan-to'g'ri kundalikka biriktiriladi",
+        "Ota-onalar izoh qoldirib, javob yozadi"
+      ],
+      "screen": {
+        "title": "Omina kunni xotirjam va xursand o'tkazdi",
+        "note": "Tushlikdan keyin yaxshi uxladi, musiqa mashg'ulotida qatnashdi.",
+        "moodLabel": "Kayfiyat",
+        "moodValue": "Xursand 🙂",
+        "mealLabel": "Tushlik",
+        "mealValue": "Hammasini yedi",
+        "napLabel": "Uyqu",
+        "napValue": "1 soat 20 daqiqa"
+      }
+    },
+    "attendance": {
+      "kicker": "Bir bosishda davomat —",
+      "title": "Ishonchli davomat",
+      "body": "Tarbiyachi bir bosishda belgilaydi, ota-ona kelgan vaqtni darhol ko'radi. Oylik taqvim va statistika doim qo'l ostida.",
+      "bullets": [
+        "Kelish va ketish — bir bosishda",
+        "Ota-ona kelgan vaqtni darhol ko'radi",
+        "Mudir uchun oylik taqvim va statistika"
+      ],
+      "screen": {
+        "month": "Iyun",
+        "weekdays": "Ya,Du,Se,Ch,Pa,Ju,Sh",
+        "presentLabel": "Kelgan",
+        "excusedLabel": "Sababli",
+        "absentLabel": "Kelmagan",
+        "checkInLabel": "Kelgan vaqt"
+      }
+    },
+    "albums": {
+      "kicker": "Bayramlar va oddiy kunlar —",
+      "title": "Fotoalbomlar",
+      "body": "Tarbiyachilar mashg'ulot va bayramlardan suratlarni yuklaydi. Ota-onalar farzandining suratlarini ko'rib, izoh qoldiradi.",
+      "bullets": [
+        "Har bir guruh uchun alohida albomlar",
+        "Yangi surat haqida bildirishnoma",
+        "Ism va surat bilan izohlar"
+      ],
+      "screen": {
+        "title": "Bahor sayli",
+        "byline": "12-iyun · Dilnoza opa",
+        "album2Title": "Musiqa mashg'uloti",
+        "album2Byline": "5-iyun · Dilnoza opa",
+        "meta": "15 ta surat · Quyoshcha guruhi",
+        "comment": "«Qanday chiroyli surat!» — Aziza"
+      }
+    },
+    "documents": {
+      "kicker": "Qog'ozsiz bog'cha —",
+      "title": "Hujjatlar onlayn",
+      "body": "Qabul hujjatlari ilovada to'planadi: yuborish, ko'rib chiqish va tasdiqlash — hammasi onlayn, holati doim ko'rinib turadi.",
+      "bullets": [
+        "Qabul hujjatlari onlayn to'planadi",
+        "Tarbiyachi va mudir bir bosishda ko'rib chiqadi",
+        "Holat doim ko'rinadi: yuborildi, ko'rilmoqda, tasdiqlandi"
+      ],
+      "screen": {
+        "header": "Hujjatlar",
+        "group": "Yangi",
+        "doc1": "Qabul arizasi",
+        "doc1Sub": "Omina · Qabul",
+        "doc2": "Tibbiy ma'lumotnoma",
+        "doc2Sub": "Omina · Ma'lumotnoma",
+        "doc3": "Ota-ona roziligi",
+        "doc3Sub": "Omina · Rozilik",
+        "approved": "Tasdiqlandi",
+        "review": "Ko'rilmoqda",
+        "pending": "Kutilmoqda",
+        "upload": "+ Hujjat qo'shish"
+      }
+    }
+  },
+  "services": {
+    "eyebrow": "Ichida yana ko'p narsa bor",
+    "title": "Yana bularning bari ham",
+    "cta": "Batafsil",
+    "prev": "Oldingi",
+    "next": "Keyingi",
+    "items": {
+      "ai": {
+        "title": "AI yordamchi",
+        "description": "Ota-ona, tarbiyachi va mudir uchun chat AI — haqiqiy ma'lumotlardan javob beradi."
+      },
+      "reports": {
+        "title": "Kundalik",
+        "description": "Kayfiyat, ovqat, uyqu va suratlar — har kuni."
+      },
+      "attendance": {
+        "title": "Davomat",
+        "description": "Bir bosishda belgilash, ota-onaga darhol xabar."
+      },
+      "albums": {
+        "title": "Fotoalbomlar",
+        "description": "Bayram va mashg'ulot suratlari — to'g'ri oilaga."
+      },
+      "payments": {
+        "title": "To'lovlar",
+        "description": "Payme va Click orqali, avtomatik hisob-fakturalar."
+      },
+      "documents": {
+        "title": "Hujjatlar",
+        "description": "Qabul va boshqa hujjatlar — to'liq onlayn."
+      },
+      "notices": {
+        "title": "E'lonlar",
+        "description": "Har bir ota-onaga yetib boradigan xabarlar."
+      },
+      "calendar": {
+        "title": "Taqvim",
+        "description": "Bayramlar, yig'ilishlar va tadbirlar bir joyda."
+      },
+      "meals": {
+        "title": "Ovqat menyusi",
+        "description": "Haftalik menyu oldindan e'lon qilinadi."
+      },
+      "medications": {
+        "title": "Dori so'rovi",
+        "description": "Doza va vaqt ko'rsatilgan rasmiy so'rovlar."
+      },
+      "pickups": {
+        "title": "Olib ketish",
+        "description": "Bolani kim olib ketishi — doim oldindan kelishilgan."
+      },
+      "notifications": {
+        "title": "Bildirishnomalar",
+        "description": "Muhim xabarlarning bari — bitta joyda."
+      },
+      "languages": {
+        "title": "3 til",
+        "description": "O'zbek, rus va ingliz — bir bosishda almashtiriladi."
+      },
+      "apps": {
+        "title": "Veb + mobil",
+        "description": "Sayt va har bir rol uchun alohida ilova."
+      }
+    }
+  },
+  "roles": {
+    "eyebrow": "Kimlar uchun",
+    "title": "Uch rol — bitta ilova",
+    "subtitle": "Hammada bir xil dizayn, har kimda o'z imkoniyatlari",
+    "parent": {
+      "name": "Ota-onalar",
+      "tagline": "Farzandingiz kuni — kaftingizda",
+      "bullets": [
+        "Kundalik va suratlarni ko'rish",
+        "Davomatdan xabardor bo'lish",
+        "To'lovlarni Payme yoki Click orqali to'lash",
+        "Tarbiyachi bilan muloqot"
+      ]
+    },
+    "teacher": {
+      "name": "Tarbiyachilar",
+      "tagline": "Qog'ozbozliksiz guruh boshqaruvi",
+      "bullets": [
+        "Kundalik yozish va albom yuklash",
+        "Davomatni bir tegishda belgilash",
+        "E'lon va taqvim yuritish",
+        "AI yordamchi bilan hisobotlar"
+      ]
+    },
+    "director": {
+      "name": "Mudirlar",
+      "tagline": "Butun bog'cha — bitta panelda",
+      "bullets": [
+        "To'lovlar va qarzdorlik nazorati",
+        "Guruhlar va xodimlar boshqaruvi",
+        "Takliflar va arizalarni tasdiqlash",
+        "Hisobotlar va statistika"
+      ]
+    }
+  },
+  "payments": {
+    "eyebrow": "To'lovlar",
+    "title": "Bog'cha to'lovi — Payme yoki Click orqali",
+    "subtitle": "Har oy avtomatik hisob-kitob, naqd pulsiz va navbatsiz",
+    "bullets": [
+      "Oylik hisoblar avtomatik shakllanadi",
+      "Payme va Click bilan bir tegishda to'lov",
+      "To'lovlar tarixi va kvitansiyalar doim qo'l ostida"
+    ],
+    "invoice": {
+      "label": "Iyun oyi uchun hisob",
+      "child": "Omina — Quyoshcha guruhi",
+      "amount": "1.500.000 so'm",
+      "status": "To'landi",
+      "method": "Payme orqali, 05.06.2026"
+    }
+  },
+  "download": {
+    "title": "Bugun bepul boshlang",
+    "subtitle": "Ro'yxatdan o'ting va bog'changizni bir necha daqiqada ulang. Ota-onalar, tarbiyachilar va mudirlar uchun alohida mobil ilovalar ham tayyor.",
+    "cta": "Ro'yxatdan o'tish",
+    "loginHint": "Hisobingiz bormi?",
+    "login": "Kirish"
+  },
+  "footer": {
+    "tagline": "Bog'cha va oilani bog'laydigan ilova",
+    "product": "Mahsulot",
+    "contact": "Aloqa",
+    "legal": "Hujjatlar",
+    "terms": "Foydalanish shartlari",
+    "privacy": "Maxfiylik siyosati",
+    "madeIn": "O'zbekistonda ishlab chiqilgan",
+    "copyright": "© {{year}} Kichkintoy. Barcha huquqlar himoyalangan."
+  }
+}

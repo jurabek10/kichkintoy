@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "title": "Kichkintoy — the app that connects kindergarten and family",
+    "description": "Daily reports, attendance, photo albums, notices and payments — one app for parents, teachers and directors."
+  },
+  "nav": {
+    "features": "Features",
+    "roles": "Who it's for",
+    "payments": "Payments",
+    "getStarted": "Get started",
+    "login": "Log in",
+    "signup": "Sign up",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "For kindergartens in Uzbekistan",
+    "title": "Connecting kindergarten and family",
+    "subtitle": "Every day of your child at kindergarten — daily reports, attendance, photos, notices and payments in one app.",
+    "ctaPrimary": "Start for free",
+    "ctaSecondary": "Log in",
+    "note": "Always free for parents"
+  },
+  "phone": {
+    "greeting": "Hi, Aziza!",
+    "childName": "Omina",
+    "childClass": "Quyoshcha class",
+    "today": "Today",
+    "todaySub": "Your child's day, all in one place",
+    "centerName": "Kichkintoy kindergarten",
+    "tiles": {
+      "reports": "Reports",
+      "albums": "Album",
+      "attendance": "Attendance",
+      "calendar": "Calendar",
+      "notices": "Notices",
+      "payments": "Payments",
+      "meals": "Meals",
+      "medications": "Medication",
+      "pickups": "Pickup",
+      "chat": "Chat"
+    },
+    "checkedIn": "Checked in",
+    "reportTitle": "Today's report",
+    "reportMeta": "New entry from the teacher",
+    "feedDate": "12 Jun",
+    "statMood": "Mood",
+    "statPhotos": "Photos",
+    "statUpdates": "Updates",
+    "cardAttendanceTitle": "Attendance marked",
+    "cardAttendanceMeta": "Today, 08:45",
+    "cardAlbumTitle": "3 new photos",
+    "cardAlbumMeta": "Spring festival album"
+  },
+  "stats": {
+    "roles": {
+      "value": "3 roles",
+      "label": "Parent, teacher and director — one design"
+    },
+    "languages": {
+      "value": "3 languages",
+      "label": "Uzbek, Russian and English"
+    },
+    "modules": {
+      "value": "15+ modules",
+      "label": "From daily reports to payments"
+    },
+    "free": {
+      "value": "0 so'm",
+      "label": "Always free for parents"
+    }
+  },
+  "mission": {
+    "eyebrow": "Our mission",
+    "title": "Every day matters",
+    "body": "Every parent wants to know how their child's day at kindergarten went. Every teacher wants to share it quickly, beautifully and without paperwork. Kichkintoy brings these two wishes together in one app — kindergarten life gets closer to the family."
+  },
+  "values": {
+    "title": "Why Kichkintoy?",
+    "subtitle": "Built to be easy for the kindergarten, the teacher and the family",
+    "free": {
+      "title": "Free for parents",
+      "description": "Parents use the app without limits and completely free of charge."
+    },
+    "devices": {
+      "title": "On phone and computer",
+      "description": "Mobile app and website — your data is the same everywhere."
+    },
+    "languages": {
+      "title": "Works in 3 languages",
+      "description": "Uzbek, Russian and English — every family picks the language they prefer."
+    },
+    "payments": {
+      "title": "Secure payments",
+      "description": "Tuition is paid securely through Payme and Click."
+    }
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Kindergarten life — in one app",
+    "subtitle": "Kichkintoy covers all the daily work of a kindergarten",
+    "reports": {
+      "title": "Daily reports",
+      "description": "The teacher writes every day about the child's meals, naps and mood.",
+      "more": "Each report holds mood, meals, nap time and photos. Teachers can draft the text with the AI assistant, and parents reply with comments."
+    },
+    "albums": {
+      "title": "Photo albums",
+      "description": "Photos from holidays and activities go straight to the parents.",
+      "more": "Teachers upload photos by class in bulk. Parents get a notification and see every new photo of their child on the home feed."
+    },
+    "attendance": {
+      "title": "Attendance",
+      "description": "Check-in and check-out take one tap, and parents know right away.",
+      "more": "Check-in and check-out take one tap. Parents instantly see the time, and the director sees attendance statistics for every class."
+    },
+    "calendar": {
+      "title": "Calendar and notices",
+      "description": "Holidays, meetings and important news — nothing gets lost.",
+      "more": "Holidays, parent meetings and events live in one calendar — the nearest ones are always shown on the home screen."
+    },
+    "meals": {
+      "title": "Meal menu",
+      "description": "The weekly menu is published in advance — you know what's for lunch today.",
+      "more": "The kitchen publishes the weekly menu in advance — breakfast, lunch and snacks for every day of the week."
+    },
+    "medications": {
+      "title": "Medications and pickup",
+      "description": "Medication and pickup requests are submitted officially in the app.",
+      "more": "Parents send an official request with the dose and time. The teacher confirms it in the app — nothing is passed by word of mouth."
+    },
+    "chat": {
+      "title": "Chat and AI assistant",
+      "description": "Message the teacher or ask the AI assistant about the kindergarten.",
+      "more": "Message the teacher directly, or ask the AI chatroom — it answers parents, teachers and directors from the kindergarten's real data."
+    },
+    "documents": {
+      "title": "Documents",
+      "description": "Applications and documents are filled in and submitted online, paper-free.",
+      "more": "Admission applications and certificates are submitted online, reviewed by the teacher or director, and their status is always visible."
+    }
+  },
+  "showcase": {
+    "chat": {
+      "kicker": "Ask anything about your child's day —",
+      "title": "AI chat for every role",
+      "body": "Kichkintoy has a built-in AI assistant in the chatroom — for parents, teachers and directors. It answers from the kindergarten's real data: reports, attendance, albums and payments.",
+      "bullets": [
+        "Parents ask \"How was Omina's day?\" — the AI replies with the report, meals and photos",
+        "Teachers draft daily reports and answers with AI help",
+        "Directors get quick summaries about classes, staff and payments"
+      ],
+      "screen": {
+        "title": "AI assistant",
+        "status": "Online",
+        "question": "How was Omina's day today?",
+        "answerIntro": "Omina had a great day! 🌟",
+        "answerAttendance": "Checked in at 08:45",
+        "answerMeal": "Ate lunch well",
+        "answerPhotos": "4 new photos in the album",
+        "placeholder": "Write a message…"
+      }
+    },
+    "reports": {
+      "kicker": "Every day, beautifully recorded —",
+      "title": "Daily reports",
+      "body": "The teacher records mood, meals, naps and photos every day. Parents open the app in the evening and relive the whole day.",
+      "bullets": [
+        "Mood, meals and nap in one card",
+        "Photos attached right in the report",
+        "Parents can comment and reply"
+      ],
+      "screen": {
+        "title": "Omina had a calm, happy day",
+        "note": "Slept well after lunch and joined the music circle.",
+        "moodLabel": "Mood",
+        "moodValue": "Happy 🙂",
+        "mealLabel": "Lunch",
+        "mealValue": "Ate everything",
+        "napLabel": "Nap",
+        "napValue": "1 hour 20 minutes"
+      }
+    },
+    "attendance": {
+      "kicker": "Check-in with one tap —",
+      "title": "Attendance parents trust",
+      "body": "The teacher marks attendance in one tap and parents see the time right away. The monthly calendar and statistics are always at hand.",
+      "bullets": [
+        "One-tap check-in and check-out",
+        "Parents see the arrival time instantly",
+        "Monthly calendar and statistics for the director"
+      ],
+      "screen": {
+        "month": "June",
+        "weekdays": "Su,Mo,Tu,We,Th,Fr,Sa",
+        "presentLabel": "Present",
+        "excusedLabel": "Excused",
+        "absentLabel": "Absent",
+        "checkInLabel": "Check-in"
+      }
+    },
+    "albums": {
+      "kicker": "Holidays and everyday moments —",
+      "title": "Photo albums",
+      "body": "Teachers upload photos from activities and holidays. Parents see their child's photos and leave comments.",
+      "bullets": [
+        "Separate albums for every class",
+        "Notifications about new photos",
+        "Comments — with names and photos"
+      ],
+      "screen": {
+        "title": "Spring festival",
+        "byline": "12 Jun · Ms. Dilnoza",
+        "album2Title": "Music class",
+        "album2Byline": "5 Jun · Ms. Dilnoza",
+        "meta": "15 photos · Quyoshcha class",
+        "comment": "\"What a lovely photo!\" — Aziza"
+      }
+    },
+    "documents": {
+      "kicker": "A paper-free kindergarten —",
+      "title": "Documents online",
+      "body": "Admission documents are collected in the app: submitting, reviewing and approving all happen online, and the status is always visible.",
+      "bullets": [
+        "Admission documents collected online",
+        "Teacher and director review with one tap",
+        "Status always visible: submitted, in review, approved"
+      ],
+      "screen": {
+        "header": "Documents",
+        "group": "New",
+        "doc1": "Admission application",
+        "doc1Sub": "Omina · Admission",
+        "doc2": "Medical certificate",
+        "doc2Sub": "Omina · Certificate",
+        "doc3": "Parent consent",
+        "doc3Sub": "Omina · Consent",
+        "approved": "Approved",
+        "review": "In review",
+        "pending": "Waiting",
+        "upload": "+ Add document"
+      }
+    }
+  },
+  "services": {
+    "eyebrow": "There's more inside",
+    "title": "And all of this too",
+    "cta": "Learn more",
+    "prev": "Previous",
+    "next": "Next",
+    "items": {
+      "ai": {
+        "title": "AI assistant",
+        "description": "Chatroom AI for parents, teachers and directors — answers from real data."
+      },
+      "reports": {
+        "title": "Daily reports",
+        "description": "Mood, meals, naps and photos — every single day."
+      },
+      "attendance": {
+        "title": "Attendance",
+        "description": "One-tap check-in, instant updates for parents."
+      },
+      "albums": {
+        "title": "Photo albums",
+        "description": "Event and activity photos, straight to the family."
+      },
+      "payments": {
+        "title": "Payments",
+        "description": "Tuition with Payme and Click, automatic invoices."
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Admission and other documents — fully online."
+      },
+      "notices": {
+        "title": "Notices",
+        "description": "Announcements that reach every parent."
+      },
+      "calendar": {
+        "title": "Calendar",
+        "description": "Holidays, meetings and events in one place."
+      },
+      "meals": {
+        "title": "Meal menu",
+        "description": "The weekly menu, published in advance."
+      },
+      "medications": {
+        "title": "Medication",
+        "description": "Official medication requests with dose and time."
+      },
+      "pickups": {
+        "title": "Pickup",
+        "description": "Who picks up the child — always agreed in advance."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Everything important in one inbox."
+      },
+      "languages": {
+        "title": "3 languages",
+        "description": "Uzbek, Russian and English — switch with one tap."
+      },
+      "apps": {
+        "title": "Web + mobile",
+        "description": "A website and separate apps for every role."
+      }
+    }
+  },
+  "roles": {
+    "eyebrow": "Who it's for",
+    "title": "Three roles — one app",
+    "subtitle": "The same design for everyone, with features for each role",
+    "parent": {
+      "name": "Parents",
+      "tagline": "Your child's day, in your hand",
+      "bullets": [
+        "See daily reports and photos",
+        "Get attendance updates",
+        "Pay tuition with Payme or Click",
+        "Message the teacher"
+      ]
+    },
+    "teacher": {
+      "name": "Teachers",
+      "tagline": "Run your class without paperwork",
+      "bullets": [
+        "Write reports and upload albums",
+        "Mark attendance in one tap",
+        "Post notices and keep the calendar",
+        "Reports with the AI assistant"
+      ]
+    },
+    "director": {
+      "name": "Directors",
+      "tagline": "The whole kindergarten on one panel",
+      "bullets": [
+        "Track payments and outstanding balances",
+        "Manage classes and staff",
+        "Approve invitations and requests",
+        "Reports and statistics"
+      ]
+    }
+  },
+  "payments": {
+    "eyebrow": "Payments",
+    "title": "Tuition — paid with Payme or Click",
+    "subtitle": "Automatic monthly billing, no cash and no queues",
+    "bullets": [
+      "Monthly invoices are generated automatically",
+      "One-tap payment with Payme and Click",
+      "Payment history and receipts always at hand"
+    ],
+    "invoice": {
+      "label": "Invoice for June",
+      "child": "Omina — Quyoshcha class",
+      "amount": "1.500.000 so'm",
+      "status": "Paid",
+      "method": "Via Payme, 05.06.2026"
+    }
+  },
+  "download": {
+    "title": "Start for free today",
+    "subtitle": "Sign up and connect your kindergarten in a few minutes. There are also separate mobile apps for parents, teachers and directors.",
+    "cta": "Sign up",
+    "loginHint": "Already have an account?",
+    "login": "Log in"
+  },
+  "footer": {
+    "tagline": "The app that connects kindergarten and family",
+    "product": "Product",
+    "contact": "Contact",
+    "legal": "Legal",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "madeIn": "Made in Uzbekistan",
+    "copyright": "© {{year}} Kichkintoy. All rights reserved."
+  }
+}
