@@ -18,9 +18,15 @@ export function ReviewStep() {
   const { draft, reset } = useSignup();
   const [error, setError] = useState<string | null>(null);
 
+  // Teachers always finish here; directors only when arriving via an
+  // admin invitation (self-serve directors finish in director-setup).
+  const isInvitedDirector = draft.role === "director" && !!draft.invitationId;
+
   useEffect(() => {
-    if (draft.role !== "teacher") router.replace("/signup/role");
-  }, [draft.role, router]);
+    if (draft.role !== "teacher" && !isInvitedDirector) {
+      router.replace("/signup/role");
+    }
+  }, [draft.role, isInvitedDirector, router]);
 
   const registerMutation = useMutation({
     mutationFn: () =>
@@ -30,7 +36,7 @@ export function ReviewStep() {
         phoneVerificationToken: draft.phoneVerificationToken,
         username: draft.username,
         password: draft.password,
-        role: "teacher",
+        role: isInvitedDirector ? "director" : "teacher",
         ...(draft.invitationId
           ? { invitationId: draft.invitationId }
           : draft.centerId
@@ -71,7 +77,9 @@ export function ReviewStep() {
         <Detail label={t("signup.username")} value={draft.username} />
         <Detail
           label={t("signup.steps.role")}
-          value={t("signup.roleTeacher")}
+          value={
+            isInvitedDirector ? t("signup.director") : t("signup.teacher")
+          }
         />
         <Detail
           label={t("signup.steps.kindergarten")}

@@ -68,8 +68,10 @@ export function RoleStep() {
     setDraft((current) => ({
       ...current,
       role,
-      ...(role !== "parent" && role !== "teacher"
-        ? { invitationId: null, invitationLabel: null }
+      // Keep an accepted invitation only while the chosen role matches its
+      // kind; switching to a different role drops it.
+      ...(current.invitationKind && current.invitationKind !== role
+        ? { invitationId: null, invitationKind: null, invitationLabel: null }
         : {}),
     }));
   }
@@ -81,7 +83,10 @@ export function RoleStep() {
     }
 
     if (draft.role === "director") {
-      router.push("/signup/director-setup");
+      // Invited directors skip the claim-or-create setup entirely.
+      router.push(
+        draft.invitationId ? "/signup/review" : "/signup/director-setup",
+      );
       return;
     }
 

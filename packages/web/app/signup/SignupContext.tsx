@@ -12,6 +12,7 @@ import {
 import type {
   ChildGender,
   FacilityType,
+  InvitationKind,
   PendingInvitation,
   RelationshipType,
   UserRole,
@@ -29,6 +30,7 @@ export type SignupDraft = {
   role: UserRole | "";
 
   invitationId: string | null;
+  invitationKind: InvitationKind | null;
   invitationLabel: string | null;
 
   centerId: string | null;
@@ -69,6 +71,7 @@ export const initialDraft: SignupDraft = {
   confirmPassword: "",
   role: "",
   invitationId: null,
+  invitationKind: null,
   invitationLabel: null,
   centerId: null,
   centerName: null,
@@ -146,8 +149,11 @@ export function SignupProvider({ children }: { children: ReactNode }) {
     (invitation: PendingInvitation) => {
       setDraftState((current) => ({
         ...current,
-        role: invitation.kind === "parent" ? "parent" : "teacher",
+        // The invitation kind decides the signup role — including "director"
+        // for platform-admin invitations, which skip the center-setup step.
+        role: invitation.kind,
         invitationId: invitation.id,
+        invitationKind: invitation.kind,
         invitationLabel: `${invitation.center.name}${invitation.class ? ` · ${invitation.class.name}` : ""}`,
         centerId: invitation.center.id,
         centerName: invitation.center.name,
@@ -163,6 +169,7 @@ export function SignupProvider({ children }: { children: ReactNode }) {
     setDraftState((current) => ({
       ...current,
       invitationId: null,
+      invitationKind: null,
       invitationLabel: null,
     }));
   }, []);
@@ -209,6 +216,11 @@ export function stepIndexFor(
 
 export function stepOrderFor(draft: SignupDraft): string[] {
   if (draft.role === "director") {
+    // An invited director joins the prepared center directly — no
+    // claim-or-create setup step.
+    if (draft.invitationId) {
+      return ["/signup", "/signup/credentials", "/signup/role"];
+    }
     return [
       "/signup",
       "/signup/credentials",
