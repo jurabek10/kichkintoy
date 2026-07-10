@@ -46,8 +46,10 @@ import {
 } from "@/components/ui/sidebar";
 import type { TFunction } from "i18next";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
+import { ChildSwitcher } from "./_components/child-switcher";
 import { NotificationBell } from "./_components/notification-bell";
 import { ParentBottomNav } from "./_components/parent-bottom-nav";
+import { useSelectedChild } from "@/lib/selected-child";
 import { logoutAndClear, readSession, useSession } from "@/lib/session";
 import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
@@ -173,6 +175,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  // For parents the shell follows the selected kid — a sibling may attend a
+  // different kindergarten, so the sidebar center name tracks the switcher.
+  const { child: selectedChild } = useSelectedChild();
   const { t: tCommon } = useLayoutTranslation("common");
   const { t: tNav } = useLayoutTranslation("nav");
   useRealtimeNotifications(session);
@@ -315,7 +320,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                     {tCommon("dashboard.panel", { role: roleLabel })}
                   </p>
                   <p className="truncate text-sm font-bold text-sidebar-foreground">
-                    {session.membership.centerName ||
+                    {(isParent && selectedChild?.centerName) ||
+                      session.membership.centerName ||
                       tCommon("dashboard.defaultCenter")}
                   </p>
                 </div>
@@ -386,7 +392,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <div className="lg:hidden">
                 <BrandMark href="/dashboard" />
               </div>
-              {showMyPage ? (
+              {isParent ? (
+                // Kidsnote-style: the header belongs to the kid, not the
+                // parent — photo + name + a switcher across kindergartens.
+                <ChildSwitcher />
+              ) : showMyPage ? (
                 <Link
                   href="/dashboard/profile"
                   className="hidden min-w-0 items-center gap-2.5 rounded-lg px-2 py-1 transition-colors hover:bg-muted lg:flex"
@@ -425,11 +435,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               )}
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden text-right sm:block lg:hidden">
-                <p className="text-sm font-bold">{session.user.fullName}</p>
-                <p className="text-xs text-muted-foreground">{roleLabel}</p>
-              </div>
-              {showMyPage ? (
+              {!isParent ? (
+                <div className="hidden text-right sm:block lg:hidden">
+                  <p className="text-sm font-bold">{session.user.fullName}</p>
+                  <p className="text-xs text-muted-foreground">{roleLabel}</p>
+                </div>
+              ) : null}
+              {showMyPage && !isParent ? (
                 <Link
                   href="/dashboard/profile"
                   aria-label={tNav("items.myPage")}

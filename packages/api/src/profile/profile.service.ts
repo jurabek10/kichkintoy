@@ -11,6 +11,7 @@ import {
   notificationSettingsSchema,
   parentChildSchema,
   profileViewSchema,
+  type MyJoinRequest,
   type NotificationSettings,
   type ParentChild,
   type ProfileView,
@@ -196,6 +197,28 @@ export class ProfileService {
     return guardians.map((guardian) =>
       toParentChild(guardian.child, guardian.relationship, guardian.isPrimary),
     );
+  }
+
+  /** The caller's own pending "add a kid" requests, shown in the kid switcher. */
+  async myJoinRequests(userId: string): Promise<MyJoinRequest[]> {
+    const requests = await this.prisma.centerJoinRequest.findMany({
+      where: { parentUserId: userId, kind: "parent", status: "pending" },
+      include: {
+        center: { select: { name: true } },
+        requestedClass: { select: { name: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return requests.map((request) => ({
+      id: request.id,
+      centerId: request.centerId,
+      centerName: request.center.name,
+      className: request.requestedClass?.name ?? null,
+      childName: request.childName,
+      childPhotoUrl: request.childPhotoUrl,
+      createdAt: request.createdAt.toISOString(),
+    }));
   }
 
   async updateChild(

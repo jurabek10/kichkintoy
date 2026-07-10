@@ -472,5 +472,21 @@
       "gotIt": "Got it",
       "seen": "Seen"
     }
+  },
+  "childSwitcher": {
+    "title": "My kids",
+    "pending": "Pending approval",
+    "addChild": "Add a kid"
+  },
+  "addChild": {
+    "title": "Add a kid",
+    "childDescription": "Tell us about your new kid.",
+    "centerDescription": "Choose the kid's kindergarten — it can be a different one.",
+    "reviewDescription": "Check the details and send the request to the kindergarten.",
+    "submit": "Send request",
+    "submitting": "Sending…",
+    "successTitle": "Request sent!",
+    "successBody": "The request for {{child}} was sent to {{center}}. Your kid appears in the list once the director approves.",
+    "backToHome": "Back to home"
   }
 }

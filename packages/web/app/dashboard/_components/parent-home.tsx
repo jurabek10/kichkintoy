@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   IoArrowForward,
@@ -28,9 +27,11 @@ import { SignedAlbumImage } from "@/app/dashboard/albums/_components/signed-albu
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { formatDayMonth, formatTime, formatWeekdayLong } from "@/lib/date";
+import { ChildAvatar } from "../profile/_components/child-avatar";
 import { todayIsoDate } from "../reports/_components/report-utils";
 import { ParentAttendanceCalendar } from "./parent-attendance-calendar";
 
@@ -96,23 +97,14 @@ export function ParentHome() {
   const { t: tNav } = useLayoutTranslation("nav");
   const { session } = useSession();
   const lang = i18n.language;
-  const [activeChildId, setActiveChildId] = useState<string | null>(null);
 
-  const childrenQuery = useQuery({
-    queryKey: queryKeys.attendance.children(),
-    queryFn: () => orpc.attendance.children(),
-  });
-  const children = childrenQuery.data?.children ?? [];
-
-  useEffect(() => {
-    if (!activeChildId && children.length > 0) {
-      setActiveChildId(children[0]!.id);
-    }
-  }, [activeChildId, children]);
-
-  const activeChild =
-    children.find((c) => c.id === activeChildId) ?? children[0] ?? null;
-  const childId = activeChild?.id ?? "";
+  // The globally selected kid (header switcher) drives the whole home page.
+  const {
+    children,
+    child: activeChild,
+    childId,
+    isPending: childrenPending,
+  } = useSelectedChild();
   const colorFor = (id: string) =>
     CHILD_COLORS[children.findIndex((c) => c.id === id) % CHILD_COLORS.length]!;
 
@@ -127,8 +119,9 @@ export function ParentHome() {
     enabled: !!childId,
   });
   const noticesQuery = useQuery({
-    queryKey: queryKeys.notices.parentList(),
-    queryFn: () => orpc.notices.parentList({}),
+    queryKey: queryKeys.notices.parentChildList(childId),
+    queryFn: () => orpc.notices.parentChildList({ childId }),
+    enabled: !!childId,
   });
   const upcomingQuery = useQuery({
     queryKey: queryKeys.calendar.upcoming({ childId, limit: 4 }),
@@ -155,7 +148,7 @@ export function ParentHome() {
   )[0];
   const upcoming = upcomingQuery.data ?? [];
 
-  if (childrenQuery.isPending) {
+  if (childrenPending) {
     return <KidsLoader size="lg" className="min-h-[40vh]" />;
   }
   if (!activeChild) {
@@ -172,57 +165,38 @@ export function ParentHome() {
 
   return (
     <div className="mx-auto flex w-full max-w-[820px] flex-col gap-3">
-      {/* Child header — tappable profile + child switcher */}
+      {/* Child header — the kid the header switcher selected; taps open the
+          profile page where the kid's details live. Switching kids happens in
+          the global header switcher, not here. */}
       <div className="flex items-center justify-between pt-1">
         <Link
-          href="/dashboard/children"
+          href="/dashboard/profile"
           className="group flex min-w-0 items-center gap-2.5"
         >
-          <span
-            className={cn(
-              "grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white",
-              colorFor(activeChild.id),
-            )}
-          >
-            {initials(activeChild.name)}
-          </span>
+          {activeChild.photoMediaAssetId || activeChild.photoUrl ? (
+            <ChildAvatar
+              mediaAssetId={activeChild.photoMediaAssetId}
+              photoUrl={activeChild.photoUrl}
+              name={activeChild.name}
+              className="h-9 w-9 text-sm"
+              ringClassName="ring-transparent"
+            />
+          ) : (
+            <span
+              className={cn(
+                "grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold text-white",
+                colorFor(activeChild.id),
+              )}
+            >
+              {initials(activeChild.name)}
+            </span>
+          )}
           <span className="truncate text-lg font-bold text-foreground">
             {activeChild.name}
           </span>
           <IoChevronForward className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
-
-      {children.length > 1 ? (
-        <div className="-mt-1 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {children.map((child) => {
-            const active = child.id === activeChild.id;
-            return (
-              <button
-                key={child.id}
-                type="button"
-                onClick={() => setActiveChildId(child.id)}
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition-colors",
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground",
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold text-white",
-                    colorFor(child.id),
-                  )}
-                >
-                  {initials(child.name)}
-                </span>
-                {child.name}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
 
       {/* Greeting banner */}
       <HomeCard className="flex items-center gap-3">

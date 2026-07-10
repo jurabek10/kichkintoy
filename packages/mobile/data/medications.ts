@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
 import { formatLongDate } from '@/lib/date';
+import { useCurrentChild } from '@/data/parent';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -131,16 +132,20 @@ export function useMedicationChildren(): Query<MedicationChildOption[]> {
 
 /** The parent's medication requests, newest first. */
 export function useMedicationRequests(): Query<MedicationSummary[]> {
+  // Scoped to the globally selected kid (header switcher).
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
   const query = useQuery({
-    queryKey: queryKeys.medications.parentList,
-    queryFn: () => orpc.medications.parentList({}),
+    queryKey: [...queryKeys.medications.parentList, childId],
+    queryFn: () => orpc.medications.parentList({ childId }),
+    enabled: !!childId,
     staleTime: 0,
     refetchOnMount: 'always',
   });
   const data = [...(query.data ?? [])]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map(toSummary);
-  return { data, isPending: query.isPending };
+  return { data, isPending: child.isPending || (!!childId && query.isPending) };
 }
 
 /** One request's detail. Kept fresh so a staff outcome (administered / skipped)

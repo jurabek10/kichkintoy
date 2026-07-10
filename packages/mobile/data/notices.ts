@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Query } from '@/data/parent';
 import { formatTime, localIsoDate } from '@/lib/date';
 // formatTime / localIsoDate render in Uzbekistan time (UTC+5).
+import { useCurrentChild } from '@/data/parent';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -101,9 +102,14 @@ function toNoticeDetail(notice: ApiNoticeDetail): NoticeDetail {
 // --- Hooks ----------------------------------------------------------------
 
 export function useNotices(): Query<NoticeSummary[]> {
+  // Scoped to the globally selected kid so a kid at a different kindergarten
+  // reads that center's notices.
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
   const query = useQuery({
-    queryKey: queryKeys.notices.parentList,
-    queryFn: () => orpc.notices.parentList({}),
+    queryKey: [...queryKeys.notices.parentList, childId],
+    queryFn: () => orpc.notices.parentChildList({ childId }),
+    enabled: !!childId,
   });
 
   const data = (query.data ?? [])
@@ -114,7 +120,7 @@ export function useNotices(): Query<NoticeSummary[]> {
     })
     .map(toNoticeSummary);
 
-  return { data, isPending: query.isPending };
+  return { data, isPending: child.isPending || (!!childId && query.isPending) };
 }
 
 export function useNotice(noticeId: string): Query<NoticeDetail | null> {

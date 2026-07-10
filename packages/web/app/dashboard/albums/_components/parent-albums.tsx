@@ -36,6 +36,7 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
 import { SignedAlbumImage } from "./signed-album-image";
 import { TodayAlbums } from "./today-albums";
@@ -60,13 +61,16 @@ export function ParentAlbums() {
   const [month, setMonth] = useState(currentMonth());
   const [day, setDay] = useState(todayKey());
 
+  // Scoped to the globally selected kid (header switcher).
+  const { childId } = useSelectedChild();
   const {
     data: posts = [],
     isPending,
     error,
   } = useQuery({
-    queryKey: queryKeys.albums.parentList(),
-    queryFn: () => orpc.albums.parentList({}),
+    queryKey: queryKeys.albums.parentList(childId),
+    queryFn: () => orpc.albums.parentList({ childId }),
+    enabled: !!childId,
   });
 
   const classOptions = useMemo<ClassOption[]>(() => {

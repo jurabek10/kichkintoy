@@ -16,6 +16,10 @@ import {
 } from "../classes.js";
 import { districtsResponseSchema, regionsResponseSchema } from "../geo.js";
 import {
+  requestChildJoinResponseSchema,
+  requestChildJoinSchema,
+} from "../membership.js";
+import {
   centerIdInputSchema,
   emptyInputSchema,
   successResponseSchema,
@@ -32,6 +36,9 @@ export const centersContract = {
   search: oc.input(centerSearchQuerySchema).output(centerSearchResponseSchema),
   byCode: oc.input(centerByCodeQuerySchema).output(centerSearchResultSchema),
   classes: oc.input(centerIdInputSchema).output(centerClassesResponseSchema),
+  requestChildJoin: oc
+    .input(requestChildJoinSchema)
+    .output(requestChildJoinResponseSchema),
 };
 
 export const teacherContract = {

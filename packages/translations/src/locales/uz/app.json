@@ -472,5 +472,21 @@
       "gotIt": "Tushunarli",
       "seen": "Ko'rildi"
     }
+  },
+  "childSwitcher": {
+    "title": "Farzandlarim",
+    "pending": "Tasdiq kutilmoqda",
+    "addChild": "Farzand qo'shish"
+  },
+  "addChild": {
+    "title": "Farzand qo'shish",
+    "childDescription": "Yangi farzandingiz haqida ma'lumot kiriting.",
+    "centerDescription": "Farzandingiz qatnaydigan bog'chani tanlang — u boshqa bog'cha bo'lishi ham mumkin.",
+    "reviewDescription": "Ma'lumotlarni tekshiring va so'rovni bog'chaga yuboring.",
+    "submit": "So'rov yuborish",
+    "submitting": "Yuborilmoqda…",
+    "successTitle": "So'rov yuborildi!",
+    "successBody": "{{child}} uchun so'rov {{center}} bog'chasiga yuborildi. Direktor tasdiqlagach, farzandingiz ro'yxatda paydo bo'ladi.",
+    "backToHome": "Bosh sahifaga qaytish"
   }
 }

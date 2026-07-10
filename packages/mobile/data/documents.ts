@@ -7,6 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Query } from '@/data/parent';
+import { useCurrentChild } from '@/data/parent';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -143,13 +144,20 @@ function toDetail(d: ApiDetail): DocumentDetail {
 
 /** The documents the parent must complete across their children. */
 export function useParentDocuments(): Query<DocumentSummary[]> {
+  // Scoped to the globally selected kid (header switcher).
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
   const query = useQuery({
-    queryKey: queryKeys.documents.parentList,
-    queryFn: () => orpc.studentDocuments.parentRequests(),
+    queryKey: [...queryKeys.documents.parentList, childId],
+    queryFn: () => orpc.studentDocuments.parentRequests({ childId }),
+    enabled: !!childId,
     staleTime: 0,
     refetchOnMount: 'always',
   });
-  return { data: (query.data ?? []).map(toSummary), isPending: query.isPending };
+  return {
+    data: (query.data ?? []).map(toSummary),
+    isPending: child.isPending || (!!childId && query.isPending),
+  };
 }
 
 /** One submission's full form. Kept fresh so a returned correction shows up. */

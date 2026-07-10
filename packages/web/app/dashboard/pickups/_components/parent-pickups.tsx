@@ -40,6 +40,7 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import {
   pickupRelationshipLabelKey,
   pickupStatusLabelKey,
@@ -67,13 +68,16 @@ export function ParentPickups() {
   // One fetch of the full notice history feeds both the today timeline and the
   // month records table; the parent's list is small, so month/status/child are
   // narrowed on the client.
+  // Scoped to the globally selected kid (header switcher).
+  const { childId } = useSelectedChild();
   const {
     data: notices = [],
     isPending,
     error,
   } = useQuery({
-    queryKey: queryKeys.pickups.parentList({}),
-    queryFn: () => orpc.pickups.parentList({}),
+    queryKey: queryKeys.pickups.parentList({ childId }),
+    queryFn: () => orpc.pickups.parentList({ childId }),
+    enabled: !!childId,
   });
 
   const childOptions = useChildOptions(notices);

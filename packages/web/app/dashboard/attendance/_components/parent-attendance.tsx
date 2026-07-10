@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IoCalendarOutline } from "react-icons/io5";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -9,8 +9,8 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { formatMonthName, formatTime } from "@/lib/date";
-import { cn } from "@/lib/utils";
 import { ParentAttendanceCalendar } from "../../_components/parent-attendance-calendar";
 import { ParentAttendanceTable, type AttendanceDay } from "./parent-attendance-table";
 import { ReportAbsenceDialog } from "./report-absence-dialog";
@@ -40,24 +40,8 @@ export function ParentAttendance() {
     year: now.getFullYear(),
     monthIndex: now.getMonth(),
   });
-  const [activeChildId, setActiveChildId] = useState<string | null>(null);
-
-  const childrenQuery = useQuery({
-    queryKey: queryKeys.attendance.children(),
-    queryFn: () => orpc.attendance.children(),
-  });
-  const children = useMemo(
-    () => childrenQuery.data?.children ?? [],
-    [childrenQuery.data],
-  );
-
-  useEffect(() => {
-    if (!activeChildId && children.length > 0) {
-      setActiveChildId(children[0].id);
-    }
-  }, [activeChildId, children]);
-
-  const childId = activeChildId ?? children[0]?.id ?? "";
+  // The globally selected kid (header switcher) scopes the whole page.
+  const { children, childId, isPending: childrenPending } = useSelectedChild();
   const bounds = monthBounds(view.year, view.monthIndex);
 
   const recordsQuery = useQuery({
@@ -89,7 +73,7 @@ export function ParentAttendance() {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [recordsQuery.data]);
 
-  if (childrenQuery.isPending) {
+  if (childrenPending) {
     return <KidsLoader size="lg" className="min-h-[40vh]" />;
   }
 
@@ -116,30 +100,6 @@ export function ParentAttendance() {
           />
         ) : null}
       </div>
-
-      {/* Child switcher (only with more than one child) */}
-      {children.length > 1 ? (
-        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {children.map((child) => {
-            const active = child.id === childId;
-            return (
-              <button
-                key={child.id}
-                type="button"
-                onClick={() => setActiveChildId(child.id)}
-                className={cn(
-                  "inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors",
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground",
-                )}
-              >
-                {child.name}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
 
       {/* Calendar (controlled so the list below tracks the same month) */}
       {childId ? (

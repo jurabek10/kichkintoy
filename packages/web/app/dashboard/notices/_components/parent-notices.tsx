@@ -12,6 +12,7 @@ import { toApiError } from "@/lib/api/errors";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
 import { NoticeTable } from "./notice-table";
 
@@ -24,13 +25,17 @@ export function ParentNotices() {
   const [filter, setFilter] = useState<NoticeFilter>("all");
   const [search, setSearch] = useState("");
 
+  // Scoped to the globally selected kid (header switcher), so a kid at a
+  // different kindergarten reads that center's notices.
+  const { childId } = useSelectedChild();
   const {
     data: notices = [],
     isPending,
     error,
   } = useQuery({
-    queryKey: queryKeys.notices.parentList(),
-    queryFn: () => orpc.notices.parentList({}),
+    queryKey: queryKeys.notices.parentChildList(childId),
+    queryFn: () => orpc.notices.parentChildList({ childId }),
+    enabled: !!childId,
   });
 
   const counts = useMemo(

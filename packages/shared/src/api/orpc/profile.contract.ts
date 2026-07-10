@@ -14,6 +14,7 @@ import {
   updateProfileInputSchema,
   updateTeacherProfileInputSchema,
 } from "../profile.js";
+import { myJoinRequestSchema } from "../membership.js";
 import { emptyInputSchema, successResponseSchema } from "./common.contract.js";
 
 export const profileContract = {
@@ -36,6 +37,9 @@ export const profileContract = {
   listChildren: oc
     .input(emptyInputSchema)
     .output(z.array(parentChildSchema)),
+  myJoinRequests: oc
+    .input(emptyInputSchema)
+    .output(z.array(myJoinRequestSchema)),
   updateChild: oc
     .input(parentUpdateChildInputSchema)
     .output(parentChildSchema),

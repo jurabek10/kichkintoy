@@ -71,6 +71,12 @@ export function createProfileRouter(os: ORPCImplementer, deps: ORPCDeps) {
         deps.profileService.listChildren(context.user.id),
       ),
 
+    myJoinRequests: os.profile.myJoinRequests
+      .use(access.authed)
+      .handler(({ context }) =>
+        deps.profileService.myJoinRequests(context.user.id),
+      ),
+
     updateChild: os.profile.updateChild
       .use(access.authed)
       .handler(({ input, context }) =>

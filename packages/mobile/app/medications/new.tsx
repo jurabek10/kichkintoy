@@ -23,6 +23,7 @@ import { SelectField, type SelectOption } from '@/components/ui/select-field';
 import { useCreateMedicationRequest, useMedicationChildren } from '@/data/medications';
 import { formatLongDate, todayIsoDate } from '@/lib/date';
 import { uploadMedication, writeBase64Png } from '@/lib/upload';
+import { useSelectedChildId } from '@/lib/selected-child';
 import { cn } from '@/lib/utils';
 
 const CORAL = '#E8674E';
@@ -74,9 +75,13 @@ export default function NewMedicationScreen() {
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
+  // Default to the globally selected kid (header switcher).
+  const { selectedChildId } = useSelectedChildId();
   useEffect(() => {
-    if (!childId && children[0]) setChildId(children[0].id);
-  }, [children, childId]);
+    if (childId || children.length === 0) return;
+    const preferred = children.find((c) => c.id === selectedChildId) ?? children[0];
+    if (preferred) setChildId(preferred.id);
+  }, [children, childId, selectedChildId]);
 
   const childOptions: SelectOption[] = children.map((child) => ({
     id: child.id,

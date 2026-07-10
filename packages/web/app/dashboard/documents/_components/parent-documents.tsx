@@ -9,13 +9,17 @@ import { LoadingCard } from "@/components/loading-card";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { submissionStatusKey, templateTypeKey } from "./document-utils";
 
 export function ParentDocuments() {
   const { t } = useLayoutTranslation("documents");
+  // Scoped to the globally selected kid (header switcher).
+  const { childId } = useSelectedChild();
   const { data = [], isPending } = useQuery({
-    queryKey: queryKeys.studentDocuments.parentRequests(),
-    queryFn: () => orpc.studentDocuments.parentRequests(),
+    queryKey: queryKeys.studentDocuments.parentRequests({ childId }),
+    queryFn: () => orpc.studentDocuments.parentRequests({ childId }),
+    enabled: !!childId,
   });
 
   return (

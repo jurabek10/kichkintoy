@@ -42,6 +42,7 @@ import { toApiError } from "@/lib/api/errors";
 import { dateLocale } from "@/lib/date";
 import { formatDateNumeric, formatMoney } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
+import { useSelectedChild } from "@/lib/selected-child";
 import { queryKeys } from "@/lib/query-keys";
 
 /**
@@ -101,6 +102,16 @@ export function ParentPayments() {
     queryKey: queryKeys.payments.history(),
     queryFn: () => orpc.payments.history(),
   });
+
+  // Scoped to the globally selected kid (header switcher); the API still
+  // returns every kid so switching is instant from cache.
+  const { childId: selectedChildId } = useSelectedChild();
+  const overviewChildren = (overview?.children ?? []).filter(
+    ({ child }) => !selectedChildId || child.id === selectedChildId,
+  );
+  const childHistory = history.filter(
+    (item) => !selectedChildId || item.child.id === selectedChildId,
+  );
 
   // After a redirect checkout the provider confirms server-to-server, so we
   // poll the invoice until the callback flips it to paid.
@@ -166,7 +177,7 @@ export function ParentPayments() {
   const columns = useMemo(() => buildColumns(t), [t]);
 
   const query = search.trim().toLowerCase();
-  const rows = history.filter((item) =>
+  const rows = childHistory.filter((item) =>
     query ? item.child.name.toLowerCase().includes(query) : true,
   );
 
@@ -203,7 +214,7 @@ export function ParentPayments() {
 
         {isPending ? (
           <LoadingCard label={t("loading")} />
-        ) : !overview || overview.children.length === 0 ? (
+        ) : !overview || overviewChildren.length === 0 ? (
           <Card className="grid place-items-center gap-2 p-8 text-center">
             <Wallet className="h-8 w-8 text-muted-foreground" />
             <p className="font-semibold">{t("empty.title")}</p>
@@ -211,7 +222,7 @@ export function ParentPayments() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {overview.children.map(({ child, invoice }) => {
+            {overviewChildren.map(({ child, invoice }) => {
               const paid = invoice.status === "paid";
               const polling = pendingInvoiceId === invoice.id && !paid;
               return (

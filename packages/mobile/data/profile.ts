@@ -27,6 +27,14 @@ export function useParentChildren() {
   });
 }
 
+/** The parent's own pending "add a kid" requests (shown in the kid switcher). */
+export function useMyJoinRequests() {
+  return useQuery({
+    queryKey: queryKeys.profile.joinRequests,
+    queryFn: () => orpc.profile.myJoinRequests({}),
+  });
+}
+
 /** Push a fresh profile into the cache so every screen updates at once. */
 export function useApplyProfile() {
   const queryClient = useQueryClient();

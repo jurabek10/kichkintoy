@@ -32,6 +32,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { formatDate } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
+import { useSelectedChild } from "@/lib/selected-child";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "./confirm-dialog";
@@ -74,9 +75,15 @@ export function MedicationComposer() {
     queryFn: () => orpc.medications.children({}),
   });
 
+  // Default to the globally selected kid (header switcher).
+  const { childId: selectedChildId } = useSelectedChild();
   useEffect(() => {
-    if (!childId && audience?.children[0]) setChildId(audience.children[0].id);
-  }, [audience, childId]);
+    if (childId || !audience) return;
+    const preferred =
+      audience.children.find((c) => c.id === selectedChildId) ??
+      audience.children[0];
+    if (preferred) setChildId(preferred.id);
+  }, [audience, childId, selectedChildId]);
 
   const selectedChild = audience?.children.find((item) => item.id === childId);
 

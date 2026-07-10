@@ -7,6 +7,7 @@ export const queryKeys = {
   profile: {
     me: ['profile', 'me'] as const,
     children: ['profile', 'children'] as const,
+    joinRequests: ['profile', 'join-requests'] as const,
   },
   reports: {
     detail: (reportId: string) => ['reports', 'detail', reportId] as const,

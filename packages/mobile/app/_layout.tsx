@@ -9,6 +9,7 @@ import '@/i18n';
 import { Loader } from '@/components/ui/loader';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { queryClient } from '@/lib/query';
+import { SelectedChildProvider } from '@/lib/selected-child';
 import { useRealtimeNotifications } from '@/lib/use-realtime-notifications';
 
 function RootNavigator() {
@@ -39,6 +40,7 @@ function RootNavigator() {
       <Stack.Screen name="signup" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="children" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="children/add" options={{ presentation: 'modal' }} />
       <Stack.Screen name="profile-settings" />
       <Stack.Screen name="profile-settings/child" />
       <Stack.Screen name="profile-settings/phone" />
@@ -70,8 +72,10 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <RootNavigator />
-        <StatusBar style="dark" />
+        <SelectedChildProvider>
+          <RootNavigator />
+          <StatusBar style="dark" />
+        </SelectedChildProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

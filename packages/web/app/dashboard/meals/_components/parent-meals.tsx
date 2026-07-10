@@ -37,6 +37,7 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
 import { MealCard } from "./meal-card";
 import { SignedMealImage } from "./signed-meal-image";
@@ -60,13 +61,16 @@ export function ParentMeals() {
   // One published-history fetch feeds both views: today's menu cards and the
   // full menu-history table. Parents only ever receive published meals, so
   // there is no draft/status axis to filter on.
+  // Scoped to the globally selected kid (header switcher).
+  const { childId } = useSelectedChild();
   const {
     data: meals = [],
     isPending,
     error,
   } = useQuery({
-    queryKey: queryKeys.meals.parentList({}),
-    queryFn: () => orpc.meals.parentList({}),
+    queryKey: queryKeys.meals.parentList({ childId }),
+    queryFn: () => orpc.meals.parentList({ childId }),
+    enabled: !!childId,
   });
 
   const columns = useMemo<ColumnDef<MealPostSummary>[]>(

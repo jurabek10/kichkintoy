@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
 import { formatLongDate } from '@/lib/date';
+import { useCurrentChild } from '@/data/parent';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -112,9 +113,13 @@ export function usePickupChildren(): Query<PickupChildOption[]> {
 
 /** The parent's pickup notices, newest first. */
 export function usePickupNotices(): Query<PickupSummary[]> {
+  // Scoped to the globally selected kid (header switcher).
+  const child = useCurrentChild();
+  const childId = child.data?.id ?? '';
   const query = useQuery({
-    queryKey: queryKeys.pickups.parentList,
-    queryFn: () => orpc.pickups.parentList({}),
+    queryKey: [...queryKeys.pickups.parentList, childId],
+    queryFn: () => orpc.pickups.parentList({ childId }),
+    enabled: !!childId,
     staleTime: 0,
     refetchOnMount: 'always',
   });
@@ -126,7 +131,7 @@ export function usePickupNotices(): Query<PickupSummary[]> {
         b.pickupDate.localeCompare(a.pickupDate) || b.createdAt.localeCompare(a.createdAt),
     )
     .map(toSummary);
-  return { data, isPending: query.isPending };
+  return { data, isPending: child.isPending || (!!childId && query.isPending) };
 }
 
 /** One notice's detail. Kept fresh so a staff acknowledgement reaches the

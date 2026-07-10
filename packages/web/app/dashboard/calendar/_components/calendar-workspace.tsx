@@ -10,16 +10,10 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { LoadingCard } from "@/components/loading-card";
 import { PageHeading } from "@/components/page-heading";
 import { MonthPicker } from "@/components/ui/month-picker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { formatDayMonth, formatMonthYear } from "@/lib/date";
 import { CalendarLegend, CalendarMonth } from "./calendar-month";
@@ -45,19 +39,13 @@ export function CalendarWorkspace({
   const [month, setMonth] = useState(currentMonth());
   // null = whole month; a date filters the events table to that single day.
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [childId, setChildId] = useState("all");
 
-  const childParam = childId === "all" ? undefined : childId;
+  // Parents scope to the globally selected kid (header switcher).
+  const { childId: selectedChildId } = useSelectedChild();
+  const childParam = isParent && selectedChildId ? selectedChildId : undefined;
   const range = monthRange(month);
   const dateRange = monthDateRange(month);
   const staffReady = isParent || !!centerId;
-
-  const childrenQuery = useQuery({
-    queryKey: queryKeys.attendance.children(),
-    queryFn: () => orpc.attendance.children(),
-    enabled: isParent,
-  });
-  const children = childrenQuery.data?.children ?? [];
 
   const eventsQuery = useQuery({
     queryKey: isParent
@@ -126,21 +114,6 @@ export function CalendarWorkspace({
             description={isParent ? t("parentDescription") : t("staffDescription")}
           />
           <div className="flex flex-wrap items-center gap-2">
-            {isParent && children.length > 1 ? (
-              <Select value={childId} onValueChange={setChildId}>
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("allChildren")}</SelectItem>
-                  {children.map((child) => (
-                    <SelectItem key={child.id} value={child.id}>
-                      {child.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : null}
             <MonthPicker
               value={month}
               onValueChange={(value) => {

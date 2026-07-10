@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
 import { ChatSidebar } from "./chat-sidebar";
 import { ChatThread } from "./chat-thread";
@@ -23,7 +24,6 @@ export function ChatApp({
   const isParent = variant === "parent";
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [selectedChildId, setSelectedChildId] = useState<string | undefined>();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const creatingRef = useRef(false);
@@ -32,24 +32,12 @@ export function ChatApp({
     queryKey: ["chat", variant, "threads"],
     queryFn: () => orpc.chat.listThreads({}),
   });
-  const childrenQuery = useQuery({
-    queryKey: ["chat", "children"],
-    queryFn: () => orpc.profile.listChildren({}),
-    enabled: isParent,
-  });
+  // Parents scope the assistant to the globally selected kid (header switcher).
+  const { child: selectedChild } = useSelectedChild();
 
   const threads = threadsQuery.data?.items ?? [];
-  const children = isParent ? childrenQuery.data ?? [] : [];
-  const activeChild =
-    children.find((c) => c.id === selectedChildId) ??
-    children.find((c) => c.isPrimary) ??
-    children[0];
-
-  // Default the child selection once children load.
-  useEffect(() => {
-    if (!isParent) return;
-    if (!selectedChildId && activeChild) setSelectedChildId(activeChild.id);
-  }, [activeChild, selectedChildId, isParent]);
+  const activeChild = isParent ? selectedChild ?? undefined : undefined;
+  const selectedChildId = activeChild?.id;
 
   const createThread = useMutation({
     mutationFn: () =>
@@ -166,22 +154,6 @@ export function ChatApp({
           <span className="flex-1 truncate font-kids text-sm font-semibold text-foreground md:hidden">
             {t("title")}
           </span>
-          {isParent && children.length > 1 && (
-            <label className="ml-auto flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">{t("childPicker")}</span>
-              <select
-                value={selectedChildId ?? ""}
-                onChange={(e) => setSelectedChildId(e.target.value)}
-                className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm font-medium outline-none focus:ring-2 focus:ring-ring/40"
-              >
-                {children.map((child) => (
-                  <option key={child.id} value={child.id}>
-                    {child.firstName}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
         </header>
 
         <main className="min-h-0 flex-1">

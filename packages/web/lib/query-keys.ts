@@ -138,6 +138,8 @@ export const queryKeys = {
     authorDetail: (noticeId: string) =>
       ["notices", "author", noticeId] as const,
     parentList: () => ["notices", "parent"] as const,
+    parentChildList: (childId: string) =>
+      ["notices", "parent", "child", childId] as const,
     parentDetail: (noticeId: string) =>
       ["notices", "parent", noticeId] as const,
   },
@@ -150,6 +152,7 @@ export const queryKeys = {
   profile: {
     me: () => ["profile", "me"] as const,
     children: () => ["profile", "children"] as const,
+    joinRequests: () => ["profile", "join-requests"] as const,
   },
   parent: {
     children: () => ["parent", "children"] as const,

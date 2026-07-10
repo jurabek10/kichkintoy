@@ -8,6 +8,7 @@ import { ScreenHeader } from '@/components/common/screen-header';
 import { PickupForm, type PickupFormValues } from '@/components/pickup/pickup-form';
 import { useCreatePickupNotice, usePickupChildren } from '@/data/pickups';
 import { todayIsoDate } from '@/lib/date';
+import { useSelectedChildId } from '@/lib/selected-child';
 
 export default function NewPickupScreen() {
   const { t, i18n } = useTranslation('pickups');
@@ -16,10 +17,14 @@ export default function NewPickupScreen() {
   const create = useCreatePickupNotice();
   const [error, setError] = useState<string | null>(null);
 
+  // Default to the globally selected kid (header switcher).
+  const { selectedChildId } = useSelectedChildId();
   const [initialChildId, setInitialChildId] = useState('');
   useEffect(() => {
-    if (!initialChildId && children[0]) setInitialChildId(children[0].id);
-  }, [children, initialChildId]);
+    if (initialChildId || children.length === 0) return;
+    const preferred = children.find((c) => c.id === selectedChildId) ?? children[0];
+    if (preferred) setInitialChildId(preferred.id);
+  }, [children, initialChildId, selectedChildId]);
 
   function submit(values: PickupFormValues) {
     setError(null);

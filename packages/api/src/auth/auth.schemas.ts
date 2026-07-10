@@ -244,6 +244,14 @@ export const acceptInvitationSchema = z.object({
   child: childRegistrationSchema.optional(),
 });
 
+// In-app "add a kid" request from an already-active parent.
+export const requestChildJoinSchema = z.object({
+  centerId: uuidSchema,
+  classId: uuidSchema.optional(),
+  child: childRegistrationSchema,
+  message: z.string().trim().max(500).optional(),
+});
+
 export type SendCodeInput = z.infer<typeof sendCodeSchema>;
 export type VerifyCodeInput = z.infer<typeof verifyCodeSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -251,6 +259,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type LogoutInput = z.infer<typeof logoutSchema>;
 export type UserRoleInput = z.infer<typeof roleSchema>;
 export type SubmitJoinRequestInput = z.infer<typeof submitJoinRequestSchema>;
+export type RequestChildJoinInput = z.infer<typeof requestChildJoinSchema>;
 export type ChildRegistrationInput = z.infer<typeof childRegistrationSchema>;
 export type DirectorSetupInput = z.infer<typeof directorSetupSchema>;
 export type LookupInvitationsInput = z.infer<typeof lookupInvitationsSchema>;

@@ -13,6 +13,7 @@ import i18n from '@/i18n';
 import { ageLabel, formatDayMonth, formatLongDate, localIsoDate, todayIsoDate } from '@/lib/date';
 import { orpc } from '@/lib/orpc';
 import { queryKeys } from '@/lib/query-keys';
+import { useSelectedChildId } from '@/lib/selected-child';
 import { documentContacts, profile, type Child } from '@/constants/data';
 
 export type Query<T> = {
@@ -57,8 +58,10 @@ export function useChildren(): Query<Child[]> {
 }
 
 export function useCurrentChild(): Query<Child | null> {
+  const { selectedChildId } = useSelectedChildId();
   const { data, isPending } = useChildren();
-  return { data: data[0] ?? null, isPending };
+  const child = data.find((c) => c.id === selectedChildId) ?? data[0] ?? null;
+  return { data: child, isPending };
 }
 
 export function useCenter(): Query<{ name: string }> {

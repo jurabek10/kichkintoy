@@ -17,15 +17,9 @@ import { Input } from "@/components/ui/input";
 import { LoadingCard } from "@/components/loading-card";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { PageHeading } from "@/components/page-heading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+import { useSelectedChild } from "@/lib/selected-child";
 import {
   formatDayOfMonth,
   formatTime,
@@ -49,21 +43,17 @@ type Period = "all" | "month";
 export function ParentReports() {
   const { t } = useLayoutTranslation("reports");
   const router = useRouter();
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<Period>("all");
   const [month, setMonth] = useState(currentMonth());
 
+  // The globally selected kid (header switcher) scopes the whole page.
   const {
-    data: children = [],
+    children,
+    child: selectedChild,
     isPending: childrenLoading,
-    error: childrenError,
-  } = useQuery({
-    queryKey: queryKeys.parent.children(),
-    queryFn: () => orpc.reports.parentChildren(),
-  });
-
-  const effectiveChildId = selectedChildId ?? children[0]?.id ?? null;
+  } = useSelectedChild();
+  const effectiveChildId = selectedChild?.id ?? null;
 
   const {
     data: reports = [],
@@ -76,9 +66,7 @@ export function ParentReports() {
   });
 
   const loading = childrenLoading || (!!effectiveChildId && reportsLoading);
-  const queryError = childrenError ?? reportsError;
-  const error = queryError ? toApiError(queryError).message : null;
-  const selectedChild = children.find((child) => child.id === effectiveChildId);
+  const error = reportsError ? toApiError(reportsError).message : null;
 
   const columns = useMemo<ColumnDef<DailyReportSummary>[]>(
     () => buildColumns(t, router),
@@ -131,23 +119,6 @@ export function ParentReports() {
             title={t("title")}
             description={t("parentDescription")}
           />
-          {children.length > 1 ? (
-            <Select
-              value={effectiveChildId ?? undefined}
-              onValueChange={setSelectedChildId}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder={t("children")} />
-              </SelectTrigger>
-              <SelectContent>
-                {children.map((child) => (
-                  <SelectItem key={child.id} value={child.id}>
-                    {child.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : null}
         </CardHeader>
       </Card>
 

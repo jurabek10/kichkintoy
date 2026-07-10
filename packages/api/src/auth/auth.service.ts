@@ -26,6 +26,7 @@ import type {
   DirectorSetupInput,
   LoginInput,
   RegisterInput,
+  RequestChildJoinInput,
   SendCodeInput,
   SubmitJoinRequestInput,
   UserRoleInput,
@@ -759,21 +760,101 @@ export class AuthService {
     },
   ): Promise<MembershipPayload> {
     const center = await this.requireSelectableCenter(tx, args.centerId);
-
-    if (args.classId) {
-      const klass = await tx.class.findUnique({
-        where: { id: args.classId },
-      });
-      if (!klass || klass.centerId !== center.id) {
-        throw new BadRequestException(
-          "Selected class does not belong to this center.",
-        );
-      }
-    }
+    await this.ensureClassBelongsToCenter(tx, center.id, args.classId);
 
     await this.cancelExistingPendingRequests(tx, args.userId);
     await this.ensureNoDuplicatePendingRequest(tx, args.userId, args.centerId);
 
+    const request = await this.createParentJoinRequest(tx, {
+      userId: args.userId,
+      center,
+      classId: args.classId ?? null,
+      child: args.child,
+    });
+
+    return {
+      status: "pending",
+      joinRequestId: request.id,
+      centerId: center.id,
+      centerName: center.name,
+    };
+  }
+
+  /** In-app "add a kid": an active parent requests a spot for another child. */
+  async requestChildJoin(userId: string, input: RequestChildJoinInput) {
+    return this.prisma.$transaction(async (tx) => {
+      const parentRole = await tx.userRole.findFirst({
+        where: { userId, role: { name: ROLE_PARENT } },
+        select: { id: true },
+      });
+      if (!parentRole) {
+        throw new BadRequestException("Only parents can add a child.");
+      }
+
+      const center = await this.requireSelectableCenter(tx, input.centerId);
+      await this.ensureClassBelongsToCenter(tx, center.id, input.classId);
+
+      // Unlike signup, other pending requests stay untouched — only an exact
+      // duplicate (same child at the same center) is rejected.
+      const childName = input.child.name.trim();
+      const duplicate = await tx.centerJoinRequest.findFirst({
+        where: {
+          parentUserId: userId,
+          centerId: center.id,
+          kind: "parent",
+          status: "pending",
+          childName,
+        },
+        select: { id: true },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          "You already have a pending request for this child at this center.",
+        );
+      }
+
+      const request = await this.createParentJoinRequest(tx, {
+        userId,
+        center,
+        classId: input.classId ?? null,
+        child: input.child,
+        message: input.message ?? null,
+      });
+
+      return {
+        requestId: request.id,
+        centerId: center.id,
+        centerName: center.name,
+      };
+    });
+  }
+
+  private async ensureClassBelongsToCenter(
+    tx: Tx,
+    centerId: string,
+    classId: string | undefined,
+  ) {
+    if (!classId) {
+      return;
+    }
+    const klass = await tx.class.findUnique({ where: { id: classId } });
+    if (!klass || klass.centerId !== centerId) {
+      throw new BadRequestException(
+        "Selected class does not belong to this center.",
+      );
+    }
+  }
+
+  private async createParentJoinRequest(
+    tx: Tx,
+    args: {
+      userId: string;
+      center: { id: string; name: string; organizationId: string | null };
+      classId: string | null;
+      child: ChildRegistrationInput;
+      message?: string | null;
+    },
+  ) {
     const relationship =
       args.child.relationshipType === "other"
         ? args.child.customRelationshipLabel?.trim() || "other"
@@ -782,8 +863,8 @@ export class AuthService {
     const request = await tx.centerJoinRequest.create({
       data: {
         parentUserId: args.userId,
-        centerId: center.id,
-        requestedClassId: args.classId ?? null,
+        centerId: args.center.id,
+        requestedClassId: args.classId,
         kind: "parent",
         childName: args.child.name.trim(),
         childDob: args.child.dateOfBirth,
@@ -792,11 +873,12 @@ export class AuthService {
         parentRelationship: relationship,
         customRelationshipLabel:
           args.child.customRelationshipLabel?.trim() || null,
+        message: args.message ?? null,
         status: "pending",
       },
     });
 
-    await this.notifyCenterApprovers(tx, center.id, {
+    await this.notifyCenterApprovers(tx, args.center.id, {
       notificationType: "join_request.submitted",
       title: "New parent request",
       body: `A parent submitted a join request for ${args.child.name.trim()}.`,
@@ -808,8 +890,8 @@ export class AuthService {
 
     await this.audit.log(
       {
-        organizationId: center.organizationId,
-        centerId: center.id,
+        organizationId: args.center.organizationId,
+        centerId: args.center.id,
         actorUserId: args.userId,
         action: "join_request.submitted",
         entityType: "center_join_request",
@@ -819,12 +901,7 @@ export class AuthService {
       tx,
     );
 
-    return {
-      status: "pending",
-      joinRequestId: request.id,
-      centerId: center.id,
-      centerName: center.name,
-    };
+    return request;
   }
 
   private async handleTeacherSelfSearch(

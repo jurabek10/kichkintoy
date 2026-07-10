@@ -41,6 +41,7 @@ import { formatDate } from "@/lib/format";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
 import { MedicationCard } from "./medication-card";
 import { SignedMedicationImage } from "./signed-medication-image";
@@ -69,13 +70,16 @@ export function ParentMedications() {
   // One history fetch feeds both views: today's request cards and the full
   // request-history table. We sort newest-first up front so a request the
   // parent just sent sits at the top of the table the moment they land here.
+  // Scoped to the globally selected kid (header switcher).
+  const { childId } = useSelectedChild();
   const {
     data: requests = [],
     isPending,
     error,
   } = useQuery({
-    queryKey: queryKeys.medications.parentList({}),
-    queryFn: () => orpc.medications.parentList({}),
+    queryKey: queryKeys.medications.parentList({ childId }),
+    queryFn: () => orpc.medications.parentList({ childId }),
+    enabled: !!childId,
     select: (rows) =>
       [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   });

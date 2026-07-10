@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
+import { useSelectedChild } from "@/lib/selected-child";
 import { queryKeys } from "@/lib/query-keys";
 import { pickupRelationshipLabelKey } from "./pickup-labels";
 
@@ -58,11 +59,15 @@ export function PickupComposer() {
     queryFn: () => orpc.pickups.children({}),
   });
 
+  // Default to the globally selected kid (header switcher).
+  const { childId: selectedChildId } = useSelectedChild();
   useEffect(() => {
-    if (!childId && audience?.children[0]) {
-      setChildId(audience.children[0].id);
-    }
-  }, [audience, childId]);
+    if (childId || !audience) return;
+    const preferred =
+      audience.children.find((c) => c.id === selectedChildId) ??
+      audience.children[0];
+    if (preferred) setChildId(preferred.id);
+  }, [audience, childId, selectedChildId]);
 
   const createMutation = useMutation({
     mutationFn: () =>
