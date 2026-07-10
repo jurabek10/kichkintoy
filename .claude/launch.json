@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "web",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": [".claude/dev-web.sh"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
       "name": "home",
       "runtimeExecutable": "/bin/bash",
       "runtimeArgs": [".claude/dev-home.sh"],
