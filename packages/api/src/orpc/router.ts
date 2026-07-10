@@ -4,6 +4,7 @@ import { RPCHandler } from "@orpc/server/node";
 import { implement } from "@orpc/server";
 import { toORPCError } from "./error-mapping";
 import { appContract } from "@kichkintoy/shared";
+import { AdminService } from "../admin/admin.service";
 import { AlbumsService } from "../albums/albums.service";
 import { AttendanceService } from "../attendance/attendance.service";
 import { AuthService } from "../auth/auth.service";
@@ -29,6 +30,7 @@ import { StudentDocumentsService } from "../student-documents/student-documents.
 import { TeacherService } from "../teacher/teacher.service";
 import type { ORPCContext, ORPCDeps } from "./context";
 import { rpcRateLimit } from "./rate-limit";
+import { createAdminRouter } from "../admin/admin.router";
 import { createAlbumsRouter } from "../albums/albums.router";
 import { createAttendanceRouter } from "../attendance/attendance.router";
 import { createAuthRouter } from "../auth/auth.router";
@@ -52,6 +54,7 @@ import { createStudentDocumentsRouter } from "../student-documents/student-docum
 
 export function registerORPCRoutes(app: NestExpressApplication) {
   const router = createORPCRouter({
+    adminService: app.get(AdminService, { strict: false }),
     authService: app.get(AuthService, { strict: false }),
     attendanceService: app.get(AttendanceService, { strict: false }),
     albumsService: app.get(AlbumsService, { strict: false }),
@@ -113,6 +116,7 @@ function createORPCRouter(deps: ORPCDeps) {
   const os = implement<typeof appContract, ORPCContext>(appContract);
 
   return os.router({
+    admin: createAdminRouter(os, deps),
     auth: createAuthRouter(os, deps),
     attendance: createAttendanceRouter(os, deps),
     albums: createAlbumsRouter(os, deps),

@@ -1,3 +1,5 @@
+import { HttpStatus } from "@nestjs/common";
+import { AppException } from "../common/app-exception";
 import {
   requireCenterAccess,
   requireUser,
@@ -25,6 +27,7 @@ import {
  *                   may see but not act on.
  *   centerMember  — director OR approver-teacher of the center (needs centerId).
  *   directorOnly  — director / org-owner of the center (needs centerId).
+ *   superAdmin    — the scope-less platform super_admin role (founder).
  */
 export function createAccess(os: ORPCImplementer, deps: ORPCDeps) {
   const authed = os.middleware(async ({ context, next }) => {
@@ -67,7 +70,15 @@ export function createAccess(os: ORPCImplementer, deps: ORPCDeps) {
     },
   );
 
-  return { authed, centerStaff, centerMember, directorOnly };
+  const superAdmin = os.middleware(async ({ context, next }) => {
+    const user = await requireUser(deps.prisma, context.req);
+    if (!user.roles.some((role) => role.name === "super_admin")) {
+      throw new AppException("ADMIN_ACCESS_REQUIRED", HttpStatus.FORBIDDEN);
+    }
+    return next({ context: { user } });
+  });
+
+  return { authed, centerStaff, centerMember, directorOnly, superAdmin };
 }
 
 export type AccessPolicies = ReturnType<typeof createAccess>;
