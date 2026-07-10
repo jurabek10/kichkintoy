@@ -2,7 +2,8 @@
   "loading": "Yuklanmoqda…",
   "nav": {
     "overview": "Umumiy ko'rinish",
-    "centers": "Markazlar"
+    "centers": "Markazlar",
+    "billing": "To'lovlar"
   },
   "shell": {
     "panel": "Platforma paneli",
@@ -178,7 +179,58 @@
       "nameRequired": "Markaz nomini kiriting.",
       "regionRequired": "Hududni tanlang.",
       "districtRequired": "Tumanni tanlang.",
-      "tuitionInvalid": "To'lov summasini to'g'ri kiriting."
+      "tuitionInvalid": "To'lov summasini to'g'ri kiriting.",
+      "platformFeeInvalid": "To'g'ri summalarni kiriting.",
+      "billingDayInvalid": "To'lov kuni 1 dan 28 gacha bo'lishi kerak."
+    },
+    "platform": {
+      "title": "Platforma to'lovi",
+      "hint": "Bu markaz sizga har oy qancha to'laydi.",
+      "base": "Asosiy to'lov (oyiga)",
+      "perKid": "Har bola uchun (oyiga)",
+      "day": "To'lov kuni",
+      "dayHint": "Markaz sizga to'laydigan oyning kuni (1–28)."
+    }
+  },
+  "billing": {
+    "title": "Markazlar to'lovi",
+    "description": "Har bir markaz shu oyda platformaga qancha to'lashi kerak.",
+    "grandTotal": "Shu oy uchun jami",
+    "table": {
+      "number": "№",
+      "center": "Markaz",
+      "base": "Asosiy to'lov",
+      "perKid": "Har bola",
+      "kids": "Bolalar",
+      "total": "Jami",
+      "search": "Nom yoki kod bo'yicha qidirish",
+      "empty": "Hozircha markazlar yo'q.",
+      "page": "{{total}} dan {{page}}-sahifa",
+      "day": "To'lov kuni",
+      "dayValue": "{{day}}-kun",
+      "status": "Holat"
+    },
+    "edit": {
+      "open": "Tariflarni tahrirlash",
+      "title": "Tariflar — {{name}}",
+      "base": "Asosiy to'lov (oyiga)",
+      "perKid": "Har bola uchun (oyiga)",
+      "preview": "{{kids}} bola uchun jami",
+      "invalid": "To'g'ri summalarni kiriting.",
+      "saved": "Tariflar yangilandi.",
+      "day": "To'lov kuni"
+    },
+    "expected": "Kutilmoqda",
+    "collected": "Yig'ilgan",
+    "outstanding": "To'lanmagan",
+    "markPaid": "To'landi",
+    "markUnpaid": "Bekor qilish",
+    "paidToast": "To'langan deb belgilandi.",
+    "unpaidToast": "To'lanmagan deb belgilandi.",
+    "status": {
+      "paid": "To'langan",
+      "due": "Kutilmoqda",
+      "overdue": "Muddati o'tgan"
     }
   }
 }

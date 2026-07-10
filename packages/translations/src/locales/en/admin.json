@@ -2,7 +2,8 @@
   "loading": "Loading…",
   "nav": {
     "overview": "Overview",
-    "centers": "Centers"
+    "centers": "Centers",
+    "billing": "Billing"
   },
   "shell": {
     "panel": "Platform console",
@@ -178,7 +179,58 @@
       "nameRequired": "Enter the center name.",
       "regionRequired": "Pick a region.",
       "districtRequired": "Pick a district.",
-      "tuitionInvalid": "Enter a valid tuition amount."
+      "tuitionInvalid": "Enter a valid tuition amount.",
+      "platformFeeInvalid": "Enter valid platform fees.",
+      "billingDayInvalid": "Payment day must be between 1 and 28."
+    },
+    "platform": {
+      "title": "Platform billing",
+      "hint": "What this center pays you each month.",
+      "base": "Base fee (per month)",
+      "perKid": "Per kid (per month)",
+      "day": "Payment day",
+      "dayHint": "Day of the month (1–28) the center pays you."
+    }
+  },
+  "billing": {
+    "title": "Center payments",
+    "description": "What each center owes the platform this month.",
+    "grandTotal": "Total due this month",
+    "table": {
+      "number": "№",
+      "center": "Center",
+      "base": "Base fee",
+      "perKid": "Per kid",
+      "kids": "Kids",
+      "total": "Total",
+      "search": "Search by name or code",
+      "empty": "No centers yet.",
+      "page": "Page {{page}} of {{total}}",
+      "day": "Payment day",
+      "dayValue": "Day {{day}}",
+      "status": "Status"
+    },
+    "edit": {
+      "open": "Edit rates",
+      "title": "Rates — {{name}}",
+      "base": "Base fee (per month)",
+      "perKid": "Per kid (per month)",
+      "preview": "Total for {{kids}} kids",
+      "invalid": "Enter valid amounts.",
+      "saved": "Rates updated.",
+      "day": "Payment day"
+    },
+    "expected": "Expected",
+    "collected": "Collected",
+    "outstanding": "Outstanding",
+    "markPaid": "Mark paid",
+    "markUnpaid": "Unpaid",
+    "paidToast": "Marked as paid.",
+    "unpaidToast": "Marked as unpaid.",
+    "status": {
+      "paid": "Paid",
+      "due": "Due",
+      "overdue": "Overdue"
     }
   }
 }
