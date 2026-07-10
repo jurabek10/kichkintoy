@@ -685,6 +685,9 @@ function EditCenterDialog({
         address: center.address ?? "",
         phone: center.phone ?? "",
         monthlyTuitionUzs: String(Math.round(center.monthlyTuitionUzs)),
+        platformBaseFeeUzs: String(Math.round(center.platformBaseFeeUzs)),
+        platformPerKidFeeUzs: String(Math.round(center.platformPerKidFeeUzs)),
+        platformBillingDay: String(center.platformBillingDay),
       });
       setError(null);
     }

@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { Building2, LayoutDashboard, LogOut, ShieldCheck, X } from "lucide-react";
+import {
+  Building2,
+  LayoutDashboard,
+  LogOut,
+  ShieldCheck,
+  Wallet,
+  X,
+} from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
@@ -29,6 +36,7 @@ import { logoutAndClear, readSession, useSession } from "@/lib/session";
 const nav = [
   { href: "/admin", labelKey: "nav.overview", Icon: LayoutDashboard },
   { href: "/admin/centers", labelKey: "nav.centers", Icon: Building2 },
+  { href: "/admin/billing", labelKey: "nav.billing", Icon: Wallet },
 ];
 
 /**

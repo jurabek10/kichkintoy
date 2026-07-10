@@ -161,6 +161,7 @@ export const queryKeys = {
     centers: () => ["admin", "centers"] as const,
     centerDetail: (centerId: string) =>
       ["admin", "centers", centerId] as const,
+    billing: () => ["admin", "billing"] as const,
   },
   director: {
     homeSummary: (centerId: string) =>

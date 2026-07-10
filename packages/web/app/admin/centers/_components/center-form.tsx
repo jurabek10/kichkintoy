@@ -28,6 +28,9 @@ export type CenterFormValues = {
   address: string;
   phone: string;
   monthlyTuitionUzs: string;
+  platformBaseFeeUzs: string;
+  platformPerKidFeeUzs: string;
+  platformBillingDay: string;
 };
 
 export const emptyCenterForm: CenterFormValues = {
@@ -38,6 +41,9 @@ export const emptyCenterForm: CenterFormValues = {
   address: "",
   phone: "",
   monthlyTuitionUzs: "1000000",
+  platformBaseFeeUzs: "300000",
+  platformPerKidFeeUzs: "30000",
+  platformBillingDay: "1",
 };
 
 export function toAdminCenterFields(
@@ -51,6 +57,9 @@ export function toAdminCenterFields(
     address: values.address.trim() || undefined,
     phone: values.phone.trim() || undefined,
     monthlyTuitionUzs: Number(values.monthlyTuitionUzs),
+    platformBaseFeeUzs: Number(values.platformBaseFeeUzs),
+    platformPerKidFeeUzs: Number(values.platformPerKidFeeUzs),
+    platformBillingDay: Number(values.platformBillingDay),
   };
 }
 
@@ -116,6 +125,20 @@ export function CenterForm({
     const tuition = Number(values.monthlyTuitionUzs);
     if (!Number.isFinite(tuition) || tuition < 0) {
       return setValidationError(t("form.validation.tuitionInvalid"));
+    }
+    const base = Number(values.platformBaseFeeUzs);
+    const perKid = Number(values.platformPerKidFeeUzs);
+    if (
+      !Number.isFinite(base) ||
+      base < 0 ||
+      !Number.isFinite(perKid) ||
+      perKid < 0
+    ) {
+      return setValidationError(t("form.validation.platformFeeInvalid"));
+    }
+    const day = Number(values.platformBillingDay);
+    if (!Number.isInteger(day) || day < 1 || day > 28) {
+      return setValidationError(t("form.validation.billingDayInvalid"));
     }
 
     onSubmit();
@@ -232,6 +255,69 @@ export function CenterForm({
           onChange={(event) => update("monthlyTuitionUzs", event.target.value)}
         />
         <p className="text-xs text-muted-foreground">{t("form.tuitionHint")}</p>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-xl border border-dashed p-4">
+        <div>
+          <p className="text-sm font-semibold">{t("form.platform.title")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("form.platform.hint")}
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${idPrefix}-platform-base`}>
+              {t("form.platform.base")}
+            </Label>
+            <Input
+              id={`${idPrefix}-platform-base`}
+              type="number"
+              min={0}
+              step={10000}
+              inputMode="numeric"
+              value={values.platformBaseFeeUzs}
+              onChange={(event) =>
+                update("platformBaseFeeUzs", event.target.value)
+              }
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${idPrefix}-platform-per-kid`}>
+              {t("form.platform.perKid")}
+            </Label>
+            <Input
+              id={`${idPrefix}-platform-per-kid`}
+              type="number"
+              min={0}
+              step={5000}
+              inputMode="numeric"
+              value={values.platformPerKidFeeUzs}
+              onChange={(event) =>
+                update("platformPerKidFeeUzs", event.target.value)
+              }
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${idPrefix}-platform-day`}>
+            {t("form.platform.day")}
+          </Label>
+          <Input
+            id={`${idPrefix}-platform-day`}
+            type="number"
+            min={1}
+            max={28}
+            inputMode="numeric"
+            value={values.platformBillingDay}
+            onChange={(event) =>
+              update("platformBillingDay", event.target.value)
+            }
+            className="sm:w-40"
+          />
+          <p className="text-xs text-muted-foreground">
+            {t("form.platform.dayHint")}
+          </p>
+        </div>
       </div>
 
       {formError ? (
