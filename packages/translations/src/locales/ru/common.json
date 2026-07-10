@@ -14,7 +14,8 @@
   "roles": {
     "director": "Директор",
     "teacher": "Воспитатель",
-    "parent": "Родитель"
+    "parent": "Родитель",
+    "superAdmin": "Администратор платформы"
   },
   "dashboard": {
     "panel": "Панель: {{role}}",

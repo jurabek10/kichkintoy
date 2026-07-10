@@ -14,7 +14,8 @@
   "roles": {
     "director": "Direktor",
     "teacher": "Tarbiyachi",
-    "parent": "Ota-ona"
+    "parent": "Ota-ona",
+    "superAdmin": "Platforma administratori"
   },
   "dashboard": {
     "panel": "{{role}} paneli",

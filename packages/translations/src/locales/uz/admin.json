@@ -1,0 +1,184 @@
+{
+  "loading": "Yuklanmoqda…",
+  "nav": {
+    "overview": "Umumiy ko'rinish",
+    "centers": "Markazlar"
+  },
+  "shell": {
+    "panel": "Platforma paneli",
+    "brandSubtitle": "Barcha markazlar"
+  },
+  "status": {
+    "active": "Faol",
+    "suspended": "To'xtatilgan",
+    "inactive": "Nofaol",
+    "pending_verification": "Tekshiruv kutilmoqda"
+  },
+  "overview": {
+    "title": "Platforma ko'rinishi",
+    "description": "Barcha bog'chalar bir qarashda",
+    "loadFailed": "Umumiy ko'rinish yuklanmadi.",
+    "stats": {
+      "centers": "Markazlar",
+      "children": "Bolalar",
+      "teachers": "Tarbiyachilar",
+      "classes": "Guruhlar",
+      "parents": "Ota-onalar"
+    },
+    "byStatus": {
+      "title": "Markazlar holati",
+      "active": "Faol",
+      "suspended": "To'xtatilgan"
+    },
+    "byRegion": {
+      "title": "Hududlar bo'yicha markazlar",
+      "region": "Hudud",
+      "count": "Markazlar",
+      "empty": "Hozircha markazlar yo'q",
+      "noRegion": "Hudud ko'rsatilmagan"
+    },
+    "newest": {
+      "title": "Eng yangi markazlar",
+      "empty": "Hozircha markazlar yo'q",
+      "viewAll": "Barcha markazlar"
+    }
+  },
+  "centers": {
+    "title": "Markazlar",
+    "description": "Platformadagi barcha bog'chalar",
+    "addCenter": "Markaz qo'shish",
+    "loadFailed": "Markazlar yuklanmadi.",
+    "noDirector": "Direktor yo'q",
+    "table": {
+      "number": "№",
+      "center": "Markaz",
+      "region": "Hudud / Tuman",
+      "director": "Direktor",
+      "kids": "Bolalar",
+      "teachers": "Tarbiyachilar",
+      "classes": "Guruhlar",
+      "status": "Holati",
+      "created": "Ochilgan",
+      "search": "Nomi yoki kodi bo'yicha qidirish",
+      "allRegions": "Barcha hududlar",
+      "allStatuses": "Barcha holatlar",
+      "empty": "Filtrga mos markaz topilmadi.",
+      "open": "Ochish",
+      "page": "{{page}} / {{total}}-sahifa"
+    }
+  },
+  "detail": {
+    "back": "Barcha markazlar",
+    "loadFailed": "Bu markaz yuklanmadi.",
+    "info": {
+      "title": "Markaz ma'lumotlari",
+      "code": "Markaz kodi",
+      "facilityType": "Muassasa turi",
+      "address": "Manzil",
+      "phone": "Telefon",
+      "region": "Hudud / Tuman",
+      "tuition": "Oylik to'lov",
+      "status": "Holati",
+      "created": "Ochilgan sana",
+      "organization": "Tashkilot"
+    },
+    "director": {
+      "title": "Direktor",
+      "empty": "Bu markazda hali direktor yo'q. Quyida telefon raqami orqali taklif qiling.",
+      "phone": "Telefon",
+      "email": "Email"
+    },
+    "stats": {
+      "children": "Bolalar",
+      "teachers": "Tarbiyachilar",
+      "classes": "Guruhlar",
+      "parents": "Ota-onalar"
+    },
+    "classes": {
+      "title": "Guruhlar",
+      "description": "Faqat umumiy sonlar — bolalar va tarbiyachilar ismlari maxfiy qoladi",
+      "class": "Guruh",
+      "teachers": "Tarbiyachilar",
+      "children": "Bolalar",
+      "empty": "Hozircha faol guruhlar yo'q."
+    },
+    "invitations": {
+      "title": "Direktor takliflari",
+      "description": "Direktorni telefon orqali taklif qiling — u kod bilan ro'yxatdan o'tib, markazni boshqaradi",
+      "empty": "Hozircha direktor takliflari yo'q.",
+      "phone": "Telefon raqami",
+      "phonePlaceholder": "+998 90 123 45 67",
+      "send": "Direktor taklif qilish",
+      "sending": "Yuborilmoqda…",
+      "resend": "Qayta yuborish",
+      "revoke": "Bekor qilish",
+      "table": {
+        "phone": "Telefon",
+        "status": "Holati",
+        "created": "Yuborilgan",
+        "expires": "Muddati",
+        "invitedBy": "Taklif qilgan",
+        "actions": "Amallar"
+      },
+      "status": {
+        "pending": "Kutilmoqda",
+        "accepted": "Qabul qilingan",
+        "declined": "Rad etilgan",
+        "revoked": "Bekor qilingan",
+        "expired": "Muddati o'tgan"
+      },
+      "validation": {
+        "phoneRequired": "Telefon raqamini kiriting."
+      }
+    },
+    "actions": {
+      "edit": "Markazni tahrirlash",
+      "suspend": "To'xtatish",
+      "activate": "Faollashtirish",
+      "suspendHint": "To'xtatilgan markazlar ro'yxatdan o'tishda ko'rinmaydi va yangi a'zolarni qabul qilmaydi. Mavjud a'zolar kirishda davom etadi."
+    },
+    "toast": {
+      "suspended": "Markaz to'xtatildi",
+      "activated": "Markaz faollashtirildi",
+      "invited": "Taklif {{phone}} raqamiga yuborildi",
+      "resent": "Taklif {{phone}} raqamiga qayta yuborildi",
+      "revoked": "Taklif bekor qilindi",
+      "updated": "Markaz yangilandi"
+    }
+  },
+  "form": {
+    "createTitle": "Yangi markaz qo'shish",
+    "createDescription": "Tashkilot va markaz yaratiladi — keyin direktorni taklif qilasiz",
+    "editTitle": "Markazni tahrirlash",
+    "name": "Markaz nomi",
+    "namePlaceholder": "Masalan: Quyoshcha bog'chasi",
+    "facilityType": "Muassasa turi",
+    "facility": {
+      "kindergarten": "Bog'cha",
+      "daycare": "Yasli",
+      "academy": "Akademiya"
+    },
+    "region": "Hudud",
+    "district": "Tuman",
+    "pickRegion": "Hududni tanlang",
+    "pickDistrict": "Tumanni tanlang",
+    "address": "Manzil",
+    "addressPlaceholder": "Ko'cha, uy…",
+    "phone": "Markaz telefoni",
+    "phonePlaceholder": "+998 71 200 00 00",
+    "tuition": "Oylik to'lov (so'm)",
+    "tuitionHint": "Har oy har bir bola uchun olinadi",
+    "create": "Markaz yaratish",
+    "creating": "Yaratilmoqda…",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda…",
+    "cancel": "Bekor qilish",
+    "created": "Markaz yaratildi — kodi {{code}}",
+    "validation": {
+      "nameRequired": "Markaz nomini kiriting.",
+      "regionRequired": "Hududni tanlang.",
+      "districtRequired": "Tumanni tanlang.",
+      "tuitionInvalid": "To'lov summasini to'g'ri kiriting."
+    }
+  }
+}

@@ -7,6 +7,7 @@
     "CENTER_ACCESS_REQUIRED": "Sizda bu markazga ruxsat yo'q.",
     "DIRECTOR_ACCESS_REQUIRED": "Buni faqat direktor qila oladi.",
     "NO_APPROVER_ACCESS": "Siz so'rovlarni ko'rishingiz mumkin, lekin tasdiqlash yoki rad etishni faqat direktor yoki ruxsat berilgan xodim qila oladi.",
+    "ADMIN_ACCESS_REQUIRED": "Buni faqat platforma administratori qila oladi.",
     "INTERNAL_ERROR": "Nimadir xato ketdi. Qayta urinib ko'ring."
   }
 }

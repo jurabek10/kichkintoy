@@ -14,7 +14,8 @@
   "roles": {
     "director": "Director",
     "teacher": "Teacher",
-    "parent": "Parent"
+    "parent": "Parent",
+    "superAdmin": "Platform admin"
   },
   "dashboard": {
     "panel": "{{role}} panel",

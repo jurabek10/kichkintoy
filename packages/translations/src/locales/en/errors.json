@@ -7,6 +7,7 @@
     "CENTER_ACCESS_REQUIRED": "You don't have access to this center.",
     "DIRECTOR_ACCESS_REQUIRED": "Only the director can do this.",
     "NO_APPROVER_ACCESS": "You can view requests, but only the director or an approver can approve or reject them.",
+    "ADMIN_ACCESS_REQUIRED": "Only the platform administrator can do this.",
     "INTERNAL_ERROR": "Something went wrong. Please try again."
   }
 }

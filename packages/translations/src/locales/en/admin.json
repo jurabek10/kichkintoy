@@ -1,0 +1,184 @@
+{
+  "loading": "Loading…",
+  "nav": {
+    "overview": "Overview",
+    "centers": "Centers"
+  },
+  "shell": {
+    "panel": "Platform console",
+    "brandSubtitle": "All centers"
+  },
+  "status": {
+    "active": "Active",
+    "suspended": "Suspended",
+    "inactive": "Inactive",
+    "pending_verification": "Pending verification"
+  },
+  "overview": {
+    "title": "Platform overview",
+    "description": "All kindergarten centers at a glance",
+    "loadFailed": "Couldn't load the overview.",
+    "stats": {
+      "centers": "Centers",
+      "children": "Children",
+      "teachers": "Teachers",
+      "classes": "Classes",
+      "parents": "Parents"
+    },
+    "byStatus": {
+      "title": "Centers by status",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "byRegion": {
+      "title": "Centers by region",
+      "region": "Region",
+      "count": "Centers",
+      "empty": "No centers yet",
+      "noRegion": "No region"
+    },
+    "newest": {
+      "title": "Newest centers",
+      "empty": "No centers yet",
+      "viewAll": "All centers"
+    }
+  },
+  "centers": {
+    "title": "Centers",
+    "description": "Every kindergarten center on the platform",
+    "addCenter": "Add center",
+    "loadFailed": "Couldn't load centers.",
+    "noDirector": "No director yet",
+    "table": {
+      "number": "№",
+      "center": "Center",
+      "region": "Region / District",
+      "director": "Director",
+      "kids": "Kids",
+      "teachers": "Teachers",
+      "classes": "Classes",
+      "status": "Status",
+      "created": "Created",
+      "search": "Search by name or code",
+      "allRegions": "All regions",
+      "allStatuses": "All statuses",
+      "empty": "No centers match the filters.",
+      "open": "Open",
+      "page": "Page {{page}} of {{total}}"
+    }
+  },
+  "detail": {
+    "back": "All centers",
+    "loadFailed": "Couldn't load this center.",
+    "info": {
+      "title": "Center info",
+      "code": "Center code",
+      "facilityType": "Facility type",
+      "address": "Address",
+      "phone": "Phone",
+      "region": "Region / District",
+      "tuition": "Monthly tuition",
+      "status": "Status",
+      "created": "Created",
+      "organization": "Organization"
+    },
+    "director": {
+      "title": "Director",
+      "empty": "This center has no director yet. Invite one by phone number below.",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "stats": {
+      "children": "Children",
+      "teachers": "Teachers",
+      "classes": "Classes",
+      "parents": "Parents"
+    },
+    "classes": {
+      "title": "Classes",
+      "description": "Aggregates only — names of children and teachers stay private",
+      "class": "Class",
+      "teachers": "Teachers",
+      "children": "Children",
+      "empty": "No active classes yet."
+    },
+    "invitations": {
+      "title": "Director invitations",
+      "description": "Invite a director by phone — they sign up with the code and take over this center",
+      "empty": "No director invitations yet.",
+      "phone": "Phone number",
+      "phonePlaceholder": "+998 90 123 45 67",
+      "send": "Invite director",
+      "sending": "Sending…",
+      "resend": "Resend",
+      "revoke": "Revoke",
+      "table": {
+        "phone": "Phone",
+        "status": "Status",
+        "created": "Created",
+        "expires": "Expires",
+        "invitedBy": "Invited by",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "revoked": "Revoked",
+        "expired": "Expired"
+      },
+      "validation": {
+        "phoneRequired": "Enter the phone number."
+      }
+    },
+    "actions": {
+      "edit": "Edit center",
+      "suspend": "Suspend",
+      "activate": "Activate",
+      "suspendHint": "Suspended centers are hidden from signup and can't receive new members. Current members keep access."
+    },
+    "toast": {
+      "suspended": "Center suspended",
+      "activated": "Center activated",
+      "invited": "Invitation sent to {{phone}}",
+      "resent": "Invitation resent to {{phone}}",
+      "revoked": "Invitation revoked",
+      "updated": "Center updated"
+    }
+  },
+  "form": {
+    "createTitle": "Add a new center",
+    "createDescription": "Creates the organization and center — invite a director afterwards",
+    "editTitle": "Edit center",
+    "name": "Center name",
+    "namePlaceholder": "e.g. Quyoshcha bog'chasi",
+    "facilityType": "Facility type",
+    "facility": {
+      "kindergarten": "Kindergarten",
+      "daycare": "Daycare",
+      "academy": "Academy"
+    },
+    "region": "Region",
+    "district": "District",
+    "pickRegion": "Pick a region",
+    "pickDistrict": "Pick a district",
+    "address": "Address",
+    "addressPlaceholder": "Street, house…",
+    "phone": "Center phone",
+    "phonePlaceholder": "+998 71 200 00 00",
+    "tuition": "Monthly tuition (UZS)",
+    "tuitionHint": "Charged per enrolled child every month",
+    "create": "Create center",
+    "creating": "Creating…",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "created": "Center created — code {{code}}",
+    "validation": {
+      "nameRequired": "Enter the center name.",
+      "regionRequired": "Pick a region.",
+      "districtRequired": "Pick a district.",
+      "tuitionInvalid": "Enter a valid tuition amount."
+    }
+  }
+}
