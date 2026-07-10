@@ -6,6 +6,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { randomBytes, randomInt } from "node:crypto";
 import type {
+  AdminBillingList,
   AdminCenterDetail,
   AdminCenterFields,
   AdminCenterRow,
@@ -278,6 +279,9 @@ export class AdminService {
       status: center.status as AdminCenterDetail["status"],
       createdAt: center.createdAt.toISOString(),
       monthlyTuitionUzs: Number(center.monthlyTuitionUzs),
+      platformBaseFeeUzs: Number(center.platformBaseFeeUzs),
+      platformPerKidFeeUzs: Number(center.platformPerKidFeeUzs),
+      platformBillingDay: center.platformBillingDay,
       organization: center.organization,
       director: directors.get(center.id) ?? null,
       stats: {
@@ -305,6 +309,199 @@ export class AdminService {
         acceptedBy: invitation.acceptedByUser,
       })),
     };
+  }
+
+  /**
+   * Founder payments: what each center owes the platform this month, computed
+   * live as base + activeKids * perKid, plus the current month's paid/overdue
+   * status. Amounts and counts only — no rosters.
+   */
+  async listBilling(): Promise<AdminBillingList> {
+    const period = currentPeriodMonth();
+    const today = new Date().getDate();
+
+    const centers = await this.prisma.center.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        centerCode: true,
+        platformBaseFeeUzs: true,
+        platformPerKidFeeUzs: true,
+        platformBillingDay: true,
+      },
+    });
+    const centerIds = centers.map((center) => center.id);
+
+    const [enrollments, payments] = await Promise.all([
+      this.prisma.childEnrollment.groupBy({
+        by: ["centerId"],
+        where: { centerId: { in: centerIds }, enrollmentStatus: "active" },
+        _count: { _all: true },
+      }),
+      this.prisma.centerPlatformPayment.findMany({
+        where: { centerId: { in: centerIds }, periodMonth: period },
+        select: { centerId: true, paidAt: true },
+      }),
+    ]);
+
+    const kidCounts = new Map(
+      enrollments.map((row) => [row.centerId, row._count._all]),
+    );
+    const paidByCenter = new Map(
+      payments.map((row) => [row.centerId, row.paidAt]),
+    );
+
+    let grandTotal = 0;
+    let collected = 0;
+    const rows = centers.map((center) => {
+      const baseFeeUzs = Number(center.platformBaseFeeUzs);
+      const perKidFeeUzs = Number(center.platformPerKidFeeUzs);
+      const kidCount = kidCounts.get(center.id) ?? 0;
+      const total = baseFeeUzs + kidCount * perKidFeeUzs;
+      const paidAt = paidByCenter.get(center.id) ?? null;
+      const status: AdminBillingList["rows"][number]["status"] = paidAt
+        ? "paid"
+        : today > center.platformBillingDay
+          ? "overdue"
+          : "due";
+
+      grandTotal += total;
+      if (paidAt) collected += total;
+
+      return {
+        id: center.id,
+        name: center.name,
+        centerCode: center.centerCode,
+        baseFeeUzs,
+        perKidFeeUzs,
+        billingDay: center.platformBillingDay,
+        kidCount,
+        total,
+        status,
+        paidAt: paidAt ? paidAt.toISOString() : null,
+      };
+    });
+
+    return {
+      period: period.toISOString(),
+      rows,
+      grandTotal,
+      collected,
+      outstanding: grandTotal - collected,
+    };
+  }
+
+  async setBillingPricing(args: {
+    centerId: string;
+    actorUserId: string;
+    baseFeeUzs: number;
+    perKidFeeUzs: number;
+    billingDay: number;
+  }) {
+    const center = await this.prisma.center.findUnique({
+      where: { id: args.centerId },
+      select: { id: true, organizationId: true },
+    });
+
+    if (!center) {
+      throw new NotFoundException("Center not found.");
+    }
+
+    await this.prisma.center.update({
+      where: { id: center.id },
+      data: {
+        platformBaseFeeUzs: args.baseFeeUzs,
+        platformPerKidFeeUzs: args.perKidFeeUzs,
+        platformBillingDay: args.billingDay,
+      },
+    });
+
+    await this.audit.log({
+      organizationId: center.organizationId,
+      centerId: center.id,
+      actorUserId: args.actorUserId,
+      action: "center.billing.updated",
+      entityType: "center",
+      entityId: center.id,
+      metadata: {
+        baseFeeUzs: args.baseFeeUzs,
+        perKidFeeUzs: args.perKidFeeUzs,
+        billingDay: args.billingDay,
+      },
+    });
+
+    return { success: true };
+  }
+
+  /**
+   * Mark (or un-mark) a center's platform payment for the current month. A row
+   * in center_platform_payments means "paid"; removing it reverts to unpaid.
+   */
+  async setBillingPaid(args: {
+    centerId: string;
+    actorUserId: string;
+    paid: boolean;
+    note?: string;
+  }) {
+    const period = currentPeriodMonth();
+    const center = await this.prisma.center.findUnique({
+      where: { id: args.centerId },
+      select: {
+        id: true,
+        organizationId: true,
+        platformBaseFeeUzs: true,
+        platformPerKidFeeUzs: true,
+      },
+    });
+
+    if (!center) {
+      throw new NotFoundException("Center not found.");
+    }
+
+    if (args.paid) {
+      const kidCount = await this.prisma.childEnrollment.count({
+        where: { centerId: center.id, enrollmentStatus: "active" },
+      });
+      const amountUzs =
+        Number(center.platformBaseFeeUzs) +
+        kidCount * Number(center.platformPerKidFeeUzs);
+
+      await this.prisma.centerPlatformPayment.upsert({
+        where: {
+          centerId_periodMonth: { centerId: center.id, periodMonth: period },
+        },
+        create: {
+          centerId: center.id,
+          periodMonth: period,
+          amountUzs,
+          recordedByUserId: args.actorUserId,
+          note: args.note?.trim() || null,
+        },
+        update: {
+          amountUzs,
+          paidAt: new Date(),
+          recordedByUserId: args.actorUserId,
+          note: args.note?.trim() || null,
+        },
+      });
+    } else {
+      await this.prisma.centerPlatformPayment.deleteMany({
+        where: { centerId: center.id, periodMonth: period },
+      });
+    }
+
+    await this.audit.log({
+      organizationId: center.organizationId,
+      centerId: center.id,
+      actorUserId: args.actorUserId,
+      action: args.paid ? "center.billing.paid" : "center.billing.unpaid",
+      entityType: "center",
+      entityId: center.id,
+      metadata: { period: period.toISOString() },
+    });
+
+    return { success: true };
   }
 
   async createCenter(args: { actorUserId: string; input: AdminCenterFields }) {
@@ -335,6 +532,9 @@ export class AdminService {
           district: district.name,
           status: "active",
           monthlyTuitionUzs: args.input.monthlyTuitionUzs,
+          platformBaseFeeUzs: args.input.platformBaseFeeUzs,
+          platformPerKidFeeUzs: args.input.platformPerKidFeeUzs,
+          platformBillingDay: args.input.platformBillingDay,
         },
       });
 
@@ -385,6 +585,15 @@ export class AdminService {
     }
     if (args.input.monthlyTuitionUzs !== undefined) {
       data.monthlyTuitionUzs = args.input.monthlyTuitionUzs;
+    }
+    if (args.input.platformBaseFeeUzs !== undefined) {
+      data.platformBaseFeeUzs = args.input.platformBaseFeeUzs;
+    }
+    if (args.input.platformPerKidFeeUzs !== undefined) {
+      data.platformPerKidFeeUzs = args.input.platformPerKidFeeUzs;
+    }
+    if (args.input.platformBillingDay !== undefined) {
+      data.platformBillingDay = args.input.platformBillingDay;
     }
 
     if (args.input.regionId !== undefined || args.input.districtId !== undefined) {
@@ -702,6 +911,12 @@ export class AdminService {
 
     return code;
   }
+}
+
+/** First day of the current month (UTC), used as the billing period key. */
+function currentPeriodMonth(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
 }
 
 function deriveInvitationStatus(invitation: {

@@ -1,4 +1,5 @@
 import {
+  adminBillingListSchema,
   adminCenterDetailSchema,
   adminCenterRowSchema,
   adminOverviewStatsSchema,
@@ -55,6 +56,34 @@ export function createAdminRouter(os: ORPCImplementer, deps: ORPCDeps) {
             centerId: input.centerId,
             actorUserId: context.user.id,
             status: input.status,
+          }),
+        ),
+    },
+    billing: {
+      list: os.admin.billing.list
+        .use(access.superAdmin)
+        .handler(async () =>
+          adminBillingListSchema.parse(await deps.adminService.listBilling()),
+        ),
+      setPricing: os.admin.billing.setPricing
+        .use(access.superAdmin)
+        .handler(({ input, context }) =>
+          deps.adminService.setBillingPricing({
+            centerId: input.centerId,
+            actorUserId: context.user.id,
+            baseFeeUzs: input.baseFeeUzs,
+            perKidFeeUzs: input.perKidFeeUzs,
+            billingDay: input.billingDay,
+          }),
+        ),
+      setPaid: os.admin.billing.setPaid
+        .use(access.superAdmin)
+        .handler(({ input, context }) =>
+          deps.adminService.setBillingPaid({
+            centerId: input.centerId,
+            actorUserId: context.user.id,
+            paid: input.paid,
+            note: input.note,
           }),
         ),
     },
