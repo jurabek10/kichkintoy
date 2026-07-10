@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const invitationKindValues = ["parent", "teacher"] as const;
+export const invitationKindValues = ["parent", "teacher", "director"] as const;
 export const invitationKindSchema = z.enum(invitationKindValues);
 export type InvitationKind = z.infer<typeof invitationKindSchema>;
 

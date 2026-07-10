@@ -16,6 +16,7 @@ export const APP_ERROR_CODES = [
   "CENTER_ACCESS_REQUIRED",
   "DIRECTOR_ACCESS_REQUIRED",
   "NO_APPROVER_ACCESS",
+  "ADMIN_ACCESS_REQUIRED",
   // Generic fallback for anything unmapped
   "INTERNAL_ERROR",
 ] as const;
@@ -41,5 +42,6 @@ export const APP_ERROR_FALLBACKS: Record<AppErrorCode, string> = {
   DIRECTOR_ACCESS_REQUIRED: "Only directors can do this.",
   NO_APPROVER_ACCESS:
     "You can view requests, but only the director or an approver can approve or reject them.",
+  ADMIN_ACCESS_REQUIRED: "Only the platform administrator can do this.",
   INTERNAL_ERROR: "Something went wrong. Please try again.",
 };

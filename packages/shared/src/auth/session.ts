@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { membershipStatusSchema } from "../membership/status.js";
-import { userRoleSchema } from "./roles.js";
+import { authRoleSchema } from "./roles.js";
 import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 
 export const authSessionSchema = z.object({
@@ -15,7 +15,7 @@ export const authUserSchema = z.object({
   username: z.string().nullable(),
   phoneNumber: z.string().nullable(),
   fullName: z.string(),
-  role: userRoleSchema,
+  role: authRoleSchema,
 });
 
 export type AuthUser = z.infer<typeof authUserSchema>;
