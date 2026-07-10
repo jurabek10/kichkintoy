@@ -156,6 +156,12 @@ export const queryKeys = {
     childReports: (childId: string) =>
       ["parent", "children", childId, "reports"] as const,
   },
+  admin: {
+    overview: () => ["admin", "overview"] as const,
+    centers: () => ["admin", "centers"] as const,
+    centerDetail: (centerId: string) =>
+      ["admin", "centers", centerId] as const,
+  },
   director: {
     homeSummary: (centerId: string) =>
       ["director", centerId, "home-summary"] as const,
