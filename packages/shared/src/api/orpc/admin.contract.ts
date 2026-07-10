@@ -115,6 +115,9 @@ export const adminCenterDetailSchema = z.object({
   status: centerStatusSchema,
   createdAt: isoDateTimeSchema,
   monthlyTuitionUzs: z.number().nonnegative(),
+  platformBaseFeeUzs: z.number().nonnegative(),
+  platformPerKidFeeUzs: z.number().nonnegative(),
+  platformBillingDay: z.number().int(),
   organization: z.object({ id: uuidSchema, name: z.string() }),
   director: adminCenterDirectorSchema.nullable(),
   stats: z.object({
@@ -136,6 +139,9 @@ export const adminCenterDetailSchema = z.object({
 });
 export type AdminCenterDetail = z.infer<typeof adminCenterDetailSchema>;
 
+const billingDaySchema = z.number().int().min(1).max(28);
+const platformFeeSchema = z.number().nonnegative().max(1_000_000_000);
+
 export const adminCenterFieldsSchema = z.object({
   name: z.string().trim().min(2).max(160),
   facilityType: facilityTypeSchema,
@@ -148,6 +154,10 @@ export const adminCenterFieldsSchema = z.object({
     .regex(/^\+?[0-9\s()-]{6,18}$/)
     .optional(),
   monthlyTuitionUzs: z.number().nonnegative().max(1_000_000_000),
+  // Platform subscription the center pays the founder.
+  platformBaseFeeUzs: platformFeeSchema,
+  platformPerKidFeeUzs: platformFeeSchema,
+  platformBillingDay: billingDaySchema,
 });
 export type AdminCenterFields = z.infer<typeof adminCenterFieldsSchema>;
 
@@ -171,6 +181,49 @@ export const adminCreateDirectorInvitationResponseSchema = z.object({
 
 const invitationIdInputSchema = z.object({ invitationId: uuidSchema });
 
+// --- Platform billing (founder payments) --------------------------------
+// What each center owes the founder each month:
+//   total = baseFeeUzs + kidCount * perKidFeeUzs
+
+export const billingStatusSchema = z.enum(["paid", "due", "overdue"]);
+export type BillingStatus = z.infer<typeof billingStatusSchema>;
+
+export const adminBillingRowSchema = z.object({
+  id: uuidSchema,
+  name: z.string(),
+  centerCode: z.string(),
+  baseFeeUzs: z.number().nonnegative(),
+  perKidFeeUzs: z.number().nonnegative(),
+  billingDay: z.number().int(),
+  kidCount: nonNegativeInt,
+  total: z.number().nonnegative(),
+  // Payment status for the current month.
+  status: billingStatusSchema,
+  paidAt: isoDateTimeSchema.nullable(),
+});
+export type AdminBillingRow = z.infer<typeof adminBillingRowSchema>;
+
+export const adminBillingListSchema = z.object({
+  // The month these statuses apply to, as an ISO date (first of month).
+  period: isoDateTimeSchema,
+  rows: z.array(adminBillingRowSchema),
+  grandTotal: z.number().nonnegative(),
+  collected: z.number().nonnegative(),
+  outstanding: z.number().nonnegative(),
+});
+export type AdminBillingList = z.infer<typeof adminBillingListSchema>;
+
+export const adminBillingPricingInputSchema = centerIdInputSchema.extend({
+  baseFeeUzs: z.number().nonnegative().max(1_000_000_000),
+  perKidFeeUzs: z.number().nonnegative().max(1_000_000_000),
+  billingDay: z.number().int().min(1).max(28),
+});
+
+export const adminBillingSetPaidInputSchema = centerIdInputSchema.extend({
+  paid: z.boolean(),
+  note: z.string().trim().max(300).optional(),
+});
+
 export const adminContract = {
   overview: {
     stats: oc.input(emptyInputSchema).output(adminOverviewStatsSchema),
@@ -189,6 +242,15 @@ export const adminContract = {
     setStatus: oc
       .input(adminSetCenterStatusInputSchema)
       .output(z.object({ id: uuidSchema, status: centerStatusSchema })),
+  },
+  billing: {
+    list: oc.input(emptyInputSchema).output(adminBillingListSchema),
+    setPricing: oc
+      .input(adminBillingPricingInputSchema)
+      .output(successResponseSchema),
+    setPaid: oc
+      .input(adminBillingSetPaidInputSchema)
+      .output(successResponseSchema),
   },
   invitations: {
     createDirector: oc
