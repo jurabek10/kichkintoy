@@ -99,9 +99,11 @@ export async function logoutAndClear(token: string | null) {
 }
 
 export function routeForMembership(
-  _role: AuthResponse["user"]["role"],
+  role: AuthResponse["user"]["role"],
   membership: Membership,
 ): string {
+  // The platform admin has no center membership — /admin is their home.
+  if (role === "super_admin") return "/admin";
   if (membership.status === "pending") return "/pending";
   return "/dashboard";
 }

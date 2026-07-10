@@ -212,6 +212,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       router.replace("/login");
       return;
     }
+    // The platform admin lives in /admin, not the center dashboard.
+    if (session.user.role === "super_admin") {
+      router.replace("/admin");
+      return;
+    }
     if (session.membership.status === "pending") {
       router.replace("/pending");
     }
