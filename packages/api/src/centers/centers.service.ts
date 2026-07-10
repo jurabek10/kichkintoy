@@ -16,7 +16,11 @@ export class CentersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async search(input: CenterSearchInput) {
-    const filters: Prisma.CenterWhereInput[] = [];
+    // Suspended centers are hidden from signup search entirely (they also
+    // block new join requests/invitations elsewhere).
+    const filters: Prisma.CenterWhereInput[] = [
+      { status: { not: "suspended" } },
+    ];
     const query = (input.q ?? "").trim();
 
     if (input.regionId) {

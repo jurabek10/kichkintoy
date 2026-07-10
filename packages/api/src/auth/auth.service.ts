@@ -215,10 +215,7 @@ export class AuthService {
       verifiedPhone: args.verifiedPhone,
     });
 
-    if (
-      (args.role === "parent" && invitation.kind !== "parent") ||
-      (args.role === "teacher" && invitation.kind !== "teacher")
-    ) {
+    if (invitation.kind !== args.role) {
       throw new BadRequestException(
         "Invitation role does not match the chosen signup role.",
       );
@@ -350,21 +347,16 @@ export class AuthService {
         let membership: MembershipPayload;
 
         if (input.invitationId) {
-          if (input.role !== "parent" && input.role !== "teacher") {
-            throw new BadRequestException(
-              "Invitations are only valid for parent or teacher signup.",
-            );
-          }
-
           if (input.role === "parent") {
             await tx.parentProfile.create({
               data: { userId: user.id, displayName: input.fullName.trim() },
             });
-          } else {
+          } else if (input.role === "teacher") {
             await tx.teacherProfile.create({
               data: { userId: user.id },
             });
           }
+          // Directors invited by the platform admin need no profile record.
 
           membership = await this.acceptInvitationDuringRegister(tx, {
             userId: user.id,
@@ -1268,6 +1260,32 @@ export class AuthService {
       };
     }
 
+    if (invitation.kind === "director") {
+      // Platform-admin invitation: the invitee becomes director AND owner of
+      // the center's organization, skipping the create-your-own-center step.
+      const { center } = await this.memberships.activateDirector(tx, {
+        userId: args.acceptingUserId,
+        centerId: invitation.centerId,
+      });
+
+      await this.memberships.ensureRole(tx, {
+        userId: args.acceptingUserId,
+        roleName: ROLE_ORGANIZATION_OWNER,
+        organizationId: center.organizationId,
+        centerId: null,
+      });
+
+      await this.markInvitationAccepted(tx, invitation.id, args.acceptingUserId);
+
+      return {
+        status: "active",
+        joinRequestId: null,
+        centerId: center.id,
+        centerName: center.name,
+        canApproveMembers: true,
+      };
+    }
+
     const { center } = await this.memberships.activateTeacher(tx, {
       userId: args.acceptingUserId,
       centerId: invitation.centerId,
@@ -1540,7 +1558,7 @@ function toAuthUser(
     phone: string | null;
     fullName: string;
   },
-  role: UserRoleInput,
+  role: UserRoleInput | "super_admin",
 ) {
   return {
     id: user.id,
@@ -1553,7 +1571,11 @@ function toAuthUser(
 
 function getPrimaryRole(
   userRoles: Array<{ role: { name: string } }>,
-): UserRoleInput {
+): UserRoleInput | "super_admin" {
+  // The platform admin wins over any center-scoped role.
+  if (userRoles.some((userRole) => userRole.role.name === "super_admin")) {
+    return "super_admin";
+  }
   for (const userRole of userRoles) {
     const role = userRole.role.name;
     if (role === "director" || role === "parent" || role === "teacher") {
