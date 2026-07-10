@@ -43,6 +43,12 @@ model Center {
   // Monthly tuition fee in UZS charged per enrolled child; the source of truth
   // for lazily generated monthly invoices and the director tuition console.
   monthlyTuitionUzs Decimal @default(1000000) @map("monthly_tuition_uzs") @db.Decimal(14, 2)
+  // Platform subscription the center pays the founder each month:
+  // total = platformBaseFeeUzs + activeKids * platformPerKidFeeUzs.
+  platformBaseFeeUzs   Decimal @default(300000) @map("platform_base_fee_uzs") @db.Decimal(14, 2)
+  platformPerKidFeeUzs Decimal @default(30000) @map("platform_per_kid_fee_uzs") @db.Decimal(14, 2)
+  // Day of month (1–28) the center pays the platform — its "payment date".
+  platformBillingDay   Int     @default(1) @map("platform_billing_day")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -61,6 +67,7 @@ model Center {
   conversationThreads        ConversationThread[]
   dailyReports               DailyReport[]
   invoices                   Invoice[]
+  platformPayments           CenterPlatformPayment[]
   mealPlans                  MealPlan[]
   mealPosts                  MealPost[]
   mediaAssets                MediaAsset[]
@@ -1386,6 +1393,28 @@ model Payment {
   @@unique([provider, providerTransactionId])
   @@index([invoiceId])
   @@map("payments")
+}
+
+/**
+ * A center's monthly platform subscription payment to the founder. One row per
+ * center per month; its existence means "paid for that month" (status resets
+ * automatically each period). `amountUzs` snapshots what was owed when marked.
+ */
+model CenterPlatformPayment {
+  id               String   @id @default(uuid()) @db.Uuid
+  centerId         String   @map("center_id") @db.Uuid
+  periodMonth      DateTime @map("period_month") @db.Date
+  amountUzs        Decimal  @map("amount_uzs") @db.Decimal(14, 2)
+  paidAt           DateTime @default(now()) @map("paid_at") @db.Timestamptz(6)
+  recordedByUserId String   @map("recorded_by_user_id") @db.Uuid
+  note             String?
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center Center @relation(fields: [centerId], references: [id])
+
+  @@unique([centerId, periodMonth])
+  @@index([centerId])
+  @@map("center_platform_payments")
 }
 
 model Notification {
