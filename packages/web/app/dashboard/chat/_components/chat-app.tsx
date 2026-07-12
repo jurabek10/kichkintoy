@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Plus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
-import { useSelectedChild } from "@/lib/selected-child";
 import { cn } from "@/lib/utils";
+import { AssistantAvatar } from "./assistant-avatar";
 import { ChatSidebar } from "./chat-sidebar";
 import { ChatThread } from "./chat-thread";
 import { DeleteChatDialog } from "./delete-chat-dialog";
@@ -20,9 +20,6 @@ export function ChatApp({
 }) {
   const { t } = useLayoutTranslation("chat");
   const queryClient = useQueryClient();
-  // Only parents pick a child; teacher and director scopes are class/center-wide.
-  const isParent = variant === "parent";
-
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -32,18 +29,10 @@ export function ChatApp({
     queryKey: ["chat", variant, "threads"],
     queryFn: () => orpc.chat.listThreads({}),
   });
-  // Parents scope the assistant to the globally selected kid (header switcher).
-  const { child: selectedChild } = useSelectedChild();
-
   const threads = threadsQuery.data?.items ?? [];
-  const activeChild = isParent ? selectedChild ?? undefined : undefined;
-  const selectedChildId = activeChild?.id;
 
   const createThread = useMutation({
-    mutationFn: () =>
-      orpc.chat.createThread(
-        selectedChildId ? { childId: selectedChildId } : {},
-      ),
+    mutationFn: () => orpc.chat.createThread({}),
     onSuccess: (thread) => {
       setActiveThreadId(thread.id);
       setMobileOpen(false);
@@ -106,7 +95,7 @@ export function ChatApp({
       )}
     >
       {/* Thread list — persistent on desktop, drawer on mobile */}
-      <aside className="hidden w-72 shrink-0 border-r border-sidebar-border md:block">
+      <aside className="hidden w-72 shrink-0 border-r border-border/70 md:block">
         <ChatSidebar
           threads={threads}
           activeId={activeThreadId}
@@ -114,7 +103,6 @@ export function ChatApp({
           onNew={() => createThread.mutate()}
           onRename={handleRename}
           onDelete={setDeleteTarget}
-          variant={variant}
         />
       </aside>
 
@@ -124,7 +112,7 @@ export function ChatApp({
             className="absolute inset-0 bg-foreground/30"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-72 border-r border-sidebar-border shadow-xl">
+          <aside className="absolute left-0 top-0 h-full w-72 border-r border-border/70 shadow-xl">
             <ChatSidebar
               threads={threads}
               activeId={activeThreadId}
@@ -135,7 +123,6 @@ export function ChatApp({
               onNew={() => createThread.mutate()}
               onRename={handleRename}
               onDelete={setDeleteTarget}
-              variant={variant}
             />
           </aside>
         </div>
@@ -151,9 +138,27 @@ export function ChatApp({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="flex-1 truncate font-kids text-sm font-semibold text-foreground md:hidden">
-            {t("title")}
-          </span>
+          <AssistantAvatar className="h-8 w-8 md:h-9 md:w-9" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-kids text-sm font-bold leading-tight text-foreground md:text-base">
+              {t("title")}
+            </p>
+            <p className="hidden truncate text-xs text-muted-foreground md:block">
+              {variant === "teacher"
+                ? t("teacher.subtitle")
+                : variant === "director"
+                  ? t("director.subtitle")
+                  : t("subtitle")}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => createThread.mutate()}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted md:hidden"
+            aria-label={t("newChat")}
+          >
+            <Plus className="h-5 w-5" />
+          </button>
         </header>
 
         <main className="min-h-0 flex-1">
@@ -162,8 +167,6 @@ export function ChatApp({
               key={activeThreadId}
               threadId={activeThreadId}
               variant={variant}
-              childId={isParent ? selectedChildId : undefined}
-              childName={isParent ? activeChild?.firstName ?? null : null}
               onTurnComplete={onTurnComplete}
             />
           ) : (

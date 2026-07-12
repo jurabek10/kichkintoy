@@ -26,19 +26,12 @@ function normalizeLanguage(lang: string | undefined): string | undefined {
 export function ChatThread({
   threadId,
   variant = "parent",
-  childId,
-  childName,
   onTurnComplete,
 }: {
   threadId: string;
   variant?: "parent" | "teacher" | "director";
-  childId: string | undefined;
-  childName: string | null;
   onTurnComplete: () => void;
 }) {
-  const childIdRef = useRef(childId);
-  childIdRef.current = childId;
-
   const { i18n } = useLayoutTranslation();
   const languageRef = useRef(i18n.language);
   languageRef.current = i18n.language;
@@ -62,7 +55,6 @@ export function ChatThread({
     () =>
       createChatAdapter({
         threadId,
-        getChildId: () => childIdRef.current,
         getAppLanguage: () => normalizeLanguage(languageRef.current),
         onDone: onTurnComplete,
       }),
@@ -85,7 +77,7 @@ export function ChatThread({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatConversation variant={variant} childName={childName} />
+      <ChatConversation variant={variant} childName={null} />
     </AssistantRuntimeProvider>
   );
 }

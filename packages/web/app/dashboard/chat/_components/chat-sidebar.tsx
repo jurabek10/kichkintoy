@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, MessageCircle, Pencil, Plus, Trash2, X } from "lucide-react";
 import type { ChatThreadSummary } from "@kichkintoy/shared";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { cn } from "@/lib/utils";
-import { AssistantAvatar } from "./assistant-avatar";
 
 const GROUP_ORDER = [
   "today",
@@ -50,6 +49,12 @@ function groupThreads(
   }));
 }
 
+/*
+ * The thread rail is a light page surface (card tokens), NOT the sidebar-*
+ * family: the director theme paints its nav rail dark slate, and stacking a
+ * second dark rail next to it made the chat page read as one murky wall.
+ * A white rail separates cleanly on every theme.
+ */
 export function ChatSidebar({
   threads,
   activeId,
@@ -57,7 +62,6 @@ export function ChatSidebar({
   onNew,
   onRename,
   onDelete,
-  variant = "parent",
 }: {
   threads: ChatThreadSummary[];
   activeId: string | null;
@@ -65,15 +69,8 @@ export function ChatSidebar({
   onNew: () => void;
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
-  variant?: "parent" | "teacher" | "director";
 }) {
   const { t } = useLayoutTranslation("chat");
-  const subtitle =
-    variant === "teacher"
-      ? t("teacher.subtitle")
-      : variant === "director"
-        ? t("director.subtitle")
-        : t("subtitle");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,24 +94,12 @@ export function ChatSidebar({
   const groups = groupThreads(threads);
 
   return (
-    <div className="flex h-full flex-col bg-sidebar">
-      <div className="flex items-center gap-2.5 px-4 py-4">
-        <AssistantAvatar className="h-9 w-9" />
-        <div className="min-w-0">
-          <p className="truncate font-kids text-base font-bold leading-tight text-sidebar-foreground">
-            {t("title")}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {subtitle}
-          </p>
-        </div>
-      </div>
-
-      <div className="px-3">
+    <div className="flex h-full flex-col bg-card">
+      <div className="px-3 pt-4">
         <button
           type="button"
           onClick={onNew}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
         >
           <Plus className="h-4 w-4" />
           {t("newChat")}
@@ -123,9 +108,10 @@ export function ChatSidebar({
 
       <nav className="mt-3 flex-1 space-y-4 overflow-y-auto px-2 pb-4">
         {threads.length === 0 ? (
-          <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-            {t("noThreads")}
-          </p>
+          <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
+            <MessageCircle className="h-5 w-5 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">{t("noThreads")}</p>
+          </div>
         ) : (
           groups.map((group) => (
             <section key={group.key}>
@@ -141,7 +127,7 @@ export function ChatSidebar({
                     return (
                       <div
                         key={thread.id}
-                        className="flex items-center gap-1 rounded-xl bg-sidebar-accent px-2 py-1.5"
+                        className="flex items-center gap-1 rounded-xl bg-muted px-2 py-1.5"
                       >
                         <input
                           ref={inputRef}
@@ -166,7 +152,7 @@ export function ChatSidebar({
                           type="button"
                           onClick={() => setEditingId(null)}
                           aria-label={t("renameCancel")}
-                          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
+                          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-card"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -180,8 +166,8 @@ export function ChatSidebar({
                       className={cn(
                         "group flex items-center gap-1 rounded-xl px-1 text-sm transition-colors",
                         isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                          ? "bg-accent font-medium text-accent-foreground"
+                          : "text-foreground/80 hover:bg-muted",
                       )}
                     >
                       <button
@@ -203,7 +189,7 @@ export function ChatSidebar({
                           type="button"
                           onClick={() => startRename(thread)}
                           aria-label={t("rename")}
-                          className="rounded-md p-1.5 text-muted-foreground hover:bg-background hover:text-foreground"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -211,7 +197,7 @@ export function ChatSidebar({
                           type="button"
                           onClick={() => onDelete(thread.id)}
                           aria-label={t("delete")}
-                          className="rounded-md p-1.5 text-muted-foreground hover:bg-background hover:text-destructive"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
