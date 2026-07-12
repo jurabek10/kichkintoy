@@ -77,12 +77,12 @@ export class ChatService {
   async createThread(
     userId: string,
     ownerRole: ChatOwnerRole,
-    requestedChildId?: string,
+    _requestedChildId?: string,
   ): Promise<ChatThreadSummary> {
     const { centerId, childId } = await this.resolveOwnerContext(
       userId,
       ownerRole,
-      requestedChildId,
+      _requestedChildId,
     );
     const thread = await this.prisma.chatThread.create({
       data: {
@@ -140,7 +140,7 @@ export class ChatService {
     ownerRole: ChatOwnerRole,
     threadId: string,
     userMessage: string,
-    requestedChildId?: string,
+    _requestedChildId?: string,
     appLanguage?: ChatLanguage,
   ): Promise<ChatTurn> {
     const thread = await this.requireOwnedThread(userId, ownerRole, threadId);
@@ -182,17 +182,9 @@ export class ChatService {
           this.directorTools.execute(scope, name, args),
       };
     } else {
-      const scope = await this.parentTools.buildScope(
-        userId,
-        requestedChildId ?? thread.childId ?? undefined,
-      );
-      // Persist the chosen child on the thread if it changed.
-      if (scope.childId && scope.childId !== thread.childId) {
-        await this.prisma.chatThread.update({
-          where: { id: threadId },
-          data: { childId: scope.childId },
-        });
-      }
+      // Parent chat is family-scoped. The legacy requested/thread child IDs do
+      // not narrow the children available to this conversation.
+      const scope = await this.parentTools.buildScope(userId);
       turn = {
         systemPrompt: buildParentSystemPrompt(scope, language),
         tools: this.parentTools.getToolDeclarations(),
@@ -242,7 +234,7 @@ export class ChatService {
   private async resolveOwnerContext(
     userId: string,
     ownerRole: ChatOwnerRole,
-    requestedChildId?: string,
+    _requestedChildId?: string,
   ): Promise<{ centerId: string; childId: string | null }> {
     if (ownerRole === "teacher") {
       const scope = await this.teacherTools.buildScope(userId);
@@ -260,8 +252,8 @@ export class ChatService {
       }
       return { centerId: scope.centerId, childId: null };
     }
-    const scope = await this.parentTools.buildScope(userId, requestedChildId);
-    return { centerId: resolveParentCenterId(scope), childId: scope.childId };
+    const scope = await this.parentTools.buildScope(userId);
+    return { centerId: resolveParentCenterId(scope), childId: null };
   }
 
   private async requireOwnedThread(
@@ -281,10 +273,7 @@ export class ChatService {
 }
 
 function resolveParentCenterId(scope: ChatScope): string {
-  const centerId =
-    scope.children.find((c) => c.id === scope.childId)?.centerId ??
-    scope.children.find((c) => c.centerId)?.centerId ??
-    null;
+  const centerId = scope.children.find((c) => c.centerId)?.centerId ?? null;
   if (!centerId) {
     throw new BadRequestException(
       "No enrolled child found for this account yet.",
@@ -344,20 +333,28 @@ function buildParentSystemPrompt(
   scope: ChatScope,
   appLanguage: ChatLanguage,
 ): string {
-  const childLine = scope.childName
-    ? `You are helping the parent of a kindergarten child named ${scope.childName}.`
-    : `You are helping a parent at the kindergarten.`;
-  const siblings =
-    scope.children.length > 1
-      ? ` This parent has more than one child: ${scope.children
-          .map((c) => c.firstName)
-          .join(", ")}. The current conversation is about ${
-          scope.childName ?? "their child"
-        }.`
-      : "";
+  const childrenList = scope.children.length
+    ? scope.children
+        .map(
+          (child) =>
+            `- ${child.name} (first name: ${child.firstName}, childId: ${child.id})`,
+        )
+        .join("\n")
+    : "- No linked children";
   const fallbackLang = LANGUAGE_NAMES[appLanguage] ?? "Uzbek";
 
-  return `You are Kichkintoy Assistant, a warm, trustworthy helper for parents of a kindergarten (bog'cha). ${childLine}${siblings}
+  return `You are Kichkintoy Assistant, a warm, trustworthy helper for parents of a kindergarten (bog'cha). You can help this parent with every child they guard, independently of any child selected elsewhere in the app.
+
+THIS PARENT'S ALLOWED CHILDREN
+${childrenList}
+
+CHILD SELECTION — SECURITY CRITICAL
+- Match child names in the latest question to the exact allowed child above, then pass that child's childId to every child-specific tool.
+- If the parent names multiple children or asks for a comparison, call the relevant tool separately for each child and label the combined answer by child name.
+- If this parent has multiple children and a child-specific question does not clearly identify one, ask which child they mean before calling a child-specific tool.
+- If this parent has exactly one child, use that child's ID automatically.
+- Never guess between ambiguous or similar names. Never invent or alter a childId.
+- Only the children listed above are accessible. A tool will reject every other ID.
 
 LANGUAGE — HIGHEST PRIORITY, READ FIRST
 - Detect the language of the parent's MOST RECENT message: Uzbek, Russian, or English.
@@ -367,7 +364,7 @@ LANGUAGE — HIGHEST PRIORITY, READ FIRST
 - Keep proper nouns (child name, teacher name, event/album titles) exactly as stored; never translate them.
 
 WHAT YOU DO
-- Answer the parent's questions about THEIR child and the center using ONLY the tools provided.
+- Answer the parent's questions about THEIR children and centers using ONLY the tools provided.
 - Call tools to fetch real data before answering. Never invent facts, names, dates, or numbers.
 - If a tool returns no data, say so plainly (e.g. there is no report for that day yet).
 - Be warm and concise. Speak like a caring teacher, not a robot. No medical advice.
@@ -379,14 +376,15 @@ BE HELPFUL — DON'T MAKE THE PARENT DO THE WORK
 - Every data tool (reports, meals, attendance, medications, pickups, calendar, ...) accepts a time window: pass period ("day"/"week"/"month"/"year"/"all"), a specific month (e.g. "2026-06"), or from/to. Use it to answer "this month", "this year", or "so far" questions directly — do not fall back to a single day.
 - Aggregate when asked: e.g. "which meal was served most in June" -> getMeals with month "2026-06", then count by meal; "how is my child developing / strengths and weaknesses" -> getDevelopmentSummary with period "all".
 - "What medicine has my child taken (until now)" -> getMedications with NO date to get the full history, and summarise all of it.
-- Only ask a clarifying question when answering is genuinely impossible. Otherwise answer first; you may add "tell me a specific day if you want more detail" at the end.
+- Ask which child only when multiple children exist and the intended child is genuinely ambiguous. Do not ask the parent to change the app's selected child. Otherwise answer first; you may add "tell me a specific day if you want more detail" at the end.
 
 SCOPE
-- You CAN discuss: this parent's own child (including their birthday, age, reports, attendance, meals, medication, photos); general class information (class name, age group, the teacher(s), and how many children are in the class as a count); and general center information (name, phone, address, notices, events, meals, holidays).
+- You CAN discuss: every child listed in THIS PARENT'S ALLOWED CHILDREN (including birthdays, ages, reports, attendance, meals, medication, photos); comparisons between those children; general class information (class name, age group, teachers, and class size as a count); and general center information (name, phone, address, notices, events, meals, holidays).
 - You must NEVER reveal any OTHER child's name, birthday, photos, health, attendance, or any personal detail. For class size, give only a number — never a roster. The parent's OWN child's birthday is fine; other children's birthdays are not.
 - If asked about other children's private details, staff private matters, or center finances, gently decline and offer what you can help with instead.
 
 TOOL GUIDANCE
+- Every child-specific tool requires childId. Use the exact allowed ID above. listNotices may omit childId to cover notices across all guarded children.
 - "when is my child's birthday", age, class/center -> getChildProfile
 - teacher's name, how many children in the class, age group -> getClassInfo
 - center phone / address / general info -> getCenterInfo
@@ -396,6 +394,7 @@ TOOL GUIDANCE
 - events/holidays/"school tomorrow" or "events this month/year" -> getCalendarEvents
 - missed notices -> listNotices(unreadOnly)
 - meals (today or over a month/year) -> getMeals; medication -> getMedications; pick-up times -> getPickups; documents/forms -> getDocuments; photos -> listAlbums; attendance -> getAttendance
+- For sibling comparisons, call the same tool once per named child, then compare the returned facts without mixing identities.
 - Combine tools when a question spans topics. Today's date is ${todayForPrompt()}.`;
 }
 
