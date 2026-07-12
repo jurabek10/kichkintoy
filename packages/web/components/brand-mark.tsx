@@ -12,14 +12,15 @@ export function BrandMark({
   return (
     <Link
       href={href}
-      className={cn(
-        "group inline-flex items-center gap-1.5 no-underline",
-        className,
-      )}
+      className={cn("inline-flex items-center gap-0.5 no-underline", className)}
     >
-      <KichkintoyMark className="h-6 w-6 shrink-0 transition-transform duration-300 group-hover:-rotate-6" />
-      <span className="font-brand text-2xl font-extrabold leading-none tracking-tight text-sky">
-        Kichkintoy
+      {/* The candy K mark doubles as the word's capital letter… */}
+      <KichkintoyMark className="h-6 w-6 shrink-0" />
+      {/* …and the rest of the word borrows the mark's own blue arm (#4DABF7).
+          A fixed brand hex, not a theme token: pastel remaps washed it out on
+          light rails, and it must stay legible on the director's dark rail. */}
+      <span className="font-brand text-2xl font-extrabold leading-none tracking-tight text-[#4DABF7]">
+        ichkintoy
       </span>
     </Link>
   );

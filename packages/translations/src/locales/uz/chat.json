@@ -9,6 +9,8 @@
   "composerPlaceholder": "{{name}} haqida so'rang…",
   "composerPlaceholderGeneric": "Farzandingiz haqida so'rang…",
   "send": "Yuborish",
+  "scrollToBottom": "Oxirgi xabarga o'tish",
+  "disclaimer": "Yordamchi xato qilishi mumkin — muhim ma'lumotlarni qayta tekshiring.",
   "thinking": "O'ylayapman…",
   "lookingUp": "Ma'lumot qidiryapman…",
   "emptyTitle": "{{name}} haqida istagan narsangizni so'rang",

@@ -9,6 +9,8 @@
   "composerPlaceholder": "Ask about {{name}}…",
   "composerPlaceholderGeneric": "Ask about your child…",
   "send": "Send",
+  "scrollToBottom": "Scroll to latest",
+  "disclaimer": "The assistant can make mistakes — double-check important details.",
   "thinking": "Thinking…",
   "lookingUp": "Looking that up…",
   "emptyTitle": "Ask me anything about {{name}}",

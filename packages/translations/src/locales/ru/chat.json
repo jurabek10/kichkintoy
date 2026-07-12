@@ -9,6 +9,8 @@
   "composerPlaceholder": "Спросите о {{name}}…",
   "composerPlaceholderGeneric": "Спросите о вашем ребёнке…",
   "send": "Отправить",
+  "scrollToBottom": "К последнему сообщению",
+  "disclaimer": "Помощник может ошибаться — проверяйте важные сведения.",
   "thinking": "Думаю…",
   "lookingUp": "Ищу информацию…",
   "emptyTitle": "Спросите меня о {{name}}",
