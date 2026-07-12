@@ -28,6 +28,7 @@ import type {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KidsLoader } from "@/components/kids-loader";
+import { CurrentUserAvatar } from "@/components/current-user-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
@@ -172,17 +173,24 @@ export function TeacherHome() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-[28px]">
-            {t(`dashboardHome.teacher.${greetKey}`, { name: firstName })}
-          </h2>
-          <p className="mt-1 truncate text-sm text-muted-foreground">
-            {session.membership.centerName
-              ? t("dashboardHome.teacher.subtitle", {
-                  center: session.membership.centerName,
-                })
-              : t("dashboardHome.teacher.subtitleNoCenter")}
-          </p>
+        <div className="flex min-w-0 items-center gap-3">
+          <CurrentUserAvatar
+            fallbackName={session.user.fullName}
+            className="h-12 w-12 shrink-0 shadow-sm"
+            textClassName="text-sm"
+          />
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-[28px]">
+              {t(`dashboardHome.teacher.${greetKey}`, { name: firstName })}
+            </h2>
+            <p className="mt-1 truncate text-sm text-muted-foreground">
+              {session.membership.centerName
+                ? t("dashboardHome.teacher.subtitle", {
+                    center: session.membership.centerName,
+                  })
+                : t("dashboardHome.teacher.subtitleNoCenter")}
+            </p>
+          </div>
         </div>
         <span className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-sunshine px-3.5 py-2 text-sm font-semibold text-sunshine-ink">
           <IoSunnyOutline className="h-4 w-4" />

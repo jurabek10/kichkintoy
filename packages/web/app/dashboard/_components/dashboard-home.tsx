@@ -26,6 +26,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LoadingCard } from "@/components/loading-card";
+import { CurrentUserAvatar } from "@/components/current-user-avatar";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { formatMoney } from "@/lib/format";
@@ -127,16 +128,23 @@ function DirectorHome({
           with a slim segmented meter, the way an operator reads an instrument. */}
       <section className="overflow-hidden rounded-lg bg-[hsl(var(--sidebar-background))] text-background shadow-card">
         <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-10">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-background/55">
-              {t("dashboardHome.director.eyebrow")} · {summary.month.label}
-            </p>
-            <h1 className="mt-2 truncate text-2xl font-bold tracking-tight sm:text-3xl">
-              {centerName ?? t("dashboardHome.director.centerFallback")}
-            </h1>
-            <p className="mt-1.5 text-sm text-background/65">
-              {t("dashboardHome.hello", { name: directorName })}
-            </p>
+          <div className="flex min-w-0 items-center gap-3.5">
+            <CurrentUserAvatar
+              fallbackName={directorName}
+              className="h-12 w-12 shrink-0 bg-background/10 text-background ring-background/25"
+              textClassName="text-sm"
+            />
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-background/55">
+                {t("dashboardHome.director.eyebrow")} · {summary.month.label}
+              </p>
+              <h1 className="mt-2 truncate text-2xl font-bold tracking-tight sm:text-3xl">
+                {centerName ?? t("dashboardHome.director.centerFallback")}
+              </h1>
+              <p className="mt-1.5 text-sm text-background/65">
+                {t("dashboardHome.hello", { name: directorName })}
+              </p>
+            </div>
           </div>
 
           <div className="w-full lg:w-72">
@@ -802,4 +810,3 @@ function percent(part: number, total: number) {
   if (total <= 0) return 0;
   return Math.min(100, Math.max(0, Math.round((part / total) * 100)));
 }
-
