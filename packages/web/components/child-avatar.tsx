@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,8 @@ export function ChildAvatar({
   });
 
   const src = directUrl ?? data?.downloadUrl ?? null;
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showPhoto = Boolean(src && src !== failedSrc);
 
   return (
     <span
@@ -45,9 +48,14 @@ export function ChildAvatar({
         className ?? "h-9 w-9 text-xs",
       )}
     >
-      {src ? (
+      {showPhoto ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={name} className="h-full w-full object-cover" />
+        <img
+          src={src!}
+          alt={name}
+          className="h-full w-full object-cover"
+          onError={() => setFailedSrc(src!)}
+        />
       ) : (
         <span className={textClassName}>{name.slice(0, 1).toUpperCase()}</span>
       )}

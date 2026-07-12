@@ -47,6 +47,7 @@ import {
 import type { TFunction } from "i18next";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { ChildSwitcher } from "./_components/child-switcher";
+import { ChildAvatar } from "./profile/_components/child-avatar";
 import { NotificationBell } from "./_components/notification-bell";
 import { ParentBottomNav } from "./_components/parent-bottom-nav";
 import { useSelectedChild } from "@/lib/selected-child";
@@ -350,11 +351,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   className="h-auto py-2"
                 >
                   <Link href="/dashboard/profile">
-                    <CurrentUserAvatar
-                      fallbackName={session.user.fullName}
-                      className="h-7 w-7 shrink-0"
-                      textClassName="text-[10px]"
-                    />
+                    {isParent && selectedChild ? (
+                      <ChildAvatar
+                        mediaAssetId={selectedChild.photoMediaAssetId}
+                        photoUrl={selectedChild.photoUrl}
+                        name={selectedChild.name}
+                        className="h-7 w-7 shrink-0"
+                        ringClassName="ring-transparent ring-offset-0"
+                      />
+                    ) : (
+                      <CurrentUserAvatar
+                        fallbackName={session.user.fullName}
+                        className="h-7 w-7 shrink-0"
+                        textClassName="text-[10px]"
+                      />
+                    )}
                     <span className="truncate">{tNav("items.myPage")}</span>
                   </Link>
                 </SidebarMenuButton>

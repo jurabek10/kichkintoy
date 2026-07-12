@@ -16,6 +16,7 @@ import type {
   CalendarBirthdayEntry,
   CalendarEventSummary,
 } from "@kichkintoy/shared";
+import { ChildAvatar } from "@/components/child-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -324,29 +325,15 @@ function BirthdayAvatar({
   own: boolean;
 }) {
   return (
-    <span
+    <ChildAvatar
+      name={name}
+      photoUrl={photoUrl}
       className={cn(
-        "grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-grape/20 text-xs font-bold text-grape-ink",
+        "h-9 w-9 bg-grape/20 text-xs text-grape-ink",
         own && "ring-2 ring-coral-ink ring-offset-1 ring-offset-card",
       )}
-    >
-      {photoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photoUrl} alt="" className="h-full w-full object-cover" />
-      ) : (
-        initials(name)
-      )}
-    </span>
+    />
   );
-}
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 function eventStatusKey(event: CalendarEventSummary) {
