@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Linking, Pressable, Text, View } from 'react-native';
 
 import { orpc } from '@/lib/orpc';
 
@@ -16,6 +16,45 @@ export function AccountStep() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [debugCode, setDebugCode] = useState<string | null>(null);
+  const [telegram, setTelegram] = useState<{ nonce: string; expired: boolean } | null>(null);
+  const polling = useRef(false);
+
+  async function pollTelegram() {
+    if (!telegram || polling.current || telegram.expired) return;
+    polling.current = true;
+    try {
+      const result = await orpc.auth.telegramVerifyPoll({ nonce: telegram.nonce });
+      if (result.status === 'verified') {
+        setTelegram(null);
+        update({
+          fullName: fullName.trim(),
+          phoneNumber: result.phoneNumber,
+          phoneVerificationToken: result.verificationToken,
+        });
+        next();
+      }
+      if (result.status === 'expired') setTelegram((current) => current ? { ...current, expired: true } : current);
+    } catch { /* transient network errors retry on the next interval */ }
+    finally { polling.current = false; }
+  }
+
+  useEffect(() => {
+    if (!telegram || telegram.expired) return;
+    void pollTelegram();
+    const interval = setInterval(() => void pollTelegram(), 2000);
+    const appState = AppState.addEventListener('change', (state) => { if (state === 'active') void pollTelegram(); });
+    return () => { clearInterval(interval); appState.remove(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [telegram?.nonce, telegram?.expired]);
+
+  const startTelegram = useMutation({
+    mutationFn: () => orpc.auth.telegramVerifyStart({}),
+    onSuccess: async (result) => {
+      setTelegram({ nonce: result.nonce, expired: false });
+      await Linking.openURL(result.deepLink);
+    },
+    onError: () => setError(t('telegram.startError')),
+  });
 
   const sendCode = useMutation({
     mutationFn: () => orpc.auth.sendCode({ phoneNumber: phoneNumber.trim() }),
@@ -67,12 +106,48 @@ export function AccountStep() {
       />
 
       {!codeSent ? (
-        <PrimaryButton
-          label={sendCode.isPending ? t('signup.sending') : t('signup.sendCode')}
-          loading={sendCode.isPending}
-          disabled={fullName.trim().length === 0 || phoneNumber.trim().length < 6}
-          onPress={() => sendCode.mutate()}
-        />
+        <>
+          <PrimaryButton
+            label={sendCode.isPending ? t('signup.sending') : t('signup.sendCode')}
+            loading={sendCode.isPending}
+            disabled={fullName.trim().length === 0 || phoneNumber.trim().length < 6}
+            onPress={() => sendCode.mutate()}
+          />
+
+          <View className="flex-row items-center gap-3">
+            <View className="h-px flex-1 bg-border" />
+            <Text className="text-xs font-semibold uppercase text-muted">{t('telegram.or')}</Text>
+            <View className="h-px flex-1 bg-border" />
+          </View>
+
+          {telegram ? (
+            <View className="items-center gap-3 rounded-2xl border border-border bg-card p-4">
+              {telegram.expired ? (
+                <>
+                  <Text className="text-center text-sm text-muted">{t('telegram.expired')}</Text>
+                  <PrimaryButton label={t('telegram.tryAgain')} onPress={() => startTelegram.mutate()} />
+                </>
+              ) : (
+                <>
+                  <ActivityIndicator color="#229ED9" />
+                  <Text className="text-center text-sm text-muted">{t('telegram.verifyWaiting')}</Text>
+                </>
+              )}
+              <Pressable onPress={() => setTelegram(null)} hitSlop={8}>
+                <Text className="font-semibold text-muted">{t('actions.cancel')}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              disabled={fullName.trim().length === 0 || startTelegram.isPending}
+              onPress={() => startTelegram.mutate()}
+              className={`items-center rounded-xl border py-3.5 ${fullName.trim().length === 0 ? 'border-border' : 'border-[#229ED9]'}`}>
+              <Text className={`font-bold ${fullName.trim().length === 0 ? 'text-muted' : 'text-[#229ED9]'}`}>
+                {t('telegram.verifyPhone')}
+              </Text>
+            </Pressable>
+          )}
+        </>
       ) : (
         <>
           <Field
