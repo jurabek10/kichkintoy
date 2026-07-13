@@ -46,6 +46,7 @@ const layoutNamespaces = [
   "errors",
   "chat",
   "messages",
+  "complaints",
   "reports",
   "classes",
   "attendance",

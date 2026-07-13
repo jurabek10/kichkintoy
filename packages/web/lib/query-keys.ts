@@ -156,6 +156,13 @@ export const queryKeys = {
     contacts: () => ["messages", "contacts"] as const,
     unreadCount: () => ["messages", "unread-count"] as const,
   },
+  complaints: {
+    all: () => ["complaints"] as const,
+    parentList: (input?: Record<string, unknown>) => ["complaints", "parent", input ?? {}] as const,
+    staffList: (input: Record<string, unknown>) => ["complaints", "staff", input] as const,
+    detail: (complaintId: string) => ["complaints", "detail", complaintId] as const,
+    openCount: (centerId: string) => ["complaints", "open-count", centerId] as const,
+  },
   family: {
     all: () => ["family"] as const,
   },
