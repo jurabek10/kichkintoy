@@ -28,29 +28,29 @@ model Organization {
 }
 
 model Center {
-  id             String   @id @default(uuid()) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
-  name           String
-  centerCode     String   @unique @map("center_code")
-  facilityType   String   @default("kindergarten") @map("facility_type")
-  phone          String?
-  address        String?
-  regionId       String?  @map("region_id") @db.Uuid
-  districtId     String?  @map("district_id") @db.Uuid
-  region         String?
-  district       String?
-  status         String   @default("active")
+  id                   String   @id @default(uuid()) @db.Uuid
+  organizationId       String   @map("organization_id") @db.Uuid
+  name                 String
+  centerCode           String   @unique @map("center_code")
+  facilityType         String   @default("kindergarten") @map("facility_type")
+  phone                String?
+  address              String?
+  regionId             String?  @map("region_id") @db.Uuid
+  districtId           String?  @map("district_id") @db.Uuid
+  region               String?
+  district             String?
+  status               String   @default("active")
   // Monthly tuition fee in UZS charged per enrolled child; the source of truth
   // for lazily generated monthly invoices and the director tuition console.
-  monthlyTuitionUzs Decimal @default(1000000) @map("monthly_tuition_uzs") @db.Decimal(14, 2)
+  monthlyTuitionUzs    Decimal  @default(1000000) @map("monthly_tuition_uzs") @db.Decimal(14, 2)
   // Platform subscription the center pays the founder each month:
   // total = platformBaseFeeUzs + activeKids * platformPerKidFeeUzs.
-  platformBaseFeeUzs   Decimal @default(300000) @map("platform_base_fee_uzs") @db.Decimal(14, 2)
-  platformPerKidFeeUzs Decimal @default(30000) @map("platform_per_kid_fee_uzs") @db.Decimal(14, 2)
+  platformBaseFeeUzs   Decimal  @default(300000) @map("platform_base_fee_uzs") @db.Decimal(14, 2)
+  platformPerKidFeeUzs Decimal  @default(30000) @map("platform_per_kid_fee_uzs") @db.Decimal(14, 2)
   // Day of month (1–28) the center pays the platform — its "payment date".
-  platformBillingDay   Int     @default(1) @map("platform_billing_day")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  platformBillingDay   Int      @default(1) @map("platform_billing_day")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   organization               Organization                @relation(fields: [organizationId], references: [id])
   regionRef                  Region?                     @relation(fields: [regionId], references: [id])
@@ -65,6 +65,7 @@ model Center {
   childEnrollments           ChildEnrollment[]
   classes                    Class[]
   conversationThreads        ConversationThread[]
+  complaints                 Complaint[]
   dailyReports               DailyReport[]
   invoices                   Invoice[]
   platformPayments           CenterPlatformPayment[]
@@ -146,8 +147,8 @@ model User {
   fullName          String    @map("full_name")
   avatarUrl         String?   @map("avatar_url")
   preferredLanguage String    @default("uz") @map("preferred_language")
-  telegramId       BigInt?   @unique @map("telegram_id")
-  telegramUsername String?   @map("telegram_username")
+  telegramId        BigInt?   @unique @map("telegram_id")
+  telegramUsername  String?   @map("telegram_username")
   status            String    @default("active")
   lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -200,6 +201,10 @@ model User {
   userNotificationSettings    UserNotificationSettings?
   userRoles                   UserRole[]
   notifications               Notification[]
+  complaintsFiled             Complaint[]                 @relation("ComplaintParent")
+  complaintsResolved          Complaint[]                 @relation("ComplaintResolver")
+  complaintReplies            ComplaintReply[]
+  complaintStatusEvents       ComplaintStatusEvent[]
   realtimeTickets             RealtimeTicket[]
   studentDocumentTemplates    StudentDocumentTemplate[]   @relation("StudentDocumentTemplateCreator")
   studentDocumentRequests     StudentDocumentRequest[]    @relation("StudentDocumentRequestCreator")
@@ -365,6 +370,7 @@ model Class {
   centerJoinRequests            CenterJoinRequest[]
   childEnrollments              ChildEnrollment[]
   conversationThreads           ConversationThread[]
+  complaints                    Complaint[]
   dailyReports                  DailyReport[]
   mealPlans                     MealPlan[]
   mealPostClasses               MealPostClass[]
@@ -421,6 +427,7 @@ model Child {
   childEnrollments               ChildEnrollment[]
   childGuardians                 ChildGuardian[]
   conversationThreads            ConversationThread[]
+  complaints                     Complaint[]
   dailyReports                   DailyReport[]
   invoices                       Invoice[]
   medicationRequests             MedicationRequest[]
@@ -535,17 +542,17 @@ model CenterInvitation {
 }
 
 model FamilyInvitation {
-  id               String    @id @default(uuid()) @db.Uuid
-  invitedByUserId  String    @map("invited_by_user_id") @db.Uuid
-  relationship     String
-  code             String
-  preferredLanguage String?  @map("preferred_language")
-  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
-  acceptedAt       DateTime? @map("accepted_at") @db.Timestamptz(6)
-  acceptedByUserId String?   @map("accepted_by_user_id") @db.Uuid
-  telegramUserId   BigInt?   @map("telegram_user_id")
-  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                String    @id @default(uuid()) @db.Uuid
+  invitedByUserId   String    @map("invited_by_user_id") @db.Uuid
+  relationship      String
+  code              String
+  preferredLanguage String?   @map("preferred_language")
+  expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
+  acceptedAt        DateTime? @map("accepted_at") @db.Timestamptz(6)
+  acceptedByUserId  String?   @map("accepted_by_user_id") @db.Uuid
+  telegramUserId    BigInt?   @map("telegram_user_id")
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   invitedByUser  User  @relation("FamilyInvitationCreator", fields: [invitedByUserId], references: [id])
   acceptedByUser User? @relation("FamilyInvitationAcceptor", fields: [acceptedByUserId], references: [id])
@@ -1396,6 +1403,67 @@ model Message {
   @@index([threadId, createdAt])
   @@index([senderUserId])
   @@map("messages")
+}
+
+model Complaint {
+  id               String    @id @default(uuid()) @db.Uuid
+  centerId         String    @map("center_id") @db.Uuid
+  classId          String?   @map("class_id") @db.Uuid
+  childId          String    @map("child_id") @db.Uuid
+  parentUserId     String    @map("parent_user_id") @db.Uuid
+  category         String
+  subject          String
+  body             String
+  visibility       String    @default("teacher_and_director")
+  status           String    @default("open")
+  resolvedByUserId String?   @map("resolved_by_user_id") @db.Uuid
+  resolvedAt       DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolutionNote   String?   @map("resolution_note")
+  lastActivityAt   DateTime  @default(now()) @map("last_activity_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  center         Center                 @relation(fields: [centerId], references: [id])
+  class          Class?                 @relation(fields: [classId], references: [id])
+  child          Child                  @relation(fields: [childId], references: [id])
+  parentUser     User                   @relation("ComplaintParent", fields: [parentUserId], references: [id])
+  resolvedByUser User?                  @relation("ComplaintResolver", fields: [resolvedByUserId], references: [id])
+  replies        ComplaintReply[]
+  statusEvents   ComplaintStatusEvent[]
+
+  @@index([centerId, status, lastActivityAt])
+  @@index([classId, visibility, status])
+  @@index([parentUserId, createdAt])
+  @@map("complaints")
+}
+
+model ComplaintReply {
+  id           String   @id @default(uuid()) @db.Uuid
+  complaintId  String   @map("complaint_id") @db.Uuid
+  senderUserId String   @map("sender_user_id") @db.Uuid
+  body         String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  sender    User      @relation(fields: [senderUserId], references: [id])
+
+  @@index([complaintId, createdAt])
+  @@map("complaint_replies")
+}
+
+model ComplaintStatusEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  complaintId String   @map("complaint_id") @db.Uuid
+  actorUserId String   @map("actor_user_id") @db.Uuid
+  fromStatus  String   @map("from_status")
+  toStatus    String   @map("to_status")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  actor     User      @relation(fields: [actorUserId], references: [id])
+
+  @@index([complaintId, createdAt])
+  @@map("complaint_status_events")
 }
 
 model Invoice {
