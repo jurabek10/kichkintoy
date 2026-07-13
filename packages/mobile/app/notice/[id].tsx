@@ -5,6 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CommentBar } from '@/components/common/comment-bar';
+import { CommentAttachments } from '@/components/common/comment-attachments';
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { Avatar } from '@/components/ui/avatar';
 import { Loader } from '@/components/ui/loader';
@@ -140,6 +141,7 @@ export default function NoticeDetailScreen() {
                       )}>
                       {comment.deleted ? t('detail.commentDeleted') : comment.body}
                     </Text>
+                    {!comment.deleted ? <CommentAttachments attachments={comment.attachments} /> : null}
                   </View>
                 </View>
               ))
@@ -153,8 +155,9 @@ export default function NoticeDetailScreen() {
           <CommentBar
             placeholder={t('detail.writeComment')}
             accentColor={SKY}
-            onSubmit={async (text) => {
-              await addComment.mutateAsync(text);
+            centerId={notice.centerId}
+            onSubmit={async (body, attachmentMediaAssetIds) => {
+              await addComment.mutateAsync({ body, attachmentMediaAssetIds });
             }}
           />
         ) : null}

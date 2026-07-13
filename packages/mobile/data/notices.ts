@@ -5,6 +5,7 @@
  * reports data layer.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { CommentAttachment } from '@kichkintoy/shared';
 
 import type { Query } from '@/data/parent';
 import { formatTime, localIsoDate } from '@/lib/date';
@@ -23,6 +24,7 @@ export type NoticeAudience = 'center' | 'class' | 'child';
 
 export type NoticeSummary = {
   id: string;
+  centerId: string;
   title: string;
   bodyPreview: string;
   authorName: string;
@@ -47,6 +49,7 @@ export type NoticeCommentView = {
   deleted: boolean;
   photoMediaAssetId: string | null;
   photoUrl: string | null;
+  attachments: CommentAttachment[];
 };
 
 export type NoticeDetail = NoticeSummary & {
@@ -65,6 +68,7 @@ function timeLabel(iso: string | null): string {
 function toNoticeSummary(notice: ApiNoticeSummary): NoticeSummary {
   return {
     id: notice.id,
+    centerId: notice.centerId,
     title: notice.title,
     bodyPreview: notice.bodyPreview,
     authorName: notice.author.fullName,
@@ -95,6 +99,7 @@ function toNoticeDetail(notice: ApiNoticeDetail): NoticeDetail {
       body: comment.deletedAt ? '' : comment.body,
       createdAt: comment.createdAt,
       deleted: !!comment.deletedAt,
+      attachments: comment.attachments,
     })),
   };
 }
@@ -166,8 +171,8 @@ export function useConfirmNotice(noticeId: string) {
 export function useAddNoticeComment(noticeId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) =>
-      orpc.notices.addComment({ noticeId, body: { body } }),
+    mutationFn: (input: { body: string; attachmentMediaAssetIds: string[] }) =>
+      orpc.notices.addComment({ noticeId, body: input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notices.detail(noticeId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.notices.parentList });

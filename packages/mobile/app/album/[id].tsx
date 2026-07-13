@@ -168,8 +168,9 @@ export default function AlbumDetailScreen() {
           <CommentBar
             placeholder={t('detail.writeComment')}
             accentColor={GRAPE}
-            onSubmit={async (text) => {
-              await addComment.mutateAsync(text);
+            centerId={album.centerId}
+            onSubmit={async (body, attachmentMediaAssetIds) => {
+              await addComment.mutateAsync({ body, attachmentMediaAssetIds });
             }}
           />
         ) : null}

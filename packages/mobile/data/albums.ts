@@ -5,6 +5,7 @@
  * mutations. Mirrors the daily reports / notices data layers.
  */
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { CommentAttachment } from '@kichkintoy/shared';
 
 import { useCurrentChild, type Query } from '@/data/parent';
 import i18n from '@/i18n';
@@ -20,10 +21,11 @@ type ApiAlbumDetail = Awaited<ReturnType<typeof orpc.albums.detail>>;
 // --- View models ----------------------------------------------------------
 
 export type AlbumMedia = { id: string; assetId: string; mediaType: string };
-export type AlbumComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null };
+export type AlbumComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null; attachments: CommentAttachment[] };
 
 export type AlbumSummary = {
   id: string;
+  centerId: string;
   caption: string; // first line = title, rest = body
   authorName: string;
   authorPhoto: string | null;
@@ -70,6 +72,7 @@ function className(classes: ApiAlbumSummary['classes']): string {
 function toAlbumSummary(post: ApiAlbumSummary): AlbumSummary {
   return {
     id: post.id,
+    centerId: post.centerId,
     caption: post.caption,
     authorName: post.author.fullName,
     authorPhoto: post.author.photoMediaAssetId ?? post.author.photoUrl,
@@ -101,6 +104,7 @@ function toAlbumDetail(post: ApiAlbumDetail): AlbumDetail {
         photoMediaAssetId: comment.authorPhotoMediaAssetId,
         photoUrl: comment.authorPhotoUrl,
         body: comment.body,
+        attachments: comment.attachments,
         dateLabel: formatDayMonthTime(comment.createdAt, lang),
       })),
   };
@@ -157,8 +161,8 @@ export function useAddAlbumComment(postId: string) {
   const albumKey = queryKeys.albums.detail(postId);
 
   return useMutation({
-    mutationFn: (body: string) => orpc.albums.addComment({ postId, body: { body } }),
-    onMutate: async (body) => {
+    mutationFn: (input: { body: string; attachmentMediaAssetIds: string[] }) => orpc.albums.addComment({ postId, body: input }),
+    onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: albumKey });
       const previous = queryClient.getQueryData<ApiAlbumDetail>(albumKey);
       const now = new Date().toISOString();
@@ -179,7 +183,8 @@ export function useAddAlbumComment(postId: string) {
               authorDisplayName: session?.user.fullName ?? '',
               authorPhotoMediaAssetId: null,
               authorPhotoUrl: null,
-              body,
+              body: input.body,
+              attachments: [],
               deletedAt: null,
               createdAt: now,
               updatedAt: now,

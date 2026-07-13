@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
+import { CommentAttachments } from '@/components/common/comment-attachments';
 import type { ReportComment } from '@/data/reports';
 
 /** Comment thread under a report. A parent's comment shows their child's name +
@@ -30,7 +31,8 @@ export function ReportComments({ comments }: { comments: ReportComment[] }) {
                 <Text className="text-sm font-bold text-foreground">{comment.authorName}</Text>
                 <Text className="text-xs text-muted">{comment.dateLabel}</Text>
               </View>
-              <Text className="mt-0.5 text-sm leading-5 text-foreground">{comment.body}</Text>
+              {comment.body ? <Text className="mt-0.5 text-sm leading-5 text-foreground">{comment.body}</Text> : null}
+              <CommentAttachments attachments={comment.attachments} />
             </View>
           </View>
         ))

@@ -4,6 +4,7 @@
  * shapes the screens render. Mirrors the web app's per-domain data pattern.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { CommentAttachment } from '@kichkintoy/shared';
 
 import { useCurrentChild, type Query } from '@/data/parent';
 import i18n from '@/i18n';
@@ -20,6 +21,7 @@ type ApiReportDetail = Awaited<ReturnType<typeof orpc.reports.parentDetail>>;
 
 export type ReportSummary = {
   id: string;
+  centerId: string;
   reportDate: string;
   authorName: string;
   authorPhoto: string | null;
@@ -31,7 +33,7 @@ export type ReportSummary = {
 };
 
 export type ReportItem = { id: string; itemType: string; title: string | null; value: string };
-export type ReportComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null };
+export type ReportComment = { id: string; authorName: string; body: string; dateLabel: string; photoMediaAssetId: string | null; photoUrl: string | null; attachments: CommentAttachment[] };
 export type ReportMedia = { id: string; mediaType: string };
 
 export type ReportDetail = ReportSummary & {
@@ -60,6 +62,7 @@ export function moodEmoji(mood: string | null): string {
 function toReportSummary(report: ApiReportSummary): ReportSummary {
   return {
     id: report.id,
+    centerId: report.centerId,
     reportDate: report.reportDate,
     authorName: report.author.fullName,
     authorPhoto: report.author.photoMediaAssetId ?? report.author.photoUrl,
@@ -90,6 +93,7 @@ function toReportDetail(report: ApiReportDetail): ReportDetail {
         photoMediaAssetId: comment.authorPhotoMediaAssetId,
         photoUrl: comment.authorPhotoUrl,
         body: comment.body,
+        attachments: comment.attachments,
         dateLabel: formatDayMonthTime(comment.createdAt, lang),
       })),
   };
@@ -135,8 +139,8 @@ export function useAddReportComment(reportId: string) {
   const reportKey = queryKeys.reports.detail(reportId);
 
   return useMutation({
-    mutationFn: (body: string) => orpc.reports.parentComment({ reportId, body: { body } }),
-    onMutate: async (body) => {
+    mutationFn: (input: { body: string; attachmentMediaAssetIds: string[] }) => orpc.reports.parentComment({ reportId, body: input }),
+    onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: reportKey });
       const previous = queryClient.getQueryData<ApiReportDetail>(reportKey);
       const now = new Date().toISOString();
@@ -158,7 +162,8 @@ export function useAddReportComment(reportId: string) {
               authorPhotoMediaAssetId: null,
               authorPhotoUrl: null,
               parentCommentId: null,
-              body,
+              body: input.body,
+              attachments: [],
               deletedAt: null,
               createdAt: now,
               updatedAt: now,
