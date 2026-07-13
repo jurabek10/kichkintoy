@@ -14,6 +14,7 @@ import { directorContract } from "./orpc/director.contract.js";
 import { mediaContract } from "./orpc/media.contract.js";
 import { medicationsContract } from "./orpc/medications.contract.js";
 import { mealsContract } from "./orpc/meals.contract.js";
+import { messagesContract } from "./orpc/messages.contract.js";
 import { noticesContract } from "./orpc/notices.contract.js";
 import { notificationsContract } from "./orpc/notifications.contract.js";
 import { paymentsContract } from "./orpc/payments.contract.js";
@@ -38,6 +39,7 @@ export const appContract = {
   media: mediaContract,
   medications: medicationsContract,
   meals: mealsContract,
+  messages: messagesContract,
   reports: reportsContract,
   studentDocuments: studentDocumentsContract,
   notices: noticesContract,
