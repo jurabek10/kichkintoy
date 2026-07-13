@@ -11,9 +11,9 @@ import { useUnreadNotificationsCount } from '@/data/notifications';
 import { useParentChildren } from '@/data/profile';
 
 /**
- * Top bar, Kidsnote-style: the selected kid's photo + name opens the kid
- * switcher (siblings may attend different kindergartens); My Page and
- * notifications sit on the right.
+ * Top bar, Kidsnote-style: the selected kid's photo + name (left) opens the kid
+ * switcher; the kid's avatar (right) is the clear entry to My Page, sitting
+ * next to notifications.
  */
 export function HomeHeader({ child }: { child: Child }) {
   const unread = useUnreadNotificationsCount();
@@ -41,12 +41,7 @@ export function HomeHeader({ child }: { child: Child }) {
         <Text className="text-lg font-bold text-foreground">{child.name}</Text>
         <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
       </Pressable>
-      <View className="flex-row items-center gap-1">
-        <Link href="/children" asChild>
-          <Pressable hitSlop={8} className="h-10 w-10 items-center justify-center">
-            <Ionicons name="person-circle-outline" size={26} color={colors.textPrimary} />
-          </Pressable>
-        </Link>
+      <View className="flex-row items-center gap-2">
         <Link href="/notifications" asChild>
           <Pressable hitSlop={8} className="relative h-10 w-10 items-center justify-center">
             <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
@@ -57,6 +52,18 @@ export function HomeHeader({ child }: { child: Child }) {
                 </Text>
               </View>
             ) : null}
+          </Pressable>
+        </Link>
+        <Link href="/children" asChild>
+          <Pressable hitSlop={8} className="rounded-full border border-border/70 bg-white p-0.5">
+            <ProfileAvatar
+              avatarMediaAssetId={editable?.photoMediaAssetId ?? null}
+              photoUrl={editable?.photoUrl ?? null}
+              name={child.name}
+              size={30}
+              fallbackClassName="bg-sky"
+              fallbackTextClassName="text-sky-ink"
+            />
           </Pressable>
         </Link>
       </View>
