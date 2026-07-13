@@ -27,6 +27,21 @@ export function persistSession(response: AuthResponse) {
   window.dispatchEvent(new Event("kichkintoy:session"));
 }
 
+export async function persistTelegramSession(token: string) {
+  window.localStorage.setItem(authTokenStorageKey, token);
+  const response = await orpc.auth.me({});
+  const parentRole = response.user.roles.find((role) => role.name === "parent");
+  const stored: StoredSession = {
+    token,
+    user: { id: response.user.id, fullName: response.user.fullName, username: response.user.username,
+      phoneNumber: response.user.phoneNumber, role: "parent" },
+    membership: { status: "active", joinRequestId: null, centerId: parentRole?.centerId ?? null,
+      centerName: null, canApproveMembers: false },
+  };
+  window.localStorage.setItem(sessionStorageKey, JSON.stringify(stored));
+  window.dispatchEvent(new Event("kichkintoy:session"));
+}
+
 export function readSession(): StoredSession | null {
   if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem(sessionStorageKey);
