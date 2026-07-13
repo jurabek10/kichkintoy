@@ -29,5 +29,15 @@
   },
   "status": {
     "loading": "Loading…"
+  },
+  "comments": {
+    "addPhoto": "Add photo",
+    "addVideo": "Add video",
+    "addFile": "Add file",
+    "attachmentLimit": "You can attach up to {{count}} files.",
+    "attachmentTooLarge": "This attachment is too large.",
+    "attachmentKind": { "image": "Image", "video": "Video", "file": "File" },
+    "uploadFailed": "Attachment upload failed",
+    "retry": "Your comment and attachments are still here. Try sending again."
   }
 }

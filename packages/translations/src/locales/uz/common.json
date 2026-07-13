@@ -29,5 +29,15 @@
   },
   "status": {
     "loading": "Yuklanmoqda…"
+  },
+  "comments": {
+    "addPhoto": "Rasm qo'shish",
+    "addVideo": "Video qo'shish",
+    "addFile": "Fayl qo'shish",
+    "attachmentLimit": "Ko'pi bilan {{count}} ta fayl biriktirish mumkin.",
+    "attachmentTooLarge": "Bu fayl hajmi juda katta.",
+    "attachmentKind": { "image": "Rasm", "video": "Video", "file": "Fayl" },
+    "uploadFailed": "Fayl yuklanmadi",
+    "retry": "Izoh va fayllar saqlandi. Yana yuborib ko'ring."
   }
 }
