@@ -8,6 +8,7 @@
   "items": {
     "dashboard": "Home",
     "chat": "AI Assistant",
+    "messages": "Messages",
     "classes": "Classes",
     "myClasses": "My classes",
     "calendar": "Calendar",

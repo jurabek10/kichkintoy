@@ -40,6 +40,7 @@
     "join_request.rejected": "Your request was not approved",
     "join_request.submitted": "New join request",
     "meal_post.published": "Today's meal menu",
+    "message.received": "New message",
     "medication_request.created": "New medication request",
     "medication_request.administered": "Medication given",
     "medication_request.cancelled": "Medication request cancelled",

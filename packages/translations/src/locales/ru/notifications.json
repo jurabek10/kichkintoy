@@ -40,6 +40,7 @@
     "join_request.rejected": "Ваш запрос не одобрен",
     "join_request.submitted": "Новый запрос на присоединение",
     "meal_post.published": "Сегодняшнее меню",
+    "message.received": "Новое сообщение",
     "medication_request.created": "Новый запрос на лекарство",
     "medication_request.administered": "Лекарство дано",
     "medication_request.cancelled": "Запрос на лекарство отменён",

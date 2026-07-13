@@ -8,6 +8,7 @@
   "items": {
     "dashboard": "Главная",
     "chat": "ИИ-помощник",
+    "messages": "Сообщения",
     "classes": "Группы",
     "myClasses": "Мои группы",
     "calendar": "Календарь",
