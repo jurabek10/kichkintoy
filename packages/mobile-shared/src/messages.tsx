@@ -28,7 +28,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type {
   DirectMessage,
   MessageAttachment,
@@ -65,15 +65,18 @@ type IdentityPerson = Pick<MessageContact, 'displayName' | 'parentContext'> & {
 };
 type IdentityParts = { primary: string; secondary: string | null; searchText: string };
 
-function Header({ title, back, right }: { title: string; back?: () => void; right?: ReactNode }) {
+function Header({ title, subtitle, back, right }: { title: string; subtitle?: string; back?: () => void; right?: ReactNode }) {
   return (
-    <View className="min-h-14 flex-row items-center gap-3 border-b border-border bg-card px-4 py-2">
+    <View className="min-h-14 flex-row items-center gap-2 border-b border-border bg-card px-3 pb-3 pt-2">
       {back ? (
-        <Pressable onPress={back} hitSlop={10} className="h-9 w-9 items-center justify-center rounded-full active:bg-segment">
-          <Ionicons name="arrow-back" size={22} color="#1F2937" />
+        <Pressable onPress={back} hitSlop={10} className="h-10 w-10 items-center justify-center rounded-full active:bg-segment">
+          <Ionicons name="arrow-back" size={23} color="#1F2937" />
         </Pressable>
-      ) : null}
-      <Text numberOfLines={2} className="flex-1 text-lg font-extrabold text-foreground">{title}</Text>
+      ) : <View className="w-2" />}
+      <View className="min-w-0 flex-1">
+        <Text numberOfLines={2} className="text-[21px] font-extrabold tracking-tight text-foreground">{title}</Text>
+        {subtitle ? <Text numberOfLines={1} className="mt-0.5 text-[12px] text-muted">{subtitle}</Text> : null}
+      </View>
       {right}
     </View>
   );
@@ -97,8 +100,9 @@ function Avatar({ person, resolvePhoto, displayName, size = 44 }: { person: { di
   );
 }
 
-function MessageAttachmentItem({ attachment, resolvePhoto }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto }) {
-  const { t } = useTranslation('messages');
+/** A photo/video attachment: rendered as a bare rounded thumbnail — no colored
+ *  bubble frame around it — so a shared image reads as an image, not a big box. */
+function AttachmentImage({ attachment, resolvePhoto, single }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto; single: boolean }) {
   const [open, setOpen] = useState(false);
   const query = useQuery({
     queryKey: ['media', 'download', attachment.mediaAssetId],
@@ -106,22 +110,11 @@ function MessageAttachmentItem({ attachment, resolvePhoto }: { attachment: Messa
     staleTime: 240_000,
   });
   const url = query.data;
-  if (attachment.mediaType === 'file') {
-    return (
-      <Pressable disabled={!url} onPress={() => url && Linking.openURL(url)} className="mt-2 max-w-full flex-row items-center gap-2 self-start rounded-lg border border-border bg-segment px-3 py-2">
-        <Ionicons name="document-text-outline" size={20} color="#606773" />
-        <View className="max-w-[210px]">
-          <Text numberOfLines={1} ellipsizeMode="middle" className="text-xs font-semibold text-foreground">{attachment.fileName ?? t('previewKind.file')}</Text>
-          <Text className="text-[10px] text-muted">{sizeLabel(attachment.sizeBytes)}</Text>
-        </View>
-      </Pressable>
-    );
-  }
   return (
     <>
-      <Pressable disabled={!url} onPress={() => attachment.mediaType === 'image' ? setOpen(true) : url && Linking.openURL(url)} className="relative aspect-square w-[48%] overflow-hidden rounded-lg bg-segment">
-        {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
-        {attachment.mediaType === 'video' ? <View className="absolute inset-0 items-center justify-center bg-black/20"><Ionicons name="play-circle" size={36} color="#FFFFFF" /></View> : null}
+      <Pressable disabled={!url} onPress={() => (attachment.mediaType === 'image' ? setOpen(true) : url && Linking.openURL(url))} className={`relative aspect-square overflow-hidden rounded-2xl bg-segment ${single ? 'w-full' : 'w-[49%]'}`}>
+        {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <View className="h-full w-full items-center justify-center"><ActivityIndicator color="#AEB4BE" /></View>}
+        {attachment.mediaType === 'video' ? <View className="absolute inset-0 items-center justify-center bg-black/25"><Ionicons name="play-circle" size={38} color="#FFFFFF" /></View> : null}
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable onPress={() => setOpen(false)} className="flex-1 items-center justify-center bg-black/95 p-4">
@@ -133,11 +126,58 @@ function MessageAttachmentItem({ attachment, resolvePhoto }: { attachment: Messa
   );
 }
 
-function MessageAttachments({ attachments, resolvePhoto }: { attachments: MessageAttachment[]; resolvePhoto: ResolvePhoto }) {
-  if (!attachments.length) return null;
-  const media = attachments.filter((item) => item.mediaType !== 'file');
-  const files = attachments.filter((item) => item.mediaType === 'file');
-  return <View>{media.length ? <View className="flex-row flex-wrap gap-1.5">{media.map((item) => <MessageAttachmentItem key={item.mediaAssetId} attachment={item} resolvePhoto={resolvePhoto} />)}</View> : null}{files.map((item) => <MessageAttachmentItem key={item.mediaAssetId} attachment={item} resolvePhoto={resolvePhoto} />)}</View>;
+/** A file attachment chip. Tints to the bubble color when it's the sender's own. */
+function AttachmentFile({ attachment, resolvePhoto, mine }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto; mine: boolean }) {
+  const { t } = useTranslation('messages');
+  const query = useQuery({
+    queryKey: ['media', 'download', attachment.mediaAssetId],
+    queryFn: () => resolvePhoto(attachment.mediaAssetId),
+    staleTime: 240_000,
+  });
+  const url = query.data;
+  return (
+    <Pressable disabled={!url} onPress={() => url && Linking.openURL(url)} className={`flex-row items-center gap-2.5 rounded-2xl px-3 py-2.5 ${mine ? 'bg-primary' : 'border border-border bg-card'}`}>
+      <View className={`h-9 w-9 items-center justify-center rounded-xl ${mine ? 'bg-white/20' : 'bg-segment'}`}>
+        <Ionicons name="document-text" size={18} color={mine ? '#FFFFFF' : '#606773'} />
+      </View>
+      <View className="max-w-[190px]">
+        <Text numberOfLines={1} ellipsizeMode="middle" className={`text-[13px] font-semibold ${mine ? 'text-white' : 'text-foreground'}`}>{attachment.fileName ?? t('previewKind.file')}</Text>
+        <Text className={`text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>{sizeLabel(attachment.sizeBytes)}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+/** One message: photos as bare thumbnails, files as chips, text in a colored
+ *  bubble, and a single timestamp under the last message of a sender's run. */
+function MessageBubble({ item, mine, groupEnd, timeLabel, onLongPress, resolvePhoto, t }: { item: DirectMessage; mine: boolean; groupEnd: boolean; timeLabel: string; onLongPress?: () => void; resolvePhoto: ResolvePhoto; t: TFunction<'messages'> }) {
+  const media = item.attachments.filter((a) => a.mediaType !== 'file');
+  const files = item.attachments.filter((a) => a.mediaType === 'file');
+  const shape = groupEnd ? (mine ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-bl-md') : 'rounded-2xl';
+  return (
+    <Pressable onLongPress={onLongPress} disabled={!onLongPress} className={`gap-1 ${mine ? 'items-end' : 'items-start'}`}>
+      {item.deletedAt ? (
+        <View className={`max-w-[80%] px-3.5 py-2.5 ${shape} ${mine ? 'bg-primary/50' : 'border border-border bg-card'}`}>
+          <Text className={mine ? 'text-[13px] italic text-white/80' : 'text-[13px] italic text-muted'}>{t('deleted')}</Text>
+        </View>
+      ) : (
+        <>
+          {media.length ? (
+            <View className={`w-56 max-w-[78%] flex-row flex-wrap gap-1 ${mine ? 'justify-end' : 'justify-start'}`}>
+              {media.map((a) => <AttachmentImage key={a.mediaAssetId} attachment={a} resolvePhoto={resolvePhoto} single={media.length === 1} />)}
+            </View>
+          ) : null}
+          {files.map((a) => <AttachmentFile key={a.mediaAssetId} attachment={a} resolvePhoto={resolvePhoto} mine={mine} />)}
+          {item.body ? (
+            <View className={`max-w-[80%] px-3.5 py-2 ${shape} ${mine ? 'bg-primary' : 'border border-border bg-card'}`}>
+              <Text className={mine ? 'text-[14.5px] leading-[20px] text-white' : 'text-[14.5px] leading-[20px] text-foreground'}>{item.body}</Text>
+            </View>
+          ) : null}
+        </>
+      )}
+      {groupEnd ? <Text className="px-1 text-[10px] text-muted">{timeLabel}</Text> : null}
+    </Pressable>
+  );
 }
 
 function PendingAttachments({ value, onChange }: { value: PendingAttachment[]; onChange: (items: PendingAttachment[]) => void }) {
@@ -200,10 +240,11 @@ export function MessagesListScreen({ api, navigation, resolvePhoto }: { api: Mes
   }, [query.data, search, t]);
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
-      <Header title={t('title')} back={navigation.back} right={<Pressable onPress={navigation.newMessage} className="h-9 w-9 items-center justify-center rounded-full bg-primary"><Ionicons name="create" size={18} color="#FFFFFF" /></Pressable>} />
-      <View className="m-4 h-11 flex-row items-center gap-2 rounded-xl border border-border bg-card px-3">
+      <Header title={t('title')} subtitle={t('subtitle')} back={navigation.back} right={<Pressable onPress={navigation.newMessage} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-primary active:opacity-80"><Ionicons name="create-outline" size={20} color="#FFFFFF" /></Pressable>} />
+      <View className="mx-4 mb-2 mt-3 h-12 flex-row items-center gap-2.5 rounded-full bg-segment px-4">
         <Ionicons name="search" size={18} color="#89919E" />
-        <TextInput value={search} onChangeText={setSearch} placeholder={t('search')} placeholderTextColor="#89919E" className="h-11 flex-1 text-[15px] text-foreground" />
+        <TextInput value={search} onChangeText={setSearch} placeholder={t('search')} placeholderTextColor="#89919E" returnKeyType="search" className="h-12 flex-1 text-[15px] text-foreground" />
+        {search.length ? <Pressable onPress={() => setSearch('')} hitSlop={8}><Ionicons name="close-circle" size={18} color="#C4C9D1" /></Pressable> : null}
       </View>
       <FlatList
         data={rows}
@@ -241,6 +282,7 @@ export function MessagesListScreen({ api, navigation, resolvePhoto }: { api: Mes
 
 export function NewMessageScreen({ api, navigation, resolvePhoto, upload }: { api: MessagesApi; navigation: Navigation; resolvePhoto: ResolvePhoto; upload: MessageUpload }) {
   const { t } = useTranslation('messages');
+  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<MessageContact | null>(null);
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -260,17 +302,24 @@ export function NewMessageScreen({ api, navigation, resolvePhoto, upload }: { ap
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <Header title={selectedIdentity?.primary ?? t('chooseContact')} back={selected ? () => { setSelected(null); setBody(''); setAttachments([]); } : navigation.back} />
       {selected && selectedIdentity ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 p-4">
-          <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
-            <Avatar person={selected} resolvePhoto={resolvePhoto} displayName={selectedIdentity.primary} />
-            <View className="min-w-0 flex-1">
-              <Text className="font-extrabold text-foreground">{selectedIdentity.primary}</Text>
-              <Text className="text-[12px] text-muted">{selectedIdentity.secondary ?? t(`roles.${selected.role}`)}</Text>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+          <ScrollView className="flex-1" contentContainerClassName="p-4" keyboardShouldPersistTaps="handled">
+            <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
+              <Avatar person={selected} resolvePhoto={resolvePhoto} displayName={selectedIdentity.primary} />
+              <View className="min-w-0 flex-1">
+                <Text numberOfLines={1} className="font-extrabold text-foreground">{selectedIdentity.primary}</Text>
+                <Text numberOfLines={1} className="text-[12px] text-muted">{selectedIdentity.secondary ?? t(`roles.${selected.role}`)}</Text>
+              </View>
+            </View>
+            <TextInput autoFocus multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('firstMessage')} placeholderTextColor="#89919E" textAlignVertical="top" className="mt-4 min-h-40 rounded-2xl border border-border bg-card p-4 text-[15px] leading-[21px] text-foreground" />
+          </ScrollView>
+          <View className="border-t border-border bg-card px-3 pt-2.5" style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
+            <PendingAttachments value={attachments} onChange={setAttachments} />
+            <View className="flex-row items-center gap-3">
+              <Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-12 w-12 items-center justify-center rounded-full bg-segment active:opacity-70"><Ionicons name="add" size={22} color="#606773" /></Pressable>
+              <Pressable disabled={(!body.trim() && !attachments.length) || start.isPending} onPress={() => start.mutate()} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 disabled:opacity-40 active:opacity-90"><Ionicons name="send" size={16} color="#FFFFFF" /><Text className="text-base font-extrabold text-white">{start.isPending ? t('sending') : t('send')}</Text></Pressable>
             </View>
           </View>
-          <TextInput autoFocus multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('firstMessage')} placeholderTextColor="#89919E" textAlignVertical="top" className="mt-4 min-h-32 rounded-2xl border border-border bg-card p-4 text-[15px] text-foreground" />
-          <PendingAttachments value={attachments} onChange={setAttachments} />
-          <View className="mt-3 flex-row items-center gap-3"><Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-11 w-11 items-center justify-center rounded-full border border-border bg-card"><Ionicons name="add" size={22} color="#606773" /></Pressable><Pressable disabled={(!body.trim() && !attachments.length) || start.isPending} onPress={() => start.mutate()} className="flex-1 items-center rounded-xl bg-primary py-3.5 disabled:opacity-40"><Text className="text-base font-extrabold text-white">{start.isPending ? t('sending') : t('send')}</Text></Pressable></View>
         </KeyboardAvoidingView>
       ) : (
         <FlatList
@@ -284,7 +333,7 @@ export function NewMessageScreen({ api, navigation, resolvePhoto, upload }: { ap
               {group.contacts.map((person) => {
                 const identity = messageIdentityParts(person, t);
                 return (
-                  <Pressable key={`${person.centerId}:${person.userId}`} onPress={() => setSelected(person)} className="mb-2 flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                  <Pressable key={`${person.centerId}:${person.userId}`} onPress={() => setSelected(person)} className="mb-2 flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3 active:bg-segment">
                     <Avatar person={person} resolvePhoto={resolvePhoto} displayName={identity.primary} />
                     <View className="min-w-0 flex-1">
                       <Text numberOfLines={1} className="font-extrabold text-foreground">{identity.primary}</Text>
@@ -304,6 +353,7 @@ export function NewMessageScreen({ api, navigation, resolvePhoto, upload }: { ap
 
 export function ConversationScreen({ api, navigation, threadId, currentUserId, resolvePhoto, upload }: { api: MessagesApi; navigation: Navigation; threadId: string; currentUserId: string; resolvePhoto: ResolvePhoto; upload: MessageUpload }) {
   const { t, i18n } = useTranslation('messages');
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -381,33 +431,36 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
           onEndReached={() => query.hasNextPage && !query.isFetchingNextPage && void query.fetchNextPage()}
           onEndReachedThreshold={0.4}
           ListHeaderComponent={pendingDraft ? (
-            <View className="mt-2 items-end">
-              <View className="max-w-[82%] rounded-2xl rounded-br-md bg-primary/70 px-3.5 py-2.5">
-                {pendingDraft.body ? <Text className="text-[14px] leading-5 text-white">{pendingDraft.body}</Text> : null}
-                {pendingDraft.attachments.length ? <Text className="text-[12px] text-white/80">{t(`previewKind.${pendingDraft.attachments[0]!.kind}`)}</Text> : null}
-                <Text className="mt-1 text-right text-[9px] text-white/60">{t('sending')}</Text>
-              </View>
+            <View className="mt-3 items-end gap-1">
+              {pendingDraft.attachments.length ? <Text className="max-w-[80%] rounded-2xl rounded-br-md bg-primary/60 px-3.5 py-2 text-[12px] text-white/90">{t(`previewKind.${pendingDraft.attachments[0]!.kind}`)}</Text> : null}
+              {pendingDraft.body ? <View className="max-w-[80%] rounded-2xl rounded-br-md bg-primary/60 px-3.5 py-2"><Text className="text-[14.5px] leading-[20px] text-white">{pendingDraft.body}</Text></View> : null}
+              <Text className="px-1 text-[10px] text-muted">{t('sending')}</Text>
             </View>
           ) : null}
           ListFooterComponent={query.isFetchingNextPage ? <ActivityIndicator className="my-3" color="#4D9FEC" /> : null}
           renderItem={({ item, index }) => {
             const mine = item.senderUserId === currentUserId;
             const older = messages[index + 1];
+            const newer = messages[index - 1];
             const showDate = older ? dayKey(older.createdAt) !== dayKey(item.createdAt) : !query.hasNextPage;
+            const groupStart = !older || older.senderUserId !== item.senderUserId || showDate;
+            const groupEnd = !newer || newer.senderUserId !== item.senderUserId || dayKey(newer.createdAt) !== dayKey(item.createdAt);
             return (
-              <View className="mt-2">
-                {showDate ? <Text className="my-3 text-center text-[11px] font-bold text-muted">{formatDate(item.createdAt, i18n.language)}</Text> : null}
-                <Pressable onLongPress={mine && !item.deletedAt ? () => confirmDelete(item.id) : undefined} className={mine ? 'items-end' : 'items-start'}>
-                  <View className={mine ? 'max-w-[82%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5' : 'max-w-[82%] rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5'}>
-                    {item.deletedAt ? <Text className={mine ? 'italic text-white/70' : 'italic text-muted'}>{t('deleted')}</Text> : <><MessageAttachments attachments={item.attachments} resolvePhoto={resolvePhoto} />{item.body ? <Text className={mine ? `${item.attachments.length ? 'mt-2 ' : ''}text-[14px] leading-5 text-white` : `${item.attachments.length ? 'mt-2 ' : ''}text-[14px] leading-5 text-foreground`}>{item.body}</Text> : null}</>}
-                    <Text className={mine ? 'mt-1 text-right text-[9px] text-white/60' : 'mt-1 text-right text-[9px] text-muted'}>{formatTime(item.createdAt, i18n.language)}</Text>
-                  </View>
-                </Pressable>
+              <View className={groupStart ? 'mt-3' : 'mt-0.5'}>
+                {showDate ? <View className="my-3 items-center"><Text className="rounded-full bg-segment px-3 py-1 text-[11px] font-semibold text-muted">{formatDate(item.createdAt, i18n.language)}</Text></View> : null}
+                <MessageBubble item={item} mine={mine} groupEnd={groupEnd} timeLabel={formatTime(item.createdAt, i18n.language)} onLongPress={mine && !item.deletedAt ? () => confirmDelete(item.id) : undefined} resolvePhoto={resolvePhoto} t={t} />
               </View>
             );
           }}
         />
-        <View className="border-t border-border bg-card"><PendingAttachments value={attachments} onChange={setAttachments} /><View className="flex-row items-end gap-2 p-3"><Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-11 w-11 items-center justify-center rounded-full border border-border"><Ionicons name="add" size={22} color="#606773" /></Pressable><TextInput multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('messagePlaceholder')} placeholderTextColor="#89919E" className="max-h-28 min-h-11 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-[15px] text-foreground" /><Pressable disabled={(!body.trim() && !attachments.length) || send.isPending} onPress={() => { const text = body.trim(); if (text || attachments.length) send.mutate({ body: text || undefined, attachments }); }} className="h-11 w-11 items-center justify-center rounded-full bg-primary disabled:opacity-40"><Ionicons name="send" size={18} color="#FFFFFF" /></Pressable></View></View>
+        <View className="border-t border-border bg-card" style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
+          <PendingAttachments value={attachments} onChange={setAttachments} />
+          <View className="flex-row items-end gap-2 px-3 pt-2">
+            <Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-10 w-10 items-center justify-center rounded-full bg-segment active:opacity-70"><Ionicons name="add" size={22} color="#606773" /></Pressable>
+            <TextInput multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('messagePlaceholder')} placeholderTextColor="#89919E" className="max-h-28 min-h-10 flex-1 rounded-3xl bg-segment px-4 py-2.5 text-[15px] text-foreground" />
+            <Pressable disabled={(!body.trim() && !attachments.length) || send.isPending} onPress={() => { const text = body.trim(); if (text || attachments.length) send.mutate({ body: text || undefined, attachments }); }} className={`h-10 w-10 items-center justify-center rounded-full ${(body.trim() || attachments.length) && !send.isPending ? 'bg-primary active:opacity-80' : 'bg-segment'}`}><Ionicons name="send" size={17} color={(body.trim() || attachments.length) && !send.isPending ? '#FFFFFF' : '#AEB4BE'} /></Pressable>
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
