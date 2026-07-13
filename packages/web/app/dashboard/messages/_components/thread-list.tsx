@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { MessageCircle, Search } from "lucide-react";
+import { FileText, ImageIcon, MessageCircle, Search, Video } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -107,7 +107,12 @@ export function ThreadList() {
                           unread ? "font-medium text-foreground" : "text-muted-foreground",
                         )}
                       >
-                        {thread.lastMessagePreview || t("deleted")}
+                        {thread.lastMessagePreview ? thread.lastMessagePreview : thread.lastMessageKind && thread.lastMessageKind !== "text" ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            {thread.lastMessageKind === "image" ? <ImageIcon className="h-3.5 w-3.5" /> : thread.lastMessageKind === "video" ? <Video className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
+                            {t(`previewKind.${thread.lastMessageKind}`)}
+                          </span>
+                        ) : t("deleted")}
                       </span>
                       {unread ? (
                         <span className="grid min-w-5 place-items-center rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-bold text-primary-foreground">

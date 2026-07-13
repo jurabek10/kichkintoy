@@ -11,6 +11,7 @@ export type NotificationItem = {
   notificationType: string;
   title: string;
   body: string | null;
+  metadata: NotificationSummary['metadata'];
   entityType: string | null;
   entityId: string | null;
   priority: NotificationSummary['priority'];
@@ -28,6 +29,7 @@ function toNotificationItem(notification: NotificationSummary): NotificationItem
       defaultValue: notification.title,
     }),
     body: notification.body,
+    metadata: notification.metadata,
     entityType: notification.entityType,
     entityId: notification.entityId,
     priority: notification.priority,

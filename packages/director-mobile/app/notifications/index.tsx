@@ -59,6 +59,7 @@ function NotificationRow({
   timeLabel: string;
   onPress: () => void;
 }) {
+  const { t: tm } = useTranslation('messages');
   const unread = !notification.readAt;
   const visual = notificationVisual(notification);
   const routable = routeForNotification(notification) !== null;
@@ -87,9 +88,9 @@ function NotificationRow({
           {unread ? <View className="mt-1.5 h-2 w-2 rounded-full bg-sky-ink" /> : null}
         </View>
 
-        {notification.body ? (
+        {notification.body || (notification.notificationType === 'message.received' && notification.metadata?.messageKind && notification.metadata.messageKind !== 'text') ? (
           <Text numberOfLines={2} className="mt-1 text-[13px] leading-5 text-muted">
-            {notification.body}
+            {notification.body ?? `${String(notification.metadata?.senderName ?? '')}: ${tm(`previewKind.${String(notification.metadata?.messageKind)}`)}`}
           </Text>
         ) : null}
 

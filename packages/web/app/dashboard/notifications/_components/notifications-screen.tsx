@@ -10,8 +10,10 @@ import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { routeForNotification } from "@/lib/notification-routes";
 import { queryKeys } from "@/lib/query-keys";
+import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function NotificationsScreen() {
+  const { t: tm } = useLayoutTranslation("messages");
   const queryClient = useQueryClient();
   const listKey = queryKeys.notifications.list();
 
@@ -97,9 +99,9 @@ export function NotificationsScreen() {
                       <Badge variant="warning">{notification.priority}</Badge>
                     ) : null}
                   </div>
-                  {notification.body ? (
+                  {notification.body || (notification.notificationType === "message.received" && notification.metadata?.messageKind && notification.metadata.messageKind !== "text") ? (
                     <p className="text-sm text-muted-foreground">
-                      {notification.body}
+                      {notification.body ?? `${String(notification.metadata?.senderName ?? "")}: ${tm(`previewKind.${String(notification.metadata?.messageKind)}`)}`}
                     </p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
