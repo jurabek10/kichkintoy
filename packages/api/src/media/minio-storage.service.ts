@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -68,6 +69,12 @@ export class MinioStorageService {
       url,
       expiresAt: new Date(Date.now() + this.downloadTtlSeconds * 1000),
     };
+  }
+
+  async assertObjectExists(objectKey: string) {
+    await this.client.send(
+      new HeadObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+    );
   }
 }
 

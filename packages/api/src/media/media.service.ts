@@ -35,7 +35,7 @@ const ALLOWED_DOCUMENT_TYPES = new Set([
   ...ALLOWED_OFFICE_TYPES,
 ]);
 const DEFAULT_UPLOAD_LIMIT_BYTES = 25 * 1024 * 1024;
-const DAILY_REPORT_VIDEO_LIMIT_BYTES = 100 * 1024 * 1024;
+const VIDEO_UPLOAD_LIMIT_BYTES = 100 * 1024 * 1024;
 
 @Injectable()
 export class MediaService {
@@ -62,17 +62,27 @@ export class MediaService {
     ) {
       throw new BadRequestException("Student document uploads must be images or PDFs.");
     }
+    if (
+      input.purpose === "comment" &&
+      !ALLOWED_IMAGE_TYPES.has(input.mimeType) &&
+      !ALLOWED_VIDEO_TYPES.has(input.mimeType) &&
+      !ALLOWED_DOCUMENT_TYPES.has(input.mimeType)
+    ) {
+      throw new BadRequestException("Comment uploads must be images, videos, PDFs, or Word documents.");
+    }
     if (input.purpose === "user_avatar" && !ALLOWED_IMAGE_TYPES.has(input.mimeType)) {
       throw new BadRequestException("Profile photo must be an image.");
     }
     const maxBytes =
-      input.purpose === "daily_report" && ALLOWED_VIDEO_TYPES.has(input.mimeType)
-        ? DAILY_REPORT_VIDEO_LIMIT_BYTES
+      (input.purpose === "daily_report" || input.purpose === "comment") &&
+      ALLOWED_VIDEO_TYPES.has(input.mimeType)
+        ? VIDEO_UPLOAD_LIMIT_BYTES
         : DEFAULT_UPLOAD_LIMIT_BYTES;
     if (input.sizeBytes > maxBytes) {
       throw new BadRequestException(
-        input.purpose === "daily_report" && ALLOWED_VIDEO_TYPES.has(input.mimeType)
-          ? "Daily report videos must be 100MB or smaller."
+        (input.purpose === "daily_report" || input.purpose === "comment") &&
+        ALLOWED_VIDEO_TYPES.has(input.mimeType)
+          ? "Videos must be 100MB or smaller."
           : "Uploads must be 25MB or smaller.",
       );
     }
@@ -88,6 +98,8 @@ export class MediaService {
         mediaType,
         mimeType: input.mimeType,
         sizeBytes: BigInt(input.sizeBytes),
+        originalFileName: input.fileName,
+        status: "pending",
       },
     });
     const objectKey = [
@@ -130,7 +142,12 @@ export class MediaService {
     if (asset.uploaderUserId !== userId) {
       await this.requireCenterUploader(userId, asset.centerId);
     }
-    return mediaAssetSchema.parse(toMediaAsset(asset));
+    await this.storage.assertObjectExists(asset.fileUrl);
+    const completed = await this.prisma.mediaAsset.update({
+      where: { id: mediaAssetId },
+      data: { status: "complete" },
+    });
+    return mediaAssetSchema.parse(toMediaAsset(completed));
   }
 
   async getDownloadUrl(userId: string, mediaAssetId: string) {
@@ -190,7 +207,8 @@ export class MediaService {
         purpose === "medication" ||
         purpose === "student_document" ||
         purpose === "user_avatar" ||
-        purpose === "child_profile"
+        purpose === "child_profile" ||
+        purpose === "comment"
       ) {
         const guardian = await this.prisma.childGuardian.findFirst({
           where: {
@@ -214,6 +232,12 @@ export class MediaService {
     mediaAssetId: string,
     centerId: string,
   ) {
+    const commentLink = await this.prisma.mediaLink.findFirst({
+      where: {
+        mediaAssetId,
+        entityType: { in: ["report_comment", "notice_comment", "album_comment"] },
+      },
+    });
     const center = await this.prisma.center.findUnique({
       where: { id: centerId },
       select: { organizationId: true },
@@ -231,8 +255,6 @@ export class MediaService {
           select: { id: true },
         })
       : null;
-    if (director) return true;
-
     const staff = await this.prisma.userRole.findFirst({
       where: {
         userId,
@@ -241,6 +263,17 @@ export class MediaService {
       },
       select: { id: true },
     });
+
+    if (commentLink) {
+      return this.canAccessCommentMedia(
+        userId,
+        commentLink.entityType,
+        commentLink.entityId,
+        Boolean(director),
+        Boolean(staff),
+      );
+    }
+    if (director) return true;
 
     const albumMedia = await this.prisma.albumMedia.findFirst({
       where: { mediaAssetId },
@@ -483,6 +516,110 @@ export class MediaService {
     }
 
     return false;
+  }
+
+  private async canAccessCommentMedia(
+    userId: string,
+    entityType: string,
+    commentId: string,
+    isDirector: boolean,
+    isTeacher: boolean,
+  ) {
+    if (entityType === "report_comment") {
+      const comment = await this.prisma.dailyReportComment.findUnique({
+        where: { id: commentId },
+        include: { dailyReport: true },
+      });
+      if (!comment || comment.deletedAt) return false;
+      if (isDirector) return true;
+      if (
+        isTeacher &&
+        (await this.teacherHasClassAccess(userId, [comment.dailyReport.classId]))
+      ) return true;
+      if (comment.dailyReport.status !== "published") return false;
+      return Boolean(
+        await this.prisma.childGuardian.findFirst({
+          where: { userId, childId: comment.dailyReport.childId },
+          select: { id: true },
+        }),
+      );
+    }
+
+    if (entityType === "notice_comment") {
+      const comment = await this.prisma.noticeComment.findUnique({
+        where: { id: commentId },
+        include: { notice: { include: { targets: true } } },
+      });
+      if (!comment || comment.deletedAt || comment.notice.status !== "published") {
+        return false;
+      }
+      if (isDirector || comment.notice.authorUserId === userId) return true;
+      if (
+        await this.prisma.noticeRecipient.findFirst({
+          where: { noticeId: comment.noticeId, userId },
+          select: { id: true },
+        })
+      ) return true;
+      if (!isTeacher) return false;
+      if (comment.notice.targetType === "center") {
+        return this.teacherHasCenterAccess(userId, comment.notice.centerId);
+      }
+      const classIds = comment.notice.targets
+        .filter((target) => target.targetKind === "class")
+        .map((target) => target.targetId);
+      if (await this.teacherHasClassAccess(userId, classIds)) return true;
+      const childIds = comment.notice.targets
+        .filter((target) => target.targetKind === "child")
+        .map((target) => target.targetId);
+      if (childIds.length === 0) return false;
+      return Boolean(
+        await this.prisma.childEnrollment.findFirst({
+          where: {
+            childId: { in: childIds },
+            enrollmentStatus: "active",
+            class: {
+              teacherClassAssignments: { some: { teacherUserId: userId, endedAt: null } },
+            },
+          },
+          select: { id: true },
+        }),
+      );
+    }
+
+    const comment = await this.prisma.albumComment.findUnique({
+      where: { id: commentId },
+      include: { post: { include: { classes: true, children: true } } },
+    });
+    if (!comment || comment.deletedAt || comment.post.deletedAt || comment.post.status !== "published") {
+      return false;
+    }
+    if (isDirector || comment.post.authorUserId === userId) return true;
+    const classIds = comment.post.classes.map((item) => item.classId);
+    if (isTeacher) return this.teacherHasClassAccess(userId, classIds);
+    if (comment.post.visibility === "tagged_children") {
+      return Boolean(
+        await this.prisma.childGuardian.findFirst({
+          where: {
+            userId,
+            childId: { in: comment.post.children.map((item) => item.childId) },
+          },
+          select: { id: true },
+        }),
+      );
+    }
+    return Boolean(
+      await this.prisma.childGuardian.findFirst({
+        where: {
+          userId,
+          child: {
+            childEnrollments: {
+              some: { enrollmentStatus: "active", classId: { in: classIds } },
+            },
+          },
+        },
+        select: { id: true },
+      }),
+    );
   }
 
   private async parentCanAccessStaffAvatar(parentUserId: string, staffUserId: string) {
