@@ -7,6 +7,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 import { queryKeys } from "@/lib/query-keys";
+import { FamilyCard } from "./family-card";
 import { MyChildrenCard } from "./my-children-card";
 import { MyClassesCard } from "./my-classes-card";
 import { NotificationsCard } from "./notifications-card";
@@ -47,6 +48,7 @@ export function MyPageScreen() {
               {/* Children are the hero of a parent's page (Kidsnote-style):
                   their photos come first, the parent's own details follow. */}
               <MyChildrenCard />
+              <FamilyCard />
               <ProfileCard profile={profile} />
             </>
           ) : (
@@ -55,7 +57,7 @@ export function MyPageScreen() {
               {profile.teacher ? <MyClassesCard /> : null}
             </>
           )}
-          <SecurityCard />
+          <SecurityCard profile={profile} />
           <NotificationsCard profile={profile} />
         </div>
       )}
