@@ -6,6 +6,7 @@ export * from "./centers.js";
 export * from "./chat.js";
 export * from "./classes.js";
 export * from "./comment-author.js";
+export * from "./complaints.js";
 export * from "./daily-reports.js";
 export * from "./geo.js";
 export * from "./media.js";
