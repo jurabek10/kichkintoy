@@ -17,6 +17,7 @@ type AuthContextValue = {
   /** True until the persisted session has been read from storage. */
   loading: boolean;
   signIn: (response: AuthResponse) => Promise<void>;
+  signInWithToken: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -53,6 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(stored);
   }
 
+  async function signInWithToken(token: string) {
+    setAuthToken(token);
+    const response = await orpc.auth.me({});
+    const parentRole = response.user.roles.find((role) => role.name === 'parent');
+    const stored: StoredSession = {
+      token,
+      user: { id: response.user.id, fullName: response.user.fullName, username: response.user.username,
+        phoneNumber: response.user.phoneNumber, role: 'parent' },
+      membership: { status: 'active', joinRequestId: null, centerId: parentRole?.centerId ?? null,
+        centerName: null, canApproveMembers: false },
+    };
+    await AsyncStorage.setItem(sessionStorageKey, JSON.stringify(stored));
+    setSession(stored);
+  }
+
   async function signOut() {
     try {
       await orpc.auth.logout({ token: session?.token });
@@ -66,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, loading, signIn, signInWithToken, signOut }}>
       {children}
     </AuthContext.Provider>
   );
