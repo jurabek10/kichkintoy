@@ -20,6 +20,7 @@ import { MediaService } from "../media/media.service";
 import { MedicationsService } from "../medications/medications.service";
 import { MealsService } from "../meals/meals.service";
 import { MessagesService } from "../messages/messages.service";
+import { ComplaintsService } from "../complaints/complaints.service";
 import { NoticesService } from "../notices/notices.service";
 import { NotificationsQueryService } from "../notifications/notifications-query.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -48,6 +49,7 @@ import { createMediaRouter } from "../media/media.router";
 import { createMedicationsRouter } from "../medications/medications.router";
 import { createMealsRouter } from "../meals/meals.router";
 import { createMessagesRouter } from "../messages/messages.router";
+import { createComplaintsRouter } from "../complaints/complaints.router";
 import { createNoticesRouter } from "../notices/notices.router";
 import { createNotificationsRouter } from "../notifications/notifications.router";
 import { createPaymentsRouter } from "../payments/payments.router";
@@ -75,6 +77,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     medicationsService: app.get(MedicationsService, { strict: false }),
     mealsService: app.get(MealsService, { strict: false }),
     messagesService: app.get(MessagesService, { strict: false }),
+    complaintsService: app.get(ComplaintsService, { strict: false }),
     noticesService: app.get(NoticesService, { strict: false }),
     notificationsQueryService: app.get(NotificationsQueryService, {
       strict: false,
@@ -139,6 +142,7 @@ function createORPCRouter(deps: ORPCDeps) {
     medications: createMedicationsRouter(os, deps),
     meals: createMealsRouter(os, deps),
     messages: createMessagesRouter(os, deps),
+    complaints: createComplaintsRouter(os, deps),
     reports: createReportsRouter(os, deps),
     studentDocuments: createStudentDocumentsRouter(os, deps),
     notices: createNoticesRouter(os, deps),

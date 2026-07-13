@@ -18,6 +18,7 @@ const MAX_BUCKETS = 50_000;
 // Per-procedure caps (requests/min/IP). Matched by URL suffix so the /rpc prefix
 // is irrelevant.
 const RULES: Array<{ test: (path: string) => boolean; limit: number }> = [
+  { test: (p) => p.endsWith("/complaints/create"), limit: 10 },
   { test: (p) => p.endsWith("/messages/send"), limit: 30 },
   { test: (p) => p.endsWith("/auth/sendCode"), limit: 5 },
   {

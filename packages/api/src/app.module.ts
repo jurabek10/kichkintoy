@@ -11,6 +11,7 @@ import { AuthModule } from "./auth/auth.module";
 import { CalendarModule } from "./calendar/calendar.module";
 import { CentersModule } from "./centers/centers.module";
 import { ChatModule } from "./chat/chat.module";
+import { ComplaintsModule } from "./complaints/complaints.module";
 import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
@@ -48,6 +49,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     AlbumsModule,
     CalendarModule,
     ChatModule,
+    ComplaintsModule,
     MembershipsModule,
     MediaModule,
     MedicationsModule,
