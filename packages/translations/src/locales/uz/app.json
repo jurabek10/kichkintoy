@@ -8,7 +8,10 @@
     "openTelegram": "Telegramni ochish",
     "scanQr": "Telefondagi Telegram orqali skanerlang",
     "or": "yoki",
-    "startError": "Telegram orqali kirishni boshlab bo‘lmadi. Qayta urinib ko‘ring."
+    "startError": "Telegram orqali kirishni boshlab bo‘lmadi. Qayta urinib ko‘ring.",
+    "verifyPhone": "Telegram orqali tasdiqlash",
+    "verifyWaiting": "Telegramda telefon raqamingizni ulashing…",
+    "verified": "Raqam Telegram orqali tasdiqlandi"
   },
   "actions": {
     "back": "Orqaga",

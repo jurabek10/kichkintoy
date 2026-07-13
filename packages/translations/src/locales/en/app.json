@@ -8,7 +8,10 @@
     "openTelegram": "Open Telegram",
     "scanQr": "Scan with Telegram on your phone",
     "or": "or",
-    "startError": "Could not start Telegram login. Try again."
+    "startError": "Could not start Telegram login. Try again.",
+    "verifyPhone": "Verify via Telegram",
+    "verifyWaiting": "Share your phone number in Telegram…",
+    "verified": "Phone verified via Telegram"
   },
   "actions": {
     "back": "Back",

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import QRCode from "qrcode";
 import { toast } from "sonner";
 import { FieldError, FieldHelper } from "@/components/field-error";
 import { FormActions } from "@/components/form-actions";
@@ -25,6 +26,53 @@ export function PhoneStep() {
   const [status, setStatus] = useState<CodeStatus>(
     draft.phoneVerificationToken ? "verified" : "idle",
   );
+  const [telegram, setTelegram] = useState<{
+    nonce: string;
+    deepLink: string;
+    qr: string;
+    expired: boolean;
+  } | null>(null);
+
+  const telegramStart = useMutation({
+    mutationFn: () => orpc.auth.telegramVerifyStart({}),
+    onSuccess: async (result) => {
+      setTelegram({
+        nonce: result.nonce,
+        deepLink: result.deepLink,
+        qr: await QRCode.toDataURL(result.deepLink, { width: 208, margin: 1 }),
+        expired: false,
+      });
+    },
+    onError: (error) => toast.error(toApiError(error).message),
+  });
+
+  useEffect(() => {
+    if (!telegram || telegram.expired) return;
+    const interval = setInterval(async () => {
+      try {
+        const result = await orpc.auth.telegramVerifyPoll({ nonce: telegram.nonce });
+        if (result.status === "verified") {
+          clearInterval(interval);
+          setTelegram(null);
+          setDraft((current) => ({
+            ...current,
+            phoneNumber: result.phoneNumber,
+            verificationCode: "",
+            phoneVerificationToken: result.verificationToken,
+          }));
+          setStatus("verified");
+          toast.success(t("telegram.verified"));
+        }
+        if (result.status === "expired") {
+          setTelegram((value) => (value ? { ...value, expired: true } : value));
+        }
+      } catch {
+        /* transient network failure — keep polling */
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [telegram?.nonce, telegram?.expired]);
 
   const sendCodeMutation = useMutation({
     mutationFn: () => orpc.auth.sendCode({ phoneNumber: draft.phoneNumber }),
@@ -74,6 +122,15 @@ export function PhoneStep() {
 
   function verifyAndContinue() {
     setErrors({});
+    // The Telegram channel already produced a verification token — no SMS code needed.
+    if (status === "verified" && draft.phoneVerificationToken) {
+      if (!draft.fullName.trim()) {
+        setErrors({ fullName: t("signup.errors.fullNameRequired") });
+        return;
+      }
+      router.push("/signup/credentials");
+      return;
+    }
     const next: Record<string, string> = {};
     if (!draft.fullName.trim()) next.fullName = t("signup.errors.fullNameRequired");
     if (!draft.phoneNumber.trim())
@@ -168,6 +225,63 @@ export function PhoneStep() {
           <FieldHelper>{t("signup.codeHelper")}</FieldHelper>
         )}
       </div>
+
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {t("telegram.or")}
+        </span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      {telegram ? (
+        <div className="flex flex-col items-center gap-4 rounded-xl border p-4 text-center">
+          {telegram.expired ? (
+            <>
+              <p className="font-semibold">{t("telegram.expired")}</p>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setTelegram(null);
+                  telegramStart.mutate();
+                }}
+              >
+                {t("telegram.tryAgain")}
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={telegram.qr}
+                alt={t("telegram.scanQr")}
+                className="h-52 w-52 rounded-xl"
+              />
+              <p className="text-sm text-muted-foreground">
+                {t("telegram.verifyWaiting")}
+              </p>
+              <Button asChild variant="outline" className="w-full">
+                <a href={telegram.deepLink} target="_blank" rel="noreferrer">
+                  {t("telegram.openTelegram")}
+                </a>
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" onClick={() => setTelegram(null)}>
+            {t("actions.cancel")}
+          </Button>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-[#229ED9] text-[#229ED9] hover:bg-[#229ED9]/10 hover:text-[#229ED9]"
+          onClick={() => telegramStart.mutate()}
+          disabled={telegramStart.isPending}
+        >
+          {t("telegram.verifyPhone")}
+        </Button>
+      )}
 
       <FormActions
         back={

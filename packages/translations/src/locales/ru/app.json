@@ -8,7 +8,10 @@
     "openTelegram": "Открыть Telegram",
     "scanQr": "Отсканируйте через Telegram на телефоне",
     "or": "или",
-    "startError": "Не удалось начать вход через Telegram. Повторите попытку."
+    "startError": "Не удалось начать вход через Telegram. Повторите попытку.",
+    "verifyPhone": "Подтвердить через Telegram",
+    "verifyWaiting": "Поделитесь номером телефона в Telegram…",
+    "verified": "Номер подтверждён через Telegram"
   },
   "actions": {
     "back": "Назад",
