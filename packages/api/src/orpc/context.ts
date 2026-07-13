@@ -17,6 +17,8 @@ import type { ClassService } from "../director/class.service";
 import type { DirectorAccessLevel } from "../director/director.guard";
 import type { DirectorService } from "../director/director.service";
 import type { GeoService } from "../geo/geo.service";
+import type { FamilyService } from "../family/family.service";
+import type { TelegramAuthService } from "../telegram/telegram-auth.service";
 import type { MediaService } from "../media/media.service";
 import type { MedicationsService } from "../medications/medications.service";
 import type { MealsService } from "../meals/meals.service";
@@ -50,6 +52,8 @@ export type ORPCDeps = {
   classService: ClassService;
   directorService: DirectorService;
   geoService: GeoService;
+  familyService: FamilyService;
+  telegramAuthService: TelegramAuthService;
   mediaService: MediaService;
   medicationsService: MedicationsService;
   mealsService: MealsService;

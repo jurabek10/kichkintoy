@@ -14,6 +14,8 @@ import { ChatService } from "../chat/chat.service";
 import { ClassService } from "../director/class.service";
 import { DirectorService } from "../director/director.service";
 import { GeoService } from "../geo/geo.service";
+import { FamilyService } from "../family/family.service";
+import { TelegramAuthService } from "../telegram/telegram-auth.service";
 import { MediaService } from "../media/media.service";
 import { MedicationsService } from "../medications/medications.service";
 import { MealsService } from "../meals/meals.service";
@@ -38,6 +40,7 @@ import { createCalendarRouter } from "../calendar/calendar.router";
 import { createCentersRouter } from "../centers/centers.router";
 import { createChatRouter } from "../chat/chat.router";
 import { createGeoRouter } from "../geo/geo.router";
+import { createFamilyRouter } from "../family/family.router";
 import { createTeacherRouter } from "../teacher/teacher.router";
 import { createDirectorRouter } from "../director/director.router";
 import { createMediaRouter } from "../media/media.router";
@@ -64,6 +67,8 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     classService: app.get(ClassService, { strict: false }),
     directorService: app.get(DirectorService, { strict: false }),
     geoService: app.get(GeoService, { strict: false }),
+    familyService: app.get(FamilyService, { strict: false }),
+    telegramAuthService: app.get(TelegramAuthService, { strict: false }),
     mediaService: app.get(MediaService, { strict: false }),
     medicationsService: app.get(MedicationsService, { strict: false }),
     mealsService: app.get(MealsService, { strict: false }),
@@ -118,6 +123,7 @@ function createORPCRouter(deps: ORPCDeps) {
   return os.router({
     admin: createAdminRouter(os, deps),
     auth: createAuthRouter(os, deps),
+    family: createFamilyRouter(os, deps),
     attendance: createAttendanceRouter(os, deps),
     albums: createAlbumsRouter(os, deps),
     calendar: createCalendarRouter(os, deps),

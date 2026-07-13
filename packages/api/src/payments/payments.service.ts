@@ -327,7 +327,7 @@ export class PaymentsService {
     userId: string,
   ): Promise<ParentEnrollment[]> {
     const guardians = await this.prisma.childGuardian.findMany({
-      where: { userId, child: { status: "active" } },
+      where: { userId, isPrimary: true, child: { status: "active" } },
       include: {
         child: {
           include: {
@@ -412,7 +412,7 @@ export class PaymentsService {
       throw new NotFoundException("Invoice not found.");
     }
     const guardian = await this.prisma.childGuardian.findFirst({
-      where: { userId, childId: invoice.childId },
+      where: { userId, childId: invoice.childId, isPrimary: true },
       select: { id: true },
     });
     if (!guardian) {
