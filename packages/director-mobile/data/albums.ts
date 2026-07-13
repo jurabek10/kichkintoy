@@ -7,7 +7,7 @@
  */
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateAlbumPostInput } from '@kichkintoy/shared';
+import type { CommentAttachment, CreateAlbumPostInput } from '@kichkintoy/shared';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
 import { useCenterId } from '@/data/teacher';
@@ -28,6 +28,7 @@ export type AlbumVisibility = 'class' | 'tagged_children';
 
 export type StaffAlbumSummary = {
   id: string;
+  centerId: string;
   caption: string;
   title: string;
   bodyPreview: string;
@@ -60,6 +61,7 @@ export type AlbumCommentView = {
   deleted: boolean;
   photoMediaAssetId: string | null;
   photoUrl: string | null;
+  attachments: CommentAttachment[];
 };
 
 export type StaffAlbumDetail = StaffAlbumSummary & {
@@ -93,6 +95,7 @@ function toSummary(post: ApiAlbumSummary): StaffAlbumSummary {
   const dateIso = post.publishedAt ?? post.updatedAt;
   return {
     id: post.id,
+    centerId: post.centerId,
     caption: post.caption,
     title: albumTitle(post),
     bodyPreview: post.bodyPreview,
@@ -132,6 +135,7 @@ function toDetail(post: ApiAlbumDetail): StaffAlbumDetail {
       body: comment.deletedAt ? '' : comment.body,
       dateLabel: formatDayMonthTime(comment.createdAt, lang),
       deleted: !!comment.deletedAt,
+      attachments: comment.attachments,
     })),
   };
 }
@@ -213,7 +217,7 @@ export function useDeleteAlbum(postId: string) {
 export function useAddAlbumComment(postId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) => orpc.albums.addComment({ postId, body: { body } }),
+    mutationFn: (input: { body: string; attachmentMediaAssetIds: string[] }) => orpc.albums.addComment({ postId, body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: albumDetailKey(postId) }),
   });
 }

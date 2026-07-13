@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SignedAlbumImage } from '@/components/album/signed-album-image';
 import { CommentBar } from '@/components/common/comment-bar';
+import { CommentAttachments } from '@/components/common/comment-attachments';
 import { PhotoViewer } from '@/components/common/photo-viewer';
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
 import { Avatar } from '@/components/ui/avatar';
@@ -256,6 +257,7 @@ export default function AlbumDetailScreen() {
                       )}>
                       {comment.deleted ? t('detail.commentDeleted') : comment.body}
                     </Text>
+                    {!comment.deleted ? <CommentAttachments attachments={comment.attachments} /> : null}
                   </View>
                 </View>
               ))
@@ -267,8 +269,9 @@ export default function AlbumDetailScreen() {
           <CommentBar
             placeholder={t('detail.writeComment')}
             accentColor={GRAPE}
-            onSubmit={async (text) => {
-              await addComment.mutateAsync(text);
+            centerId={album.centerId}
+            onSubmit={async (body, attachmentMediaAssetIds) => {
+              await addComment.mutateAsync({ body, attachmentMediaAssetIds });
             }}
           />
         ) : null}

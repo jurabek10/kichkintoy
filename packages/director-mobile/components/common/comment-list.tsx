@@ -1,6 +1,8 @@
 import { Text, View } from 'react-native';
 
 import { ProfileAvatar } from '@/components/profile/profile-avatar';
+import { CommentAttachments } from '@/components/common/comment-attachments';
+import type { CommentAttachment } from '@kichkintoy/shared';
 
 export type CommentItem = {
   id: string;
@@ -10,6 +12,7 @@ export type CommentItem = {
   /** Author photo — a media asset id (staff avatar or child photo) or a legacy URL. */
   photoMediaAssetId?: string | null;
   photoUrl?: string | null;
+  attachments: CommentAttachment[];
 };
 
 /** Generic comment thread (avatar + name + date + body), shared across features.
@@ -35,7 +38,8 @@ export function CommentList({ comments, emptyLabel }: { comments: CommentItem[];
               <Text className="text-sm font-bold text-foreground">{comment.authorName}</Text>
               <Text className="text-xs text-muted">{comment.dateLabel}</Text>
             </View>
-            <Text className="mt-0.5 text-sm leading-5 text-foreground">{comment.body}</Text>
+            {comment.body ? <Text className="mt-0.5 text-sm leading-5 text-foreground">{comment.body}</Text> : null}
+            <CommentAttachments attachments={comment.attachments} />
           </View>
         </View>
       ))}

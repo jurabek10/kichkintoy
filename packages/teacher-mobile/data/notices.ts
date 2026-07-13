@@ -7,7 +7,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { CreateNoticeRequest } from '@kichkintoy/shared';
+import type { CommentAttachment, CreateNoticeRequest } from '@kichkintoy/shared';
 import type { Query } from '@/data/parent';
 import i18n from '@/i18n';
 import { formatDayMonth, formatDayMonthTime, formatTime, localIsoDate } from '@/lib/date';
@@ -28,6 +28,7 @@ export type NoticeAudience = 'center' | 'class' | 'child';
 
 export type StaffNoticeSummary = {
   id: string;
+  centerId: string;
   title: string;
   bodyPreview: string;
   status: NoticeStatus;
@@ -69,6 +70,7 @@ export type NoticeCommentView = {
   deleted: boolean;
   photoMediaAssetId: string | null;
   photoUrl: string | null;
+  attachments: CommentAttachment[];
 };
 
 export type StaffNoticeDetail = StaffNoticeSummary & {
@@ -93,6 +95,7 @@ function toSummary(notice: ApiNoticeSummary): StaffNoticeSummary {
   const lang = i18n.language;
   return {
     id: notice.id,
+    centerId: notice.centerId,
     title: notice.title,
     bodyPreview: notice.bodyPreview,
     status: notice.status,
@@ -145,6 +148,7 @@ function toDetail(notice: ApiNoticeDetail): StaffNoticeDetail {
       body: comment.deletedAt ? '' : comment.body,
       dateLabel: `${formatDayMonth(localIsoDate(comment.createdAt), lang)} · ${formatTime(comment.createdAt)}`,
       deleted: !!comment.deletedAt,
+      attachments: comment.attachments,
     })),
   };
 }
@@ -232,7 +236,7 @@ export function useDeleteNotice(noticeId: string) {
 export function useAddNoticeComment(noticeId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) => orpc.notices.addComment({ noticeId, body: { body } }),
+    mutationFn: (input: { body: string; attachmentMediaAssetIds: string[] }) => orpc.notices.addComment({ noticeId, body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys(noticeId) }),
   });
 }

@@ -105,8 +105,9 @@ export default function ReportDetailScreen() {
         <CommentBar
           placeholder={t('detail.writeComment')}
           accentColor={CORAL}
-          onSubmit={async (text) => {
-            await addComment.mutateAsync(text);
+          centerId={report.centerId}
+          onSubmit={async (body, attachmentMediaAssetIds) => {
+            await addComment.mutateAsync({ body, attachmentMediaAssetIds });
           }}
         />
       </KeyboardAvoidingView>
