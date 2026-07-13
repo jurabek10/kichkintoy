@@ -13,6 +13,7 @@ import {
   albumReactionSummarySchema,
   albumVisibilitySchema,
   type CommentAuthorDisplay,
+  type AddAlbumCommentInput,
   type CreateAlbumPostInput,
   type UpdateAlbumPostBody,
 } from "@kichkintoy/shared";
@@ -24,6 +25,10 @@ import {
   splitPhotoRef,
 } from "../common/comment-author";
 import { NotificationsService } from "../notifications/notifications.service";
+import {
+  linkCommentAttachments,
+  loadCommentAttachments,
+} from "../common/comment-attachments";
 
 type Tx = Prisma.TransactionClient;
 
@@ -351,7 +356,7 @@ export class AlbumsService {
     return { success: true };
   }
 
-  async addComment(userId: string, postId: string, body: string) {
+  async addComment(userId: string, postId: string, input: AddAlbumCommentInput) {
     const post = await this.findPost(postId);
     if (!(await this.canViewPost(userId, post))) {
       throw new ForbiddenException("You cannot comment on this album post.");
@@ -361,15 +366,25 @@ export class AlbumsService {
     }
     const comment = await this.prisma.$transaction(async (tx) => {
       const created = await tx.albumComment.create({
-        data: { postId, authorUserId: userId, body: clean(body) },
+        data: { postId, authorUserId: userId, body: clean(input.body ?? "") },
         include: { authorUser: { select: { id: true, fullName: true } } },
+      });
+      await linkCommentAttachments(tx, {
+        mediaAssetIds: input.attachmentMediaAssetIds,
+        centerId: post.centerId,
+        userId,
+        entityType: "album_comment",
+        commentId: created.id,
       });
       await this.notifyComment(tx, post, userId);
       return created;
     });
-    const authors = await this.albumCommentAuthors(post, [comment]);
+    const [authors, attachments] = await Promise.all([
+      this.albumCommentAuthors(post, [comment]),
+      loadCommentAttachments(this.prisma, "album_comment", [comment.id]),
+    ]);
     return albumCommentSchema.parse(
-      toComment(comment, authors.get(comment.authorUserId)),
+      toComment(comment, authors.get(comment.authorUserId), attachments.get(comment.id) ?? []),
     );
   }
 
@@ -705,12 +720,23 @@ export class AlbumsService {
   }
 
   private async toDetail(post: AlbumPayload, userId: string) {
-    const authors = await this.albumCommentAuthors(post, post.comments);
+    const [authors, attachments] = await Promise.all([
+      this.albumCommentAuthors(post, post.comments),
+      loadCommentAttachments(
+        this.prisma,
+        "album_comment",
+        post.comments.map((comment) => comment.id),
+      ),
+    ]);
     return {
       ...this.toSummary(post, userId),
       media: post.media.map((item) => toMedia(item)),
       comments: post.comments.map((comment) =>
-        toComment(comment, authors.get(comment.authorUserId)),
+        toComment(
+          comment,
+          authors.get(comment.authorUserId),
+          comment.deletedAt ? [] : attachments.get(comment.id) ?? [],
+        ),
       ),
     };
   }
@@ -769,6 +795,7 @@ function toComment(
         include: { authorUser: { select: { id: true; fullName: true } } };
       }>,
   display: CommentAuthorDisplay | undefined,
+  attachments: import("@kichkintoy/shared").CommentAttachment[],
 ) {
   return {
     id: comment.id,
@@ -778,6 +805,7 @@ function toComment(
     deletedAt: comment.deletedAt?.toISOString() ?? null,
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
+    attachments,
     ...commentAuthorFallback(comment, display),
   };
 }

@@ -12,6 +12,7 @@ import {
   noticeRecipientActionResponseSchema,
   noticeSummarySchema,
   type CommentAuthorDisplay,
+  type AddNoticeCommentInput,
   type CreateNoticeRequest,
   type NoticeTargetType,
   type PublishNoticeRequest,
@@ -25,6 +26,10 @@ import {
   splitPhotoRef,
 } from "../common/comment-author";
 import { NotificationsService } from "../notifications/notifications.service";
+import {
+  linkCommentAttachments,
+  loadCommentAttachments,
+} from "../common/comment-attachments";
 
 type Tx = Prisma.TransactionClient;
 type AuthorAccess =
@@ -377,7 +382,7 @@ export class NoticesService {
     });
   }
 
-  async addComment(userId: string, noticeId: string, body: string) {
+  async addComment(userId: string, noticeId: string, input: AddNoticeCommentInput) {
     const notice = await this.requireNotice(noticeId);
     if (!(await this.canViewNotice(userId, notice))) {
       throw new ForbiddenException("You cannot comment on this notice.");
@@ -387,15 +392,29 @@ export class NoticesService {
     }
     const comment = await this.prisma.$transaction(async (tx) => {
       const created = await tx.noticeComment.create({
-        data: { noticeId, authorUserId: userId, body: body.trim() },
+        data: { noticeId, authorUserId: userId, body: input.body?.trim() ?? "" },
         include: { authorUser: { select: { id: true, fullName: true } } },
+      });
+      await linkCommentAttachments(tx, {
+        mediaAssetIds: input.attachmentMediaAssetIds,
+        centerId: notice.centerId,
+        userId,
+        entityType: "notice_comment",
+        commentId: created.id,
       });
       await this.notifyComment(tx, notice, userId);
       return created;
     });
-    const authors = await this.noticeCommentAuthors(notice, [comment]);
+    const [authors, attachments] = await Promise.all([
+      this.noticeCommentAuthors(notice, [comment]),
+      loadCommentAttachments(this.prisma, "notice_comment", [comment.id]),
+    ]);
     return noticeCommentSchema.parse(
-      toNoticeComment(comment, authors.get(comment.authorUserId)),
+      toNoticeComment(
+        comment,
+        authors.get(comment.authorUserId),
+        attachments.get(comment.id) ?? [],
+      ),
     );
   }
 
@@ -836,12 +855,23 @@ export class NoticesService {
     viewer?: { userId: string; childId?: string | null },
   ) {
     const summary = await this.toSummary(notice, viewer);
-    const authors = await this.noticeCommentAuthors(notice, notice.comments);
+    const [authors, attachments] = await Promise.all([
+      this.noticeCommentAuthors(notice, notice.comments),
+      loadCommentAttachments(
+        this.prisma,
+        "notice_comment",
+        notice.comments.map((comment) => comment.id),
+      ),
+    ]);
     return noticeDetailSchema.parse({
       ...summary,
       body: notice.body,
       comments: notice.comments.map((comment) =>
-        toNoticeComment(comment, authors.get(comment.authorUserId)),
+        toNoticeComment(
+          comment,
+          authors.get(comment.authorUserId),
+          comment.deletedAt ? [] : attachments.get(comment.id) ?? [],
+        ),
       ),
       recipients: notice.recipients.map((recipient) => {
         const childEnrollment = recipient.child?.childEnrollments[0];
@@ -1015,6 +1045,7 @@ function childName(child: { firstName: string; lastName?: string | null }) {
 function toNoticeComment(
   comment: NoticePayload["comments"][number],
   display: CommentAuthorDisplay | undefined,
+  attachments: import("@kichkintoy/shared").CommentAttachment[],
 ) {
   return {
     id: comment.id,
@@ -1024,6 +1055,7 @@ function toNoticeComment(
     deletedAt: comment.deletedAt?.toISOString() ?? null,
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
+    attachments,
     ...commentAuthorFallback(comment, display),
   };
 }

@@ -36,7 +36,7 @@ export function createAlbumsRouter(os: ORPCImplementer, deps: ORPCDeps) {
       return deps.albumsService.addComment(
         context.user.id,
         input.postId,
-        input.body.body,
+        input.body,
       );
     }),
     deleteComment: os.albums.deleteComment.use(access.authed).handler(

@@ -55,7 +55,7 @@ export function createNoticesRouter(os: ORPCImplementer, deps: ORPCDeps) {
         return deps.noticesService.addComment(
           context.user.id,
           input.noticeId,
-          input.body.body,
+          input.body,
         );
       },
     ),

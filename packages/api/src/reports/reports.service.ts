@@ -21,6 +21,10 @@ import {
 } from "../common/comment-author";
 import { AuditService } from "../audit/audit.service";
 import { NotificationsService } from "../notifications/notifications.service";
+import {
+  linkCommentAttachments,
+  loadCommentAttachments,
+} from "../common/comment-attachments";
 import type {
   BulkDailyReportRequest,
   CreateDailyReportRequest,
@@ -595,9 +599,17 @@ export class ReportsService {
             dailyReportId: report.id,
             authorUserId: userId,
             parentCommentId: input.parentCommentId ?? null,
-            body: input.body.trim(),
+            body: input.body?.trim() ?? "",
           },
           include: { authorUser: { select: { id: true, fullName: true } } },
+        });
+
+        await linkCommentAttachments(tx, {
+          mediaAssetIds: input.attachmentMediaAssetIds,
+          centerId: report.centerId,
+          userId,
+          entityType: "report_comment",
+          commentId: created.id,
         });
 
         await this.notifyNewComment(tx, report, userId);
@@ -605,7 +617,10 @@ export class ReportsService {
         return created;
       });
 
-      const authors = await this.reportCommentAuthors(report, [comment]);
+      const [authors, attachments] = await Promise.all([
+        this.reportCommentAuthors(report, [comment]),
+        loadCommentAttachments(this.prisma, "report_comment", [comment.id]),
+      ]);
       return {
         id: comment.id,
         authorUserId: comment.authorUserId,
@@ -615,6 +630,7 @@ export class ReportsService {
         deletedAt: null,
         createdAt: comment.createdAt.toISOString(),
         updatedAt: comment.updatedAt.toISOString(),
+        attachments: attachments.get(comment.id) ?? [],
         ...commentAuthorFallback(comment, authors.get(comment.authorUserId)),
       };
     });
@@ -949,6 +965,7 @@ export class ReportsService {
     const comments = report.comments.filter((comment) => !comment.deletedAt);
     return dailyReportSummarySchema.parse({
       id: report.id,
+      centerId: report.centerId,
       child: toChild(report.child),
       class: report.class,
       author: {
@@ -994,7 +1011,14 @@ export class ReportsService {
   }
 
   private async toDetail(report: ReportPayload) {
-    const authors = await this.reportCommentAuthors(report, report.comments);
+    const [authors, attachments] = await Promise.all([
+      this.reportCommentAuthors(report, report.comments),
+      loadCommentAttachments(
+        this.prisma,
+        "report_comment",
+        report.comments.map((comment) => comment.id),
+      ),
+    ]);
     return dailyReportDetailSchema.parse({
       ...(await this.toSummary(report)),
       healthNote: report.healthNote,
@@ -1017,6 +1041,7 @@ export class ReportsService {
         deletedAt: comment.deletedAt?.toISOString() ?? null,
         createdAt: comment.createdAt.toISOString(),
         updatedAt: comment.updatedAt.toISOString(),
+        attachments: comment.deletedAt ? [] : attachments.get(comment.id) ?? [],
         ...commentAuthorFallback(comment, authors.get(comment.authorUserId)),
       })),
     });
