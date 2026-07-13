@@ -19,11 +19,11 @@ function Item({ attachment }: { attachment: CommentAttachment }) {
     </a>
   );
   return <>
-    <button type="button" disabled={!url} onClick={() => attachment.mediaType === "image" ? setOpen(true) : url && window.open(url, "_blank", "noopener,noreferrer")} className="relative aspect-square w-[calc(50%-0.25rem)] overflow-hidden rounded-lg bg-muted">
+    <button type="button" disabled={!url} onClick={() => setOpen(true)} className="relative aspect-square w-[calc(50%-0.25rem)] overflow-hidden rounded-lg bg-muted">
       {url ? <img src={url} alt={attachment.fileName ?? ""} className="h-full w-full object-cover" /> : null}
       {attachment.mediaType === "video" ? <span className="absolute inset-0 grid place-items-center bg-black/20"><PlayCircle className="h-9 w-9 text-white" /></span> : null}
     </button>
-    <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-4xl border-0 bg-black p-2">{url ? <img src={url} alt={attachment.fileName ?? ""} className="max-h-[85vh] w-full object-contain" /> : null}</DialogContent></Dialog>
+    <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-4xl border-0 bg-black p-2">{url ? attachment.mediaType === "video" ? <video src={url} controls autoPlay className="max-h-[85vh] w-full" /> : <img src={url} alt={attachment.fileName ?? ""} className="max-h-[85vh] w-full object-contain" /> : null}</DialogContent></Dialog>
   </>;
 }
 

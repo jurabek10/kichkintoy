@@ -6,6 +6,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { MailPlus } from "lucide-react";
 import { toast } from "sonner";
 import type { MessageContact } from "@kichkintoy/shared";
+import {
+  CommentAttachmentPicker,
+  uploadMessageAttachments,
+  type PendingCommentAttachment,
+} from "@/components/comment-attachment-picker";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,19 +26,27 @@ export function ContactPicker() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MessageContact | null>(null);
   const [body, setBody] = useState("");
+  const [attachments, setAttachments] = useState<PendingCommentAttachment[]>([]);
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.messages.contacts(),
     queryFn: () => orpc.messages.contacts({}),
     enabled: open,
   });
   const start = useMutation({
-    mutationFn: () =>
-      orpc.messages.startThread({
+    mutationFn: async () => {
+      const attachmentMediaAssetIds = await uploadMessageAttachments(
+        selected!.centerId,
+        attachments,
+      );
+      return orpc.messages.startThread({
         recipientUserId: selected!.userId,
         centerId: selected!.centerId,
-        body,
-      }),
+        body: body.trim() || undefined,
+        attachmentMediaAssetIds,
+      });
+    },
     onSuccess: (detail) => {
+      attachments.forEach((item) => item.previewUrl && URL.revokeObjectURL(item.previewUrl));
       setOpen(false);
       router.push(`/dashboard/messages/${detail.thread.threadId}`);
     },
@@ -45,6 +58,7 @@ export function ContactPicker() {
     if (!next) {
       setSelected(null);
       setBody("");
+      setAttachments([]);
     }
   };
   const selectedIdentity = selected ? messageIdentityParts(selected, t) : null;
@@ -70,7 +84,8 @@ export function ContactPicker() {
               placeholder={t("firstMessage")}
               className="min-h-28"
             />
-            <Button className="w-full" disabled={!body.trim() || start.isPending} onClick={() => start.mutate()}>
+            <CommentAttachmentPicker value={attachments} onChange={setAttachments} labels={{ addPhoto: t("attachPhoto"), addVideo: t("attachVideo"), addFile: t("attachFile"), limit: t("attachmentLimit", { count: 4 }), tooLarge: t("attachmentTooLarge") }} />
+            <Button className="w-full" disabled={(!body.trim() && !attachments.length) || start.isPending} onClick={() => start.mutate()}>
               {start.isPending ? t("sending") : t("send")}
             </Button>
           </div>
