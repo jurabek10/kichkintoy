@@ -345,6 +345,24 @@ export class AuthService {
           },
         });
 
+        // Telegram-verified signups get their Telegram identity linked so
+        // "Continue with Telegram" login works immediately.
+        if (verification.channel === "telegram" && verification.telegramId) {
+          const telegramTaken = await tx.user.findUnique({
+            where: { telegramId: verification.telegramId },
+            select: { id: true },
+          });
+          if (!telegramTaken) {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                telegramId: verification.telegramId,
+                telegramUsername: verification.telegramUsername,
+              },
+            });
+          }
+        }
+
         let membership: MembershipPayload;
 
         if (input.invitationId) {

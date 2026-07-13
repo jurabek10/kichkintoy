@@ -52,6 +52,14 @@ export const authContract = {
     z.object({ status: z.literal("expired") }),
     z.object({ status: z.literal("approved"), token: z.string(), expiresAt: z.string().datetime() }),
   ])),
+  telegramVerifyStart: oc.input(emptyInputSchema).output(z.object({
+    nonce: z.string(), deepLink: z.string().url(), expiresAt: z.string().datetime(),
+  })),
+  telegramVerifyPoll: oc.input(z.object({ nonce: z.string().min(20) })).output(z.discriminatedUnion("status", [
+    z.object({ status: z.literal("pending") }),
+    z.object({ status: z.literal("expired") }),
+    z.object({ status: z.literal("verified"), phoneNumber: z.string(), verificationToken: z.string() }),
+  ])),
   sendCode: oc.input(sendCodeRequestSchema).output(sendCodeResponseSchema),
   verifyCode: oc
     .input(verifyCodeRequestSchema)

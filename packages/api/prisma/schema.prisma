@@ -227,6 +227,10 @@ model PhoneVerification {
   codeHash          String    @map("code_hash")
   verificationToken String?   @unique @map("verification_token")
   attempts          Int       @default(0)
+  // "sms" (Eskiz code) or "telegram" (contact shared in the bot, born verified).
+  channel           String    @default("sms")
+  telegramId        BigInt?   @map("telegram_id")
+  telegramUsername  String?   @map("telegram_username")
   expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
   verifiedAt        DateTime? @map("verified_at") @db.Timestamptz(6)
   consumedAt        DateTime? @map("consumed_at") @db.Timestamptz(6)
@@ -552,13 +556,17 @@ model FamilyInvitation {
 }
 
 model TelegramLoginNonce {
-  id         String    @id @default(uuid()) @db.Uuid
-  nonceHash  String    @unique @map("nonce_hash")
-  userId     String?   @map("user_id") @db.Uuid
-  approvedAt DateTime? @map("approved_at") @db.Timestamptz(6)
-  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
-  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                  String    @id @default(uuid()) @db.Uuid
+  nonceHash           String    @unique @map("nonce_hash")
+  // "login" confirms an existing account; "verify" proves phone ownership at signup.
+  purpose             String    @default("login")
+  userId              String?   @map("user_id") @db.Uuid
+  telegramId          BigInt?   @map("telegram_id")
+  phoneVerificationId String?   @map("phone_verification_id") @db.Uuid
+  approvedAt          DateTime? @map("approved_at") @db.Timestamptz(6)
+  consumedAt          DateTime? @map("consumed_at") @db.Timestamptz(6)
+  expiresAt           DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 

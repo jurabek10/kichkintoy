@@ -21,6 +21,8 @@ export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
   return {
     telegramLoginStart: os.auth.telegramLoginStart.handler(() => deps.telegramAuthService.start()),
     telegramLoginPoll: os.auth.telegramLoginPoll.handler(({ input }) => deps.telegramAuthService.poll(input.nonce)),
+    telegramVerifyStart: os.auth.telegramVerifyStart.handler(() => deps.telegramAuthService.startVerify()),
+    telegramVerifyPoll: os.auth.telegramVerifyPoll.handler(({ input }) => deps.telegramAuthService.pollVerify(input.nonce)),
     sendCode: os.auth.sendCode.handler(({ input, context }) =>
       deps.authService.sendCode(input, requestContext(context.req)),
     ),
