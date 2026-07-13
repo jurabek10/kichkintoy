@@ -63,24 +63,24 @@ export class MediaService {
       throw new BadRequestException("Student document uploads must be images or PDFs.");
     }
     if (
-      input.purpose === "comment" &&
+      (input.purpose === "comment" || input.purpose === "message") &&
       !ALLOWED_IMAGE_TYPES.has(input.mimeType) &&
       !ALLOWED_VIDEO_TYPES.has(input.mimeType) &&
       !ALLOWED_DOCUMENT_TYPES.has(input.mimeType)
     ) {
-      throw new BadRequestException("Comment uploads must be images, videos, PDFs, or Word documents.");
+      throw new BadRequestException("Uploads must be images, videos, PDFs, or Word documents.");
     }
     if (input.purpose === "user_avatar" && !ALLOWED_IMAGE_TYPES.has(input.mimeType)) {
       throw new BadRequestException("Profile photo must be an image.");
     }
     const maxBytes =
-      (input.purpose === "daily_report" || input.purpose === "comment") &&
+      (input.purpose === "daily_report" || input.purpose === "comment" || input.purpose === "message") &&
       ALLOWED_VIDEO_TYPES.has(input.mimeType)
         ? VIDEO_UPLOAD_LIMIT_BYTES
         : DEFAULT_UPLOAD_LIMIT_BYTES;
     if (input.sizeBytes > maxBytes) {
       throw new BadRequestException(
-        (input.purpose === "daily_report" || input.purpose === "comment") &&
+        (input.purpose === "daily_report" || input.purpose === "comment" || input.purpose === "message") &&
         ALLOWED_VIDEO_TYPES.has(input.mimeType)
           ? "Videos must be 100MB or smaller."
           : "Uploads must be 25MB or smaller.",
@@ -208,7 +208,8 @@ export class MediaService {
         purpose === "student_document" ||
         purpose === "user_avatar" ||
         purpose === "child_profile" ||
-        purpose === "comment"
+        purpose === "comment" ||
+        purpose === "message"
       ) {
         const guardian = await this.prisma.childGuardian.findFirst({
           where: {
@@ -232,6 +233,26 @@ export class MediaService {
     mediaAssetId: string,
     centerId: string,
   ) {
+    // Direct-message media is intentionally checked before center roles. Even
+    // directors and other staff must be one of the two thread participants.
+    const messageLink = await this.prisma.mediaLink.findFirst({
+      where: { mediaAssetId, entityType: "message" },
+      select: { entityId: true },
+    });
+    if (messageLink) {
+      const message = await this.prisma.message.findFirst({
+        where: {
+          id: messageLink.entityId,
+          deletedAt: null,
+          thread: {
+            threadType: "direct",
+            participants: { some: { userId } },
+          },
+        },
+        select: { id: true },
+      });
+      return Boolean(message);
+    }
     const commentLink = await this.prisma.mediaLink.findFirst({
       where: {
         mediaAssetId,

@@ -85,3 +85,28 @@ describe("MediaService staff avatar access", () => {
     );
   });
 });
+
+describe("MediaService direct-message attachment access", () => {
+  function messageService(messageVisible: boolean) {
+    const prisma = {
+      mediaAsset: { findUnique: vi.fn().mockResolvedValue({ id: ASSET_ID, centerId: CENTER_ID, uploaderUserId: STAFF_ID, fileUrl: `centers/${CENTER_ID}/message/${ASSET_ID}/original.pdf` }) },
+      mediaLink: { findFirst: vi.fn().mockResolvedValue({ entityId: "66666666-6666-4666-8666-666666666666" }) },
+      message: { findFirst: vi.fn().mockResolvedValue(messageVisible ? { id: "message" } : null) },
+    };
+    const storage = { createDownloadUrl: vi.fn().mockResolvedValue({ url: "https://media.example/file.pdf", expiresAt: new Date("2026-07-13T12:00:00.000Z") }) };
+    return { service: new MediaService(prisma as never, {} as never, storage as never), prisma };
+  }
+
+  it("allows an active thread participant to resolve the attachment", async () => {
+    const { service, prisma } = messageService(true);
+    await expect(service.getDownloadUrl(PARENT_ID, ASSET_ID)).resolves.toBeDefined();
+    expect(prisma.message.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ deletedAt: null, thread: expect.objectContaining({ participants: { some: { userId: PARENT_ID } } }) }),
+    }));
+  });
+
+  it("rejects non-participants and attachments on deleted messages", async () => {
+    const { service } = messageService(false);
+    await expect(service.getDownloadUrl(PARENT_ID, ASSET_ID)).rejects.toBeInstanceOf(ForbiddenException);
+  });
+});

@@ -45,10 +45,19 @@ describe("MessagesService privacy rules", () => {
 });
 
 describe("message body contract", () => {
-  it("trims valid bodies and rejects empty or oversized text", () => {
+  it("accepts text or attachments and enforces message limits", () => {
     expect(sendMessageInputSchema.parse({ body: "  hello  " }).body).toBe("hello");
     expect(sendMessageInputSchema.safeParse({ body: "   " }).success).toBe(false);
     expect(sendMessageInputSchema.safeParse({ body: "x".repeat(2001) }).success).toBe(false);
+    expect(sendMessageInputSchema.safeParse({
+      attachmentMediaAssetIds: ["11111111-1111-4111-8111-111111111111"],
+    }).success).toBe(true);
+    expect(sendMessageInputSchema.safeParse({
+      attachmentMediaAssetIds: Array.from(
+        { length: 5 },
+        (_, index) => `11111111-1111-4111-8111-11111111111${index}`,
+      ),
+    }).success).toBe(false);
   });
 });
 
