@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
+import type { ProfileView } from "@kichkintoy/shared";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,7 +19,7 @@ import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
 
-export function SecurityCard() {
+export function SecurityCard({ profile }: { profile: ProfileView }) {
   const { t } = useLayoutTranslation("profile");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -44,6 +46,37 @@ export function SecurityCard() {
       return;
     }
     mutation.mutate();
+  }
+
+  // Telegram-born accounts have no password; show how they sign in instead of a dead form.
+  if (!profile.hasPassword) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("security.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3 rounded-xl border bg-muted/40 px-4 py-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#229ED9]/10 text-[#229ED9]">
+              <Send className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-semibold">
+                {t("security.telegramOnlyTitle")}
+                {profile.telegramUsername ? (
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                    @{profile.telegramUsername}
+                  </span>
+                ) : null}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t("security.telegramOnly")}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

@@ -104,6 +104,7 @@ export default function MyPageScreen() {
 
         <SettingsGroupLabel>{t('hub.account')}</SettingsGroupLabel>
         <View className="overflow-hidden rounded-2xl border border-border">
+          <SettingRow icon="people-outline" tone="mint" label={t('family.title')} hint={t('family.subtitle')} onPress={() => router.push('/profile-settings/family' as never)} />
           <SettingRow
             icon="person-outline"
             tone="sky"
@@ -111,21 +112,34 @@ export default function MyPageScreen() {
             hint={t('hub.editProfileHint')}
             onPress={() => router.push('/profile-settings')}
           />
-          <SettingRow
-            icon="call-outline"
-            tone="grape"
-            label={t('fields.phone')}
-            value={profile?.phone ?? '—'}
-            onPress={() => router.push('/profile-settings/phone')}
-          />
-          <SettingRow
-            icon="lock-closed-outline"
-            tone="bubblegum"
-            label={t('actions.changePassword')}
-            hint={t('hub.passwordHint')}
-            onPress={() => router.push('/profile-settings/password')}
-            last
-          />
+          {profile?.hasPassword === false ? (
+            // Telegram-born accounts: no password, no SMS-verifiable phone — show how they sign in.
+            <SettingRow
+              icon="paper-plane-outline"
+              tone="sky"
+              label={t('security.telegramOnlyTitle')}
+              hint={profile.telegramUsername ? `@${profile.telegramUsername}` : t('security.telegramOnly')}
+              last
+            />
+          ) : (
+            <>
+              <SettingRow
+                icon="call-outline"
+                tone="grape"
+                label={t('fields.phone')}
+                value={profile?.phone ?? '—'}
+                onPress={() => router.push('/profile-settings/phone')}
+              />
+              <SettingRow
+                icon="lock-closed-outline"
+                tone="bubblegum"
+                label={t('actions.changePassword')}
+                hint={t('hub.passwordHint')}
+                onPress={() => router.push('/profile-settings/password')}
+                last
+              />
+            </>
+          )}
         </View>
 
         <SettingsGroupLabel>{t('hub.preferences')}</SettingsGroupLabel>

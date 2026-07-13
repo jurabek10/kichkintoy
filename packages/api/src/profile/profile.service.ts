@@ -38,6 +38,7 @@ export class ProfileService {
         userRoles: { include: { role: true, center: true } },
         userNotificationSettings: true,
         teacherProfile: true,
+        authCredential: { select: { id: true } },
       },
     });
 
@@ -70,6 +71,8 @@ export class ProfileService {
               bio: user.teacherProfile?.bio ?? null,
             }
           : null,
+      hasPassword: Boolean(user.authCredential),
+      telegramUsername: user.telegramUsername,
     });
   }
 
@@ -285,10 +288,13 @@ export class ProfileService {
   private async requireGuardian(userId: string, childId: string) {
     const guardian = await this.prisma.childGuardian.findUnique({
       where: { childId_userId: { childId, userId } },
-      select: { id: true },
+      select: { id: true, isPrimary: true },
     });
     if (!guardian) {
       throw new ForbiddenException("You are not a guardian of this child.");
+    }
+    if (!guardian.isPrimary) {
+      throw new ForbiddenException("Only the primary guardian can edit this child.");
     }
   }
 

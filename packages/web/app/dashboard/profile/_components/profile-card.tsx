@@ -139,14 +139,17 @@ export function ProfileCard({ profile }: { profile: ProfileView }) {
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   {profile.phone ?? "—"}
                 </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPhoneOpen(true)}
-                >
-                  {t("actions.changePhone")}
-                </Button>
+                {/* Telegram-born users have no SMS-verifiable phone; hide the change flow. */}
+                {profile.hasPassword ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPhoneOpen(true)}
+                  >
+                    {t("actions.changePhone")}
+                  </Button>
+                ) : null}
               </div>
             </div>
 

@@ -43,6 +43,9 @@ export const profileViewSchema = z.object({
   avatarMediaAssetId: uuidSchema.nullable(),
   notificationSettings: notificationSettingsSchema,
   teacher: teacherProfileViewSchema.nullable(),
+  // Telegram-born users have no AuthCredential; clients hide password/phone forms for them.
+  hasPassword: z.boolean(),
+  telegramUsername: z.string().nullable(),
 });
 export type ProfileView = z.infer<typeof profileViewSchema>;
 
