@@ -146,6 +146,8 @@ model User {
   fullName          String    @map("full_name")
   avatarUrl         String?   @map("avatar_url")
   preferredLanguage String    @default("uz") @map("preferred_language")
+  telegramId       BigInt?   @unique @map("telegram_id")
+  telegramUsername String?   @map("telegram_username")
   status            String    @default("active")
   lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -162,6 +164,9 @@ model User {
   calendarEventSeen           CalendarEventSeen[]
   centerInvitationsAccepted   CenterInvitation[]          @relation("CenterInvitationAcceptor")
   centerInvitationsCreated    CenterInvitation[]          @relation("CenterInvitationCreator")
+  familyInvitationsAccepted   FamilyInvitation[]          @relation("FamilyInvitationAcceptor")
+  familyInvitationsCreated    FamilyInvitation[]          @relation("FamilyInvitationCreator")
+  telegramLoginNonces         TelegramLoginNonce[]
   centerJoinRequests          CenterJoinRequest[]         @relation("JoinRequestParent")
   checkedInAttendanceRecords  AttendanceRecord[]          @relation("AttendanceCheckInBy")
   checkedOutAttendanceRecords AttendanceRecord[]          @relation("AttendanceCheckOutBy")
@@ -523,6 +528,41 @@ model CenterInvitation {
   @@index([centerId, createdAt(sort: Desc)])
   @@index([phone])
   @@map("center_invitations")
+}
+
+model FamilyInvitation {
+  id               String    @id @default(uuid()) @db.Uuid
+  invitedByUserId  String    @map("invited_by_user_id") @db.Uuid
+  relationship     String
+  code             String
+  preferredLanguage String?  @map("preferred_language")
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  acceptedAt       DateTime? @map("accepted_at") @db.Timestamptz(6)
+  acceptedByUserId String?   @map("accepted_by_user_id") @db.Uuid
+  telegramUserId   BigInt?   @map("telegram_user_id")
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invitedByUser  User  @relation("FamilyInvitationCreator", fields: [invitedByUserId], references: [id])
+  acceptedByUser User? @relation("FamilyInvitationAcceptor", fields: [acceptedByUserId], references: [id])
+
+  @@index([invitedByUserId, createdAt(sort: Desc)])
+  @@index([code])
+  @@map("family_invitations")
+}
+
+model TelegramLoginNonce {
+  id         String    @id @default(uuid()) @db.Uuid
+  nonceHash  String    @unique @map("nonce_hash")
+  userId     String?   @map("user_id") @db.Uuid
+  approvedAt DateTime? @map("approved_at") @db.Timestamptz(6)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("telegram_login_nonces")
 }
 
 model DailyReport {
