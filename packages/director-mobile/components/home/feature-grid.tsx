@@ -16,6 +16,7 @@ import { NewBadge } from '@/components/ui/badge';
 import { features, type Feature } from '@/constants/data';
 import { cn } from '@/lib/utils';
 import { orpc } from '@/lib/orpc';
+import { useAuth } from '@/lib/auth';
 
 /** Icons per page: a 2×4 grid. */
 const PAGE_SIZE = 8;
@@ -33,7 +34,7 @@ function FeatureTile({ feature, label, unreadCount }: { feature: Feature; label:
           <Ionicons name={feature.icon} size={26} color={feature.fg} />
         )}
         {feature.isNew ? <NewBadge /> : null}
-        {feature.key === 'messages' && unreadCount > 0 ? <View className="absolute -right-1 -top-1 min-w-5 items-center rounded-full bg-coral-ink px-1"><Text className="text-[9px] font-extrabold text-white">{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
+        {(feature.key === 'messages' || feature.key === 'complaints') && unreadCount > 0 ? <View className="absolute -right-1 -top-1 min-w-5 items-center rounded-full bg-coral-ink px-1"><Text className="text-[9px] font-extrabold text-white">{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
       </View>
       <Text numberOfLines={1} className="px-0.5 text-[11px] text-foreground">
         {label}
@@ -49,6 +50,9 @@ export function FeatureGrid() {
   const [width, setWidth] = useState(0);
   const [page, setPage] = useState(0);
   const unread = useQuery({ queryKey: ['messages', 'unread-count'], queryFn: () => orpc.messages.unreadCount(), refetchInterval: 30_000 });
+  const { session } = useAuth();
+  const centerId = session?.membership.centerId;
+  const openComplaints = useQuery({ queryKey: ['complaints', 'open-count', centerId], queryFn: () => orpc.complaints.openCount({ centerId: centerId! }), enabled: Boolean(centerId), refetchInterval: 30_000 });
 
   const pages: Feature[][] = [];
   for (let i = 0; i < features.length; i += PAGE_SIZE) pages.push(features.slice(i, i + PAGE_SIZE));
@@ -68,7 +72,7 @@ export function FeatureGrid() {
           ? pages.map((pageFeatures, index) => (
               <View key={index} style={{ width }} className="flex-row flex-wrap gap-y-4">
                 {pageFeatures.map((feature) => (
-                  <FeatureTile key={feature.key} feature={feature} label={t(feature.navKey)} unreadCount={unread.data?.total ?? 0} />
+                  <FeatureTile key={feature.key} feature={feature} label={t(feature.navKey)} unreadCount={feature.key === 'complaints' ? openComplaints.data?.total ?? 0 : unread.data?.total ?? 0} />
                 ))}
               </View>
             ))

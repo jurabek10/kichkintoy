@@ -28,6 +28,7 @@ const VISUALS: Record<string, NotificationVisual> = {
   calendar: { icon: 'calendar', tileClass: 'bg-sky', ink: '#3E8FE0' },
   documents: { icon: 'document-text', tileClass: 'bg-grape', ink: '#7C5CD8' },
   message: { icon: 'chatbubble', tileClass: 'bg-grape', ink: '#7C5CD8' },
+  complaint: { icon: 'shield-checkmark', tileClass: 'bg-sunshine', ink: '#B56E00' },
   notifications: { icon: 'notifications', tileClass: 'bg-sky', ink: '#3E8FE0' },
 };
 

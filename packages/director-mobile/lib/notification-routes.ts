@@ -13,6 +13,7 @@ export function routeForNotification(input: {
   if (target.kind === 'album') return { pathname: '/album/[id]', params: { id: target.id } };
   if (target.kind === 'meal') return '/meals';
   if (target.kind === 'message') return `/messages/${target.id}` as Href;
+  if (target.kind === 'complaint') return `/complaints/${target.id}` as Href;
 
   return null;
 }

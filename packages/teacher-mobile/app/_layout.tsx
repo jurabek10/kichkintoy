@@ -60,6 +60,8 @@ function RootNavigator() {
       <Stack.Screen name="messages/index" />
       <Stack.Screen name="messages/new" />
       <Stack.Screen name="messages/[threadId]" />
+      <Stack.Screen name="complaints/index" />
+      <Stack.Screen name="complaints/[complaintId]" />
       <Stack.Screen name="notice/[id]" />
       <Stack.Screen name="notice/new" />
       <Stack.Screen name="album/[id]" />

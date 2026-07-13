@@ -82,6 +82,7 @@ export type Feature = {
  *  swiper (see components/home/feature-grid.tsx). */
 export const features: Feature[] = [
   { key: 'messages', navKey: 'items.messages', route: '/messages' as Href, icon: 'chatbubbles', bg: '#EEE6FF', fg: '#7C5CD8' },
+  { key: 'complaints', navKey: 'items.complaints', route: '/complaints' as Href, icon: 'shield-checkmark', bg: '#FFF0CC', fg: '#B56E00' },
   { key: 'classes', navKey: 'items.myClasses', route: '/classes', icon: 'people', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'attendance', navKey: 'items.attendance', route: '/attendance', icon: 'calendar-number', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'reports', navKey: 'items.reports', route: '/(tabs)/reports', icon: 'document-text', bg: '#FFE8E2', fg: '#E8674E' },
