@@ -25,5 +25,11 @@
     "grandfather": "Bobo",
     "grandmother": "Buvi",
     "other": "Yaqin qarindosh"
-  }
+  },
+  "verifyPrompt": "📲 Kichkintoy'da ro'yxatdan o'tish uchun telefon raqamingizni tasdiqlang.\n\nQuyidagi tugma bilan raqamingizni ulashing 👇",
+  "verifyShareButton": "📱 Raqamimni ulashish",
+  "verifyDone": "✅ Raqamingiz tasdiqlandi!\n\nIlovaga qaytib, ro'yxatdan o'tishni davom ettiring.",
+  "verifyExpired": "Bu havolaning muddati tugagan. Ilovada qaytadan urinib ko'ring.",
+  "verifyOwnContact": "Iltimos, tugma orqali o'z raqamingizni ulashing.",
+  "alreadyAccount": "Sizda allaqachon Kichkintoy hisobi bor.\n\nIlovada <b>Telegram orqali davom etish</b> tugmasi bilan kiring."
 }

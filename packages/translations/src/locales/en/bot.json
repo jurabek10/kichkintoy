@@ -25,5 +25,11 @@
     "grandfather": "Grandfather",
     "grandmother": "Grandmother",
     "other": "Close relative"
-  }
+  },
+  "verifyPrompt": "📲 Confirm your phone number to sign up for Kichkintoy.\n\nShare your number with the button below 👇",
+  "verifyShareButton": "📱 Share my number",
+  "verifyDone": "✅ Your number is confirmed!\n\nReturn to the app and continue signing up.",
+  "verifyExpired": "This link has expired. Try again in the app.",
+  "verifyOwnContact": "Please share your own number using the button.",
+  "alreadyAccount": "You already have a Kichkintoy account.\n\nSign in to the app with <b>Continue with Telegram</b>."
 }

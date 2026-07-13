@@ -5,7 +5,8 @@ import { BotLang, botText, escapeHtml, isBotLang } from "./bot-messages";
 import { TelegramAuthService } from "./telegram-auth.service";
 
 type TelegramUser = { id: number; username?: string; first_name: string; last_name?: string; language_code?: string };
-type Update = { message?: { text?: string; from?: TelegramUser; chat: { id: number } }; callback_query?: { id: string; data?: string; from: TelegramUser; message?: { chat: { id: number } } } };
+type Contact = { phone_number: string; user_id?: number };
+type Update = { message?: { text?: string; contact?: Contact; from?: TelegramUser; chat: { id: number } }; callback_query?: { id: string; data?: string; from: TelegramUser; message?: { chat: { id: number } } } };
 type Keyboard = Array<Array<{ text: string; callback_data: string }>>;
 
 const failures = new Map<string, { attempts: number[]; cooldownUntil?: number }>();
@@ -24,10 +25,14 @@ export class TelegramController {
   }
 
   @Post("sandbox")
-  async sandbox(@Body() body: { action: "accept" | "login"; code?: string; nonce?: string; telegramId: string; username?: string; fullName?: string; language?: string }) {
+  async sandbox(@Body() body: { action: "accept" | "login" | "verify"; code?: string; nonce?: string; phone?: string; telegramId: string; username?: string; fullName?: string; language?: string }) {
     if (process.env.TELEGRAM_BOT_TOKEN || process.env.NODE_ENV === "production") throw new NotFoundException();
     if (body.action === "accept" && body.code) return this.family.acceptByTelegram(body.code, { id: BigInt(body.telegramId), username: body.username, fullName: body.fullName || "Telegram User", language: body.language });
     if (body.action === "login" && body.nonce) return { approved: await this.auth.approve(body.nonce, BigInt(body.telegramId)) };
+    if (body.action === "verify" && body.nonce && body.phone) {
+      await this.auth.bindVerify(body.nonce, BigInt(body.telegramId));
+      return { verified: await this.auth.completeVerify({ id: BigInt(body.telegramId), username: body.username }, body.phone) };
+    }
     throw new NotFoundException("Unsupported sandbox action.");
   }
 
@@ -58,10 +63,29 @@ export class TelegramController {
     if (text?.startsWith("/start login_")) {
       const nonce = text.slice("/start login_".length);
       if (!user) return this.send(chatId, botText(lang, "noAccount"));
-      return this.send(chatId, botText(lang, "loginConfirm"), [[
+      return this.send(chatId, botText(lang, "loginConfirm"), { inline_keyboard: [[
         { text: botText(lang, "btnLoginConfirm"), callback_data: `login:${nonce}` },
         { text: botText(lang, "btnLoginCancel"), callback_data: "logincancel" },
-      ]]);
+      ]] });
+    }
+
+    // Signup phone verification: deep link binds the sender, the shared contact completes it.
+    if (text?.startsWith("/start verify_")) {
+      const nonce = text.slice("/start verify_".length);
+      if (user) return this.send(chatId, botText(lang, "alreadyAccount"));
+      const bound = await this.auth.bindVerify(nonce, BigInt(from.id));
+      if (!bound) return this.send(chatId, botText(lang, "verifyExpired"));
+      return this.send(chatId, botText(lang, "verifyPrompt"), {
+        keyboard: [[{ text: botText(lang, "verifyShareButton"), request_contact: true }]],
+        resize_keyboard: true, one_time_keyboard: true,
+      });
+    }
+    if (message?.contact) {
+      // Only the sender's own contact proves ownership; forwarded cards don't.
+      if (message.contact.user_id !== from.id) return this.send(chatId, botText(lang, "verifyOwnContact"));
+      if (user) return this.send(chatId, botText(lang, "alreadyAccount"), { remove_keyboard: true });
+      const verified = await this.auth.completeVerify({ id: BigInt(from.id), username: from.username }, message.contact.phone_number);
+      return this.send(chatId, botText(lang, verified ? "verifyDone" : "verifyExpired"), { remove_keyboard: true });
     }
     if (callback?.data?.startsWith("login:")) {
       const approved = await this.auth.approve(callback.data.slice(6), BigInt(from.id));
@@ -91,18 +115,18 @@ export class TelegramController {
         inviter: escapeHtml(preview.inviterName),
         children: this.childList(lang, preview.childNames),
         relationship: botText(lang, `relationship.${preview.relationship}`),
-      }), [[
+      }), { inline_keyboard: [[
         { text: botText(lang, "btnAccept"), callback_data: `accept:${code}` },
         { text: botText(lang, "btnDecline"), callback_data: "decline" },
-      ]]);
+      ]] });
     }
 
     if (text?.startsWith("/start") && !storedLang) {
-      return this.send(chatId, botText(lang, "chooseLanguage"), [[
+      return this.send(chatId, botText(lang, "chooseLanguage"), { inline_keyboard: [[
         { text: "🇺🇿 O‘zbekcha", callback_data: "lang:uz" },
         { text: "🇷🇺 Русский", callback_data: "lang:ru" },
         { text: "🇬🇧 English", callback_data: "lang:en" },
-      ]]);
+      ]] });
     }
     if (text?.startsWith("/start")) return this.send(chatId, botText(lang, "welcome", { name: escapeHtml(from.first_name) }));
     return this.send(chatId, botText(lang, "fallback"));
@@ -133,8 +157,8 @@ export class TelegramController {
     await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ callback_query_id: callbackQueryId }) });
   }
 
-  private async send(chatId: number, text: string, inline_keyboard?: Keyboard) {
+  private async send(chatId: number, text: string, replyMarkup?: { inline_keyboard: Keyboard } | Record<string, unknown>) {
     const token = process.env.TELEGRAM_BOT_TOKEN; if (!token) return;
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", reply_markup: inline_keyboard ? { inline_keyboard } : undefined }) });
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", reply_markup: replyMarkup }) });
   }
 }
