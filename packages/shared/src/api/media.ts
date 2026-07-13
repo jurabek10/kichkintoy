@@ -11,6 +11,7 @@ export const mediaPurposeValues = [
   "student_document",
   "user_avatar",
   "comment",
+  "message",
 ] as const;
 export const mediaPurposeSchema = z.enum(mediaPurposeValues);
 export type MediaPurpose = z.infer<typeof mediaPurposeSchema>;
@@ -23,7 +24,7 @@ export const createMediaUploadUrlInputSchema = z.object({
   purpose: mediaPurposeSchema,
 }).superRefine((input, ctx) => {
   const maxBytes =
-    (input.purpose === "daily_report" || input.purpose === "comment") &&
+    (input.purpose === "daily_report" || input.purpose === "comment" || input.purpose === "message") &&
     input.mimeType.startsWith("video/")
       ? 100 * 1024 * 1024
       : 25 * 1024 * 1024;
@@ -32,7 +33,7 @@ export const createMediaUploadUrlInputSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ["sizeBytes"],
       message:
-        (input.purpose === "daily_report" || input.purpose === "comment") &&
+        (input.purpose === "daily_report" || input.purpose === "comment" || input.purpose === "message") &&
         input.mimeType.startsWith("video/")
           ? "Videos must be 100MB or smaller."
           : "Uploads must be 25MB or smaller.",

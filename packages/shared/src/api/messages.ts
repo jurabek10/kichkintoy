@@ -44,10 +44,23 @@ export const messageParticipantSchema = messageContactSchema.pick({
 });
 export type MessageParticipant = z.infer<typeof messageParticipantSchema>;
 
+export const messageAttachmentSchema = z.object({
+  mediaAssetId: uuidSchema,
+  mediaType: z.enum(["image", "video", "file"]),
+  fileName: z.string().nullable(),
+  mimeType: z.string().nullable(),
+  sizeBytes: z.number().int().nullable(),
+  thumbnailUrl: z.string().nullable(),
+  width: z.number().int().nullable(),
+  height: z.number().int().nullable(),
+});
+export type MessageAttachment = z.infer<typeof messageAttachmentSchema>;
+
 export const messageSchema = z.object({
   id: uuidSchema,
   senderUserId: uuidSchema,
   body: z.string().nullable(),
+  attachments: z.array(messageAttachmentSchema),
   deletedAt: isoDateTimeSchema.nullable(),
   createdAt: isoDateTimeSchema,
 });
@@ -58,20 +71,30 @@ export const threadSummarySchema = z.object({
   centerId: uuidSchema,
   otherParticipant: messageParticipantSchema,
   lastMessagePreview: z.string().nullable(),
+  lastMessageKind: z.enum(["text", "image", "video", "file"]).nullable(),
   lastMessageAt: isoDateTimeSchema.nullable(),
   unreadCount: z.number().int().min(0),
 });
 export type ThreadSummary = z.infer<typeof threadSummarySchema>;
 
-export const sendMessageInputSchema = z.object({
-  body: z.string().trim().min(1).max(2000),
-});
+export const sendMessageInputSchema = z
+  .object({
+    body: z.string().trim().max(2000).optional(),
+    attachmentMediaAssetIds: z.array(uuidSchema).max(4).default([]),
+  })
+  .refine(
+    (input) => Boolean(input.body) || input.attachmentMediaAssetIds.length > 0,
+    { message: "A message needs text or at least one attachment." },
+  );
 export type SendMessageInput = z.infer<typeof sendMessageInputSchema>;
 
-export const startThreadInputSchema = sendMessageInputSchema.extend({
-  recipientUserId: uuidSchema,
-  centerId: uuidSchema.optional(),
-});
+export const startThreadInputSchema = z.intersection(
+  sendMessageInputSchema,
+  z.object({
+    recipientUserId: uuidSchema,
+    centerId: uuidSchema.optional(),
+  }),
+);
 export type StartThreadInput = z.infer<typeof startThreadInputSchema>;
 
 export const messageCursorInputSchema = z
