@@ -1344,12 +1344,15 @@ model AttendanceRecord {
 }
 
 model ConversationThread {
-  id         String   @id @default(uuid()) @db.Uuid
-  centerId   String   @map("center_id") @db.Uuid
-  classId    String?  @map("class_id") @db.Uuid
-  childId    String?  @map("child_id") @db.Uuid
-  threadType String   @map("thread_type")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                 String    @id @default(uuid()) @db.Uuid
+  centerId           String    @map("center_id") @db.Uuid
+  classId            String?   @map("class_id") @db.Uuid
+  childId            String?   @map("child_id") @db.Uuid
+  threadType         String    @map("thread_type")
+  lastMessageAt      DateTime? @map("last_message_at") @db.Timestamptz(6)
+  lastMessagePreview String?   @map("last_message_preview")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   center       Center                    @relation(fields: [centerId], references: [id])
   child        Child?                    @relation(fields: [childId], references: [id])
@@ -1358,6 +1361,7 @@ model ConversationThread {
   participants ConversationParticipant[]
 
   @@index([centerId])
+  @@index([centerId, lastMessageAt])
   @@index([classId])
   @@index([childId])
   @@map("conversation_threads")
@@ -1389,7 +1393,7 @@ model Message {
   senderUser User               @relation(fields: [senderUserId], references: [id])
   thread     ConversationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
-  @@index([threadId])
+  @@index([threadId, createdAt])
   @@index([senderUserId])
   @@map("messages")
 }
