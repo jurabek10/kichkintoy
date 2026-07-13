@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
 import { notificationPrioritySchema } from "./notifications.js";
+import { messageSchema } from "./messages.js";
 
 export const realtimeQueryInvalidationHintSchema = z.object({
   group: z.string().min(1),
@@ -48,6 +49,25 @@ export const realtimeNotificationCountUpdatedMessageSchema = z.object({
   }),
 });
 
+export const realtimeMessageCreatedMessageSchema = z.object({
+  type: z.literal("message.created"),
+  payload: z.object({ threadId: uuidSchema, message: messageSchema }),
+});
+
+export const realtimeMessageDeletedMessageSchema = z.object({
+  type: z.literal("message.deleted"),
+  payload: z.object({ threadId: uuidSchema, message: messageSchema }),
+});
+
+export const realtimeThreadReadMessageSchema = z.object({
+  type: z.literal("thread.read"),
+  payload: z.object({
+    threadId: uuidSchema,
+    userId: uuidSchema,
+    lastReadAt: isoDateTimeSchema,
+  }),
+});
+
 export const realtimeErrorMessageSchema = z.object({
   type: z.literal("error"),
   payload: z.object({
@@ -60,6 +80,9 @@ export const serverRealtimeMessageSchema = z.discriminatedUnion("type", [
   realtimeConnectionReadyMessageSchema,
   realtimeNotificationCreatedMessageSchema,
   realtimeNotificationCountUpdatedMessageSchema,
+  realtimeMessageCreatedMessageSchema,
+  realtimeMessageDeletedMessageSchema,
+  realtimeThreadReadMessageSchema,
   realtimeErrorMessageSchema,
 ]);
 export type ServerRealtimeMessage = z.infer<typeof serverRealtimeMessageSchema>;

@@ -3,6 +3,7 @@ import type { Server } from "node:http";
 import type { IncomingMessage } from "node:http";
 import type { Notification } from "@prisma/client";
 import type { ServerRealtimeMessage } from "@kichkintoy/shared";
+import type { DirectMessage } from "@kichkintoy/shared";
 import { WebSocket, WebSocketServer } from "ws";
 import { PrismaService } from "../database/prisma.service";
 import { RealtimeService } from "./realtime.service";
@@ -81,6 +82,21 @@ export class RealtimeGateway {
     });
   }
 
+  publishMessageCreated(userIds: string[], threadId: string, message: DirectMessage) {
+    this.sendToUsers(userIds, { type: "message.created", payload: { threadId, message } });
+  }
+
+  publishMessageDeleted(userIds: string[], threadId: string, message: DirectMessage) {
+    this.sendToUsers(userIds, { type: "message.deleted", payload: { threadId, message } });
+  }
+
+  publishThreadRead(userIds: string[], threadId: string, userId: string, lastReadAt: string) {
+    this.sendToUsers(userIds, {
+      type: "thread.read",
+      payload: { threadId, userId, lastReadAt },
+    });
+  }
+
   private async handleConnection(socket: WebSocket, request: IncomingMessage) {
     try {
       const url = new URL(request.url ?? "", "http://localhost");
@@ -128,6 +144,10 @@ export class RealtimeGateway {
     for (const socket of sockets) {
       this.send(socket, message);
     }
+  }
+
+  private sendToUsers(userIds: string[], message: ServerRealtimeMessage) {
+    for (const userId of new Set(userIds)) this.sendToUser(userId, message);
   }
 
   private send(socket: WebSocket, message: ServerRealtimeMessage) {
