@@ -471,7 +471,59 @@ export class MediaService {
       );
     }
 
+    // User avatars are private media too. A parent may read only the avatar of
+    // a teacher currently assigned to their child's class or a director
+    // assigned directly to their child's center.
+    const profileUser = await this.prisma.user.findFirst({
+      where: { avatarUrl: mediaAssetId, status: "active" },
+      select: { id: true },
+    });
+    if (profileUser) {
+      return this.parentCanAccessStaffAvatar(userId, profileUser.id);
+    }
+
     return false;
+  }
+
+  private async parentCanAccessStaffAvatar(parentUserId: string, staffUserId: string) {
+    const enrollments = await this.prisma.childEnrollment.findMany({
+      where: {
+        enrollmentStatus: "active",
+        child: {
+          childGuardians: { some: { userId: parentUserId, canMessage: true } },
+        },
+      },
+      select: { centerId: true, classId: true },
+    });
+    if (enrollments.length === 0) return false;
+
+    const centerIds = [...new Set(enrollments.map((item) => item.centerId))];
+    const director = await this.prisma.userRole.findFirst({
+      where: {
+        userId: staffUserId,
+        centerId: { in: centerIds },
+        role: { name: "director" },
+      },
+      select: { id: true },
+    });
+    if (director) return true;
+
+    const classIds = enrollments
+      .map((item) => item.classId)
+      .filter((id): id is string => Boolean(id));
+    if (classIds.length === 0) return false;
+    const today = startOfUtcDay(new Date());
+    return Boolean(
+      await this.prisma.teacherClassAssignment.findFirst({
+        where: {
+          teacherUserId: staffUserId,
+          classId: { in: classIds },
+          startedAt: { lte: today },
+          OR: [{ endedAt: null }, { endedAt: { gte: today } }],
+        },
+        select: { id: true },
+      }),
+    );
   }
 
   private async teacherHasClassAccess(userId: string, classIds: string[]) {
@@ -505,6 +557,12 @@ export class MediaService {
 /** Object keys are `centers/{centerId}/{purpose}/{assetId}/original.ext`. */
 function objectKeyPurpose(objectKey: string) {
   return objectKey.split("/")[2] ?? null;
+}
+
+function startOfUtcDay(value: Date) {
+  const result = new Date(value);
+  result.setUTCHours(0, 0, 0, 0);
+  return result;
 }
 
 function mediaTypeForMime(mimeType: string) {
