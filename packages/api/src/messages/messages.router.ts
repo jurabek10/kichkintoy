@@ -17,7 +17,7 @@ export function createMessagesRouter(os: ORPCImplementer, deps: ORPCDeps) {
       deps.messagesService.startThread(context.user.id, input),
     ),
     send: os.messages.send.use(access.authed).handler(({ input, context }) =>
-      deps.messagesService.send(context.user.id, input.threadId, input.body),
+      deps.messagesService.send(context.user.id, input.threadId, input),
     ),
     markRead: os.messages.markRead.use(access.authed).handler(({ input, context }) =>
       deps.messagesService.markRead(context.user.id, input.threadId),

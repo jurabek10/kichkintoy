@@ -14,6 +14,8 @@ import {
   unreadMessageCountSchema,
   type MessageContact,
   type MessageContactRole,
+  type MessageAttachment,
+  type SendMessageInput,
   type StartThreadInput,
 } from "@kichkintoy/shared";
 import { AuditService } from "../audit/audit.service";
@@ -21,6 +23,12 @@ import { PrismaService } from "../database/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
 import { splitPhotoRef } from "../common/comment-author";
+import {
+  linkMessageAttachments,
+  loadMessageAttachments,
+  messageKind,
+  type MessageKind,
+} from "./message-attachments";
 
 type Tx = Prisma.TransactionClient;
 type CenterScope = {
@@ -101,12 +109,16 @@ export class MessagesService {
     });
     const hasMore = rows.length > limit;
     const pageRows = rows.slice(0, limit);
+    const attachments = await loadMessageAttachments(
+      this.prisma,
+      pageRows.filter((row) => !row.deletedAt).map((row) => row.id),
+    );
     const nextCursor = hasMore ? pageRows.at(-1)?.id ?? null : null;
     // Older-page fetches must not re-trigger read receipts and realtime chatter.
     if (markRead && !page.cursor) await this.markRead(userId, threadId);
     return threadDetailSchema.parse({
       thread: await this.toSummary(thread, userId),
-      messages: pageRows.reverse().map(toMessage),
+      messages: pageRows.reverse().map((row) => toMessage(row, attachments.get(row.id) ?? [])),
       nextCursor,
     });
   }
@@ -122,34 +134,52 @@ export class MessagesService {
       throw new BadRequestException("Choose a center before starting this conversation.");
     }
 
-    const body = input.body.trim();
+    const body = input.body?.trim() || null;
     this.checkSendRate(userId);
     const created = await this.createOrReuseAndSend(
       userId,
       input.recipientUserId,
       centers[0],
       body,
+      input.attachmentMediaAssetIds,
     );
     this.realtime.publishMessageCreated(
       [userId, input.recipientUserId],
       created.threadId,
-      messageSchema.parse(toMessage(created.message)),
+      messageSchema.parse(toMessage(created.message, created.attachments)),
     );
-    await this.notifyRecipient(created.threadId, userId, input.recipientUserId, body);
+    await this.notifyRecipient(created.threadId, userId, input.recipientUserId, body, created.kind);
     return this.thread(userId, created.threadId, { limit: 10 }, false);
   }
 
-  async send(userId: string, threadId: string, bodyInput: string) {
+  async send(
+    userId: string,
+    threadId: string,
+    input: SendMessageInput & { threadId?: string },
+  ) {
     const thread = await this.requireParticipant(userId, threadId);
     this.checkSendRate(userId);
-    const body = bodyInput.trim();
+    const body = input.body?.trim() || null;
     const recipient = thread.participants.find((item) => item.userId !== userId);
     if (!recipient) throw new NotFoundException("Conversation not found.");
     const message = await this.prisma.$transaction(async (tx) => {
       const created = await tx.message.create({ data: { threadId, senderUserId: userId, body } });
+      const kind = await linkMessageAttachments(tx, {
+        mediaAssetIds: input.attachmentMediaAssetIds,
+        centerId: thread.centerId,
+        userId,
+        messageId: created.id,
+      });
+      const updated = kind === "text"
+        ? created
+        : await tx.message.update({ where: { id: created.id }, data: { messageType: kind } });
       await tx.conversationThread.update({
         where: { id: threadId },
-        data: { lastMessageAt: created.createdAt, lastMessagePreview: preview(body) },
+        data: {
+          lastMessageAt: created.createdAt,
+          lastMessagePreview: body ? preview(body) : "",
+          lastMessageKind: kind,
+        },
       });
       await this.audit.log(
         {
@@ -162,11 +192,14 @@ export class MessagesService {
         },
         tx,
       );
-      return created;
+      return { message: updated, kind };
     });
-    const output = messageSchema.parse(toMessage(message));
+    const attachments = await loadMessageAttachments(this.prisma, [message.message.id]);
+    const output = messageSchema.parse(
+      toMessage(message.message, attachments.get(message.message.id) ?? []),
+    );
     this.realtime.publishMessageCreated([userId, recipient.userId], threadId, output);
-    await this.notifyRecipient(threadId, userId, recipient.userId, body);
+    await this.notifyRecipient(threadId, userId, recipient.userId, body, message.kind);
     return output;
   }
 
@@ -194,7 +227,7 @@ export class MessagesService {
     });
     if (!existing || existing.senderUserId !== userId) throw new NotFoundException("Message not found.");
     const thread = await this.requireParticipant(userId, existing.threadId);
-    if (existing.deletedAt) return messageSchema.parse(toMessage(existing));
+    if (existing.deletedAt) return messageSchema.parse(toMessage(existing, []));
     const deleted = await this.prisma.$transaction(async (tx) => {
       const row = await tx.message.update({
         where: { id: messageId },
@@ -209,6 +242,7 @@ export class MessagesService {
         data: {
           lastMessageAt: latest?.createdAt ?? null,
           lastMessagePreview: latest?.body ? preview(latest.body) : "",
+          lastMessageKind: messageKind(latest?.messageType),
         },
       });
       await this.audit.log(
@@ -224,7 +258,7 @@ export class MessagesService {
       );
       return row;
     });
-    const output = messageSchema.parse(toMessage(deleted));
+    const output = messageSchema.parse(toMessage(deleted, []));
     this.realtime.publishMessageDeleted(
       thread.participants.map((participant) => participant.userId),
       existing.threadId,
@@ -257,7 +291,8 @@ export class MessagesService {
     senderUserId: string,
     recipientUserId: string,
     centerId: string,
-    body: string,
+    body: string | null,
+    attachmentMediaAssetIds: string[],
   ) {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       try {
@@ -305,9 +340,22 @@ export class MessagesService {
             const message = await tx.message.create({
               data: { threadId: thread.id, senderUserId, body },
             });
+            const kind = await linkMessageAttachments(tx, {
+              mediaAssetIds: attachmentMediaAssetIds,
+              centerId,
+              userId: senderUserId,
+              messageId: message.id,
+            });
+            const updatedMessage = kind === "text"
+              ? message
+              : await tx.message.update({ where: { id: message.id }, data: { messageType: kind } });
             await tx.conversationThread.update({
               where: { id: thread.id },
-              data: { lastMessageAt: message.createdAt, lastMessagePreview: preview(body) },
+              data: {
+                lastMessageAt: message.createdAt,
+                lastMessagePreview: body ? preview(body) : "",
+                lastMessageKind: kind,
+              },
             });
             await this.audit.log(
               {
@@ -320,7 +368,13 @@ export class MessagesService {
               },
               tx,
             );
-            return { threadId: thread.id, message };
+            const attachments = await loadMessageAttachments(tx, [message.id]);
+            return {
+              threadId: thread.id,
+              message: updatedMessage,
+              attachments: attachments.get(message.id) ?? [],
+              kind,
+            };
           },
           { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
         );
@@ -387,6 +441,7 @@ export class MessagesService {
         parentContext: identity.parentContext,
       },
       lastMessagePreview: thread.lastMessagePreview,
+      lastMessageKind: messageKind(thread.lastMessageKind),
       lastMessageAt: thread.lastMessageAt?.toISOString() ?? null,
       unreadCount,
     };
@@ -688,7 +743,8 @@ export class MessagesService {
     threadId: string,
     senderUserId: string,
     recipientUserId: string,
-    body: string,
+    body: string | null,
+    kind: MessageKind,
   ) {
     const [sender, recipient] = await Promise.all([
       this.prisma.user.findUnique({ where: { id: senderUserId }, select: { fullName: true } }),
@@ -702,10 +758,10 @@ export class MessagesService {
       userId: recipientUserId,
       notificationType: "message.received",
       title: "New message",
-      body: `${sender.fullName}: ${preview(body)}`,
+      body: body ? `${sender.fullName}: ${preview(body)}` : null,
       entityType: "conversation_thread",
       entityId: threadId,
-      metadata: { threadId },
+      metadata: { threadId, messageKind: kind, senderName: sender.fullName },
       channels: recipient.userNotificationSettings?.pushEnabled === false ? ["in_app"] : ["in_app", "push"],
     });
   }
@@ -781,11 +837,12 @@ function toMessage(message: {
   body: string | null;
   deletedAt: Date | null;
   createdAt: Date;
-}) {
+}, attachments: MessageAttachment[]) {
   return {
     id: message.id,
     senderUserId: message.senderUserId,
     body: message.body,
+    attachments: message.deletedAt ? [] : attachments,
     deletedAt: message.deletedAt?.toISOString() ?? null,
     createdAt: message.createdAt.toISOString(),
   };
