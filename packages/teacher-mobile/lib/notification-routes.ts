@@ -12,6 +12,7 @@ export function routeForNotification(input: {
   if (target.kind === 'notice') return { pathname: '/notice/[id]', params: { id: target.id } };
   if (target.kind === 'album') return { pathname: '/album/[id]', params: { id: target.id } };
   if (target.kind === 'meal') return '/meals';
+  if (target.kind === 'message') return `/messages/${target.id}` as Href;
 
   return null;
 }

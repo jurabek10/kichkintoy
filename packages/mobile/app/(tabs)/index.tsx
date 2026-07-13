@@ -14,6 +14,8 @@ import { CenterCard } from '@/components/home/center-card';
 import { GreetingBanner } from '@/components/home/greeting-banner';
 import { HomeFeed } from '@/components/home/home-feed';
 import { HomeHeader } from '@/components/home/home-header';
+import { FeatureGrid } from '@/components/home/feature-grid';
+import { Card } from '@/components/ui/card';
 import { UpcomingCard } from '@/components/home/upcoming-card';
 import { colors } from '@/constants/theme';
 
@@ -76,6 +78,9 @@ export default function HomeScreen() {
         <HomeHeader child={child.data} />
         <GreetingBanner />
         <CenterCard centerName={center.data.name} childClassName={child.data.className} />
+        <Card className="mt-3">
+          <FeatureGrid />
+        </Card>
         <HomeFeed feed={homeFeed.data} />
         <UpcomingCard events={upcoming.data} />
       </ScrollView>

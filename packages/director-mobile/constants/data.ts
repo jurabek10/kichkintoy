@@ -81,6 +81,7 @@ export type Feature = {
  *  dashboard, in the same candy palette as the parent app. Paginated 2×4 with a
  *  swiper (see components/home/feature-grid.tsx). */
 export const features: Feature[] = [
+  { key: 'messages', navKey: 'items.messages', route: '/messages' as Href, icon: 'chatbubbles', bg: '#EEE6FF', fg: '#7C5CD8' },
   { key: 'classes', navKey: 'items.myClasses', route: '/classes', icon: 'people', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'attendance', navKey: 'items.attendance', route: '/attendance', icon: 'calendar-number', bg: '#DDF3E4', fg: '#46B06A' },
   { key: 'reports', navKey: 'items.reports', route: '/(tabs)/reports', icon: 'document-text', bg: '#FFE8E2', fg: '#E8674E' },

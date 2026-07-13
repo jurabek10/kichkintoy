@@ -78,6 +78,7 @@ export type Feature = {
 };
 
 export const features: Feature[] = [
+  { key: 'messages', navKey: 'items.messages', route: '/messages' as Href, icon: 'chatbubbles', bg: '#EEE6FF', fg: '#7C5CD8' },
   { key: 'reports', navKey: 'items.reports', route: '/(tabs)/reports', icon: 'book', bg: '#FBEBD2', fg: '#E29A45' },
   { key: 'notices', navKey: 'items.notices', route: '/(tabs)/notices', icon: 'megaphone', bg: '#E1F0FF', fg: '#4D9FEC' },
   { key: 'albums', navKey: 'items.albums', route: '/(tabs)/albums', icon: 'images', bg: '#FFF1CF', fg: '#F4A621' },

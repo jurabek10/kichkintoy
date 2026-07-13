@@ -7,6 +7,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/card';
+import { FeatureGrid } from '@/components/home/feature-grid';
 import { Loader } from '@/components/ui/loader';
 import { colors } from '@/constants/theme';
 import { formatMoney, percent, useDirectorHome, type DirectorHomeSummary } from '@/data/director';
@@ -269,6 +270,10 @@ export default function DirectorHomeScreen() {
             greeting={t('dashboardHome.hello', { name: directorName })}
             t={d}
           />
+
+          <Card>
+            <FeatureGrid />
+          </Card>
 
           <View className="flex-row gap-3">
             <StatCard label={d('stats.children')} value={summary.totals.children} icon="people" tone="sky" />

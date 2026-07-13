@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   NativeScrollEvent,
@@ -14,11 +15,12 @@ import {
 import { NewBadge } from '@/components/ui/badge';
 import { features, type Feature } from '@/constants/data';
 import { cn } from '@/lib/utils';
+import { orpc } from '@/lib/orpc';
 
 /** Icons per page: a 2×4 grid. */
 const PAGE_SIZE = 8;
 
-function FeatureTile({ feature, label }: { feature: Feature; label: string }) {
+function FeatureTile({ feature, label, unreadCount }: { feature: Feature; label: string; unreadCount: number }) {
   const router = useRouter();
   return (
     <Pressable onPress={() => router.push(feature.route)} className="w-1/4 items-center gap-2">
@@ -31,6 +33,7 @@ function FeatureTile({ feature, label }: { feature: Feature; label: string }) {
           <Ionicons name={feature.icon} size={26} color={feature.fg} />
         )}
         {feature.isNew ? <NewBadge /> : null}
+        {feature.key === 'messages' && unreadCount > 0 ? <View className="absolute -right-1 -top-1 min-w-5 items-center rounded-full bg-coral-ink px-1"><Text className="text-[9px] font-extrabold text-white">{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
       </View>
       <Text numberOfLines={1} className="px-0.5 text-[11px] text-foreground">
         {label}
@@ -45,6 +48,7 @@ export function FeatureGrid() {
   const { t } = useTranslation('nav');
   const [width, setWidth] = useState(0);
   const [page, setPage] = useState(0);
+  const unread = useQuery({ queryKey: ['messages', 'unread-count'], queryFn: () => orpc.messages.unreadCount(), refetchInterval: 30_000 });
 
   const pages: Feature[][] = [];
   for (let i = 0; i < features.length; i += PAGE_SIZE) pages.push(features.slice(i, i + PAGE_SIZE));
@@ -64,7 +68,7 @@ export function FeatureGrid() {
           ? pages.map((pageFeatures, index) => (
               <View key={index} style={{ width }} className="flex-row flex-wrap gap-y-4">
                 {pageFeatures.map((feature) => (
-                  <FeatureTile key={feature.key} feature={feature} label={t(feature.navKey)} />
+                  <FeatureTile key={feature.key} feature={feature} label={t(feature.navKey)} unreadCount={unread.data?.total ?? 0} />
                 ))}
               </View>
             ))

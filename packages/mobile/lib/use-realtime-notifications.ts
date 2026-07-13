@@ -57,6 +57,7 @@ export function useRealtimeNotifications(session: StoredSession | null) {
 
           if (parsed.data.type === 'notification.created') {
             void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+            if (parsed.data.payload.notificationType === 'message.received') void queryClient.invalidateQueries({ queryKey: ['messages'] });
             for (const hint of parsed.data.payload.queryKeys) {
               invalidateFromHint(hint);
             }
@@ -66,6 +67,17 @@ export function useRealtimeNotifications(session: StoredSession | null) {
             queryClient.setQueryData(queryKeys.notifications.unreadCount, {
               count: parsed.data.payload.unreadCount,
             });
+          }
+
+          if (parsed.data.type === 'message.created' || parsed.data.type === 'message.deleted') {
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'thread', parsed.data.payload.threadId] });
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
+          }
+
+          if (parsed.data.type === 'thread.read') {
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
           }
         };
 

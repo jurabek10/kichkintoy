@@ -19,6 +19,7 @@ import enCommon from '@kichkintoy/translations/locales/en/common.json';
 import enDocuments from '@kichkintoy/translations/locales/en/documents.json';
 import enMeals from '@kichkintoy/translations/locales/en/meals.json';
 import enMedications from '@kichkintoy/translations/locales/en/medications.json';
+import enMessages from '@kichkintoy/translations/locales/en/messages.json';
 import enNav from '@kichkintoy/translations/locales/en/nav.json';
 import enNotices from '@kichkintoy/translations/locales/en/notices.json';
 import enNotifications from '@kichkintoy/translations/locales/en/notifications.json';
@@ -33,6 +34,7 @@ import ruCommon from '@kichkintoy/translations/locales/ru/common.json';
 import ruDocuments from '@kichkintoy/translations/locales/ru/documents.json';
 import ruMeals from '@kichkintoy/translations/locales/ru/meals.json';
 import ruMedications from '@kichkintoy/translations/locales/ru/medications.json';
+import ruMessages from '@kichkintoy/translations/locales/ru/messages.json';
 import ruNav from '@kichkintoy/translations/locales/ru/nav.json';
 import ruNotices from '@kichkintoy/translations/locales/ru/notices.json';
 import ruNotifications from '@kichkintoy/translations/locales/ru/notifications.json';
@@ -47,6 +49,7 @@ import uzCommon from '@kichkintoy/translations/locales/uz/common.json';
 import uzDocuments from '@kichkintoy/translations/locales/uz/documents.json';
 import uzMeals from '@kichkintoy/translations/locales/uz/meals.json';
 import uzMedications from '@kichkintoy/translations/locales/uz/medications.json';
+import uzMessages from '@kichkintoy/translations/locales/uz/messages.json';
 import uzNav from '@kichkintoy/translations/locales/uz/nav.json';
 import uzNotices from '@kichkintoy/translations/locales/uz/notices.json';
 import uzNotifications from '@kichkintoy/translations/locales/uz/notifications.json';
@@ -55,9 +58,9 @@ import uzProfile from '@kichkintoy/translations/locales/uz/profile.json';
 import uzReports from '@kichkintoy/translations/locales/uz/reports.json';
 
 const resources = {
-  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, pickups: uzPickups, documents: uzDocuments, attendance: uzAttendance, profile: uzProfile },
-  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, pickups: enPickups, documents: enDocuments, attendance: enAttendance, profile: enProfile },
-  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, pickups: ruPickups, documents: ruDocuments, attendance: ruAttendance, profile: ruProfile },
+  uz: { common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, messages: uzMessages, pickups: uzPickups, documents: uzDocuments, attendance: uzAttendance, profile: uzProfile },
+  en: { common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, messages: enMessages, pickups: enPickups, documents: enDocuments, attendance: enAttendance, profile: enProfile },
+  ru: { common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, messages: ruMessages, pickups: ruPickups, documents: ruDocuments, attendance: ruAttendance, profile: ruProfile },
 };
 
 const STORAGE_KEY = 'kichkintoy.language';
@@ -73,7 +76,7 @@ void i18n.use(initReactI18next).init({
   lng: deviceLanguage(),
   fallbackLng,
   defaultNS,
-  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'pickups', 'documents', 'attendance', 'profile'],
+  ns: ['common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'messages', 'pickups', 'documents', 'attendance', 'profile'],
   interpolation: { escapeValue: false },
   returnNull: false,
   // Resources are bundled, so we never need to suspend while loading them —
