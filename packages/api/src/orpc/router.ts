@@ -19,6 +19,7 @@ import { TelegramAuthService } from "../telegram/telegram-auth.service";
 import { MediaService } from "../media/media.service";
 import { MedicationsService } from "../medications/medications.service";
 import { MealsService } from "../meals/meals.service";
+import { MessagesService } from "../messages/messages.service";
 import { NoticesService } from "../notices/notices.service";
 import { NotificationsQueryService } from "../notifications/notifications-query.service";
 import { PaymentsService } from "../payments/payments.service";
@@ -46,6 +47,7 @@ import { createDirectorRouter } from "../director/director.router";
 import { createMediaRouter } from "../media/media.router";
 import { createMedicationsRouter } from "../medications/medications.router";
 import { createMealsRouter } from "../meals/meals.router";
+import { createMessagesRouter } from "../messages/messages.router";
 import { createNoticesRouter } from "../notices/notices.router";
 import { createNotificationsRouter } from "../notifications/notifications.router";
 import { createPaymentsRouter } from "../payments/payments.router";
@@ -72,6 +74,7 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     mediaService: app.get(MediaService, { strict: false }),
     medicationsService: app.get(MedicationsService, { strict: false }),
     mealsService: app.get(MealsService, { strict: false }),
+    messagesService: app.get(MessagesService, { strict: false }),
     noticesService: app.get(NoticesService, { strict: false }),
     notificationsQueryService: app.get(NotificationsQueryService, {
       strict: false,
@@ -135,6 +138,7 @@ function createORPCRouter(deps: ORPCDeps) {
     media: createMediaRouter(os, deps),
     medications: createMedicationsRouter(os, deps),
     meals: createMealsRouter(os, deps),
+    messages: createMessagesRouter(os, deps),
     reports: createReportsRouter(os, deps),
     studentDocuments: createStudentDocumentsRouter(os, deps),
     notices: createNoticesRouter(os, deps),

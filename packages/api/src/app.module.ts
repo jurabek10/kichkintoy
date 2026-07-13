@@ -19,6 +19,7 @@ import { TelegramModule } from "./telegram/telegram.module";
 import { MediaModule } from "./media/media.module";
 import { MedicationsModule } from "./medications/medications.module";
 import { MealsModule } from "./meals/meals.module";
+import { MessagesModule } from "./messages/messages.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { NoticesModule } from "./notices/notices.module";
@@ -51,6 +52,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     MediaModule,
     MedicationsModule,
     MealsModule,
+    MessagesModule,
     NotificationsModule,
     NoticesModule,
     PaymentsModule,

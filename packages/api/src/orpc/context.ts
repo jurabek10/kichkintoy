@@ -22,6 +22,7 @@ import type { TelegramAuthService } from "../telegram/telegram-auth.service";
 import type { MediaService } from "../media/media.service";
 import type { MedicationsService } from "../medications/medications.service";
 import type { MealsService } from "../meals/meals.service";
+import type { MessagesService } from "../messages/messages.service";
 import type { NoticesService } from "../notices/notices.service";
 import type { NotificationsQueryService } from "../notifications/notifications-query.service";
 import type { PaymentsService } from "../payments/payments.service";
@@ -57,6 +58,7 @@ export type ORPCDeps = {
   mediaService: MediaService;
   medicationsService: MedicationsService;
   mealsService: MealsService;
+  messagesService: MessagesService;
   prisma: PrismaService;
   noticesService: NoticesService;
   notificationsQueryService: NotificationsQueryService;
