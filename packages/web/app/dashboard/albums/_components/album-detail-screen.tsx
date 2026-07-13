@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CommentAvatar } from "@/components/comment-avatar";
+import { CommentAttachments } from "@/components/comment-attachments";
+import { CommentAttachmentPicker, uploadCommentAttachments, type PendingCommentAttachment } from "@/components/comment-attachment-picker";
 import { LoadingCard } from "@/components/loading-card";
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -23,9 +25,11 @@ import { SignedAlbumImage } from "./signed-album-image";
 
 export function AlbumDetailScreen({ postId }: { postId: string }) {
   const { t } = useLayoutTranslation("albums");
+  const { t: tc } = useLayoutTranslation("common");
   const { session } = useSession();
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
+  const [commentAttachments, setCommentAttachments] = useState<PendingCommentAttachment[]>([]);
   const {
     data: post,
     isPending,
@@ -70,10 +74,14 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
   });
 
   const commentMutation = useMutation({
-    mutationFn: () =>
-      orpc.albums.addComment({ postId, body: { body: comment } }),
+    mutationFn: async () => {
+      if (!post) throw new Error("Album not loaded");
+      const attachmentMediaAssetIds = await uploadCommentAttachments(post.centerId, commentAttachments);
+      return orpc.albums.addComment({ postId, body: { body: comment, attachmentMediaAssetIds } });
+    },
     onSuccess: async () => {
       setComment("");
+      setCommentAttachments([]);
       await queryClient.invalidateQueries({
         queryKey: queryKeys.albums.detail(postId),
       });
@@ -84,7 +92,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
 
   function submitComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!comment.trim()) return;
+    if (!comment.trim() && commentAttachments.length === 0) return;
     commentMutation.mutate();
   }
 
@@ -220,6 +228,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
         <CardContent className="grid gap-4">
           {post.allowComments && post.status === "published" ? (
             <form className="grid gap-2" onSubmit={submitComment}>
+              <CommentAttachmentPicker value={commentAttachments} onChange={setCommentAttachments} labels={{ addPhoto: tc("comments.addPhoto"), addVideo: tc("comments.addVideo"), addFile: tc("comments.addFile"), limit: tc("comments.attachmentLimit", { count: 4 }), tooLarge: tc("comments.attachmentTooLarge") }} />
               <Textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
@@ -229,7 +238,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
               <Button
                 type="submit"
                 className="w-fit"
-                disabled={commentMutation.isPending || !comment.trim()}
+                disabled={commentMutation.isPending || (!comment.trim() && commentAttachments.length === 0)}
               >
                 <Send className="h-4 w-4" />
                 {t("detail.comment")}
@@ -266,6 +275,7 @@ export function AlbumDetailScreen({ postId }: { postId: string }) {
                   <p className="mt-1.5 whitespace-pre-wrap text-sm">
                     {item.deletedAt ? t("detail.commentDeleted") : item.body}
                   </p>
+                  {!item.deletedAt ? <CommentAttachments attachments={item.attachments} /> : null}
                 </div>
               ))
             )}

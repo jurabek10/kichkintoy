@@ -8,6 +8,8 @@ import type { NoticeComment } from "@kichkintoy/shared";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommentAvatar } from "@/components/comment-avatar";
+import { CommentAttachments } from "@/components/comment-attachments";
+import { CommentAttachmentPicker, uploadCommentAttachments, type PendingCommentAttachment } from "@/components/comment-attachment-picker";
 import { CurrentUserAvatar } from "@/components/current-user-avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -24,6 +26,7 @@ import { cn } from "@/lib/utils";
  */
 export function NoticeComments({
   noticeId,
+  centerId,
   comments,
   canComment,
   currentUserId,
@@ -31,6 +34,7 @@ export function NoticeComments({
   canModerate,
 }: {
   noticeId: string;
+  centerId: string;
   comments: NoticeComment[];
   /** Published and accepting comments. */
   canComment: boolean;
@@ -39,17 +43,22 @@ export function NoticeComments({
   canModerate: boolean;
 }) {
   const { t } = useLayoutTranslation("notices");
+  const { t: tc } = useLayoutTranslation("common");
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
+  const [attachments, setAttachments] = useState<PendingCommentAttachment[]>([]);
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ["notices"] });
 
   const addComment = useMutation({
-    mutationFn: () =>
-      orpc.notices.addComment({ noticeId, body: { body: draft.trim() } }),
+    mutationFn: async () => {
+      const attachmentMediaAssetIds = await uploadCommentAttachments(centerId, attachments);
+      return orpc.notices.addComment({ noticeId, body: { body: draft.trim(), attachmentMediaAssetIds } });
+    },
     onSuccess: async () => {
       setDraft("");
+      setAttachments([]);
       await refresh();
     },
     onError: (error) => toast.error(toApiError(error).message),
@@ -67,7 +76,7 @@ export function NoticeComments({
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!draft.trim()) return;
+    if (!draft.trim() && attachments.length === 0) return;
     addComment.mutate();
   }
 
@@ -93,6 +102,7 @@ export function NoticeComments({
             textClassName="text-xs"
           />
           <div className="flex flex-1 flex-col gap-2">
+            <CommentAttachmentPicker value={attachments} onChange={setAttachments} labels={{ addPhoto: tc("comments.addPhoto"), addVideo: tc("comments.addVideo"), addFile: tc("comments.addFile"), limit: tc("comments.attachmentLimit", { count: 4 }), tooLarge: tc("comments.attachmentTooLarge") }} />
             <Textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
@@ -104,7 +114,7 @@ export function NoticeComments({
               type="submit"
               size="sm"
               className="w-fit gap-1.5 self-end bg-sky-ink hover:bg-sky-ink/90"
-              disabled={addComment.isPending || !draft.trim()}
+              disabled={addComment.isPending || (!draft.trim() && attachments.length === 0)}
             >
               <Send className="h-3.5 w-3.5" />
               {t("detail.post")}
@@ -166,6 +176,7 @@ export function NoticeComments({
                   >
                     {comment.deletedAt ? t("detail.commentDeleted") : comment.body}
                   </p>
+                  {!comment.deletedAt ? <CommentAttachments attachments={comment.attachments} /> : null}
                 </div>
               </li>
             );
@@ -179,4 +190,3 @@ export function NoticeComments({
     </Card>
   );
 }
-

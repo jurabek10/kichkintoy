@@ -289,6 +289,7 @@ export function NoticeDetailScreen({
 
       <NoticeComments
         noticeId={noticeId}
+        centerId={notice.centerId}
         comments={notice.comments}
         canComment={notice.allowComments && notice.status === "published"}
         currentUserId={session?.user.id ?? ""}

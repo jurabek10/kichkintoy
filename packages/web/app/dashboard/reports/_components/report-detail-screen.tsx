@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CommentAvatar } from "@/components/comment-avatar";
+import { CommentAttachments } from "@/components/comment-attachments";
+import { CommentAttachmentPicker, uploadCommentAttachments, type PendingCommentAttachment } from "@/components/comment-attachment-picker";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 import { toApiError } from "@/lib/api/errors";
 import { orpc } from "@/lib/orpc";
@@ -52,6 +54,7 @@ export function ReportDetailScreen({
   reportId: string;
 }) {
   const { t } = useLayoutTranslation("reports");
+  const { t: tc } = useLayoutTranslation("common");
   const router = useRouter();
   const queryClient = useQueryClient();
   const [edit, setEdit] = useState({
@@ -60,6 +63,7 @@ export function ReportDetailScreen({
     healthNote: "",
   });
   const [comment, setComment] = useState("");
+  const [commentAttachments, setCommentAttachments] = useState<PendingCommentAttachment[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const reportKey = queryKeys.reports.detail(reportId, isParent);
@@ -167,20 +171,19 @@ export function ReportDetailScreen({
     deleteMutation.mutate();
   }
 
-  function addComment(event: FormEvent<HTMLFormElement>) {
+  async function addComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const body = comment.trim();
-    if (!body) return;
+    if (!body && commentAttachments.length === 0) return;
     setActionError(null);
-    commentMutation.mutate({
-      reportId,
-      isParent,
-      body,
-      idempotencyKey: crypto.randomUUID(),
-    });
-    // Clear now — the body is captured in the queued mutation, which sends
-    // immediately when online or as soon as connectivity returns.
-    setComment("");
+    try {
+      const attachmentMediaAssetIds = report ? await uploadCommentAttachments(report.centerId, commentAttachments) : [];
+      await commentMutation.mutateAsync({ reportId, isParent, body, attachmentMediaAssetIds, idempotencyKey: crypto.randomUUID() });
+      setComment("");
+      setCommentAttachments([]);
+    } catch (error) {
+      setActionError(toApiError(error).message);
+    }
   }
 
   if (loading) return <LoadingCard t={t} />;
@@ -225,10 +228,13 @@ export function ReportDetailScreen({
 
       <Comments
         comment={comment}
+        attachments={commentAttachments}
         report={report}
         t={t}
         working={working}
         onCommentChange={setComment}
+        onAttachmentsChange={setCommentAttachments}
+        commonT={tc}
         onSubmit={addComment}
       />
     </div>
@@ -733,7 +739,10 @@ function ReadReceipts({
 }
 
 function Comments({
+  attachments,
   comment,
+  commonT,
+  onAttachmentsChange,
   onCommentChange,
   onSubmit,
   report,
@@ -741,6 +750,9 @@ function Comments({
   working,
 }: {
   comment: string;
+  attachments: PendingCommentAttachment[];
+  commonT: TFunction<"common">;
+  onAttachmentsChange: (value: PendingCommentAttachment[]) => void;
   onCommentChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   report: DailyReportDetail;
@@ -764,6 +776,7 @@ function Comments({
           <>
             <CommentList report={report} t={t} />
             <form onSubmit={onSubmit} className="flex flex-col gap-2">
+              <CommentAttachmentPicker value={attachments} onChange={onAttachmentsChange} labels={{ addPhoto: commonT("comments.addPhoto"), addVideo: commonT("comments.addVideo"), addFile: commonT("comments.addFile"), limit: commonT("comments.attachmentLimit", { count: 4 }), tooLarge: commonT("comments.attachmentTooLarge") }} />
               <Textarea
                 value={comment}
                 onChange={(event) => onCommentChange(event.target.value)}
@@ -772,7 +785,7 @@ function Comments({
               <Button
                 type="submit"
                 className="w-fit"
-                disabled={working || !comment.trim()}
+                disabled={working || (!comment.trim() && attachments.length === 0)}
               >
                 <Send className="h-4 w-4" />
                 {t("detail.comment")}
@@ -817,6 +830,7 @@ function CommentList({
           <p className="mt-1.5 whitespace-pre-wrap text-sm text-muted-foreground">
             {row.deletedAt ? t("detail.commentDeleted") : row.body}
           </p>
+          {!row.deletedAt ? <CommentAttachments attachments={row.attachments} /> : null}
         </li>
       ))}
     </ul>

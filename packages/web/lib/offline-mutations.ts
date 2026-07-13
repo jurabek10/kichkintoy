@@ -5,6 +5,7 @@ export type ReportCommentVars = {
   reportId: string;
   isParent: boolean;
   body: string;
+  attachmentMediaAssetIds: string[];
   idempotencyKey: string;
 };
 
@@ -24,7 +25,7 @@ export function registerOfflineMutations(queryClient: QueryClient) {
     mutationFn: async (vars: ReportCommentVars) => {
       const input = {
         reportId: vars.reportId,
-        body: { body: vars.body, idempotencyKey: vars.idempotencyKey },
+        body: { body: vars.body, attachmentMediaAssetIds: vars.attachmentMediaAssetIds, idempotencyKey: vars.idempotencyKey },
       };
       return vars.isParent
         ? orpc.reports.parentComment(input)
