@@ -756,6 +756,8 @@ model MediaAsset {
   width           Int?
   height          Int?
   durationSeconds Int?     @map("duration_seconds")
+  originalFileName String? @map("original_file_name")
+  status          String   @default("pending")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   center                     Center                      @relation(fields: [centerId], references: [id])
