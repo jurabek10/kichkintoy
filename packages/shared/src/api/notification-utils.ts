@@ -16,6 +16,7 @@ export type NotificationRouteTarget =
   | { kind: "pickup"; id: string }
   | { kind: "documents"; id: string | null }
   | { kind: "attendance"; id: string | null }
+  | { kind: "message"; id: string }
   | { kind: "notifications" };
 
 export function notificationRouteTarget(input: NotificationRouteInput): NotificationRouteTarget {
@@ -31,6 +32,9 @@ export function notificationRouteTarget(input: NotificationRouteInput): Notifica
   if (id && source.includes("pickup")) return { kind: "pickup", id };
   if (source.includes("student_document")) return { kind: "documents", id };
   if (source.includes("attendance")) return { kind: "attendance", id };
+  if (id && (input.notificationType === "message.received" || input.entityType === "conversation_thread")) {
+    return { kind: "message", id };
+  }
 
   return { kind: "notifications" };
 }

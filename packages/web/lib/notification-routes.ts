@@ -17,5 +17,6 @@ export function routeForNotification(input: {
   if (target.kind === "documents" && target.id) return `/dashboard/documents/${target.id}`;
   if (target.kind === "documents") return "/dashboard/documents";
   if (target.kind === "attendance") return "/dashboard/attendance";
+  if (target.kind === "message") return `/dashboard/messages/${target.id}`;
   return "/dashboard/notifications";
 }

@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
-  CalendarCheck,
   FileText,
   Home,
   Images,
+  MessageCircle,
   UserCircle,
 } from "lucide-react";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
@@ -23,7 +23,7 @@ const ITEMS: Array<{ href: string; labelKey: string; Icon: LucideIcon }> = [
   { href: "/dashboard/reports", labelKey: "items.reports", Icon: FileText },
   { href: "/dashboard/albums", labelKey: "items.albums", Icon: Images },
   { href: "/dashboard/notices", labelKey: "items.notices", Icon: Bell },
-  { href: "/dashboard/pickups", labelKey: "items.pickups", Icon: CalendarCheck },
+  { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
   { href: "/dashboard/profile", labelKey: "items.myPage", Icon: UserCircle },
 ];
 

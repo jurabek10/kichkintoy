@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  MessageCircle,
   Pill,
   School,
   Sparkles,
@@ -38,6 +39,7 @@ import {
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
+  SidebarMenuBadge,
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
@@ -54,6 +56,9 @@ import { useSelectedChild } from "@/lib/selected-child";
 import { logoutAndClear, readSession, useSession } from "@/lib/session";
 import { useRealtimeNotifications } from "@/lib/use-realtime-notifications";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
 
 function BouncingDots() {
   return (
@@ -77,6 +82,7 @@ const navByRole: Record<
   director: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
+    { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
     { href: "/dashboard/classes", labelKey: "items.classes", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
@@ -94,6 +100,7 @@ const navByRole: Record<
   teacher: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
+    { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
     { href: "/dashboard/classes", labelKey: "items.myClasses", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
@@ -109,6 +116,7 @@ const navByRole: Record<
   parent: [
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
+    { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", labelKey: "items.attendance", Icon: ClipboardCheck },
@@ -125,6 +133,7 @@ const navByRole: Record<
 const navColors: Record<string, string> = {
   "/dashboard": "text-coral-ink",
   "/dashboard/chat": "text-grape-ink",
+  "/dashboard/messages": "text-grape-ink",
   "/dashboard/classes": "text-sky-ink",
   "/dashboard/attendance": "text-mint-ink",
   "/dashboard/notices": "text-coral-ink",
@@ -153,7 +162,7 @@ const navGroups = [
   },
   {
     labelKey: "groups.communication",
-    hrefs: ["/dashboard/notices", "/dashboard/albums", "/dashboard/calendar"],
+    hrefs: ["/dashboard/messages", "/dashboard/notices", "/dashboard/albums", "/dashboard/calendar"],
   },
   {
     labelKey: "groups.care",
@@ -553,6 +562,7 @@ function SidebarNavMenu({
                         }
                       />
                       <span>{label}</span>
+                      {href === "/dashboard/messages" ? <MessagesNavBadge /> : null}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -563,6 +573,16 @@ function SidebarNavMenu({
       ))}
     </>
   );
+}
+
+function MessagesNavBadge() {
+  const { data } = useQuery({
+    queryKey: queryKeys.messages.unreadCount(),
+    queryFn: () => orpc.messages.unreadCount(),
+    refetchInterval: 30_000,
+  });
+  if (!data?.total) return null;
+  return <SidebarMenuBadge>{data.total > 99 ? "99+" : data.total}</SidebarMenuBadge>;
 }
 
 /** A close (X) button shown only in the mobile off-canvas sidebar. */

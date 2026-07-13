@@ -68,6 +68,9 @@ export function useRealtimeNotifications(session: StoredSession | null) {
           if (parsed.data.type === "notification.created") {
             const payload = parsed.data.payload;
             invalidateNotifications();
+            if (payload.notificationType === "message.received") {
+              void queryClient.invalidateQueries({ queryKey: queryKeys.messages.all() });
+            }
             for (const hint of payload.queryKeys) {
               void queryClient.invalidateQueries({
                 queryKey: queryGroupFromHint(hint),
@@ -98,6 +101,22 @@ export function useRealtimeNotifications(session: StoredSession | null) {
             queryClient.setQueryData(queryKeys.notifications.unreadCount(), {
               count: parsed.data.payload.unreadCount,
             });
+          }
+
+          if (
+            parsed.data.type === "message.created" ||
+            parsed.data.type === "message.deleted"
+          ) {
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.messages.thread(parsed.data.payload.threadId),
+            });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.threads() });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.unreadCount() });
+          }
+
+          if (parsed.data.type === "thread.read") {
+            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.threads() });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.unreadCount() });
           }
         });
 
