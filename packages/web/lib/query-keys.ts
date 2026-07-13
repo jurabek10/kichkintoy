@@ -149,6 +149,13 @@ export const queryKeys = {
       ["notifications", "list", input ?? {}] as const,
     unreadCount: () => ["notifications", "unread-count"] as const,
   },
+  messages: {
+    all: () => ["messages"] as const,
+    threads: () => ["messages", "threads"] as const,
+    thread: (threadId: string) => ["messages", "thread", threadId] as const,
+    contacts: () => ["messages", "contacts"] as const,
+    unreadCount: () => ["messages", "unread-count"] as const,
+  },
   family: {
     all: () => ["family"] as const,
   },
