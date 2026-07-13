@@ -1,0 +1,29 @@
+{
+  "chooseLanguage": "Tilni tanlang · Выберите язык · Choose a language 👇",
+  "languageSet": "✅ Language: English",
+  "welcome": "👋 Hello, {{name}}!\n\n<b>Kichkintoy</b> is the official bot of the kindergarten app for parents.\n\n🔑 If you have a family invitation code, type it here (6 digits).\n📱 If you already have an account, sign in to the app with <b>Continue with Telegram</b>.",
+  "fallback": "Enter a 6-digit invitation code or use the Kichkintoy app.",
+  "invalidCode": "❌ This code is wrong or has expired.\n\nCheck the code and try again.",
+  "cooldown": "⏳ Too many attempts. Please try again in 24 hours.",
+  "inviteFound": "👨‍👩‍👧 <b>{{inviter}}</b> is inviting you to the family:\n\n{{children}}\n\nYou will join as <b>{{relationship}}</b>.",
+  "childRow": "👶 {{name}}",
+  "btnAccept": "✅ Accept",
+  "btnDecline": "❌ Decline",
+  "accepted": "🎉 Invitation accepted!\n\n{{children}}\n\n📱 Now open the Kichkintoy app and tap <b>Continue with Telegram</b>.",
+  "acceptedNoEffect": "Invitation accepted, but every child already has 3 guardians — nobody was added.",
+  "declined": "Invitation declined. If this was a mistake, enter the code again.",
+  "loginConfirm": "🔐 Confirm signing in to your Kichkintoy account?",
+  "btnLoginConfirm": "✅ Confirm login",
+  "btnLoginCancel": "Cancel",
+  "loginApproved": "✅ Login confirmed! Return to the Kichkintoy app.",
+  "loginInvalid": "This login link has expired. Try again in the app.",
+  "loginCancelled": "Login cancelled.",
+  "noAccount": "You don't have a Kichkintoy account yet.\n\nAsk your family member for a 6-digit invitation code.",
+  "relationship": {
+    "father": "Father",
+    "mother": "Mother",
+    "grandfather": "Grandfather",
+    "grandmother": "Grandmother",
+    "other": "Close relative"
+  }
+}

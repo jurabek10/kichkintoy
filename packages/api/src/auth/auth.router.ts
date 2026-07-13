@@ -19,6 +19,8 @@ const pendingInvitationsSchema = z.array(pendingInvitationSchema);
 export function createAuthRouter(os: ORPCImplementer, deps: ORPCDeps) {
   const access = createAccess(os, deps);
   return {
+    telegramLoginStart: os.auth.telegramLoginStart.handler(() => deps.telegramAuthService.start()),
+    telegramLoginPoll: os.auth.telegramLoginPoll.handler(({ input }) => deps.telegramAuthService.poll(input.nonce)),
     sendCode: os.auth.sendCode.handler(({ input, context }) =>
       deps.authService.sendCode(input, requestContext(context.req)),
     ),

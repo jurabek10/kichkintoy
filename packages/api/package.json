@@ -20,6 +20,7 @@
     "@aws-sdk/client-s3": "^3.1062.0",
     "@aws-sdk/s3-request-presigner": "^3.1062.0",
     "@kichkintoy/shared": "workspace:*",
+    "@kichkintoy/translations": "workspace:*",
     "@nestjs/common": "^11.1.23",
     "@nestjs/core": "^11.1.23",
     "@nestjs/platform-express": "^11.1.23",

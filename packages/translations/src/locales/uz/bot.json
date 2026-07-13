@@ -1,0 +1,29 @@
+{
+  "chooseLanguage": "Tilni tanlang · Выберите язык · Choose a language 👇",
+  "languageSet": "✅ Til: O‘zbekcha",
+  "welcome": "👋 Salom, {{name}}!\n\n<b>Kichkintoy</b> — bog‘cha ota-onalari uchun ilovaning rasmiy boti.\n\n🔑 Oilaviy taklif kodingiz bo‘lsa, shu yerga yozing (6 raqam).\n📱 Hisobingiz bo‘lsa, ilovadagi <b>Telegram orqali davom etish</b> tugmasi bilan kiring.",
+  "fallback": "6 raqamli taklif kodini kiriting yoki Kichkintoy ilovasidan foydalaning.",
+  "invalidCode": "❌ Kod noto‘g‘ri yoki muddati tugagan.\n\nKodni tekshirib, qayta urinib ko‘ring.",
+  "cooldown": "⏳ Juda ko‘p urinish bo‘ldi. 24 soatdan keyin qayta urinib ko‘ring.",
+  "inviteFound": "👨‍👩‍👧 <b>{{inviter}}</b> sizni oilaga taklif qilmoqda:\n\n{{children}}\n\nSiz <b>{{relationship}}</b> sifatida qo‘shilasiz.",
+  "childRow": "👶 {{name}}",
+  "btnAccept": "✅ Qabul qilish",
+  "btnDecline": "❌ Rad etish",
+  "accepted": "🎉 Taklif qabul qilindi!\n\n{{children}}\n\n📱 Endi Kichkintoy ilovasini oching va <b>Telegram orqali davom etish</b> tugmasini bosing.",
+  "acceptedNoEffect": "Taklif qabul qilindi, ammo har bir bolada allaqachon 3 nafar vasiy bor — hech kim qo‘shilmadi.",
+  "declined": "Taklif rad etildi. Agar bu xato bo‘lsa, kodni qaytadan kiriting.",
+  "loginConfirm": "🔐 Kichkintoy hisobingizga kirishni tasdiqlaysizmi?",
+  "btnLoginConfirm": "✅ Kirishni tasdiqlash",
+  "btnLoginCancel": "Bekor qilish",
+  "loginApproved": "✅ Kirish tasdiqlandi! Kichkintoy ilovasiga qayting.",
+  "loginInvalid": "Bu kirish havolasining muddati tugagan. Ilovada qaytadan urinib ko‘ring.",
+  "loginCancelled": "Kirish bekor qilindi.",
+  "noAccount": "Sizda hali Kichkintoy hisobi yo‘q.\n\nOila a’zongizdan 6 raqamli taklif kodini so‘rang.",
+  "relationship": {
+    "father": "Ota",
+    "mother": "Ona",
+    "grandfather": "Bobo",
+    "grandmother": "Buvi",
+    "other": "Yaqin qarindosh"
+  }
+}
