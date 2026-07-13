@@ -1,5 +1,15 @@
 {
   "loading": "Loading...",
+  "telegram": {
+    "continue": "Continue with Telegram",
+    "waiting": "Confirm the login in Telegram…",
+    "expired": "This login link has expired.",
+    "tryAgain": "Try again",
+    "openTelegram": "Open Telegram",
+    "scanQr": "Scan with Telegram on your phone",
+    "or": "or",
+    "startError": "Could not start Telegram login. Try again."
+  },
   "actions": {
     "back": "Back",
     "continue": "Continue",
@@ -388,7 +398,9 @@
       "brother": "Brother",
       "sister": "Sister",
       "guardian": "Guardian",
-      "other": "Other"
+      "other": "Other",
+      "father": "Father",
+      "mother": "Mother"
     },
     "customRelationship": "Custom label (optional)",
     "customRelationshipPlaceholder": "e.g. Family friend",

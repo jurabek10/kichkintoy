@@ -58,7 +58,9 @@
     "newPassword": "Yangi parol",
     "confirmPassword": "Yangi parolni tasdiqlang",
     "requirement": "Kamida 8 ta belgi, harf va raqam ishlating.",
-    "mismatch": "Yangi parollar mos kelmadi."
+    "mismatch": "Yangi parollar mos kelmadi.",
+    "telegramOnlyTitle": "Telegram orqali kirish",
+    "telegramOnly": "Siz Telegram orqali kirasiz — bu hisob uchun parol kerak emas."
   },
   "preferences": {
     "title": "Sozlamalar",
@@ -125,6 +127,47 @@
     "addChild": "Muassasa qo'shish",
     "addChildHint": "Bolangizni bog'chaga bog'lang",
     "noChildren": "Hali bola bog'lanmagan"
+  },
+  "family": {
+    "title": "Oila",
+    "subtitle": "Farzandingiz kunini kuzata oladigan yaqinlaringiz.",
+    "primary": "Asosiy",
+    "pendingTitle": "Kutilayotgan takliflar",
+    "empty": "Boshqa vasiylar hozircha yo‘q.",
+    "relationship": {
+      "father": "Ota",
+      "mother": "Ona",
+      "grandfather": "Bobo",
+      "grandmother": "Buvi",
+      "other": "Boshqa",
+      "mom": "Ona",
+      "dad": "Ota",
+      "uncle": "Amaki/Tog'a",
+      "aunt": "Xola/Amma",
+      "brother": "Aka/Uka",
+      "sister": "Opa/Singil",
+      "guardian": "Vasiy"
+    },
+    "invite": {
+      "cta": "Oila a’zosini taklif qilish",
+      "create": "Taklif yaratish",
+      "capReached": "Har bir bolada allaqachon uchta vasiy bor.",
+      "expires": "{{date}} gacha",
+      "copied": "Kod nusxalandi",
+      "step1": "Telegramda @{{bot}} ni oching",
+      "step2": "Start tugmasini bosing",
+      "step3": "Ushbu kodni kiriting",
+      "shareMessage": "Sizni Kichkintoy'ga taklif qilishdi! Telegramda @{{bot}} ni oching, Start bosing va ushbu kodni kiriting: {{code}}",
+      "share": "Ulashish",
+      "revoke": "Bekor qilish",
+      "revokeConfirmTitle": "Taklif bekor qilinsinmi?",
+      "revokeConfirmBody": "Bu kod boshqa ishlamaydi."
+    },
+    "remove": {
+      "action": "Olib tashlash",
+      "confirmTitle": "Vasiy olib tashlansinmi?",
+      "confirmBody": "{{name}} farzandingiz ma’lumotlariga kirish huquqini yo‘qotadi."
+    }
   },
   "roles": {
     "director": "Direktor",

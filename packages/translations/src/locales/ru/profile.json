@@ -58,7 +58,9 @@
     "newPassword": "Новый пароль",
     "confirmPassword": "Подтвердите новый пароль",
     "requirement": "Минимум 8 символов, включая букву и цифру.",
-    "mismatch": "Новые пароли не совпадают."
+    "mismatch": "Новые пароли не совпадают.",
+    "telegramOnlyTitle": "Вход через Telegram",
+    "telegramOnly": "Вы входите через Telegram — этому аккаунту пароль не нужен."
   },
   "preferences": {
     "title": "Настройки",
@@ -125,6 +127,47 @@
     "addChild": "Добавить учреждение",
     "addChildHint": "Привяжите ребёнка к детскому саду",
     "noChildren": "Дети ещё не привязаны"
+  },
+  "family": {
+    "title": "Семья",
+    "subtitle": "Близкие, которые следят за днём ребёнка.",
+    "primary": "Основной",
+    "pendingTitle": "Ожидающие приглашения",
+    "empty": "Других опекунов пока нет.",
+    "relationship": {
+      "father": "Отец",
+      "mother": "Мать",
+      "grandfather": "Дедушка",
+      "grandmother": "Бабушка",
+      "other": "Другое",
+      "mom": "Мама",
+      "dad": "Папа",
+      "uncle": "Дядя",
+      "aunt": "Тетя",
+      "brother": "Брат",
+      "sister": "Сестра",
+      "guardian": "Опекун"
+    },
+    "invite": {
+      "cta": "Пригласить члена семьи",
+      "create": "Создать приглашение",
+      "capReached": "У каждого ребёнка уже три опекуна.",
+      "expires": "Истекает {{date}}",
+      "copied": "Код скопирован",
+      "step1": "Откройте @{{bot}} в Telegram",
+      "step2": "Нажмите Start",
+      "step3": "Введите этот код",
+      "shareMessage": "Вас пригласили в Kichkintoy! Откройте @{{bot}} в Telegram, нажмите Start и введите код: {{code}}",
+      "share": "Поделиться",
+      "revoke": "Отозвать",
+      "revokeConfirmTitle": "Отозвать приглашение?",
+      "revokeConfirmBody": "Этот код перестанет работать."
+    },
+    "remove": {
+      "action": "Удалить",
+      "confirmTitle": "Удалить опекуна?",
+      "confirmBody": "{{name}} потеряет доступ к информации о ребёнке."
+    }
   },
   "roles": {
     "director": "Директор",

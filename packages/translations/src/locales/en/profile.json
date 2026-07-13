@@ -58,7 +58,9 @@
     "newPassword": "New password",
     "confirmPassword": "Confirm new password",
     "requirement": "Use at least 8 characters, including a letter and a number.",
-    "mismatch": "The new passwords do not match."
+    "mismatch": "The new passwords do not match.",
+    "telegramOnlyTitle": "Telegram sign-in",
+    "telegramOnly": "You sign in with Telegram — this account doesn't use a password."
   },
   "preferences": {
     "title": "Preferences",
@@ -125,6 +127,47 @@
     "addChild": "Add a center",
     "addChildHint": "Link your child to a kindergarten",
     "noChildren": "No children linked yet"
+  },
+  "family": {
+    "title": "Family",
+    "subtitle": "People who can follow your child's day.",
+    "primary": "Primary",
+    "pendingTitle": "Pending invitations",
+    "empty": "No other guardians yet.",
+    "relationship": {
+      "father": "Father",
+      "mother": "Mother",
+      "grandfather": "Grandfather",
+      "grandmother": "Grandmother",
+      "other": "Other",
+      "mom": "Mom",
+      "dad": "Dad",
+      "uncle": "Uncle",
+      "aunt": "Aunt",
+      "brother": "Brother",
+      "sister": "Sister",
+      "guardian": "Guardian"
+    },
+    "invite": {
+      "cta": "Invite family member",
+      "create": "Create invitation",
+      "capReached": "Every child already has three guardians.",
+      "expires": "Expires {{date}}",
+      "copied": "Code copied",
+      "step1": "Open @{{bot}} in Telegram",
+      "step2": "Press Start",
+      "step3": "Enter this code",
+      "shareMessage": "You've been invited to Kichkintoy! Open @{{bot}} in Telegram, press Start, and enter this code: {{code}}",
+      "share": "Share",
+      "revoke": "Revoke",
+      "revokeConfirmTitle": "Revoke invitation?",
+      "revokeConfirmBody": "This code will stop working."
+    },
+    "remove": {
+      "action": "Remove",
+      "confirmTitle": "Remove guardian?",
+      "confirmBody": "{{name}} will lose access to your child's information."
+    }
   },
   "roles": {
     "director": "Director",

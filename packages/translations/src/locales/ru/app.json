@@ -1,5 +1,15 @@
 {
   "loading": "Загрузка...",
+  "telegram": {
+    "continue": "Продолжить с Telegram",
+    "waiting": "Подтвердите вход в Telegram…",
+    "expired": "Ссылка для входа истекла.",
+    "tryAgain": "Попробовать снова",
+    "openTelegram": "Открыть Telegram",
+    "scanQr": "Отсканируйте через Telegram на телефоне",
+    "or": "или",
+    "startError": "Не удалось начать вход через Telegram. Повторите попытку."
+  },
   "actions": {
     "back": "Назад",
     "continue": "Продолжить",
@@ -402,7 +412,9 @@
       "brother": "Брат",
       "sister": "Сестра",
       "guardian": "Опекун",
-      "other": "Другое"
+      "other": "Другое",
+      "father": "Отец",
+      "mother": "Мать"
     },
     "customRelationship": "Свое название (необязательно)",
     "customRelationshipPlaceholder": "например, друг семьи",
