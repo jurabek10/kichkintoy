@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { childGenderSchema } from "../child/gender.js";
 import { isoDateSchema, isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
-import { commentAuthorDisplaySchema } from "./comment-author.js";
+import { commentAttachmentSchema, commentAuthorDisplaySchema } from "./comment-author.js";
 
 export const dailyReportStatusValues = [
   "draft",
@@ -137,11 +137,14 @@ export type BulkDailyReportRequest = z.infer<
 >;
 
 export const dailyReportCommentRequestSchema = z.object({
-  body: z.string().trim().min(1).max(2000),
+  body: z.string().trim().max(2000).optional(),
+  attachmentMediaAssetIds: z.array(uuidSchema).max(4).default([]),
   parentCommentId: uuidSchema.optional(),
   // Client-generated id so an offline comment replayed on reconnect is applied
   // at most once (see the server idempotency guard).
   idempotencyKey: uuidSchema.optional(),
+}).refine((input) => Boolean(input.body?.trim()) || input.attachmentMediaAssetIds.length > 0, {
+  message: "A comment needs text or an attachment.",
 });
 export type DailyReportCommentRequest = z.infer<
   typeof dailyReportCommentRequestSchema
@@ -197,12 +200,14 @@ export const dailyReportCommentSchema = z
     deletedAt: isoDateTimeSchema.nullable(),
     createdAt: isoDateTimeSchema,
     updatedAt: isoDateTimeSchema,
+    attachments: z.array(commentAttachmentSchema),
   })
   .merge(commentAuthorDisplaySchema);
 export type DailyReportComment = z.infer<typeof dailyReportCommentSchema>;
 
 export const dailyReportSummarySchema = z.object({
   id: uuidSchema,
+  centerId: uuidSchema,
   child: dailyReportChildSchema,
   class: dailyReportClassSchema,
   author: dailyReportAuthorSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isoDateTimeSchema, uuidSchema } from "../lib/validators.js";
-import { commentAuthorDisplaySchema } from "./comment-author.js";
+import { commentAttachmentSchema, commentAuthorDisplaySchema } from "./comment-author.js";
 
 export const albumVisibilityValues = ["class", "tagged_children"] as const;
 export const albumVisibilitySchema = z.enum(albumVisibilityValues);
@@ -56,6 +56,7 @@ export const albumCommentSchema = z
     deletedAt: isoDateTimeSchema.nullable(),
     createdAt: isoDateTimeSchema,
     updatedAt: isoDateTimeSchema,
+    attachments: z.array(commentAttachmentSchema),
   })
   .merge(commentAuthorDisplaySchema);
 export type AlbumComment = z.infer<typeof albumCommentSchema>;
@@ -127,7 +128,10 @@ export const albumListResponseSchema = z.array(albumPostSummarySchema);
 export type AlbumListResponse = z.infer<typeof albumListResponseSchema>;
 
 export const addAlbumCommentInputSchema = z.object({
-  body: z.string().trim().min(1).max(2000),
+  body: z.string().trim().max(2000).optional(),
+  attachmentMediaAssetIds: z.array(uuidSchema).max(4).default([]),
+}).refine((input) => Boolean(input.body?.trim()) || input.attachmentMediaAssetIds.length > 0, {
+  message: "A comment needs text or an attachment.",
 });
 export type AddAlbumCommentInput = z.infer<
   typeof addAlbumCommentInputSchema

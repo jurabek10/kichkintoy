@@ -20,3 +20,13 @@ export const commentAuthorDisplaySchema = z.object({
   authorPhotoUrl: z.string().nullable(),
 });
 export type CommentAuthorDisplay = z.infer<typeof commentAuthorDisplaySchema>;
+
+export const commentAttachmentSchema = z.object({
+  mediaAssetId: uuidSchema,
+  mediaType: z.enum(["image", "video", "file"]),
+  fileName: z.string().nullable(),
+  mimeType: z.string().nullable(),
+  sizeBytes: z.number().int().nullable(),
+  thumbnailUrl: z.string().nullable(),
+});
+export type CommentAttachment = z.infer<typeof commentAttachmentSchema>;
