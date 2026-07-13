@@ -44,6 +44,14 @@ const meResponseSchema = z.object({
 });
 
 export const authContract = {
+  telegramLoginStart: oc.input(emptyInputSchema).output(z.object({
+    nonce: z.string(), deepLink: z.string().url(), expiresAt: z.string().datetime(),
+  })),
+  telegramLoginPoll: oc.input(z.object({ nonce: z.string().min(20) })).output(z.discriminatedUnion("status", [
+    z.object({ status: z.literal("pending") }),
+    z.object({ status: z.literal("expired") }),
+    z.object({ status: z.literal("approved"), token: z.string(), expiresAt: z.string().datetime() }),
+  ])),
   sendCode: oc.input(sendCodeRequestSchema).output(sendCodeResponseSchema),
   verifyCode: oc
     .input(verifyCodeRequestSchema)
