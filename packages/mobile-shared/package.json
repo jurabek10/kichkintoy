@@ -9,7 +9,8 @@
     "./date": { "types": "./src/date.ts", "default": "./src/date.ts" },
     "./config": { "types": "./src/config.ts", "default": "./src/config.ts" },
     "./report-item-i18n": { "types": "./src/report-item-i18n.ts", "default": "./src/report-item-i18n.ts" },
-    "./notification-visuals": { "types": "./src/notification-visuals.ts", "default": "./src/notification-visuals.ts" }
+    "./notification-visuals": { "types": "./src/notification-visuals.ts", "default": "./src/notification-visuals.ts" },
+    "./messages": { "types": "./src/messages.tsx", "default": "./src/messages.tsx" }
   },
   "dependencies": {
     "@kichkintoy/shared": "workspace:*",
@@ -17,15 +18,19 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.6.0",
     "expo-constants": "~18.0.13",
-    "@expo/vector-icons": "^15.0.3"
+    "@expo/vector-icons": "^15.0.3",
+    "@tanstack/react-query": "^5.100.14",
+    "react-native-safe-area-context": "~5.6.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.0"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "i18next": "*",
-    "react-i18next": "*"
+    "react-i18next": "*",
+    "@tanstack/react-query": "^5.100.14",
+    "react-native-safe-area-context": "~5.6.0"
   }
 }
