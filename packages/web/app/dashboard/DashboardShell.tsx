@@ -17,6 +17,7 @@ import {
   LogOut,
   Mail,
   MessageCircle,
+  ShieldAlert,
   Pill,
   School,
   Sparkles,
@@ -83,6 +84,7 @@ const navByRole: Record<
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
+    { href: "/dashboard/complaints", labelKey: "items.complaints", Icon: ShieldAlert },
     { href: "/dashboard/classes", labelKey: "items.classes", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
@@ -101,6 +103,7 @@ const navByRole: Record<
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
+    { href: "/dashboard/complaints", labelKey: "items.complaints", Icon: ShieldAlert },
     { href: "/dashboard/classes", labelKey: "items.myClasses", Icon: School },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
@@ -117,6 +120,7 @@ const navByRole: Record<
     { href: "/dashboard", labelKey: "items.dashboard", Icon: LayoutDashboard },
     { href: "/dashboard/chat", labelKey: "items.chat", Icon: Sparkles },
     { href: "/dashboard/messages", labelKey: "items.messages", Icon: MessageCircle },
+    { href: "/dashboard/complaints", labelKey: "items.complaints", Icon: ShieldAlert },
     { href: "/dashboard/calendar", labelKey: "items.calendar", Icon: CalendarDays },
     { href: "/dashboard/documents", labelKey: "items.documents", Icon: FileCheck2 },
     { href: "/dashboard/attendance", labelKey: "items.attendance", Icon: ClipboardCheck },
@@ -134,6 +138,7 @@ const navColors: Record<string, string> = {
   "/dashboard": "text-coral-ink",
   "/dashboard/chat": "text-grape-ink",
   "/dashboard/messages": "text-grape-ink",
+  "/dashboard/complaints": "text-amber-700",
   "/dashboard/classes": "text-sky-ink",
   "/dashboard/attendance": "text-mint-ink",
   "/dashboard/notices": "text-coral-ink",
@@ -162,7 +167,7 @@ const navGroups = [
   },
   {
     labelKey: "groups.communication",
-    hrefs: ["/dashboard/messages", "/dashboard/notices", "/dashboard/albums", "/dashboard/calendar"],
+    hrefs: ["/dashboard/messages", "/dashboard/complaints", "/dashboard/notices", "/dashboard/albums", "/dashboard/calendar"],
   },
   {
     labelKey: "groups.care",
@@ -563,6 +568,7 @@ function SidebarNavMenu({
                       />
                       <span>{label}</span>
                       {href === "/dashboard/messages" ? <MessagesNavBadge /> : null}
+                      {href === "/dashboard/complaints" ? <ComplaintsNavBadge /> : null}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -579,6 +585,20 @@ function MessagesNavBadge() {
   const { data } = useQuery({
     queryKey: queryKeys.messages.unreadCount(),
     queryFn: () => orpc.messages.unreadCount(),
+    refetchInterval: 30_000,
+  });
+  if (!data?.total) return null;
+  return <SidebarMenuBadge>{data.total > 99 ? "99+" : data.total}</SidebarMenuBadge>;
+}
+
+function ComplaintsNavBadge() {
+  const { session } = useSession();
+  const centerId = session?.membership.centerId;
+  const isDirector = session?.user.role === "director";
+  const { data } = useQuery({
+    queryKey: queryKeys.complaints.openCount(centerId ?? ""),
+    queryFn: () => orpc.complaints.openCount({ centerId: centerId! }),
+    enabled: isDirector && Boolean(centerId),
     refetchInterval: 30_000,
   });
   if (!data?.total) return null;
