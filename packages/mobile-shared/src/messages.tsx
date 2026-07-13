@@ -1,5 +1,7 @@
 /// <reference path="./nativewind-types.d.ts" />
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import {
   useInfiniteQuery,
   useMutation,
@@ -16,9 +18,12 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Linking,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -26,6 +31,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
   DirectMessage,
+  MessageAttachment,
   MessageContact,
   MessageContactGroup,
   ThreadDetail,
@@ -36,8 +42,8 @@ export type MessagesApi = {
   contacts(input: { centerId?: string }): Promise<MessageContactGroup[]>;
   threads(input: { cursor?: string; limit?: number }): Promise<ThreadListResponse>;
   thread(input: { threadId: string; cursor?: string; limit?: number }): Promise<ThreadDetail>;
-  startThread(input: { recipientUserId: string; centerId?: string; body: string }): Promise<ThreadDetail>;
-  send(input: { threadId: string; body: string }): Promise<DirectMessage>;
+  startThread(input: { recipientUserId: string; centerId?: string; body?: string; attachmentMediaAssetIds?: string[] }): Promise<ThreadDetail>;
+  send(input: { threadId: string; body?: string; attachmentMediaAssetIds?: string[] }): Promise<DirectMessage>;
   deleteMessage(input: { messageId: string }): Promise<DirectMessage>;
 };
 
@@ -48,6 +54,11 @@ type Navigation = {
 };
 
 type ResolvePhoto = (mediaAssetId: string) => Promise<string | null>;
+export type MessageUpload = (params: { uri: string; centerId: string; mimeType: string; fileName: string }) => Promise<string>;
+type PendingAttachment = { id: string; uri: string; fileName: string; mimeType: string; sizeBytes: number; kind: 'image' | 'video' | 'file' };
+const MAX_ATTACHMENTS = 4;
+const FILE_LIMIT = 25 * 1024 * 1024;
+const VIDEO_LIMIT = 100 * 1024 * 1024;
 type IdentityPerson = Pick<MessageContact, 'displayName' | 'parentContext'> & {
   role?: MessageContact['role'];
   classLabel?: string | null;
@@ -84,6 +95,92 @@ function Avatar({ person, resolvePhoto, displayName, size = 44 }: { person: { di
       <Text className="text-xs font-extrabold text-grape-ink">{initials}</Text>
     </View>
   );
+}
+
+function MessageAttachmentItem({ attachment, resolvePhoto }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto }) {
+  const { t } = useTranslation('messages');
+  const [open, setOpen] = useState(false);
+  const query = useQuery({
+    queryKey: ['media', 'download', attachment.mediaAssetId],
+    queryFn: () => resolvePhoto(attachment.mediaAssetId),
+    staleTime: 240_000,
+  });
+  const url = query.data;
+  if (attachment.mediaType === 'file') {
+    return (
+      <Pressable disabled={!url} onPress={() => url && Linking.openURL(url)} className="mt-2 max-w-full flex-row items-center gap-2 self-start rounded-lg border border-border bg-segment px-3 py-2">
+        <Ionicons name="document-text-outline" size={20} color="#606773" />
+        <View className="max-w-[210px]">
+          <Text numberOfLines={1} ellipsizeMode="middle" className="text-xs font-semibold text-foreground">{attachment.fileName ?? t('previewKind.file')}</Text>
+          <Text className="text-[10px] text-muted">{sizeLabel(attachment.sizeBytes)}</Text>
+        </View>
+      </Pressable>
+    );
+  }
+  return (
+    <>
+      <Pressable disabled={!url} onPress={() => attachment.mediaType === 'image' ? setOpen(true) : url && Linking.openURL(url)} className="relative aspect-square w-[48%] overflow-hidden rounded-lg bg-segment">
+        {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : null}
+        {attachment.mediaType === 'video' ? <View className="absolute inset-0 items-center justify-center bg-black/20"><Ionicons name="play-circle" size={36} color="#FFFFFF" /></View> : null}
+      </Pressable>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable onPress={() => setOpen(false)} className="flex-1 items-center justify-center bg-black/95 p-4">
+          {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="contain" /> : null}
+          <Ionicons name="close-circle" size={34} color="#FFFFFF" style={{ position: 'absolute', right: 16, top: 48 }} />
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+function MessageAttachments({ attachments, resolvePhoto }: { attachments: MessageAttachment[]; resolvePhoto: ResolvePhoto }) {
+  if (!attachments.length) return null;
+  const media = attachments.filter((item) => item.mediaType !== 'file');
+  const files = attachments.filter((item) => item.mediaType === 'file');
+  return <View>{media.length ? <View className="flex-row flex-wrap gap-1.5">{media.map((item) => <MessageAttachmentItem key={item.mediaAssetId} attachment={item} resolvePhoto={resolvePhoto} />)}</View> : null}{files.map((item) => <MessageAttachmentItem key={item.mediaAssetId} attachment={item} resolvePhoto={resolvePhoto} />)}</View>;
+}
+
+function PendingAttachments({ value, onChange }: { value: PendingAttachment[]; onChange: (items: PendingAttachment[]) => void }) {
+  return value.length ? (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 12, paddingTop: 8 }}>
+      {value.map((item) => <View key={item.id} className="relative h-14 w-14 overflow-hidden rounded-lg border border-border bg-segment">
+        {item.kind === 'image' ? <Image source={{ uri: item.uri }} style={{ width: '100%', height: '100%' }} /> : <View className="h-full items-center justify-center px-1"><Ionicons name={item.kind === 'video' ? 'videocam' : 'document-text'} size={20} color="#606773" /><Text numberOfLines={1} className="w-full text-center text-[9px] text-muted">{item.fileName}</Text></View>}
+        <Pressable onPress={() => onChange(value.filter((entry) => entry.id !== item.id))} className="absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-bl-md bg-black/70"><Ionicons name="close" size={13} color="#FFFFFF" /></Pressable>
+      </View>)}
+    </ScrollView>
+  ) : null;
+}
+
+async function pickAttachments(kind: 'image' | 'video' | 'file', current: PendingAttachment[], setCurrent: (items: PendingAttachment[]) => void, t: TFunction<'messages'>) {
+  const remaining = MAX_ATTACHMENTS - current.length;
+  if (!remaining) { Alert.alert(t('attachmentLimit', { count: MAX_ATTACHMENTS })); return; }
+  let items: PendingAttachment[] = [];
+  if (kind === 'file') {
+    const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'], multiple: true, copyToCacheDirectory: true });
+    if (result.canceled) return;
+    items = result.assets.map((asset, index) => ({ id: `${Date.now()}-${index}`, uri: asset.uri, fileName: asset.name, mimeType: asset.mimeType || mimeTypeFromName(asset.name), sizeBytes: asset.size ?? 0, kind: 'file' }));
+  } else {
+    if (kind === 'video') await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: kind === 'image' ? 'images' : 'videos', allowsMultipleSelection: kind === 'image', selectionLimit: remaining, quality: 1 });
+    if (result.canceled) return;
+    items = result.assets.map((asset, index) => ({ id: `${Date.now()}-${index}`, uri: asset.uri, fileName: asset.fileName ?? `${kind}-${Date.now()}-${index}.${kind === 'image' ? 'jpg' : 'mp4'}`, mimeType: asset.mimeType || (kind === 'image' ? 'image/jpeg' : 'video/mp4'), sizeBytes: asset.fileSize ?? 0, kind }));
+  }
+  if (items.length > remaining) Alert.alert(t('attachmentLimit', { count: MAX_ATTACHMENTS }));
+  const accepted = items.slice(0, remaining).filter((item) => {
+    if (item.sizeBytes <= (item.kind === 'video' ? VIDEO_LIMIT : FILE_LIMIT)) return true;
+    Alert.alert(t('attachmentTooLarge'));
+    return false;
+  });
+  setCurrent([...current, ...accepted]);
+}
+
+function openAttachmentActions(current: PendingAttachment[], setCurrent: (items: PendingAttachment[]) => void, t: TFunction<'messages'>) {
+  Alert.alert(t('send'), undefined, [
+    { text: t('attachPhoto'), onPress: () => void pickAttachments('image', current, setCurrent, t) },
+    { text: t('attachVideo'), onPress: () => void pickAttachments('video', current, setCurrent, t) },
+    { text: t('attachFile'), onPress: () => void pickAttachments('file', current, setCurrent, t) },
+    { text: t('cancel'), style: 'cancel' },
+  ]);
 }
 
 export function MessagesListScreen({ api, navigation, resolvePhoto }: { api: MessagesApi; navigation: Navigation; resolvePhoto: ResolvePhoto }) {
@@ -129,7 +226,7 @@ export function MessagesListScreen({ api, navigation, resolvePhoto }: { api: Mes
                 </View>
                 {identity.secondary ? <Text numberOfLines={1} className="text-[11px] text-muted">{identity.secondary}</Text> : null}
                 <View className="mt-0.5 flex-row items-center gap-2">
-                  <Text numberOfLines={1} className={unread ? 'flex-1 text-[13px] font-semibold text-foreground' : 'flex-1 text-[13px] text-muted'}>{item.lastMessagePreview || t('deleted')}</Text>
+                  {item.lastMessagePreview ? <Text numberOfLines={1} className={unread ? 'flex-1 text-[13px] font-semibold text-foreground' : 'flex-1 text-[13px] text-muted'}>{item.lastMessagePreview}</Text> : item.lastMessageKind && item.lastMessageKind !== 'text' ? <View className="flex-1 flex-row items-center gap-1"><Ionicons name={item.lastMessageKind === 'image' ? 'image-outline' : item.lastMessageKind === 'video' ? 'videocam-outline' : 'document-text-outline'} size={14} color="#89919E" /><Text numberOfLines={1} className={unread ? 'text-[13px] font-semibold text-foreground' : 'text-[13px] text-muted'}>{t(`previewKind.${item.lastMessageKind}`)}</Text></View> : <Text numberOfLines={1} className={unread ? 'flex-1 text-[13px] font-semibold text-foreground' : 'flex-1 text-[13px] text-muted'}>{t('deleted')}</Text>}
                   {unread ? <View className="min-w-5 items-center rounded-full bg-primary px-1.5 py-0.5"><Text className="text-[10px] font-extrabold text-white">{item.unreadCount > 99 ? '99+' : item.unreadCount}</Text></View> : null}
                 </View>
               </View>
@@ -142,13 +239,18 @@ export function MessagesListScreen({ api, navigation, resolvePhoto }: { api: Mes
   );
 }
 
-export function NewMessageScreen({ api, navigation, resolvePhoto }: { api: MessagesApi; navigation: Navigation; resolvePhoto: ResolvePhoto }) {
+export function NewMessageScreen({ api, navigation, resolvePhoto, upload }: { api: MessagesApi; navigation: Navigation; resolvePhoto: ResolvePhoto; upload: MessageUpload }) {
   const { t } = useTranslation('messages');
   const [selected, setSelected] = useState<MessageContact | null>(null);
   const [body, setBody] = useState('');
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const contacts = useQuery({ queryKey: ['messages', 'contacts'], queryFn: () => api.contacts({}) });
   const start = useMutation({
-    mutationFn: () => api.startThread({ recipientUserId: selected!.userId, centerId: selected!.centerId, body }),
+    mutationFn: async () => {
+      const attachmentMediaAssetIds: string[] = [];
+      for (const attachment of attachments) attachmentMediaAssetIds.push(await upload({ uri: attachment.uri, centerId: selected!.centerId, mimeType: attachment.mimeType, fileName: attachment.fileName }));
+      return api.startThread({ recipientUserId: selected!.userId, centerId: selected!.centerId, body: body.trim() || undefined, attachmentMediaAssetIds });
+    },
     onSuccess: (detail) => navigation.openThread(detail.thread.threadId),
     onError: () => Alert.alert(t('sendError')),
   });
@@ -156,7 +258,7 @@ export function NewMessageScreen({ api, navigation, resolvePhoto }: { api: Messa
   const selectedIdentity = selected ? messageIdentityParts(selected, t) : null;
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
-      <Header title={selectedIdentity?.primary ?? t('chooseContact')} back={selected ? () => { setSelected(null); setBody(''); } : navigation.back} />
+      <Header title={selectedIdentity?.primary ?? t('chooseContact')} back={selected ? () => { setSelected(null); setBody(''); setAttachments([]); } : navigation.back} />
       {selected && selectedIdentity ? (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 p-4">
           <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
@@ -167,7 +269,8 @@ export function NewMessageScreen({ api, navigation, resolvePhoto }: { api: Messa
             </View>
           </View>
           <TextInput autoFocus multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('firstMessage')} placeholderTextColor="#89919E" textAlignVertical="top" className="mt-4 min-h-32 rounded-2xl border border-border bg-card p-4 text-[15px] text-foreground" />
-          <Pressable disabled={!body.trim() || start.isPending} onPress={() => start.mutate()} className="mt-4 items-center rounded-xl bg-primary py-3.5 disabled:opacity-40"><Text className="text-base font-extrabold text-white">{start.isPending ? t('sending') : t('send')}</Text></Pressable>
+          <PendingAttachments value={attachments} onChange={setAttachments} />
+          <View className="mt-3 flex-row items-center gap-3"><Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-11 w-11 items-center justify-center rounded-full border border-border bg-card"><Ionicons name="add" size={22} color="#606773" /></Pressable><Pressable disabled={(!body.trim() && !attachments.length) || start.isPending} onPress={() => start.mutate()} className="flex-1 items-center rounded-xl bg-primary py-3.5 disabled:opacity-40"><Text className="text-base font-extrabold text-white">{start.isPending ? t('sending') : t('send')}</Text></Pressable></View>
         </KeyboardAvoidingView>
       ) : (
         <FlatList
@@ -199,10 +302,11 @@ export function NewMessageScreen({ api, navigation, resolvePhoto }: { api: Messa
   );
 }
 
-export function ConversationScreen({ api, navigation, threadId, currentUserId, resolvePhoto }: { api: MessagesApi; navigation: Navigation; threadId: string; currentUserId: string; resolvePhoto: ResolvePhoto }) {
+export function ConversationScreen({ api, navigation, threadId, currentUserId, resolvePhoto, upload }: { api: MessagesApi; navigation: Navigation; threadId: string; currentUserId: string; resolvePhoto: ResolvePhoto; upload: MessageUpload }) {
   const { t, i18n } = useTranslation('messages');
   const queryClient = useQueryClient();
   const [body, setBody] = useState('');
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const query = useInfiniteQuery({
     queryKey: ['messages', 'thread', threadId],
     initialPageParam: null as string | null,
@@ -234,15 +338,20 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
     );
   };
   const send = useMutation({
-    mutationFn: (text: string) => api.send({ threadId, body: text }),
-    onMutate: () => setBody(''),
+    mutationFn: async (draft: { body?: string; attachments: PendingAttachment[] }) => {
+      const attachmentMediaAssetIds: string[] = [];
+      for (const attachment of draft.attachments) attachmentMediaAssetIds.push(await upload({ uri: attachment.uri, centerId: thread!.centerId, mimeType: attachment.mimeType, fileName: attachment.fileName }));
+      return api.send({ threadId, body: draft.body, attachmentMediaAssetIds });
+    },
+    onMutate: () => { setBody(''); setAttachments([]); },
     onSuccess: (message) => {
       appendToCache(message);
       void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
     },
-    onError: (_error, text) => {
-      setBody(text);
-      Alert.alert(t('sendError'));
+    onError: (_error, draft) => {
+      setBody(draft.body ?? '');
+      setAttachments(draft.attachments);
+      Alert.alert(t('uploadFailed'), t('retry'));
     },
   });
   const remove = useMutation({
@@ -250,7 +359,7 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['messages'] }),
   });
   const confirmDelete = (messageId: string) => Alert.alert(t('deleteTitle'), t('deleteBody'), [{ text: t('cancel'), style: 'cancel' }, { text: t('delete'), style: 'destructive', onPress: () => remove.mutate(messageId) }]);
-  const pendingBody = send.isPending ? send.variables : null;
+  const pendingDraft = send.isPending ? send.variables : null;
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
       <View className="min-h-14 flex-row items-center gap-3 border-b border-border bg-card px-4 py-2">
@@ -271,10 +380,11 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
           contentContainerClassName="px-4 py-4"
           onEndReached={() => query.hasNextPage && !query.isFetchingNextPage && void query.fetchNextPage()}
           onEndReachedThreshold={0.4}
-          ListHeaderComponent={pendingBody ? (
+          ListHeaderComponent={pendingDraft ? (
             <View className="mt-2 items-end">
               <View className="max-w-[82%] rounded-2xl rounded-br-md bg-primary/70 px-3.5 py-2.5">
-                <Text className="text-[14px] leading-5 text-white">{pendingBody}</Text>
+                {pendingDraft.body ? <Text className="text-[14px] leading-5 text-white">{pendingDraft.body}</Text> : null}
+                {pendingDraft.attachments.length ? <Text className="text-[12px] text-white/80">{t(`previewKind.${pendingDraft.attachments[0]!.kind}`)}</Text> : null}
                 <Text className="mt-1 text-right text-[9px] text-white/60">{t('sending')}</Text>
               </View>
             </View>
@@ -289,7 +399,7 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
                 {showDate ? <Text className="my-3 text-center text-[11px] font-bold text-muted">{formatDate(item.createdAt, i18n.language)}</Text> : null}
                 <Pressable onLongPress={mine && !item.deletedAt ? () => confirmDelete(item.id) : undefined} className={mine ? 'items-end' : 'items-start'}>
                   <View className={mine ? 'max-w-[82%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5' : 'max-w-[82%] rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5'}>
-                    {item.deletedAt ? <Text className={mine ? 'italic text-white/70' : 'italic text-muted'}>{t('deleted')}</Text> : <Text className={mine ? 'text-[14px] leading-5 text-white' : 'text-[14px] leading-5 text-foreground'}>{item.body}</Text>}
+                    {item.deletedAt ? <Text className={mine ? 'italic text-white/70' : 'italic text-muted'}>{t('deleted')}</Text> : <><MessageAttachments attachments={item.attachments} resolvePhoto={resolvePhoto} />{item.body ? <Text className={mine ? `${item.attachments.length ? 'mt-2 ' : ''}text-[14px] leading-5 text-white` : `${item.attachments.length ? 'mt-2 ' : ''}text-[14px] leading-5 text-foreground`}>{item.body}</Text> : null}</>}
                     <Text className={mine ? 'mt-1 text-right text-[9px] text-white/60' : 'mt-1 text-right text-[9px] text-muted'}>{formatTime(item.createdAt, i18n.language)}</Text>
                   </View>
                 </Pressable>
@@ -297,10 +407,7 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
             );
           }}
         />
-        <View className="flex-row items-end gap-2 border-t border-border bg-card p-3">
-          <TextInput multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('messagePlaceholder')} placeholderTextColor="#89919E" className="max-h-28 min-h-11 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-[15px] text-foreground" />
-          <Pressable disabled={!body.trim() || send.isPending} onPress={() => { const text = body.trim(); if (text) send.mutate(text); }} className="h-11 w-11 items-center justify-center rounded-full bg-primary disabled:opacity-40"><Ionicons name="send" size={18} color="#FFFFFF" /></Pressable>
-        </View>
+        <View className="border-t border-border bg-card"><PendingAttachments value={attachments} onChange={setAttachments} /><View className="flex-row items-end gap-2 p-3"><Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-11 w-11 items-center justify-center rounded-full border border-border"><Ionicons name="add" size={22} color="#606773" /></Pressable><TextInput multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('messagePlaceholder')} placeholderTextColor="#89919E" className="max-h-28 min-h-11 flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-[15px] text-foreground" /><Pressable disabled={(!body.trim() && !attachments.length) || send.isPending} onPress={() => { const text = body.trim(); if (text || attachments.length) send.mutate({ body: text || undefined, attachments }); }} className="h-11 w-11 items-center justify-center rounded-full bg-primary disabled:opacity-40"><Ionicons name="send" size={18} color="#FFFFFF" /></Pressable></View></View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -310,6 +417,8 @@ function dayKey(value: string) { return new Intl.DateTimeFormat('en-CA', { timeZ
 function formatDate(value: string, locale: string) { return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'Asia/Tashkent' }).format(new Date(value)); }
 function formatTime(value: string, locale: string) { return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tashkent' }).format(new Date(value)); }
 function formatThreadTime(value: string | null, locale: string) { if (!value) return ''; const date = new Date(value); return dayKey(value) === dayKey(new Date().toISOString()) ? formatTime(value, locale) : new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', timeZone: 'Asia/Tashkent' }).format(date); }
+function sizeLabel(bytes: number | null) { if (bytes === null) return ''; return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`; }
+function mimeTypeFromName(name: string) { const lower = name.toLowerCase(); return lower.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : lower.endsWith('.doc') ? 'application/msword' : 'application/pdf'; }
 
 function messageIdentityParts(person: IdentityPerson, t: TFunction<'messages'>): IdentityParts {
   const context = person.parentContext;
