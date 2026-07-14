@@ -17,6 +17,7 @@ export * from "./membership.js";
 export * from "./notices.js";
 export * from "./notifications.js";
 export * from "./notification-utils.js";
+export * from "./cron-notification.js";
 export * from "./payments.js";
 export * from "./pickups.js";
 export * from "./profile.js";

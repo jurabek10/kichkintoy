@@ -23,6 +23,77 @@
     "title": "No notifications yet",
     "body": "New reports, notices, albums, meals, medication, and pickup updates will appear here."
   },
+  "cron": {
+    "daily": {
+      "arrived": "arrived at {{time}}",
+      "left": "left at {{time}}",
+      "pickedUp": "picked up by {{name}} ({{relationship}})",
+      "meal": "{{meal}}: {{menu}} — {{status}}",
+      "sleep": "Sleep: {{duration}}",
+      "activities": "Activities: {{items}}"
+    },
+    "mealTypes": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "snack": "Snack",
+      "dinner": "Dinner"
+    },
+    "eatingStatus": {
+      "ate_all": "ate everything",
+      "ate_most": "ate most",
+      "ate_some": "ate some",
+      "did_not_eat": "did not eat",
+      "not_recorded": "not recorded"
+    },
+    "relationships": {
+      "mom": "mother",
+      "mother": "mother",
+      "dad": "father",
+      "father": "father",
+      "grandmother": "grandmother",
+      "grandfather": "grandfather",
+      "grandparent": "grandparent",
+      "uncle": "uncle",
+      "aunt": "aunt",
+      "brother": "brother",
+      "sister": "sister",
+      "guardian": "guardian",
+      "other": "other"
+    },
+    "duration": {
+      "hoursMinutes": "{{hours}} hr {{minutes}} min",
+      "hours": "{{count}} hr",
+      "minutes": "{{count}} min"
+    },
+    "events": {
+      "allDay": "all day",
+      "item": "{{title}} ({{details}})",
+      "summary": "Tomorrow: {{items}}"
+    },
+    "payment": {
+      "summary": "{{child}}: {{amount}} — {{phase}} (due {{dueDate}})",
+      "phases": {
+        "upcoming": "due soon",
+        "due_tomorrow": "due tomorrow",
+        "due_today": "due today",
+        "overdue": "overdue"
+      }
+    },
+    "weekly": {
+      "attendance": "Attended {{attended}} of {{operating}} days",
+      "photos": "{{count}} new photos",
+      "reports": "{{count}} daily reports",
+      "notices": "{{count}} notices"
+    },
+    "document": {
+      "summary_one": "“{{title}}” is due tomorrow",
+      "summary_other": "“{{title}}” is due in {{count}} days"
+    },
+    "notices": {
+      "summary_one": "Important: {{titles}}",
+      "summary_other": "{{count}} important notices: {{titles}}"
+    }
+  },
   "types": {
     "album_post.comment_created": "New album comment",
     "album_post.published": "New album photos",
@@ -55,6 +126,12 @@
     "student_document.accepted": "Document accepted",
     "student_document.rejected": "Document needs changes",
     "student_document.request_sent": "New document request",
-    "student_document.submitted": "Document submitted"
+    "student_document.submitted": "Document submitted",
+    "digest.daily": "Daily summary",
+    "digest.tomorrow_events": "Tomorrow's events",
+    "digest.weekly": "Weekly recap",
+    "payment.reminder": "Tuition payment reminder",
+    "document.deadline_reminder": "Document deadline reminder",
+    "notice.unread_nudge": "Unread important notice"
   }
 }

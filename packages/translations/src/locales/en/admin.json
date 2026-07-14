@@ -3,7 +3,8 @@
   "nav": {
     "overview": "Overview",
     "centers": "Centers",
-    "billing": "Billing"
+    "billing": "Billing",
+    "crons": "Scheduled jobs"
   },
   "shell": {
     "panel": "Platform console",
@@ -231,6 +232,99 @@
       "paid": "Paid",
       "due": "Due",
       "overdue": "Overdue"
+    }
+  },
+  "crons": {
+    "title": "Scheduled jobs",
+    "description": "Monitor every automated platform task, inspect failures, and run a job safely for a selected date.",
+    "status": {
+      "running": "Running",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "never": "Never ran"
+    },
+    "jobNames": {
+      "parent": {
+        "daily_digest": "Daily parent summary",
+        "tomorrow_events": "Tomorrow's events reminder",
+        "tuition_reminder": "Tuition payment reminder",
+        "weekly_recap": "Weekly parent recap",
+        "document_deadline": "Document deadline reminder",
+        "notice_nudge": "Unread notice reminder"
+      }
+    },
+    "jobs": {
+      "parent": {
+        "daily_digest": "Builds an evening summary of attendance, meals, sleep, and activities for each child.",
+        "tomorrow_events": "Bundles tomorrow's calendar events into one reminder per family.",
+        "tuition_reminder": "Reminds the primary guardian when an unpaid tuition invoice is near or past due.",
+        "weekly_recap": "Summarizes the child's attendance, photos, reports, and notices each Sunday.",
+        "document_deadline": "Reminds guardians three days and one day before required documents are due.",
+        "notice_nudge": "Sends one follow-up for unread important or confirmation-required notices."
+      }
+    },
+    "schedules": {
+      "parent": {
+        "daily_digest": "Mon–Sat 20:30",
+        "tomorrow_events": "Daily 20:35",
+        "tuition_reminder": "Mon–Sat 10:00",
+        "weekly_recap": "Sunday 19:00",
+        "document_deadline": "Daily 10:05",
+        "notice_nudge": "Daily 19:30"
+      }
+    },
+    "card": {
+      "schedule": "Schedule",
+      "lastRun": "Last run",
+      "duration": "Duration",
+      "sent": "Sent",
+      "started": "Started {{value}}",
+      "neverHint": "Waiting for its first scheduled run"
+    },
+    "recent": {
+      "title": "Recent runs",
+      "description": "The last 30 days, newest first."
+    },
+    "filters": { "allJobs": "All jobs", "allStatuses": "All statuses" },
+    "table": {
+      "number": "№",
+      "job": "Job",
+      "runDate": "Run date",
+      "status": "Status",
+      "sent": "Sent",
+      "duration": "Duration",
+      "startedAt": "Started",
+      "finishedAt": "Finished",
+      "error": "Error",
+      "empty": "No runs match these filters.",
+      "page": "Page {{page}} of {{total}}"
+    },
+    "runNow": {
+      "button": "Run now",
+      "title": "Run scheduled job",
+      "description": "Choose the Tashkent calendar date the job should process.",
+      "date": "Run date",
+      "dedupeHint": "Existing notifications are never duplicated. Running a completed job again is safe.",
+      "cancel": "Cancel",
+      "confirm": "Run job",
+      "running": "Running…",
+      "successToast": "Job finished — {{count}} notifications sent.",
+      "failedToast": "Job finished with an error. Open its history for details.",
+      "errorToast": "The job could not be started."
+    },
+    "stats": {
+      "successRate": "30-day success rate",
+      "sentTotal": "Notifications sent",
+      "failures": "Failed runs"
+    },
+    "detail": {
+      "back": "All scheduled jobs",
+      "notFound": "This scheduled job does not exist.",
+      "lastDate": "Last run: {{value}}",
+      "lastDuration": "Duration: {{value}}",
+      "lastSent": "Sent: {{count}}",
+      "history": "Run history",
+      "historyDescription": "Full results and errors from the last 30 days."
     }
   }
 }

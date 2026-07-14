@@ -23,6 +23,77 @@
     "title": "Пока нет уведомлений",
     "body": "Здесь появятся новые отчёты, объявления, альбомы, меню, лекарства и обновления по встрече ребёнка."
   },
+  "cron": {
+    "daily": {
+      "arrived": "пришёл(а) в {{time}}",
+      "left": "ушёл(а) в {{time}}",
+      "pickedUp": "забрал(а) {{name}} ({{relationship}})",
+      "meal": "{{meal}}: {{menu}} — {{status}}",
+      "sleep": "Сон: {{duration}}",
+      "activities": "Занятия: {{items}}"
+    },
+    "mealTypes": {
+      "breakfast": "Завтрак",
+      "lunch": "Обед",
+      "snack": "Полдник",
+      "dinner": "Ужин"
+    },
+    "eatingStatus": {
+      "ate_all": "съел(а) всё",
+      "ate_most": "съел(а) большую часть",
+      "ate_some": "съел(а) немного",
+      "did_not_eat": "не ел(а)",
+      "not_recorded": "не отмечено"
+    },
+    "relationships": {
+      "mom": "мама",
+      "mother": "мама",
+      "dad": "папа",
+      "father": "папа",
+      "grandmother": "бабушка",
+      "grandfather": "дедушка",
+      "grandparent": "бабушка/дедушка",
+      "uncle": "дядя",
+      "aunt": "тётя",
+      "brother": "брат",
+      "sister": "сестра",
+      "guardian": "опекун",
+      "other": "другой близкий"
+    },
+    "duration": {
+      "hoursMinutes": "{{hours}} ч {{minutes}} мин",
+      "hours": "{{count}} ч",
+      "minutes": "{{count}} мин"
+    },
+    "events": {
+      "allDay": "весь день",
+      "item": "{{title}} ({{details}})",
+      "summary": "Завтра: {{items}}"
+    },
+    "payment": {
+      "summary": "{{child}}: {{amount}} — {{phase}} (срок {{dueDate}})",
+      "phases": {
+        "upcoming": "срок оплаты близко",
+        "due_tomorrow": "оплата завтра",
+        "due_today": "оплата сегодня",
+        "overdue": "просрочено"
+      }
+    },
+    "weekly": {
+      "attendance": "Посещено {{attended}} из {{operating}} дней",
+      "photos": "Новых фото: {{count}}",
+      "reports": "Дневных отчётов: {{count}}",
+      "notices": "Объявлений: {{count}}"
+    },
+    "document": {
+      "summary_one": "Документ «{{title}}» нужно сдать завтра",
+      "summary_other": "До сдачи «{{title}}» — {{count}} дн."
+    },
+    "notices": {
+      "summary_one": "Важно: {{titles}}",
+      "summary_other": "Важных объявлений: {{count}} — {{titles}}"
+    }
+  },
   "types": {
     "album_post.comment_created": "Новый комментарий к альбому",
     "album_post.published": "Новые фото в альбоме",
@@ -55,6 +126,12 @@
     "student_document.accepted": "Документ принят",
     "student_document.rejected": "Документ требует исправлений",
     "student_document.request_sent": "Новый запрос документов",
-    "student_document.submitted": "Документ отправлен"
+    "student_document.submitted": "Документ отправлен",
+    "digest.daily": "Итоги дня",
+    "digest.tomorrow_events": "События на завтра",
+    "digest.weekly": "Итоги недели",
+    "payment.reminder": "Напоминание об оплате",
+    "document.deadline_reminder": "Срок сдачи документа",
+    "notice.unread_nudge": "Непрочитанное важное объявление"
   }
 }

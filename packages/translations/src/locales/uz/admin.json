@@ -3,7 +3,8 @@
   "nav": {
     "overview": "Umumiy ko'rinish",
     "centers": "Markazlar",
-    "billing": "To'lovlar"
+    "billing": "To'lovlar",
+    "crons": "Rejali vazifalar"
   },
   "shell": {
     "panel": "Platforma paneli",
@@ -231,6 +232,102 @@
       "paid": "To'langan",
       "due": "Kutilmoqda",
       "overdue": "Muddati o'tgan"
+    }
+  },
+  "crons": {
+    "title": "Rejali vazifalar",
+    "description": "Platformadagi avtomatik vazifalarni kuzating, xatolarni tekshiring va tanlangan sana uchun xavfsiz ishga tushiring.",
+    "status": {
+      "running": "Bajarilmoqda",
+      "succeeded": "Muvaffaqiyatli",
+      "failed": "Xatolik",
+      "never": "Hali ishlamagan"
+    },
+    "jobNames": {
+      "parent": {
+        "daily_digest": "Ota-onalar uchun kunlik xulosa",
+        "tomorrow_events": "Ertangi tadbirlar eslatmasi",
+        "tuition_reminder": "Bog'cha to'lovi eslatmasi",
+        "weekly_recap": "Ota-onalar uchun haftalik xulosa",
+        "document_deadline": "Hujjat muddati eslatmasi",
+        "notice_nudge": "O'qilmagan e'lon eslatmasi"
+      }
+    },
+    "jobs": {
+      "parent": {
+        "daily_digest": "Har bir bola uchun davomat, ovqat, uyqu va mashg'ulotlardan kechki xulosa tuzadi.",
+        "tomorrow_events": "Ertangi kalendar tadbirlarini har bir oila uchun bitta eslatmaga birlashtiradi.",
+        "tuition_reminder": "To'lanmagan bog'cha to'lovi muddati yaqinlashganda asosiy vasiyni ogohlantiradi.",
+        "weekly_recap": "Har yakshanba bolaning davomati, rasmlari, hisobotlari va e'lonlarini jamlaydi.",
+        "document_deadline": "Kerakli hujjat muddati tugashidan uch va bir kun oldin eslatadi.",
+        "notice_nudge": "O'qilmagan muhim yoki tasdiqlash talab qiladigan e'lon uchun bir marta eslatadi."
+      }
+    },
+    "schedules": {
+      "parent": {
+        "daily_digest": "Dush–Shan 20:30",
+        "tomorrow_events": "Har kuni 20:35",
+        "tuition_reminder": "Dush–Shan 10:00",
+        "weekly_recap": "Yakshanba 19:00",
+        "document_deadline": "Har kuni 10:05",
+        "notice_nudge": "Har kuni 19:30"
+      }
+    },
+    "card": {
+      "schedule": "Jadval",
+      "lastRun": "Oxirgi ish",
+      "duration": "Davomiyligi",
+      "sent": "Yuborildi",
+      "started": "Boshlangan: {{value}}",
+      "neverHint": "Birinchi rejali ishga tushishni kutmoqda"
+    },
+    "recent": {
+      "title": "So'nggi ishga tushirishlar",
+      "description": "Oxirgi 30 kun, yangisidan boshlab."
+    },
+    "filters": {
+      "allJobs": "Barcha vazifalar",
+      "allStatuses": "Barcha holatlar"
+    },
+    "table": {
+      "number": "№",
+      "job": "Vazifa",
+      "runDate": "Ish sanasi",
+      "status": "Holat",
+      "sent": "Yuborildi",
+      "duration": "Davomiyligi",
+      "startedAt": "Boshlangan",
+      "finishedAt": "Tugagan",
+      "error": "Xato",
+      "empty": "Filtrlarga mos ish topilmadi.",
+      "page": "{{total}} dan {{page}}-sahifa"
+    },
+    "runNow": {
+      "button": "Hozir ishga tushirish",
+      "title": "Rejali vazifani ishga tushirish",
+      "description": "Vazifa qayta ishlaydigan Toshkent sanasini tanlang.",
+      "date": "Ish sanasi",
+      "dedupeHint": "Mavjud bildirishnomalar takrorlanmaydi. Tugagan vazifani qayta ishlatish xavfsiz.",
+      "cancel": "Bekor qilish",
+      "confirm": "Ishga tushirish",
+      "running": "Bajarilmoqda…",
+      "successToast": "Vazifa tugadi — {{count}} ta bildirishnoma yuborildi.",
+      "failedToast": "Vazifa xato bilan tugadi. Tafsilotlar tarixda ko'rsatilgan.",
+      "errorToast": "Vazifani ishga tushirib bo'lmadi."
+    },
+    "stats": {
+      "successRate": "30 kunlik muvaffaqiyat",
+      "sentTotal": "Yuborilgan bildirishnomalar",
+      "failures": "Xatoli ishlar"
+    },
+    "detail": {
+      "back": "Barcha rejali vazifalar",
+      "notFound": "Bunday rejali vazifa mavjud emas.",
+      "lastDate": "Oxirgi ish: {{value}}",
+      "lastDuration": "Davomiyligi: {{value}}",
+      "lastSent": "Yuborildi: {{count}}",
+      "history": "Ishga tushirish tarixi",
+      "historyDescription": "Oxirgi 30 kundagi to'liq natijalar va xatolar."
     }
   }
 }

@@ -23,6 +23,77 @@
     "title": "Hozircha bildirishnoma yo‘q",
     "body": "Yangi hisobotlar, e'lonlar, albomlar, taomlar, dori so‘rovlari va olib ketish yangiliklari shu yerda ko‘rinadi."
   },
+  "cron": {
+    "daily": {
+      "arrived": "{{time}} da keldi",
+      "left": "{{time}} da ketdi",
+      "pickedUp": "{{name}} ({{relationship}}) olib ketdi",
+      "meal": "{{meal}}: {{menu}} — {{status}}",
+      "sleep": "Uyqu: {{duration}}",
+      "activities": "Mashg‘ulotlar: {{items}}"
+    },
+    "mealTypes": {
+      "breakfast": "Nonushta",
+      "lunch": "Tushlik",
+      "snack": "Tamaddi",
+      "dinner": "Kechki ovqat"
+    },
+    "eatingStatus": {
+      "ate_all": "hammasini yedi",
+      "ate_most": "ko‘p qismini yedi",
+      "ate_some": "bir qismini yedi",
+      "did_not_eat": "yemadi",
+      "not_recorded": "kiritilmagan"
+    },
+    "relationships": {
+      "mom": "onasi",
+      "mother": "onasi",
+      "dad": "otasi",
+      "father": "otasi",
+      "grandmother": "buvisi",
+      "grandfather": "bobosi",
+      "grandparent": "buvisi/bobosi",
+      "uncle": "amakisi/tog‘asi",
+      "aunt": "ammasi/xolasi",
+      "brother": "akasi/ukasi",
+      "sister": "opasi/singlisi",
+      "guardian": "vasiysi",
+      "other": "yaqini"
+    },
+    "duration": {
+      "hoursMinutes": "{{hours}} soat {{minutes}} daqiqa",
+      "hours": "{{count}} soat",
+      "minutes": "{{count}} daqiqa"
+    },
+    "events": {
+      "allDay": "kun bo‘yi",
+      "item": "{{title}} ({{details}})",
+      "summary": "Ertaga: {{items}}"
+    },
+    "payment": {
+      "summary": "{{child}}: {{amount}} — {{phase}} (muddat {{dueDate}})",
+      "phases": {
+        "upcoming": "to‘lov muddati yaqin",
+        "due_tomorrow": "ertaga to‘lanadi",
+        "due_today": "bugun to‘lanadi",
+        "overdue": "muddati o‘tgan"
+      }
+    },
+    "weekly": {
+      "attendance": "{{operating}} kundan {{attended}} kun qatnashdi",
+      "photos": "{{count}} ta yangi rasm",
+      "reports": "{{count}} ta kunlik hisobot",
+      "notices": "{{count}} ta e'lon"
+    },
+    "document": {
+      "summary_one": "“{{title}}” hujjati ertaga topshiriladi",
+      "summary_other": "“{{title}}” hujjatiga {{count}} kun qoldi"
+    },
+    "notices": {
+      "summary_one": "Muhim: {{titles}}",
+      "summary_other": "{{count}} ta muhim e'lon: {{titles}}"
+    }
+  },
   "types": {
     "album_post.comment_created": "Albomga yangi izoh",
     "album_post.published": "Albomda yangi rasmlar",
@@ -55,6 +126,12 @@
     "student_document.accepted": "Hujjat qabul qilindi",
     "student_document.rejected": "Hujjatga tuzatish kerak",
     "student_document.request_sent": "Yangi hujjat so‘rovi",
-    "student_document.submitted": "Hujjat yuborildi"
+    "student_document.submitted": "Hujjat yuborildi",
+    "digest.daily": "Kunlik xulosa",
+    "digest.tomorrow_events": "Ertangi tadbirlar",
+    "digest.weekly": "Haftalik xulosa",
+    "payment.reminder": "Bog‘cha to‘lovi eslatmasi",
+    "document.deadline_reminder": "Hujjat muddati eslatmasi",
+    "notice.unread_nudge": "O‘qilmagan muhim e'lon"
   }
 }
