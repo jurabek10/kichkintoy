@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    // Source-consumed shared screens: their classes must be scanned here or
+    // NativeWind silently drops any class not also used inside this app.
+    '../mobile-shared/src/**/*.{ts,tsx}',
+  ],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
