@@ -2,6 +2,7 @@ import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { uuidSchema } from "../../lib/validators.js";
 import {
+  editMessageInputSchema,
   messageContactGroupSchema,
   messageCursorInputSchema,
   messageLastReadSchema,
@@ -32,6 +33,7 @@ export const messagesContract = {
   markRead: oc
     .input(z.object({ threadId: uuidSchema }))
     .output(messageLastReadSchema),
+  editMessage: oc.input(editMessageInputSchema).output(messageSchema),
   deleteMessage: oc
     .input(z.object({ messageId: uuidSchema }))
     .output(messageSchema),

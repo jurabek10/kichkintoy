@@ -59,6 +59,11 @@ export const realtimeMessageDeletedMessageSchema = z.object({
   payload: z.object({ threadId: uuidSchema, message: messageSchema }),
 });
 
+export const realtimeMessageUpdatedMessageSchema = z.object({
+  type: z.literal("message.updated"),
+  payload: z.object({ threadId: uuidSchema, message: messageSchema }),
+});
+
 export const realtimeThreadReadMessageSchema = z.object({
   type: z.literal("thread.read"),
   payload: z.object({
@@ -82,6 +87,7 @@ export const serverRealtimeMessageSchema = z.discriminatedUnion("type", [
   realtimeNotificationCountUpdatedMessageSchema,
   realtimeMessageCreatedMessageSchema,
   realtimeMessageDeletedMessageSchema,
+  realtimeMessageUpdatedMessageSchema,
   realtimeThreadReadMessageSchema,
   realtimeErrorMessageSchema,
 ]);

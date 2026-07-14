@@ -62,6 +62,7 @@ export const messageSchema = z.object({
   body: z.string().nullable(),
   attachments: z.array(messageAttachmentSchema),
   deletedAt: isoDateTimeSchema.nullable(),
+  editedAt: isoDateTimeSchema.nullable(),
   createdAt: isoDateTimeSchema,
 });
 export type DirectMessage = z.infer<typeof messageSchema>;
@@ -74,6 +75,9 @@ export const threadSummarySchema = z.object({
   lastMessageKind: z.enum(["text", "image", "video", "file"]).nullable(),
   lastMessageAt: isoDateTimeSchema.nullable(),
   unreadCount: z.number().int().min(0),
+  // When the other participant last read this thread. A message of mine is
+  // "read" once its createdAt is at or before this — drives the read receipts.
+  otherLastReadAt: isoDateTimeSchema.nullable(),
 });
 export type ThreadSummary = z.infer<typeof threadSummarySchema>;
 
@@ -96,6 +100,12 @@ export const startThreadInputSchema = z.intersection(
   }),
 );
 export type StartThreadInput = z.infer<typeof startThreadInputSchema>;
+
+export const editMessageInputSchema = z.object({
+  messageId: uuidSchema,
+  body: z.string().trim().min(1).max(2000),
+});
+export type EditMessageInput = z.infer<typeof editMessageInputSchema>;
 
 export const messageCursorInputSchema = z
   .object({
