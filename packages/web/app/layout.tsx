@@ -62,6 +62,7 @@ const layoutNamespaces = [
   "pickups",
   "teachers",
   "profile",
+  "notifications",
 ];
 
 export default async function RootLayout({

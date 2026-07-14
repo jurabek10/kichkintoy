@@ -8,9 +8,9 @@ export type NotificationRouteInput = {
 
 export type NotificationRouteTarget =
   | { kind: "report"; id: string }
-  | { kind: "notice"; id: string }
+  | { kind: "notice"; id: string | null }
   | { kind: "album"; id: string }
-  | { kind: "calendar"; id: string }
+  | { kind: "calendar"; id: string | null }
   | { kind: "meal"; id: string | null }
   | { kind: "medication"; id: string }
   | { kind: "pickup"; id: string }
@@ -18,11 +18,34 @@ export type NotificationRouteTarget =
   | { kind: "attendance"; id: string | null }
   | { kind: "message"; id: string }
   | { kind: "complaint"; id: string }
+  | { kind: "child_reports"; id: string }
+  | { kind: "payments"; id: string }
   | { kind: "notifications" };
 
-export function notificationRouteTarget(input: NotificationRouteInput): NotificationRouteTarget {
+export function notificationRouteTarget(
+  input: NotificationRouteInput,
+): NotificationRouteTarget {
   const source = `${input.notificationType}:${input.entityType ?? ""}`;
   const id = input.entityId;
+
+  if (
+    input.notificationType === "digest.daily" ||
+    input.notificationType === "digest.weekly"
+  ) {
+    return id ? { kind: "child_reports", id } : { kind: "notifications" };
+  }
+  if (input.notificationType === "digest.tomorrow_events") {
+    return { kind: "calendar", id };
+  }
+  if (input.notificationType === "payment.reminder") {
+    return id ? { kind: "payments", id } : { kind: "notifications" };
+  }
+  if (input.notificationType === "document.deadline_reminder") {
+    return { kind: "documents", id };
+  }
+  if (input.notificationType === "notice.unread_nudge") {
+    return { kind: "notice", id };
+  }
 
   if (id && source.includes("report")) return { kind: "report", id };
   if (id && source.includes("notice")) return { kind: "notice", id };
@@ -34,19 +57,30 @@ export function notificationRouteTarget(input: NotificationRouteInput): Notifica
   if (source.includes("student_document")) return { kind: "documents", id };
   if (source.includes("attendance")) return { kind: "attendance", id };
   if (id && source.includes("complaint")) return { kind: "complaint", id };
-  if (id && (input.notificationType === "message.received" || input.entityType === "conversation_thread")) {
+  if (
+    id &&
+    (input.notificationType === "message.received" ||
+      input.entityType === "conversation_thread")
+  ) {
     return { kind: "message", id };
   }
 
   return { kind: "notifications" };
 }
 
-export function queryGroupFromHint(hint: RealtimeQueryInvalidationHint): readonly [string] {
+export function queryGroupFromHint(
+  hint: RealtimeQueryInvalidationHint,
+): readonly [string] {
   return [hint.group] as const;
 }
 
-export function isAttendanceNotification(input: NotificationRouteInput): boolean {
-  return input.notificationType.includes("attendance") || input.entityType === "attendance_record";
+export function isAttendanceNotification(
+  input: NotificationRouteInput,
+): boolean {
+  return (
+    input.notificationType.includes("attendance") ||
+    input.entityType === "attendance_record"
+  );
 }
 
 export function safeJsonParse(value: string): unknown {

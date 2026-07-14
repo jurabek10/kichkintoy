@@ -1,34 +1,44 @@
-import type { NotificationSummary } from '@kichkintoy/shared';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  renderCronNotificationBody,
+  type NotificationSummary,
+} from "@kichkintoy/shared";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { formatDayMonth } from '@/lib/date';
-import i18n from '@/i18n';
-import { orpc } from '@/lib/orpc';
-import { queryKeys } from '@/lib/query-keys';
+import { formatDayMonth } from "@/lib/date";
+import i18n from "@/i18n";
+import { orpc } from "@/lib/orpc";
+import { queryKeys } from "@/lib/query-keys";
 
 export type NotificationItem = {
   id: string;
   notificationType: string;
   title: string;
   body: string | null;
-  metadata: NotificationSummary['metadata'];
+  metadata: NotificationSummary["metadata"];
   entityType: string | null;
   entityId: string | null;
-  priority: NotificationSummary['priority'];
+  priority: NotificationSummary["priority"];
   readAt: string | null;
   createdAt: string;
   dateLabel: string;
 };
 
-function toNotificationItem(notification: NotificationSummary): NotificationItem {
+function toNotificationItem(
+  notification: NotificationSummary,
+): NotificationItem {
   return {
     id: notification.id,
     notificationType: notification.notificationType,
     title: i18n.t(`types.${notification.notificationType}`, {
-      ns: 'notifications',
+      ns: "notifications",
       defaultValue: notification.title,
     }),
-    body: notification.body,
+    body: renderCronNotificationBody(
+      notification.notificationType,
+      notification.metadata,
+      (key, options) => i18n.t(key, { ns: "notifications", ...options }),
+      notification.body,
+    ),
     metadata: notification.metadata,
     entityType: notification.entityType,
     entityId: notification.entityId,
@@ -63,8 +73,10 @@ export function useUnreadNotificationsCount() {
 export function useMarkNotificationRead() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (notificationId: string) => orpc.notifications.markRead({ notificationId }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    mutationFn: (notificationId: string) =>
+      orpc.notifications.markRead({ notificationId }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
   });
 }
 
@@ -72,6 +84,7 @@ export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => orpc.notifications.markAllRead(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
   });
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Bell, CheckCheck } from "lucide-react";
+import { renderCronNotificationBody } from "@kichkintoy/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,11 +10,13 @@ import { Card } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
 import { orpc } from "@/lib/orpc";
 import { routeForNotification } from "@/lib/notification-routes";
+import { notificationVisual } from "@/lib/notification-visuals";
 import { queryKeys } from "@/lib/query-keys";
 import { useLayoutTranslation } from "@/i18n/useLayoutTranslation";
 
 export function NotificationsScreen() {
   const { t: tm } = useLayoutTranslation("messages");
+  const { t } = useLayoutTranslation("notifications");
   const queryClient = useQueryClient();
   const listKey = queryKeys.notifications.list();
 
@@ -79,12 +82,28 @@ export function NotificationsScreen() {
           notifications.map((notification) => {
             const href = routeForNotification(notification);
             const unread = !notification.readAt;
+            const visual = notificationVisual(notification.notificationType);
+            const NotificationIcon = visual.icon;
+            const title = t(`types.${notification.notificationType}`, {
+              defaultValue: notification.title,
+            });
+            const body = renderCronNotificationBody(
+              notification.notificationType,
+              notification.metadata,
+              (key, options) => t(key, options),
+              notification.body,
+            );
 
             return (
               <div
                 key={notification.id}
                 className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
               >
+                <div
+                  className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${visual.tileClass}`}
+                >
+                  <NotificationIcon className={`h-5 w-5 ${visual.iconClass}`} />
+                </div>
                 <Link
                   href={href}
                   className="min-w-0 flex-1 space-y-1"
@@ -93,15 +112,19 @@ export function NotificationsScreen() {
                   }}
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{notification.title}</p>
+                    <p className="font-semibold">{title}</p>
                     {unread ? <Badge variant="info">New</Badge> : null}
                     {notification.priority !== "normal" ? (
                       <Badge variant="warning">{notification.priority}</Badge>
                     ) : null}
                   </div>
-                  {notification.body || (notification.notificationType === "message.received" && notification.metadata?.messageKind && notification.metadata.messageKind !== "text") ? (
+                  {body ||
+                  (notification.notificationType === "message.received" &&
+                    notification.metadata?.messageKind &&
+                    notification.metadata.messageKind !== "text") ? (
                     <p className="text-sm text-muted-foreground">
-                      {notification.body ?? `${String(notification.metadata?.senderName ?? "")}: ${tm(`previewKind.${String(notification.metadata?.messageKind)}`)}`}
+                      {body ??
+                        `${String(notification.metadata?.senderName ?? "")}: ${tm(`previewKind.${String(notification.metadata?.messageKind)}`)}`}
                     </p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
