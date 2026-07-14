@@ -8,6 +8,7 @@ import type { AuthService, RequestContext } from "../auth/auth.service";
 import type { CalendarService } from "../calendar/calendar.service";
 import type { AuthenticatedUser } from "../auth/session.guard";
 import type { AdminService } from "../admin/admin.service";
+import type { AdminCronService } from "../admin/admin-cron.service";
 import type { AttendanceService } from "../attendance/attendance.service";
 import type { AlbumsService } from "../albums/albums.service";
 import type { CentersService } from "../centers/centers.service";
@@ -45,6 +46,7 @@ export type ORPCImplementer = ReturnType<
 
 export type ORPCDeps = {
   adminService: AdminService;
+  adminCronService: AdminCronService;
   authService: AuthService;
   attendanceService: AttendanceService;
   albumsService: AlbumsService;
@@ -182,10 +184,7 @@ export async function requireCenterAccess(
   }
 
   if (options.directorOnly) {
-    throw new AppException(
-      "DIRECTOR_ACCESS_REQUIRED",
-      HttpStatus.FORBIDDEN,
-    );
+    throw new AppException("DIRECTOR_ACCESS_REQUIRED", HttpStatus.FORBIDDEN);
   }
 
   const teacherApprover = await prisma.userRole.findFirst({

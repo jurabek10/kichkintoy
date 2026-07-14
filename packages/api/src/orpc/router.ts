@@ -5,6 +5,7 @@ import { implement } from "@orpc/server";
 import { toORPCError } from "./error-mapping";
 import { appContract } from "@kichkintoy/shared";
 import { AdminService } from "../admin/admin.service";
+import { AdminCronService } from "../admin/admin-cron.service";
 import { AlbumsService } from "../albums/albums.service";
 import { AttendanceService } from "../attendance/attendance.service";
 import { AuthService } from "../auth/auth.service";
@@ -62,6 +63,7 @@ import { createStudentDocumentsRouter } from "../student-documents/student-docum
 export function registerORPCRoutes(app: NestExpressApplication) {
   const router = createORPCRouter({
     adminService: app.get(AdminService, { strict: false }),
+    adminCronService: app.get(AdminCronService, { strict: false }),
     authService: app.get(AuthService, { strict: false }),
     attendanceService: app.get(AttendanceService, { strict: false }),
     albumsService: app.get(AlbumsService, { strict: false }),
@@ -89,7 +91,9 @@ export function registerORPCRoutes(app: NestExpressApplication) {
     realtimeService: app.get(RealtimeService, { strict: false }),
     reportsService: app.get(ReportsService, { strict: false }),
     geminiService: app.get(GeminiService, { strict: false }),
-    studentDocumentsService: app.get(StudentDocumentsService, { strict: false }),
+    studentDocumentsService: app.get(StudentDocumentsService, {
+      strict: false,
+    }),
     teacherService: app.get(TeacherService, { strict: false }),
   });
 

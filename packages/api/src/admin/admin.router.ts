@@ -3,6 +3,10 @@ import {
   adminCenterDetailSchema,
   adminCenterRowSchema,
   adminOverviewStatsSchema,
+  adminCronJobSchema,
+  adminCronRunSchema,
+  adminCronRunsResponseSchema,
+  adminCronStatsSchema,
 } from "@kichkintoy/shared";
 import { type ORPCDeps, type ORPCImplementer } from "../orpc/context";
 import { createAccess } from "../orpc/access";
@@ -14,7 +18,9 @@ export function createAdminRouter(os: ORPCImplementer, deps: ORPCDeps) {
       stats: os.admin.overview.stats
         .use(access.superAdmin)
         .handler(async () =>
-          adminOverviewStatsSchema.parse(await deps.adminService.overviewStats()),
+          adminOverviewStatsSchema.parse(
+            await deps.adminService.overviewStats(),
+          ),
         ),
     },
     centers: {
@@ -85,6 +91,40 @@ export function createAdminRouter(os: ORPCImplementer, deps: ORPCDeps) {
             paid: input.paid,
             note: input.note,
           }),
+        ),
+    },
+    crons: {
+      list: os.admin.crons.list
+        .use(access.superAdmin)
+        .handler(async () =>
+          adminCronJobSchema
+            .array()
+            .parse(await deps.adminCronService.listJobs()),
+        ),
+      runs: os.admin.crons.runs
+        .use(access.superAdmin)
+        .handler(async ({ input }) =>
+          adminCronRunsResponseSchema.parse(
+            await deps.adminCronService.listRuns(input),
+          ),
+        ),
+      stats: os.admin.crons.stats
+        .use(access.superAdmin)
+        .handler(async ({ input }) =>
+          adminCronStatsSchema.parse(
+            await deps.adminCronService.stats(input.jobName),
+          ),
+        ),
+      runNow: os.admin.crons.runNow
+        .use(access.superAdmin)
+        .handler(async ({ input, context }) =>
+          adminCronRunSchema.parse(
+            await deps.adminCronService.runNow({
+              actorUserId: context.user.id,
+              jobName: input.jobName,
+              runDate: input.runDate,
+            }),
+          ),
         ),
     },
     invitations: {

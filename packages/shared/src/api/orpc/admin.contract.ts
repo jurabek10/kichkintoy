@@ -4,6 +4,7 @@ import { facilityTypeSchema } from "../../centers/facility-type.js";
 import { centerStatusSchema } from "../../centers/status.js";
 import { invitationStatusSchema } from "../../membership/invitation.js";
 import {
+  isoDateSchema,
   isoDateTimeSchema,
   phoneNumberSchema,
   uuidSchema,
@@ -224,6 +225,60 @@ export const adminBillingSetPaidInputSchema = centerIdInputSchema.extend({
   note: z.string().trim().max(300).optional(),
 });
 
+// --- Scheduled job monitoring --------------------------------------------
+
+export const cronRunStatusSchema = z.enum(["running", "succeeded", "failed"]);
+export type CronRunStatus = z.infer<typeof cronRunStatusSchema>;
+
+export const adminCronRunSchema = z.object({
+  id: uuidSchema,
+  jobName: z.string(),
+  runDate: isoDateSchema,
+  startedAt: isoDateTimeSchema,
+  finishedAt: isoDateTimeSchema.nullable(),
+  status: cronRunStatusSchema,
+  sentCount: nonNegativeInt,
+  error: z.string().nullable(),
+});
+export type AdminCronRun = z.infer<typeof adminCronRunSchema>;
+
+export const adminCronJobSchema = z.object({
+  name: z.string(),
+  cronExpression: z.string(),
+  descriptionKey: z.string(),
+  latestRun: adminCronRunSchema.nullable(),
+});
+export type AdminCronJob = z.infer<typeof adminCronJobSchema>;
+
+export const adminCronRunsInputSchema = z.object({
+  jobName: z.string().optional(),
+  status: cronRunStatusSchema.optional(),
+  page: z.number().int().positive().default(1),
+});
+
+export const adminCronRunsResponseSchema = z.object({
+  items: z.array(adminCronRunSchema),
+  page: z.number().int().positive(),
+  pageSize: z.literal(10),
+  total: nonNegativeInt,
+  totalPages: nonNegativeInt,
+});
+export type AdminCronRunsResponse = z.infer<typeof adminCronRunsResponseSchema>;
+
+export const adminCronStatsSchema = z.object({
+  jobName: z.string(),
+  totalRuns: nonNegativeInt,
+  successRate: z.number().min(0).max(100),
+  sentTotal: nonNegativeInt,
+  failureCount: nonNegativeInt,
+});
+export type AdminCronStats = z.infer<typeof adminCronStatsSchema>;
+
+export const adminCronRunNowInputSchema = z.object({
+  jobName: z.string(),
+  runDate: isoDateSchema.optional(),
+});
+
 export const adminContract = {
   overview: {
     stats: oc.input(emptyInputSchema).output(adminOverviewStatsSchema),
@@ -251,6 +306,16 @@ export const adminContract = {
     setPaid: oc
       .input(adminBillingSetPaidInputSchema)
       .output(successResponseSchema),
+  },
+  crons: {
+    list: oc.input(emptyInputSchema).output(z.array(adminCronJobSchema)),
+    runs: oc
+      .input(adminCronRunsInputSchema)
+      .output(adminCronRunsResponseSchema),
+    stats: oc
+      .input(z.object({ jobName: z.string() }))
+      .output(adminCronStatsSchema),
+    runNow: oc.input(adminCronRunNowInputSchema).output(adminCronRunSchema),
   },
   invitations: {
     createDirector: oc
