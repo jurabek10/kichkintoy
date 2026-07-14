@@ -24,6 +24,7 @@
     "@nestjs/common": "^11.1.23",
     "@nestjs/core": "^11.1.23",
     "@nestjs/platform-express": "^11.1.23",
+    "@nestjs/schedule": "^6.0.0",
     "@nestjs/throttler": "^6.5.0",
     "@orpc/server": "^1.14.4",
     "@prisma/adapter-pg": "^7.8.0",
