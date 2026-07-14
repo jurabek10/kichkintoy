@@ -69,13 +69,15 @@ export function useRealtimeNotifications(session: StoredSession | null) {
             });
           }
 
-          if (parsed.data.type === 'message.created' || parsed.data.type === 'message.deleted') {
+          if (parsed.data.type === 'message.created' || parsed.data.type === 'message.deleted' || parsed.data.type === 'message.updated') {
             void queryClient.invalidateQueries({ queryKey: ['messages', 'thread', parsed.data.payload.threadId] });
             void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
             void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
           }
 
           if (parsed.data.type === 'thread.read') {
+            // Refresh the open conversation too so sent → read ticks flip live.
+            void queryClient.invalidateQueries({ queryKey: ['messages', 'thread', parsed.data.payload.threadId] });
             void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
             void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
           }

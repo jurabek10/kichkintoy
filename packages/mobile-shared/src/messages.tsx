@@ -1,7 +1,9 @@
 /// <reference path="./nativewind-types.d.ts" />
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
+import * as Sharing from 'expo-sharing';
 import {
   useInfiniteQuery,
   useMutation,
@@ -44,6 +46,7 @@ export type MessagesApi = {
   thread(input: { threadId: string; cursor?: string; limit?: number }): Promise<ThreadDetail>;
   startThread(input: { recipientUserId: string; centerId?: string; body?: string; attachmentMediaAssetIds?: string[] }): Promise<ThreadDetail>;
   send(input: { threadId: string; body?: string; attachmentMediaAssetIds?: string[] }): Promise<DirectMessage>;
+  editMessage(input: { messageId: string; body: string }): Promise<DirectMessage>;
   deleteMessage(input: { messageId: string }): Promise<DirectMessage>;
 };
 
@@ -103,23 +106,42 @@ function Avatar({ person, resolvePhoto, displayName, size = 44 }: { person: { di
 /** A photo/video attachment: rendered as a bare rounded thumbnail — no colored
  *  bubble frame around it — so a shared image reads as an image, not a big box. */
 function AttachmentImage({ attachment, resolvePhoto, single }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto; single: boolean }) {
+  const { t } = useTranslation('messages');
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const query = useQuery({
     queryKey: ['media', 'download', attachment.mediaAssetId],
     queryFn: () => resolvePhoto(attachment.mediaAssetId),
     staleTime: 240_000,
   });
   const url = query.data;
+  const run = async () => {
+    if (!url || busy) return;
+    setBusy(true);
+    try {
+      await openAttachment({ url, mediaAssetId: attachment.mediaAssetId, fileName: attachment.fileName, mimeType: attachment.mimeType });
+    } catch {
+      Alert.alert(t('openFailed'));
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <>
-      <Pressable disabled={!url} onPress={() => (attachment.mediaType === 'image' ? setOpen(true) : url && Linking.openURL(url))} className={`relative aspect-square overflow-hidden rounded-2xl bg-segment ${single ? 'w-full' : 'w-[49%]'}`}>
+      <Pressable disabled={!url} onPress={() => (attachment.mediaType === 'image' ? setOpen(true) : void run())} className={`relative aspect-square overflow-hidden rounded-2xl bg-segment ${single ? 'w-full' : 'w-[49%]'}`}>
         {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" /> : <View className="h-full w-full items-center justify-center"><ActivityIndicator color="#AEB4BE" /></View>}
-        {attachment.mediaType === 'video' ? <View className="absolute inset-0 items-center justify-center bg-black/25"><Ionicons name="play-circle" size={38} color="#FFFFFF" /></View> : null}
+        {attachment.mediaType === 'video' ? <View className="absolute inset-0 items-center justify-center bg-black/25">{busy ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="play-circle" size={38} color="#FFFFFF" />}</View> : null}
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable onPress={() => setOpen(false)} className="flex-1 items-center justify-center bg-black/95 p-4">
           {url ? <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="contain" /> : null}
-          <Ionicons name="close-circle" size={34} color="#FFFFFF" style={{ position: 'absolute', right: 16, top: 48 }} />
+          <Pressable onPress={() => setOpen(false)} hitSlop={12} style={{ position: 'absolute', right: 16, top: 48 }}>
+            <Ionicons name="close-circle" size={34} color="#FFFFFF" />
+          </Pressable>
+          <Pressable onPress={run} disabled={busy} className="absolute flex-row items-center gap-2 rounded-full bg-white/15 px-5 py-3 active:bg-white/25" style={{ bottom: 44 }}>
+            {busy ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="share-outline" size={18} color="#FFFFFF" />}
+            <Text className="font-bold text-white">{t('saveToFiles')}</Text>
+          </Pressable>
         </Pressable>
       </Modal>
     </>
@@ -129,33 +151,49 @@ function AttachmentImage({ attachment, resolvePhoto, single }: { attachment: Mes
 /** A file attachment chip. Tints to the bubble color when it's the sender's own. */
 function AttachmentFile({ attachment, resolvePhoto, mine }: { attachment: MessageAttachment; resolvePhoto: ResolvePhoto; mine: boolean }) {
   const { t } = useTranslation('messages');
+  const [busy, setBusy] = useState(false);
   const query = useQuery({
     queryKey: ['media', 'download', attachment.mediaAssetId],
     queryFn: () => resolvePhoto(attachment.mediaAssetId),
     staleTime: 240_000,
   });
   const url = query.data;
+  const run = async () => {
+    if (!url || busy) return;
+    setBusy(true);
+    try {
+      await openAttachment({ url, mediaAssetId: attachment.mediaAssetId, fileName: attachment.fileName, mimeType: attachment.mimeType });
+    } catch {
+      Alert.alert(t('openFailed'));
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <Pressable disabled={!url} onPress={() => url && Linking.openURL(url)} className={`flex-row items-center gap-2.5 rounded-2xl px-3 py-2.5 ${mine ? 'bg-primary' : 'border border-border bg-card'}`}>
+    <Pressable disabled={!url || busy} onPress={run} className={`flex-row items-center gap-2.5 rounded-2xl px-3 py-2.5 ${mine ? 'bg-primary' : 'border border-border bg-card'}`}>
       <View className={`h-9 w-9 items-center justify-center rounded-xl ${mine ? 'bg-white/20' : 'bg-segment'}`}>
-        <Ionicons name="document-text" size={18} color={mine ? '#FFFFFF' : '#606773'} />
+        {busy ? <ActivityIndicator color={mine ? '#FFFFFF' : '#606773'} /> : <Ionicons name="document-text" size={18} color={mine ? '#FFFFFF' : '#606773'} />}
       </View>
-      <View className="max-w-[190px]">
+      <View className="max-w-[176px]">
         <Text numberOfLines={1} ellipsizeMode="middle" className={`text-[13px] font-semibold ${mine ? 'text-white' : 'text-foreground'}`}>{attachment.fileName ?? t('previewKind.file')}</Text>
-        <Text className={`text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>{sizeLabel(attachment.sizeBytes)}</Text>
+        <Text className={`text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>{busy ? t('opening') : sizeLabel(attachment.sizeBytes)}</Text>
       </View>
+      <Ionicons name="download-outline" size={17} color={mine ? '#FFFFFF' : '#89919E'} />
     </Pressable>
   );
 }
 
 /** One message: photos as bare thumbnails, files as chips, text in a colored
- *  bubble, and a single timestamp under the last message of a sender's run. */
-function MessageBubble({ item, mine, groupEnd, timeLabel, onLongPress, resolvePhoto, t }: { item: DirectMessage; mine: boolean; groupEnd: boolean; timeLabel: string; onLongPress?: () => void; resolvePhoto: ResolvePhoto; t: TFunction<'messages'> }) {
+ *  bubble. Under the last message of a sender's run: the timestamp, an "edited"
+ *  tag, and — for your own messages — a sent (✓) / read (✓✓) receipt. Tapping
+ *  your own read message reveals when it was read. */
+function MessageBubble({ item, mine, groupEnd, timeLabel, read, readTimeLabel, revealed, onPress, onLongPress, resolvePhoto, t }: { item: DirectMessage; mine: boolean; groupEnd: boolean; timeLabel: string; read: boolean; readTimeLabel: string | null; revealed: boolean; onPress?: () => void; onLongPress?: () => void; resolvePhoto: ResolvePhoto; t: TFunction<'messages'> }) {
   const media = item.attachments.filter((a) => a.mediaType !== 'file');
   const files = item.attachments.filter((a) => a.mediaType === 'file');
   const shape = groupEnd ? (mine ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-bl-md') : 'rounded-2xl';
+  const showReceipt = mine && !item.deletedAt;
   return (
-    <Pressable onLongPress={onLongPress} disabled={!onLongPress} className={`gap-1 ${mine ? 'items-end' : 'items-start'}`}>
+    <Pressable onPress={onPress} onLongPress={onLongPress} disabled={!onPress && !onLongPress} className={`gap-1 ${mine ? 'items-end' : 'items-start'}`}>
       {item.deletedAt ? (
         <View className={`max-w-[80%] px-3.5 py-2.5 ${shape} ${mine ? 'bg-primary/50' : 'border border-border bg-card'}`}>
           <Text className={mine ? 'text-[13px] italic text-white/80' : 'text-[13px] italic text-muted'}>{t('deleted')}</Text>
@@ -175,7 +213,16 @@ function MessageBubble({ item, mine, groupEnd, timeLabel, onLongPress, resolvePh
           ) : null}
         </>
       )}
-      {groupEnd ? <Text className="px-1 text-[10px] text-muted">{timeLabel}</Text> : null}
+      {groupEnd ? (
+        <View className="flex-row items-center gap-1 px-1">
+          {item.editedAt && !item.deletedAt ? <Text className="text-[10px] text-muted">{t('edited')}</Text> : null}
+          <Text className="text-[10px] text-muted">{timeLabel}</Text>
+          {showReceipt ? <Ionicons name={read ? 'checkmark-done' : 'checkmark'} size={15} color={read ? '#3B8FF3' : '#AEB4BE'} /> : null}
+        </View>
+      ) : null}
+      {showReceipt && revealed && read && readTimeLabel ? (
+        <Text className="px-1 text-[10px] font-semibold text-primary">{t('readAt', { time: readTimeLabel })}</Text>
+      ) : null}
     </Pressable>
   );
 }
@@ -357,6 +404,10 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
   const queryClient = useQueryClient();
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  // Editing an existing message reuses the composer; `revealedId` is the message
+  // whose read time is currently shown (tap a read message to reveal it).
+  const [editing, setEditing] = useState<{ id: string; original: string } | null>(null);
+  const [revealedId, setRevealedId] = useState<string | null>(null);
   const query = useInfiniteQuery({
     queryKey: ['messages', 'thread', threadId],
     initialPageParam: null as string | null,
@@ -364,6 +415,7 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
   const thread = query.data?.pages[0]?.thread;
+  const otherLastReadAt = thread?.otherLastReadAt ?? null;
   const identity = thread ? messageIdentityParts(thread.otherParticipant, t) : null;
   // Newest first: the natural order for an inverted chat list, so the screen
   // opens at the latest message and new arrivals appear at the bottom.
@@ -408,7 +460,41 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
     mutationFn: (messageId: string) => api.deleteMessage({ messageId }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['messages'] }),
   });
+  const edit = useMutation({
+    mutationFn: (vars: { messageId: string; body: string }) => api.editMessage(vars),
+    onSuccess: () => {
+      setEditing(null);
+      setBody('');
+      void queryClient.invalidateQueries({ queryKey: ['messages'] });
+    },
+    onError: () => Alert.alert(t('editFailed')),
+  });
   const confirmDelete = (messageId: string) => Alert.alert(t('deleteTitle'), t('deleteBody'), [{ text: t('cancel'), style: 'cancel' }, { text: t('delete'), style: 'destructive', onPress: () => remove.mutate(messageId) }]);
+  const startEdit = (message: DirectMessage) => {
+    setEditing({ id: message.id, original: message.body ?? '' });
+    setAttachments([]);
+    setBody(message.body ?? '');
+    setRevealedId(null);
+  };
+  const cancelEdit = () => {
+    setEditing(null);
+    setBody('');
+  };
+  // Long-press your own message: text-only messages sent within the edit window
+  // can be edited; any of your own messages can be deleted.
+  const openMessageActions = (message: DirectMessage) => {
+    const canEdit = !message.deletedAt && message.attachments.length === 0 && Boolean(message.body) && withinEditWindow(message.createdAt);
+    const buttons: Array<{ text: string; style?: 'default' | 'cancel' | 'destructive'; onPress?: () => void }> = [];
+    if (canEdit) buttons.push({ text: t('edit'), onPress: () => startEdit(message) });
+    buttons.push({ text: t('delete'), style: 'destructive', onPress: () => confirmDelete(message.id) });
+    buttons.push({ text: t('cancel'), style: 'cancel' });
+    Alert.alert(t('messageOptions'), undefined, buttons);
+  };
+  const saveEdit = () => {
+    const text = body.trim();
+    if (!editing || !text || text === editing.original || edit.isPending) return;
+    edit.mutate({ messageId: editing.id, body: text });
+  };
   const pendingDraft = send.isPending ? send.variables : null;
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
@@ -445,20 +531,50 @@ export function ConversationScreen({ api, navigation, threadId, currentUserId, r
             const showDate = older ? dayKey(older.createdAt) !== dayKey(item.createdAt) : !query.hasNextPage;
             const groupStart = !older || older.senderUserId !== item.senderUserId || showDate;
             const groupEnd = !newer || newer.senderUserId !== item.senderUserId || dayKey(newer.createdAt) !== dayKey(item.createdAt);
+            const read = mine && !item.deletedAt && Boolean(otherLastReadAt) && item.createdAt <= otherLastReadAt!;
             return (
               <View className={groupStart ? 'mt-3' : 'mt-0.5'}>
                 {showDate ? <View className="my-3 items-center"><Text className="rounded-full bg-segment px-3 py-1 text-[11px] font-semibold text-muted">{formatDate(item.createdAt, i18n.language)}</Text></View> : null}
-                <MessageBubble item={item} mine={mine} groupEnd={groupEnd} timeLabel={formatTime(item.createdAt, i18n.language)} onLongPress={mine && !item.deletedAt ? () => confirmDelete(item.id) : undefined} resolvePhoto={resolvePhoto} t={t} />
+                <MessageBubble
+                  item={item}
+                  mine={mine}
+                  groupEnd={groupEnd}
+                  timeLabel={formatTime(item.createdAt, i18n.language)}
+                  read={read}
+                  readTimeLabel={otherLastReadAt ? formatTime(otherLastReadAt, i18n.language) : null}
+                  revealed={revealedId === item.id}
+                  onPress={read ? () => setRevealedId((current) => (current === item.id ? null : item.id)) : undefined}
+                  onLongPress={mine && !item.deletedAt ? () => openMessageActions(item) : undefined}
+                  resolvePhoto={resolvePhoto}
+                  t={t}
+                />
               </View>
             );
           }}
         />
         <View className="border-t border-border bg-card" style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
-          <PendingAttachments value={attachments} onChange={setAttachments} />
+          {editing ? (
+            <View className="flex-row items-center gap-2.5 border-b border-border px-4 py-2">
+              <Ionicons name="pencil" size={16} color="#3B8FF3" />
+              <View className="min-w-0 flex-1">
+                <Text className="text-[12px] font-extrabold text-primary">{t('editing')}</Text>
+                <Text numberOfLines={1} className="text-[12px] text-muted">{editing.original}</Text>
+              </View>
+              <Pressable onPress={cancelEdit} hitSlop={8}><Ionicons name="close" size={20} color="#89919E" /></Pressable>
+            </View>
+          ) : (
+            <PendingAttachments value={attachments} onChange={setAttachments} />
+          )}
           <View className="flex-row items-end gap-2 px-3 pt-2">
-            <Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-10 w-10 items-center justify-center rounded-full bg-segment active:opacity-70"><Ionicons name="add" size={22} color="#606773" /></Pressable>
+            {editing ? null : <Pressable onPress={() => openAttachmentActions(attachments, setAttachments, t)} className="h-10 w-10 items-center justify-center rounded-full bg-segment active:opacity-70"><Ionicons name="add" size={22} color="#606773" /></Pressable>}
             <TextInput multiline value={body} onChangeText={setBody} maxLength={2000} placeholder={t('messagePlaceholder')} placeholderTextColor="#89919E" className="max-h-28 min-h-10 flex-1 rounded-3xl bg-segment px-4 py-2.5 text-[15px] text-foreground" />
-            <Pressable disabled={(!body.trim() && !attachments.length) || send.isPending} onPress={() => { const text = body.trim(); if (text || attachments.length) send.mutate({ body: text || undefined, attachments }); }} className={`h-10 w-10 items-center justify-center rounded-full ${(body.trim() || attachments.length) && !send.isPending ? 'bg-primary active:opacity-80' : 'bg-segment'}`}><Ionicons name="send" size={17} color={(body.trim() || attachments.length) && !send.isPending ? '#FFFFFF' : '#AEB4BE'} /></Pressable>
+            {editing ? (
+              (() => { const dirty = body.trim().length > 0 && body.trim() !== editing.original && !edit.isPending; return (
+                <Pressable disabled={!dirty} onPress={saveEdit} className={`h-10 w-10 items-center justify-center rounded-full ${dirty ? 'bg-primary active:opacity-80' : 'bg-segment'}`}><Ionicons name="checkmark" size={20} color={dirty ? '#FFFFFF' : '#AEB4BE'} /></Pressable>
+              ); })()
+            ) : (
+              <Pressable disabled={(!body.trim() && !attachments.length) || send.isPending} onPress={() => { const text = body.trim(); if (text || attachments.length) send.mutate({ body: text || undefined, attachments }); }} className={`h-10 w-10 items-center justify-center rounded-full ${(body.trim() || attachments.length) && !send.isPending ? 'bg-primary active:opacity-80' : 'bg-segment'}`}><Ionicons name="send" size={17} color={(body.trim() || attachments.length) && !send.isPending ? '#FFFFFF' : '#AEB4BE'} /></Pressable>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -471,7 +587,57 @@ function formatDate(value: string, locale: string) { return new Intl.DateTimeFor
 function formatTime(value: string, locale: string) { return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tashkent' }).format(new Date(value)); }
 function formatThreadTime(value: string | null, locale: string) { if (!value) return ''; const date = new Date(value); return dayKey(value) === dayKey(new Date().toISOString()) ? formatTime(value, locale) : new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', timeZone: 'Asia/Tashkent' }).format(date); }
 function sizeLabel(bytes: number | null) { if (bytes === null) return ''; return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`; }
+// Mirrors the server's 48h edit window so the Edit action doesn't appear on
+// messages the API would reject.
+const EDIT_WINDOW_MS = 48 * 60 * 60 * 1000;
+function withinEditWindow(createdAt: string) { return Date.now() - new Date(createdAt).getTime() <= EDIT_WINDOW_MS; }
 function mimeTypeFromName(name: string) { const lower = name.toLowerCase(); return lower.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : lower.endsWith('.doc') ? 'application/msword' : 'application/pdf'; }
+
+const UTI_BY_MIME: Record<string, string> = {
+  'application/pdf': 'com.adobe.pdf',
+  'application/msword': 'com.microsoft.word.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'org.openxmlformats.wordprocessingml.document',
+  'image/jpeg': 'public.jpeg',
+  'image/png': 'public.png',
+  'video/mp4': 'public.mpeg-4',
+  'video/quicktime': 'com.apple.quicktime-movie',
+};
+
+const EXT_BY_MIME: Record<string, string> = {
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'video/mp4': '.mp4',
+  'video/quicktime': '.mov',
+};
+
+/** A cache-safe local filename: the media asset id keeps it unique and stable,
+ *  the original extension keeps the OS opener happy. */
+function localFileName(mediaAssetId: string, fileName: string | null, mimeType: string | null) {
+  const fromName = fileName?.toLowerCase().match(/\.[a-z0-9]+$/)?.[0];
+  const ext = fromName ?? (mimeType ? EXT_BY_MIME[mimeType] ?? '' : '');
+  return `${mediaAssetId}${ext}`;
+}
+
+/** Download an attachment to the cache and hand it to the OS open/share sheet
+ *  (open in Files/Preview, save, or share). Falls back to opening the signed URL
+ *  in the browser when native sharing isn't available. Both thread participants
+ *  are authorized server-side, so this works for sender and recipient alike. */
+async function openAttachment(params: { url: string; mediaAssetId: string; fileName: string | null; mimeType: string | null }) {
+  const target = `${FileSystem.cacheDirectory ?? ''}${localFileName(params.mediaAssetId, params.fileName, params.mimeType)}`;
+  const { uri } = await FileSystem.downloadAsync(params.url, target);
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(uri, {
+      mimeType: params.mimeType ?? undefined,
+      dialogTitle: params.fileName ?? undefined,
+      UTI: params.mimeType ? UTI_BY_MIME[params.mimeType] : undefined,
+    });
+  } else {
+    await Linking.openURL(params.url);
+  }
+}
 
 function messageIdentityParts(person: IdentityPerson, t: TFunction<'messages'>): IdentityParts {
   const context = person.parentContext;
