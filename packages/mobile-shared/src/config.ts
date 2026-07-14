@@ -17,4 +17,7 @@ function devRpcBaseUrl(): string {
 
 export const rpcBaseUrl = process.env.EXPO_PUBLIC_RPC_BASE_URL ?? devRpcBaseUrl();
 
+/** REST base used by the AI assistant's streaming endpoint. */
+export const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL ?? rpcBaseUrl.replace(/\/rpc\/?$/, '/api/v1');
+
 export const sessionStorageKey = 'kichkintoy.auth.session';

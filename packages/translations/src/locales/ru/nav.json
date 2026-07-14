@@ -8,6 +8,7 @@
   "items": {
     "dashboard": "Главная",
     "chat": "ИИ-помощник",
+    "ai": "ИИ",
     "messages": "Сообщения",
     "complaints": "Жалобы",
     "classes": "Группы",
