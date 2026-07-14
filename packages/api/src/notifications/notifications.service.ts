@@ -15,6 +15,7 @@ export type EnqueueNotificationInput = {
   entityId?: string | null;
   priority?: "normal" | "high" | "urgent";
   metadata?: Prisma.InputJsonValue | null;
+  dedupeKey?: string | null;
   channels: NotificationChannel[];
   smsPhoneNumber?: string | null;
 };
@@ -33,26 +34,40 @@ export class NotificationsService {
     input: EnqueueNotificationInput,
     tx?: Prisma.TransactionClient,
   ) {
-    const client = tx ?? this.prisma;
-    const rows = await Promise.all(
-      input.channels.map((channel) =>
-        client.notification.create({
-          data: {
-            userId: input.userId,
-            notificationType: input.notificationType,
-            title: input.title,
-            body: input.body ?? null,
-            entityType: input.entityType ?? null,
-            entityId: input.entityId ?? null,
-            channel,
-            status: channel === "in_app" ? "delivered" : "pending",
-            priority: input.priority ?? "normal",
-            metadata: input.metadata ?? Prisma.JsonNull,
-            sentAt: channel === "in_app" ? new Date() : null,
-          },
-        }),
-      ),
-    );
+    const createRows = (client: Prisma.TransactionClient) =>
+      Promise.all(
+        input.channels.map((channel) =>
+          client.notification.create({
+            data: {
+              userId: input.userId,
+              notificationType: input.notificationType,
+              title: input.title,
+              body: input.body ?? null,
+              entityType: input.entityType ?? null,
+              entityId: input.entityId ?? null,
+              channel,
+              status: channel === "in_app" ? "delivered" : "pending",
+              priority: input.priority ?? "normal",
+              metadata: input.metadata ?? Prisma.JsonNull,
+              dedupeKey:
+                channel === "in_app" ? (input.dedupeKey ?? null) : null,
+              sentAt: channel === "in_app" ? new Date() : null,
+            },
+          }),
+        ),
+      );
+
+    let rows;
+    try {
+      rows = tx
+        ? await createRows(tx)
+        : await this.prisma.$transaction((transaction) =>
+            createRows(transaction),
+          );
+    } catch (error) {
+      if (input.dedupeKey && isUniqueConstraintError(error)) return [];
+      throw error;
+    }
 
     await Promise.all(
       rows
@@ -75,4 +90,13 @@ export class NotificationsService {
       return { provider: "eskiz", sent: false };
     }
   }
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
 }

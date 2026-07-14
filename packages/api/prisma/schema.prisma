@@ -1553,6 +1553,7 @@ model Notification {
   status           String    @default("pending")
   priority         String    @default("normal")
   metadata         Json?
+  dedupeKey        String?   @unique @map("dedupe_key")
   sentAt           DateTime? @map("sent_at") @db.Timestamptz(6)
   readAt           DateTime? @map("read_at") @db.Timestamptz(6)
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)

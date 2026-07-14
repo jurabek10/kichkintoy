@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "../database/prisma.service";
 import {
@@ -31,8 +32,16 @@ export class CronNotificationsService {
       select: { id: true },
     });
     if (existing) return false;
-    await this.notifications.enqueue(input);
-    return true;
+    const rows = await this.notifications.enqueue({
+      ...input,
+      dedupeKey: cronDedupeKey(
+        input.notificationType,
+        input.userId,
+        entityScoped ? (input.entityId ?? "none") : "all",
+        date,
+      ),
+    });
+    return rows.length > 0;
   }
 
   async enqueueDocumentReminderOnce(
@@ -55,8 +64,17 @@ export class CronNotificationsService {
       return metadata?.childId === childId && metadata?.daysLeft === daysLeft;
     });
     if (duplicate) return false;
-    await this.notifications.enqueue(input);
-    return true;
+    const rows = await this.notifications.enqueue({
+      ...input,
+      dedupeKey: cronDedupeKey(
+        input.notificationType,
+        input.userId,
+        requestId,
+        childId,
+        daysLeft,
+      ),
+    });
+    return rows.length > 0;
   }
 
   async enqueueWeeklyRecapOnce(
@@ -77,8 +95,16 @@ export class CronNotificationsService {
       candidates.some((row) => asObject(row.metadata)?.weekStart === weekStart)
     )
       return false;
-    await this.notifications.enqueue(input);
-    return true;
+    const rows = await this.notifications.enqueue({
+      ...input,
+      dedupeKey: cronDedupeKey(
+        input.notificationType,
+        input.userId,
+        childId,
+        weekStart,
+      ),
+    });
+    return rows.length > 0;
   }
 
   async previouslyNudgedNoticeIds(userId: string): Promise<Set<string>> {
@@ -102,6 +128,13 @@ export class CronNotificationsService {
     }
     return ids;
   }
+}
+
+function cronDedupeKey(...parts: Array<string | number>): string {
+  const digest = createHash("sha256")
+    .update(JSON.stringify(parts))
+    .digest("base64url");
+  return `cron:${digest}`;
 }
 
 function asObject(

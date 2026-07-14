@@ -158,7 +158,7 @@ export class ParentRemindersCron {
             metadata: items as Prisma.InputJsonArray,
             channels: ["in_app", "push"],
           },
-          date,
+          tomorrow,
           false,
         );
         if (created) sent += 1;
