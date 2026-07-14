@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   ShieldCheck,
+  Timer,
   Wallet,
   X,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const nav = [
   { href: "/admin", labelKey: "nav.overview", Icon: LayoutDashboard },
   { href: "/admin/centers", labelKey: "nav.centers", Icon: Building2 },
   { href: "/admin/billing", labelKey: "nav.billing", Icon: Wallet },
+  { href: "/admin/crons", labelKey: "nav.crons", Icon: Timer },
 ];
 
 /**

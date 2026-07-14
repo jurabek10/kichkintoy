@@ -108,8 +108,7 @@ export const queryKeys = {
     classes: () => ["teacher", "classes"] as const,
     classChildren: (classId: string) =>
       ["teacher", "classes", classId, "children"] as const,
-    childDetail: (childId: string) =>
-      ["teacher", "children", childId] as const,
+    childDetail: (childId: string) => ["teacher", "children", childId] as const,
     reports: (params?: Record<string, unknown>) =>
       ["teacher", "reports", params ?? {}] as const,
     classReportStatuses: (classId: string, reportDate?: string) =>
@@ -158,10 +157,14 @@ export const queryKeys = {
   },
   complaints: {
     all: () => ["complaints"] as const,
-    parentList: (input?: Record<string, unknown>) => ["complaints", "parent", input ?? {}] as const,
-    staffList: (input: Record<string, unknown>) => ["complaints", "staff", input] as const,
-    detail: (complaintId: string) => ["complaints", "detail", complaintId] as const,
-    openCount: (centerId: string) => ["complaints", "open-count", centerId] as const,
+    parentList: (input?: Record<string, unknown>) =>
+      ["complaints", "parent", input ?? {}] as const,
+    staffList: (input: Record<string, unknown>) =>
+      ["complaints", "staff", input] as const,
+    detail: (complaintId: string) =>
+      ["complaints", "detail", complaintId] as const,
+    openCount: (centerId: string) =>
+      ["complaints", "open-count", centerId] as const,
   },
   family: {
     all: () => ["family"] as const,
@@ -179,9 +182,15 @@ export const queryKeys = {
   admin: {
     overview: () => ["admin", "overview"] as const,
     centers: () => ["admin", "centers"] as const,
-    centerDetail: (centerId: string) =>
-      ["admin", "centers", centerId] as const,
+    centerDetail: (centerId: string) => ["admin", "centers", centerId] as const,
     billing: () => ["admin", "billing"] as const,
+    crons: {
+      all: () => ["admin", "crons"] as const,
+      list: () => ["admin", "crons", "list"] as const,
+      runs: (params: { jobName?: string; status?: string; page: number }) =>
+        ["admin", "crons", "runs", params] as const,
+      stats: (jobName: string) => ["admin", "crons", "stats", jobName] as const,
+    },
   },
   director: {
     homeSummary: (centerId: string) =>

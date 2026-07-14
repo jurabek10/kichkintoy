@@ -46,6 +46,12 @@ interface DataTableProps<TData, TValue> {
   rowClassName?: (row: TData) => string | undefined;
   className?: string;
   tableClassName?: string;
+  /** Controlled server pagination. Omit for the usual client pagination. */
+  serverPagination?: {
+    pageIndex: number;
+    pageCount: number;
+    onPageIndexChange: (pageIndex: number) => void;
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -60,17 +66,26 @@ export function DataTable<TData, TValue>({
   rowClassName,
   className,
   tableClassName,
+  serverPagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] =
-    React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(initialColumnVisibility ?? {});
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnFilters, columnVisibility },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      ...(serverPagination
+        ? { pagination: { pageIndex: serverPagination.pageIndex, pageSize } }
+        : {}),
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -80,6 +95,19 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: Boolean(serverPagination),
+    pageCount: serverPagination?.pageCount,
+    onPaginationChange: serverPagination
+      ? (updater) => {
+          const current = {
+            pageIndex: serverPagination.pageIndex,
+            pageSize,
+          };
+          const next =
+            typeof updater === "function" ? updater(current) : updater;
+          serverPagination.onPageIndexChange(next.pageIndex);
+        }
+      : undefined,
     initialState: { pagination: { pageSize } },
   });
 
