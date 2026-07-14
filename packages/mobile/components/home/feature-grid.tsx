@@ -33,7 +33,7 @@ function FeatureTile({ feature, label, unreadCount }: { feature: Feature; label:
           <Ionicons name={feature.icon} size={26} color={feature.fg} />
         )}
         {feature.isNew ? <NewBadge /> : null}
-        {feature.key === 'messages' && unreadCount > 0 ? <View className="absolute -right-1 -top-1 min-w-5 items-center rounded-full bg-coral-ink px-1"><Text className="text-[9px] font-extrabold text-white">{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
+        {feature.key === 'messages' && unreadCount > 0 ? <View className="absolute -right-1.5 -top-1.5 h-5 min-w-5 items-center justify-center rounded-full border-2 border-card bg-coral-ink px-1"><Text className="text-[9px] font-extrabold leading-none text-white">{unreadCount > 99 ? '99+' : unreadCount}</Text></View> : null}
       </View>
       <Text numberOfLines={1} className="px-0.5 text-[11px] text-foreground">
         {label}
@@ -58,12 +58,13 @@ export function FeatureGrid() {
   }
 
   return (
-    <View className="mt-4" onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+    <View className="mt-2.5" onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
       <ScrollView
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScrollEnd}>
+        onMomentumScrollEnd={onScrollEnd}
+        contentContainerClassName="pt-2">
         {width > 0
           ? pages.map((pageFeatures, index) => (
               <View key={index} style={{ width }} className="flex-row flex-wrap gap-y-4">
