@@ -7,11 +7,17 @@ import { ClickService } from "./click.service";
 import { PaymeController } from "./payme.controller";
 import { PaymeService } from "./payme.service";
 import { PaymentsService } from "./payments.service";
+import { InvoiceMaterializationService } from "./invoice-materialization.service";
 
 @Module({
   imports: [AuditModule, DatabaseModule, NotificationsModule],
   controllers: [PaymeController, ClickController],
-  providers: [PaymentsService, PaymeService, ClickService],
-  exports: [PaymentsService],
+  providers: [
+    PaymentsService,
+    PaymeService,
+    ClickService,
+    InvoiceMaterializationService,
+  ],
+  exports: [PaymentsService, InvoiceMaterializationService],
 })
 export class PaymentsModule {}

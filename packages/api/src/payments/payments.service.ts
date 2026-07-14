@@ -24,22 +24,12 @@ import {
   paymentsReturnUrl,
   paymentsSandboxEnabled,
 } from "./payments-config";
+import {
+  InvoiceMaterializationService,
+  type InvoiceWithPayments,
+} from "./invoice-materialization.service";
 
 type Tx = Prisma.TransactionClient;
-
-type InvoiceWithPayments = Prisma.InvoiceGetPayload<{
-  include: { payments: true };
-}>;
-
-type ParentEnrollment = {
-  childId: string;
-  childName: string;
-  photoUrl: string | null;
-  centerId: string;
-  centerName: string;
-  className: string | null;
-  monthlyTuitionUzs: Prisma.Decimal;
-};
 
 @Injectable()
 export class PaymentsService {
@@ -47,17 +37,18 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
+    private readonly invoices: InvoiceMaterializationService,
   ) {}
 
   // ---------------------------------------------------------------- parents
 
   async overview(userId: string): Promise<PaymentsOverview> {
     const month = currentTashkentMonth();
-    const enrollments = await this.parentEnrollments(userId);
+    const enrollments = await this.invoices.primaryGuardianEnrollments(userId);
 
     const children: PaymentsOverview["children"] = [];
     for (const enrollment of enrollments) {
-      const invoice = await this.ensureMonthInvoice(userId, enrollment, month);
+      const invoice = await this.invoices.ensureMonthInvoice(enrollment, month);
       children.push({
         child: {
           id: enrollment.childId,
@@ -87,7 +78,7 @@ export class PaymentsService {
   }
 
   async history(userId: string): Promise<PaymentsHistoryItem[]> {
-    const enrollments = await this.parentEnrollments(userId);
+    const enrollments = await this.invoices.primaryGuardianEnrollments(userId);
     if (enrollments.length === 0) return [];
 
     const byChild = new Map(enrollments.map((item) => [item.childId, item]));
@@ -116,7 +107,10 @@ export class PaymentsService {
     });
   }
 
-  async checkout(userId: string, input: CheckoutInput): Promise<CheckoutResult> {
+  async checkout(
+    userId: string,
+    input: CheckoutInput,
+  ): Promise<CheckoutResult> {
     const invoice = await this.requireParentInvoice(userId, input.invoiceId);
     if (invoice.status === "paid") {
       throw new BadRequestException("This invoice is already paid.");
@@ -323,83 +317,6 @@ export class PaymentsService {
 
   // ---------------------------------------------------------------- helpers
 
-  private async parentEnrollments(
-    userId: string,
-  ): Promise<ParentEnrollment[]> {
-    const guardians = await this.prisma.childGuardian.findMany({
-      where: { userId, isPrimary: true, child: { status: "active" } },
-      include: {
-        child: {
-          include: {
-            childEnrollments: {
-              where: { enrollmentStatus: "active" },
-              include: {
-                center: {
-                  select: { id: true, name: true, monthlyTuitionUzs: true },
-                },
-                class: { select: { name: true } },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const seen = new Set<string>();
-    const enrollments: ParentEnrollment[] = [];
-    for (const guardian of guardians) {
-      for (const enrollment of guardian.child.childEnrollments) {
-        const key = `${guardian.childId}:${enrollment.centerId}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        enrollments.push({
-          childId: guardian.childId,
-          childName: [guardian.child.firstName, guardian.child.lastName]
-            .filter(Boolean)
-            .join(" "),
-          photoUrl: guardian.child.photoUrl,
-          centerId: enrollment.centerId,
-          centerName: enrollment.center.name,
-          className: enrollment.class?.name ?? null,
-          monthlyTuitionUzs: enrollment.center.monthlyTuitionUzs,
-        });
-      }
-    }
-    return enrollments;
-  }
-
-  private async ensureMonthInvoice(
-    userId: string,
-    enrollment: ParentEnrollment,
-    month: ReturnType<typeof currentTashkentMonth>,
-  ): Promise<InvoiceWithPayments> {
-    const existing = await this.prisma.invoice.findFirst({
-      where: {
-        childId: enrollment.childId,
-        centerId: enrollment.centerId,
-        periodStart: month.periodStartDate,
-      },
-      include: { payments: true },
-      orderBy: { createdAt: "asc" },
-    });
-    if (existing) return existing;
-
-    return this.prisma.invoice.create({
-      data: {
-        centerId: enrollment.centerId,
-        childId: enrollment.childId,
-        parentUserId: userId,
-        amount: enrollment.monthlyTuitionUzs,
-        currency: "UZS",
-        periodStart: month.periodStartDate,
-        periodEnd: month.periodEndDate,
-        dueDate: month.periodEndDate,
-        status: "issued",
-      },
-      include: { payments: true },
-    });
-  }
-
   private async requireParentInvoice(
     userId: string,
     invoiceId: string,
@@ -475,7 +392,9 @@ function serializePayment(payment: {
   };
 }
 
-function normalizeInvoiceStatus(status: string): "issued" | "paid" | "cancelled" {
+function normalizeInvoiceStatus(
+  status: string,
+): "issued" | "paid" | "cancelled" {
   const value = status.toLowerCase();
   if (value === "paid") return "paid";
   if (value === "cancelled") return "cancelled";

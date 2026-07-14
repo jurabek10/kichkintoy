@@ -14,7 +14,7 @@ export type EnqueueNotificationInput = {
   entityType?: string | null;
   entityId?: string | null;
   priority?: "normal" | "high" | "urgent";
-  metadata?: Prisma.InputJsonObject | null;
+  metadata?: Prisma.InputJsonValue | null;
   channels: NotificationChannel[];
   smsPhoneNumber?: string | null;
 };

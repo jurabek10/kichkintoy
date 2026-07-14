@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
+import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AdminModule } from "./admin/admin.module";
 import { AppController } from "./app.controller";
@@ -12,6 +13,7 @@ import { CalendarModule } from "./calendar/calendar.module";
 import { CentersModule } from "./centers/centers.module";
 import { ChatModule } from "./chat/chat.module";
 import { ComplaintsModule } from "./complaints/complaints.module";
+import { CronsModule } from "./crons/crons.module";
 import { DatabaseModule } from "./database/database.module";
 import { DirectorModule } from "./director/director.module";
 import { GeoModule } from "./geo/geo.module";
@@ -42,6 +44,7 @@ import { TeacherModule } from "./teacher/teacher.module";
         limit: 100, // default cap per IP per window
       },
     ]),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     AdminModule,
     AuditModule,
@@ -50,6 +53,7 @@ import { TeacherModule } from "./teacher/teacher.module";
     CalendarModule,
     ChatModule,
     ComplaintsModule,
+    CronsModule,
     MembershipsModule,
     MediaModule,
     MedicationsModule,

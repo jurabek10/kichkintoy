@@ -11,12 +11,12 @@ export type TashkentMonth = {
   label: string;
 };
 
-export function currentTashkentMonth(): TashkentMonth {
+export function currentTashkentMonth(at = new Date()): TashkentMonth {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Tashkent",
     year: "numeric",
     month: "2-digit",
-  }).formatToParts(new Date());
+  }).formatToParts(at);
   const year = Number(parts.find((part) => part.type === "year")?.value);
   const month = Number(parts.find((part) => part.type === "month")?.value);
   const periodStartDate = new Date(Date.UTC(year, month - 1, 1));
