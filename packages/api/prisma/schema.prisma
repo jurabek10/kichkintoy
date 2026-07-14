@@ -1398,6 +1398,7 @@ model Message {
   body         String?
   messageType  String    @default("text") @map("message_type")
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+  editedAt     DateTime? @map("edited_at") @db.Timestamptz(6)
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   senderUser User               @relation(fields: [senderUserId], references: [id])

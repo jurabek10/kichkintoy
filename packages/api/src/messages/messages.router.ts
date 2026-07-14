@@ -22,6 +22,9 @@ export function createMessagesRouter(os: ORPCImplementer, deps: ORPCDeps) {
     markRead: os.messages.markRead.use(access.authed).handler(({ input, context }) =>
       deps.messagesService.markRead(context.user.id, input.threadId),
     ),
+    editMessage: os.messages.editMessage.use(access.authed).handler(({ input, context }) =>
+      deps.messagesService.editMessage(context.user.id, input.messageId, input.body),
+    ),
     deleteMessage: os.messages.deleteMessage.use(access.authed).handler(({ input, context }) =>
       deps.messagesService.deleteMessage(context.user.id, input.messageId),
     ),

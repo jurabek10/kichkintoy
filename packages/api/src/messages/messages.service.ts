@@ -41,6 +41,8 @@ type CenterScope = {
 const sendBuckets = new Map<string, number[]>();
 const SEND_WINDOW_MS = 60_000;
 const SEND_LIMIT = 30;
+// A sender may edit their own text message for 48 hours after sending it.
+const EDIT_WINDOW_MS = 48 * 60 * 60 * 1_000;
 
 @Injectable()
 export class MessagesService {
@@ -267,6 +269,62 @@ export class MessagesService {
     return output;
   }
 
+  async editMessage(userId: string, messageId: string, body: string) {
+    const existing = await this.prisma.message.findUnique({
+      where: { id: messageId },
+      include: { thread: { include: { center: { select: { organizationId: true } } } } },
+    });
+    if (!existing || existing.senderUserId !== userId) throw new NotFoundException("Message not found.");
+    if (existing.deletedAt) throw new BadRequestException("A deleted message cannot be edited.");
+    if (existing.messageType !== "text") {
+      throw new BadRequestException("Only text messages can be edited.");
+    }
+    if (Date.now() - existing.createdAt.getTime() > EDIT_WINDOW_MS) {
+      throw new BadRequestException("This message can no longer be edited.");
+    }
+    const thread = await this.requireParticipant(userId, existing.threadId);
+    const trimmed = body.trim();
+    if (!trimmed) throw new BadRequestException("A message needs text.");
+
+    const edited = await this.prisma.$transaction(async (tx) => {
+      const row = await tx.message.update({
+        where: { id: messageId },
+        data: { body: trimmed, editedAt: new Date() },
+      });
+      // Keep the thread list preview in sync when the edited message is the last one.
+      const latest = await tx.message.findFirst({
+        where: { threadId: existing.threadId, deletedAt: null },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      });
+      if (latest?.id === messageId) {
+        await tx.conversationThread.update({
+          where: { id: existing.threadId },
+          data: { lastMessagePreview: preview(trimmed) },
+        });
+      }
+      await this.audit.log(
+        {
+          organizationId: existing.thread.center.organizationId,
+          centerId: existing.thread.centerId,
+          actorUserId: userId,
+          action: "message.edited",
+          entityType: "message",
+          entityId: messageId,
+        },
+        tx,
+      );
+      return row;
+    });
+    const attachments = await loadMessageAttachments(this.prisma, [messageId]);
+    const output = messageSchema.parse(toMessage(edited, attachments.get(messageId) ?? []));
+    this.realtime.publishMessageUpdated(
+      thread.participants.map((participant) => participant.userId),
+      existing.threadId,
+      output,
+    );
+    return output;
+  }
+
   async unreadCount(userId: string) {
     const participants = await this.prisma.conversationParticipant.findMany({
       where: { userId, thread: { threadType: "direct" } },
@@ -444,6 +502,7 @@ export class MessagesService {
       lastMessageKind: messageKind(thread.lastMessageKind),
       lastMessageAt: thread.lastMessageAt?.toISOString() ?? null,
       unreadCount,
+      otherLastReadAt: other.lastReadAt?.toISOString() ?? null,
     };
   }
 
@@ -836,6 +895,7 @@ function toMessage(message: {
   senderUserId: string;
   body: string | null;
   deletedAt: Date | null;
+  editedAt: Date | null;
   createdAt: Date;
 }, attachments: MessageAttachment[]) {
   return {
@@ -844,6 +904,7 @@ function toMessage(message: {
     body: message.body,
     attachments: message.deletedAt ? [] : attachments,
     deletedAt: message.deletedAt?.toISOString() ?? null,
+    editedAt: message.editedAt?.toISOString() ?? null,
     createdAt: message.createdAt.toISOString(),
   };
 }

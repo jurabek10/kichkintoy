@@ -90,6 +90,10 @@ export class RealtimeGateway {
     this.sendToUsers(userIds, { type: "message.deleted", payload: { threadId, message } });
   }
 
+  publishMessageUpdated(userIds: string[], threadId: string, message: DirectMessage) {
+    this.sendToUsers(userIds, { type: "message.updated", payload: { threadId, message } });
+  }
+
   publishThreadRead(userIds: string[], threadId: string, userId: string, lastReadAt: string) {
     this.sendToUsers(userIds, {
       type: "thread.read",
