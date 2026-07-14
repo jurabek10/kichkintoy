@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { NotFoundException } from "@nestjs/common";
-import { messageContactSchema, sendMessageInputSchema, type MessageContact } from "@kichkintoy/shared";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  messageContactSchema,
+  sendMessageInputSchema,
+  type MessageContact,
+  type ThreadDetail,
+  updateThreadOtherLastReadAt,
+} from "@kichkintoy/shared";
 import { MessagesService } from "./messages.service";
 
 function serviceWith(prisma: Record<string, unknown>) {
@@ -11,6 +17,7 @@ function serviceWith(prisma: Record<string, unknown>) {
     {
       publishMessageCreated: vi.fn(),
       publishMessageDeleted: vi.fn(),
+      publishMessageUpdated: vi.fn(),
       publishThreadRead: vi.fn(),
     } as never,
   );
@@ -22,9 +29,7 @@ describe("MessagesService privacy rules", () => {
       conversationThread: { findFirst: vi.fn().mockResolvedValue(null) },
     });
 
-    await expect(service.thread("user-a", "thread-b")).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.thread("user-a", "thread-b")).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it("does not let a participant delete another sender's message", async () => {
@@ -38,9 +43,7 @@ describe("MessagesService privacy rules", () => {
       },
     });
 
-    await expect(service.deleteMessage("user-a", "message-a")).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.deleteMessage("user-a", "message-a")).rejects.toBeInstanceOf(NotFoundException);
   });
 });
 
@@ -49,15 +52,76 @@ describe("message body contract", () => {
     expect(sendMessageInputSchema.parse({ body: "  hello  " }).body).toBe("hello");
     expect(sendMessageInputSchema.safeParse({ body: "   " }).success).toBe(false);
     expect(sendMessageInputSchema.safeParse({ body: "x".repeat(2001) }).success).toBe(false);
-    expect(sendMessageInputSchema.safeParse({
-      attachmentMediaAssetIds: ["11111111-1111-4111-8111-111111111111"],
-    }).success).toBe(true);
-    expect(sendMessageInputSchema.safeParse({
-      attachmentMediaAssetIds: Array.from(
-        { length: 5 },
-        (_, index) => `11111111-1111-4111-8111-11111111111${index}`,
-      ),
-    }).success).toBe(false);
+    expect(
+      sendMessageInputSchema.safeParse({
+        attachmentMediaAssetIds: ["11111111-1111-4111-8111-111111111111"],
+      }).success,
+    ).toBe(true);
+    expect(
+      sendMessageInputSchema.safeParse({
+        attachmentMediaAssetIds: Array.from({ length: 5 }, (_, index) => `11111111-1111-4111-8111-11111111111${index}`),
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("message editing rules", () => {
+  it("rejects attachment messages even when they have a text caption", async () => {
+    const service = serviceWith({
+      message: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "message-a",
+          senderUserId: "user-a",
+          threadId: "thread-a",
+          body: "caption",
+          messageType: "image",
+          deletedAt: null,
+          createdAt: new Date(),
+          thread: { center: { organizationId: "organization-a" } },
+        }),
+      },
+    });
+
+    await expect(service.editMessage("user-a", "message-a", "updated")).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("rejects text messages after the 48-hour edit window", async () => {
+    const service = serviceWith({
+      message: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "message-a",
+          senderUserId: "user-a",
+          threadId: "thread-a",
+          body: "original",
+          messageType: "text",
+          deletedAt: null,
+          createdAt: new Date(Date.now() - 49 * 60 * 60 * 1000),
+          thread: { center: { organizationId: "organization-a" } },
+        }),
+      },
+    });
+
+    await expect(service.editMessage("user-a", "message-a", "updated")).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+describe("realtime thread read cache updates", () => {
+  it("patches every cached page while preserving the infinite-query container", () => {
+    const first = { thread: { otherLastReadAt: null } } as ThreadDetail;
+    const second = { thread: { otherLastReadAt: null } } as ThreadDetail;
+    const pageParams = [null, "older-message"];
+    const data = { pages: [first, second], pageParams };
+    const lastReadAt = "2026-07-14T06:45:00.000Z";
+
+    const updated = updateThreadOtherLastReadAt(data, lastReadAt);
+
+    expect(updated?.pageParams).toBe(pageParams);
+    expect(updated?.pages.map((page) => page.thread.otherLastReadAt)).toEqual([lastReadAt, lastReadAt]);
+    expect(data.pages[0]?.thread.otherLastReadAt).toBeNull();
+  });
+
+  it("does not create partial cache data when the thread is not cached", () => {
+    expect(updateThreadOtherLastReadAt(undefined, "2026-07-14T06:45:00.000Z")).toBeUndefined();
   });
 });
 
@@ -71,7 +135,13 @@ describe("parent message contacts", () => {
     const prisma = {
       userRole: {
         findMany: vi.fn().mockResolvedValue([
-          { user: { id: "director-a", fullName: "Center Director", avatarUrl: null } },
+          {
+            user: {
+              id: "director-a",
+              fullName: "Center Director",
+              avatarUrl: null,
+            },
+          },
         ]),
       },
       childEnrollment: {
@@ -148,6 +218,10 @@ describe("parent message contacts", () => {
         classLabel: null,
         centerId: "22222222-2222-4222-8222-222222222222",
       }).parentContext,
-    ).toEqual({ className: "Quyoshcha", childName: "Azizbek", relationship: "dad" });
+    ).toEqual({
+      className: "Quyoshcha",
+      childName: "Azizbek",
+      relationship: "dad",
+    });
   });
 });
