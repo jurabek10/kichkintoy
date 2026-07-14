@@ -19,8 +19,8 @@ const TABS: {
 }[] = [
   { name: 'index', navKey: 'items.dashboard', icon: 'home-outline', iconActive: 'home' },
   { name: 'reports', navKey: 'items.reports', icon: 'document-text-outline', iconActive: 'document-text' },
+  { name: 'chat', navKey: 'items.ai', icon: 'sparkles-outline', iconActive: 'sparkles' },
   { name: 'albums', navKey: 'items.albums', icon: 'images-outline', iconActive: 'images' },
-  { name: 'notices', navKey: 'items.notices', icon: 'megaphone-outline', iconActive: 'megaphone' },
   { name: 'pickups', navKey: 'items.pickups', icon: 'walk-outline', iconActive: 'walk', mciIcon: 'human-male-child' },
 ];
 
@@ -51,6 +51,7 @@ export default function TabsLayout() {
           }}
         />
       ))}
+      <Tabs.Screen name="notices" options={{ href: null }} />
     </Tabs>
   );
 }

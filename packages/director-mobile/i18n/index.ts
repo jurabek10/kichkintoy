@@ -15,6 +15,7 @@ import enAccount from '@kichkintoy/translations/locales/en/account.json';
 import enAlbums from '@kichkintoy/translations/locales/en/albums.json';
 import enApp from '@kichkintoy/translations/locales/en/app.json';
 import enAttendance from '@kichkintoy/translations/locales/en/attendance.json';
+import enChat from '@kichkintoy/translations/locales/en/chat.json';
 import enCalendar from '@kichkintoy/translations/locales/en/calendar.json';
 import enCommon from '@kichkintoy/translations/locales/en/common.json';
 import enComplaints from '@kichkintoy/translations/locales/en/complaints.json';
@@ -33,6 +34,7 @@ import ruAccount from '@kichkintoy/translations/locales/ru/account.json';
 import ruAlbums from '@kichkintoy/translations/locales/ru/albums.json';
 import ruApp from '@kichkintoy/translations/locales/ru/app.json';
 import ruAttendance from '@kichkintoy/translations/locales/ru/attendance.json';
+import ruChat from '@kichkintoy/translations/locales/ru/chat.json';
 import ruCalendar from '@kichkintoy/translations/locales/ru/calendar.json';
 import ruCommon from '@kichkintoy/translations/locales/ru/common.json';
 import ruComplaints from '@kichkintoy/translations/locales/ru/complaints.json';
@@ -51,6 +53,7 @@ import uzAccount from '@kichkintoy/translations/locales/uz/account.json';
 import uzAlbums from '@kichkintoy/translations/locales/uz/albums.json';
 import uzApp from '@kichkintoy/translations/locales/uz/app.json';
 import uzAttendance from '@kichkintoy/translations/locales/uz/attendance.json';
+import uzChat from '@kichkintoy/translations/locales/uz/chat.json';
 import uzCalendar from '@kichkintoy/translations/locales/uz/calendar.json';
 import uzCommon from '@kichkintoy/translations/locales/uz/common.json';
 import uzComplaints from '@kichkintoy/translations/locales/uz/complaints.json';
@@ -67,9 +70,9 @@ import uzReports from '@kichkintoy/translations/locales/uz/reports.json';
 import uzTeacher from '@kichkintoy/translations/locales/uz/teacher.json';
 
 const resources = {
-  uz: { complaints: uzComplaints, common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, messages: uzMessages, pickups: uzPickups, documents: uzDocuments, attendance: uzAttendance, calendar: uzCalendar, teacher: uzTeacher, profile: uzProfile },
-  en: { complaints: enComplaints, common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, messages: enMessages, pickups: enPickups, documents: enDocuments, attendance: enAttendance, calendar: enCalendar, teacher: enTeacher, profile: enProfile },
-  ru: { complaints: ruComplaints, common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, messages: ruMessages, pickups: ruPickups, documents: ruDocuments, attendance: ruAttendance, calendar: ruCalendar, teacher: ruTeacher, profile: ruProfile },
+  uz: { chat: uzChat, complaints: uzComplaints, common: uzCommon, nav: uzNav, app: uzApp, account: uzAccount, reports: uzReports, notices: uzNotices, notifications: uzNotifications, albums: uzAlbums, meals: uzMeals, medications: uzMedications, messages: uzMessages, pickups: uzPickups, documents: uzDocuments, attendance: uzAttendance, calendar: uzCalendar, teacher: uzTeacher, profile: uzProfile },
+  en: { chat: enChat, complaints: enComplaints, common: enCommon, nav: enNav, app: enApp, account: enAccount, reports: enReports, notices: enNotices, notifications: enNotifications, albums: enAlbums, meals: enMeals, medications: enMedications, messages: enMessages, pickups: enPickups, documents: enDocuments, attendance: enAttendance, calendar: enCalendar, teacher: enTeacher, profile: enProfile },
+  ru: { chat: ruChat, complaints: ruComplaints, common: ruCommon, nav: ruNav, app: ruApp, account: ruAccount, reports: ruReports, notices: ruNotices, notifications: ruNotifications, albums: ruAlbums, meals: ruMeals, medications: ruMedications, messages: ruMessages, pickups: ruPickups, documents: ruDocuments, attendance: ruAttendance, calendar: ruCalendar, teacher: ruTeacher, profile: ruProfile },
 };
 
 const STORAGE_KEY = 'kichkintoy.language';
@@ -85,7 +88,7 @@ void i18n.use(initReactI18next).init({
   lng: deviceLanguage(),
   fallbackLng,
   defaultNS,
-  ns: ['complaints', 'common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'messages', 'pickups', 'documents', 'attendance', 'calendar', 'teacher', 'profile'],
+  ns: ['chat', 'complaints', 'common', 'nav', 'app', 'account', 'reports', 'notices', 'notifications', 'albums', 'meals', 'medications', 'messages', 'pickups', 'documents', 'attendance', 'calendar', 'teacher', 'profile'],
   interpolation: { escapeValue: false },
   returnNull: false,
   // Resources are bundled, so we never need to suspend while loading them —
