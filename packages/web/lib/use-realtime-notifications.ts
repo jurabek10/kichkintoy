@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import {
   isAttendanceNotification,
   queryGroupFromHint,
   safeJsonParse,
   serverRealtimeMessageSchema,
+  type ThreadDetail,
+  updateThreadOtherLastReadAt,
 } from "@kichkintoy/shared";
 import { toast } from "sonner";
 import { orpc } from "./orpc";
@@ -22,6 +24,7 @@ export function useRealtimeNotifications(session: StoredSession | null) {
 
   useEffect(() => {
     if (!session) return;
+    const currentUserId = session.user.id;
 
     let closed = false;
     let reconnectAttempts = 0;
@@ -39,10 +42,7 @@ export function useRealtimeNotifications(session: StoredSession | null) {
 
     function scheduleReconnect() {
       if (closed) return;
-      const delay = Math.min(
-        reconnectBaseDelayMs * 2 ** reconnectAttempts,
-        reconnectMaxDelayMs,
-      );
+      const delay = Math.min(reconnectBaseDelayMs * 2 ** reconnectAttempts, reconnectMaxDelayMs);
       reconnectAttempts += 1;
       reconnectTimer = setTimeout(() => void connect(), delay);
     }
@@ -69,7 +69,9 @@ export function useRealtimeNotifications(session: StoredSession | null) {
             const payload = parsed.data.payload;
             invalidateNotifications();
             if (payload.notificationType === "message.received") {
-              void queryClient.invalidateQueries({ queryKey: queryKeys.messages.all() });
+              void queryClient.invalidateQueries({
+                queryKey: queryKeys.messages.all(),
+              });
             }
             for (const hint of payload.queryKeys) {
               void queryClient.invalidateQueries({
@@ -105,18 +107,34 @@ export function useRealtimeNotifications(session: StoredSession | null) {
 
           if (
             parsed.data.type === "message.created" ||
-            parsed.data.type === "message.deleted"
+            parsed.data.type === "message.deleted" ||
+            parsed.data.type === "message.updated"
           ) {
             void queryClient.invalidateQueries({
               queryKey: queryKeys.messages.thread(parsed.data.payload.threadId),
             });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.threads() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.unreadCount() });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.messages.threads(),
+            });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.messages.unreadCount(),
+            });
           }
 
           if (parsed.data.type === "thread.read") {
-            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.threads() });
-            void queryClient.invalidateQueries({ queryKey: queryKeys.messages.unreadCount() });
+            const payload = parsed.data.payload;
+            if (payload.userId !== currentUserId) {
+              queryClient.setQueryData<InfiniteData<ThreadDetail, string | null>>(
+                queryKeys.messages.thread(payload.threadId),
+                (data) => updateThreadOtherLastReadAt(data, payload.lastReadAt),
+              );
+            }
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.messages.threads(),
+            });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.messages.unreadCount(),
+            });
           }
         });
 

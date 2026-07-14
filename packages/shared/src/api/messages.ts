@@ -10,9 +10,7 @@ export const messageParentIdentityContextSchema = z.object({
   childName: z.string().min(1),
   relationship: z.string().min(1),
 });
-export type MessageParentIdentityContext = z.infer<
-  typeof messageParentIdentityContextSchema
->;
+export type MessageParentIdentityContext = z.infer<typeof messageParentIdentityContextSchema>;
 
 export const messageContactSchema = z.object({
   userId: uuidSchema,
@@ -86,10 +84,9 @@ export const sendMessageInputSchema = z
     body: z.string().trim().max(2000).optional(),
     attachmentMediaAssetIds: z.array(uuidSchema).max(4).default([]),
   })
-  .refine(
-    (input) => Boolean(input.body) || input.attachmentMediaAssetIds.length > 0,
-    { message: "A message needs text or at least one attachment." },
-  );
+  .refine((input) => Boolean(input.body) || input.attachmentMediaAssetIds.length > 0, {
+    message: "A message needs text or at least one attachment.",
+  });
 export type SendMessageInput = z.infer<typeof sendMessageInputSchema>;
 
 export const startThreadInputSchema = z.intersection(
@@ -126,6 +123,22 @@ export const threadDetailSchema = z.object({
   nextCursor: uuidSchema.nullable(),
 });
 export type ThreadDetail = z.infer<typeof threadDetailSchema>;
+
+/** Apply a realtime read receipt without refetching the thread. The generic
+ * preserves React Query page parameters and any other container fields. */
+export function updateThreadOtherLastReadAt<T extends { pages: ThreadDetail[] }>(
+  data: T | undefined,
+  lastReadAt: string,
+): T | undefined {
+  if (!data) return data;
+  return {
+    ...data,
+    pages: data.pages.map((page) => ({
+      ...page,
+      thread: { ...page.thread, otherLastReadAt: lastReadAt },
+    })),
+  };
+}
 
 export const unreadMessageCountSchema = z.object({
   total: z.number().int().min(0),

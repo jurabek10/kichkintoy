@@ -1,9 +1,5 @@
-import {
-  safeJsonParse,
-  serverRealtimeMessageSchema,
-  type RealtimeQueryInvalidationHint,
-} from '@kichkintoy/shared';
-import { useQueryClient } from '@tanstack/react-query';
+import { safeJsonParse, serverRealtimeMessageSchema, type RealtimeQueryInvalidationHint, type ThreadDetail, updateThreadOtherLastReadAt } from '@kichkintoy/shared';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import type { StoredSession } from '@/lib/auth';
@@ -19,6 +15,7 @@ export function useRealtimeNotifications(session: StoredSession | null) {
 
   useEffect(() => {
     if (!session) return;
+    const currentUserId = session.user.id;
 
     let closed = false;
     let reconnectAttempts = 0;
@@ -56,7 +53,9 @@ export function useRealtimeNotifications(session: StoredSession | null) {
           if (!parsed.success) return;
 
           if (parsed.data.type === 'notification.created') {
-            void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+            void queryClient.invalidateQueries({
+              queryKey: queryKeys.notifications.all,
+            });
             if (parsed.data.payload.notificationType === 'message.received') void queryClient.invalidateQueries({ queryKey: ['messages'] });
             for (const hint of parsed.data.payload.queryKeys) {
               invalidateFromHint(hint);
@@ -70,16 +69,28 @@ export function useRealtimeNotifications(session: StoredSession | null) {
           }
 
           if (parsed.data.type === 'message.created' || parsed.data.type === 'message.deleted' || parsed.data.type === 'message.updated') {
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'thread', parsed.data.payload.threadId] });
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
+            void queryClient.invalidateQueries({
+              queryKey: ['messages', 'thread', parsed.data.payload.threadId],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ['messages', 'threads'],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ['messages', 'unread-count'],
+            });
           }
 
           if (parsed.data.type === 'thread.read') {
-            // Refresh the open conversation too so sent → read ticks flip live.
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'thread', parsed.data.payload.threadId] });
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'threads'] });
-            void queryClient.invalidateQueries({ queryKey: ['messages', 'unread-count'] });
+            const payload = parsed.data.payload;
+            if (payload.userId !== currentUserId) {
+              queryClient.setQueryData<InfiniteData<ThreadDetail, string | null>>(['messages', 'thread', payload.threadId], (data) => updateThreadOtherLastReadAt(data, payload.lastReadAt));
+            }
+            void queryClient.invalidateQueries({
+              queryKey: ['messages', 'threads'],
+            });
+            void queryClient.invalidateQueries({
+              queryKey: ['messages', 'unread-count'],
+            });
           }
         };
 
