@@ -93,6 +93,27 @@
     "notices": {
       "summary_one": "Важно: {{titles}}",
       "summary_other": "Важных объявлений: {{count}} — {{titles}}"
+    },
+    "teacher": {
+      "attendance": {
+        "class": "{{className}}: пришли {{present}} из {{total}} · отсутствуют {{absent}}{{reasons}} · не отмечены {{notMarked}}"
+      },
+      "medications": {
+        "item": "{{child}}: {{medicine}}, {{dosage}} ({{time}})"
+      },
+      "endOfDay": {
+        "missingCheckouts": "Не отмечен уход: {{count}}",
+        "missingMealStatuses": "Нет отметки о еде: {{count}}",
+        "missingReports": "Нет дневных отчётов: {{count}}",
+        "unansweredParents": "Без ответа родителям: {{count}}",
+        "submissionsToReview": "Документов на проверке: {{count}}"
+      },
+      "tomorrow": {
+        "summary": "Завтра: {{items}}",
+        "event": "{{title}} ({{time}})",
+        "birthdays": "День рождения: {{names}} 🎂"
+      },
+      "notices": { "summary": "Важных объявлений: {{count}} — {{titles}}" }
     }
   },
   "types": {
@@ -133,6 +154,11 @@
     "digest.weekly": "Итоги недели",
     "payment.reminder": "Напоминание об оплате",
     "document.deadline_reminder": "Срок сдачи документа",
-    "notice.unread_nudge": "Непрочитанное важное объявление"
+    "notice.unread_nudge": "Непрочитанное важное объявление",
+    "teacher.attendance_summary": "Утренняя сводка посещаемости",
+    "teacher.medications_today": "Лекарства на сегодня",
+    "teacher.end_of_day": "Итоговый список на день",
+    "teacher.tomorrow_reminder": "Напоминание на завтра",
+    "teacher.notice_reminder": "Напоминание о важном объявлении"
   }
 }

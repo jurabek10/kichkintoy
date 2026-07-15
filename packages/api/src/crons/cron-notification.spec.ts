@@ -36,4 +36,77 @@ describe("cron notification renderer", () => {
       renderCronNotificationBody("digest.daily", null, t, "fallback"),
     ).toBe("fallback");
   });
+
+  it.each([
+    [
+      "teacher.attendance_summary",
+      [
+        {
+          className: "Sun",
+          total: 3,
+          presentCount: 1,
+          notMarkedCount: 1,
+          absences: [{ reason: "sick" }],
+        },
+      ],
+      "cron.teacher.attendance.class",
+    ],
+    [
+      "teacher.medications_today",
+      [
+        {
+          childFirstName: "Ali",
+          medicineName: "Syrup",
+          dosage: "5 ml",
+          medicationTime: "after lunch",
+        },
+      ],
+      "cron.teacher.medications.item",
+    ],
+    [
+      "teacher.end_of_day",
+      {
+        missingCheckouts: 1,
+        missingMealStatuses: 0,
+        missingReports: 2,
+        unansweredParents: 0,
+        submissionsToReview: 0,
+      },
+      "cron.teacher.endOfDay.missingCheckouts",
+    ],
+    [
+      "teacher.tomorrow_reminder",
+      {
+        events: [
+          {
+            title: "Visit",
+            startsAt: "2026-07-16T05:00:00.000Z",
+            allDay: false,
+          },
+        ],
+        birthdays: [{ childFirstName: "Aziza" }],
+      },
+      "cron.teacher.tomorrow.summary",
+    ],
+    [
+      "teacher.notice_reminder",
+      [{ title: "Important" }],
+      "cron.teacher.notices.summary",
+    ],
+  ])("renders %s metadata", (type, metadata, key) => {
+    expect(renderCronNotificationBody(type, metadata, t, "fallback")).toContain(
+      key,
+    );
+  });
+
+  it("falls back for malformed teacher metadata", () => {
+    expect(
+      renderCronNotificationBody(
+        "teacher.tomorrow_reminder",
+        [],
+        t,
+        "fallback",
+      ),
+    ).toBe("fallback");
+  });
 });

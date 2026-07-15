@@ -93,6 +93,27 @@
     "notices": {
       "summary_one": "Muhim: {{titles}}",
       "summary_other": "{{count}} ta muhim e'lon: {{titles}}"
+    },
+    "teacher": {
+      "attendance": {
+        "class": "{{className}}: {{total}} boladan {{present}} keldi · {{absent}} kelmadi{{reasons}} · {{notMarked}} belgilanmagan"
+      },
+      "medications": {
+        "item": "{{child}}: {{medicine}}, {{dosage}} ({{time}})"
+      },
+      "endOfDay": {
+        "missingCheckouts": "{{count}} bola hali olib ketilmagan",
+        "missingMealStatuses": "{{count}} ta ovqatlanish holati belgilanmagan",
+        "missingReports": "{{count}} ta kunlik hisobot yetishmaydi",
+        "unansweredParents": "{{count}} ta ota-ona xabari javobsiz",
+        "submissionsToReview": "{{count}} ta hujjat tekshirilishi kerak"
+      },
+      "tomorrow": {
+        "summary": "Ertaga: {{items}}",
+        "event": "{{title}} ({{time}})",
+        "birthdays": "Tug'ilgan kun: {{names}} 🎂"
+      },
+      "notices": { "summary": "{{count}} ta muhim e'lon: {{titles}}" }
     }
   },
   "types": {
@@ -133,6 +154,11 @@
     "digest.weekly": "Haftalik xulosa",
     "payment.reminder": "Bog‘cha to‘lovi eslatmasi",
     "document.deadline_reminder": "Hujjat muddati eslatmasi",
-    "notice.unread_nudge": "O‘qilmagan muhim e'lon"
+    "notice.unread_nudge": "O‘qilmagan muhim e'lon",
+    "teacher.attendance_summary": "Ertalabki davomat xulosasi",
+    "teacher.medications_today": "Bugungi dorilar",
+    "teacher.end_of_day": "Kun yakuni ro'yxati",
+    "teacher.tomorrow_reminder": "Ertangi kun eslatmasi",
+    "teacher.notice_reminder": "Muhim e'lon eslatmasi"
   }
 }

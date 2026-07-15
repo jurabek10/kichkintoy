@@ -23,7 +23,138 @@ export function renderCronNotificationBody(
     return renderDocument(metadata, t) ?? fallback;
   if (notificationType === "notice.unread_nudge")
     return renderNotices(metadata, t) ?? fallback;
+  if (notificationType === "teacher.attendance_summary")
+    return renderTeacherAttendance(metadata, t) ?? fallback;
+  if (notificationType === "teacher.medications_today")
+    return renderTeacherMedications(metadata, t) ?? fallback;
+  if (notificationType === "teacher.end_of_day")
+    return renderTeacherEndOfDay(metadata, t) ?? fallback;
+  if (notificationType === "teacher.tomorrow_reminder")
+    return renderTeacherTomorrow(metadata, t) ?? fallback;
+  if (notificationType === "teacher.notice_reminder")
+    return renderTeacherNotices(metadata, t) ?? fallback;
   return fallback;
+}
+
+function renderTeacherAttendance(
+  value: unknown,
+  t: NotificationTranslate,
+): string | null {
+  const classes = array(value)
+    .map(object)
+    .filter((item): item is JsonObject => item !== null);
+  if (classes.length === 0) return null;
+  const lines = classes
+    .filter((item) => string(item.className) && number(item.total))
+    .map((item) => {
+      const reasons = array(item.absences)
+        .map(object)
+        .map((absence) => absence?.reason)
+        .filter(string);
+      return t("cron.teacher.attendance.class", {
+        className: item.className,
+        total: item.total,
+        present: number(item.presentCount) ? item.presentCount : 0,
+        absent: array(item.absences).length,
+        reasons: reasons.length > 0 ? ` (${reasons.join("; ")})` : "",
+        notMarked: number(item.notMarkedCount) ? item.notMarkedCount : 0,
+      });
+    });
+  return lines.length > 0 ? lines.join(" · ") : null;
+}
+
+function renderTeacherMedications(
+  value: unknown,
+  t: NotificationTranslate,
+): string | null {
+  const rows = array(value)
+    .map(object)
+    .filter((item): item is JsonObject => item !== null);
+  if (rows.length === 0) return null;
+  const lines = rows
+    .filter((item) => string(item.childFirstName) && string(item.medicineName))
+    .map((item) =>
+      t("cron.teacher.medications.item", {
+        child: item.childFirstName,
+        medicine: item.medicineName,
+        dosage: item.dosage ?? "",
+        time: item.medicationTime ?? "",
+      }),
+    );
+  return lines.length > 0 ? lines.join(" · ") : null;
+}
+
+function renderTeacherEndOfDay(
+  value: unknown,
+  t: NotificationTranslate,
+): string | null {
+  const data = object(value);
+  if (!data) return null;
+  const keys = [
+    "missingCheckouts",
+    "missingMealStatuses",
+    "missingReports",
+    "unansweredParents",
+    "submissionsToReview",
+  ] as const;
+  const parts = keys
+    .filter((key) => number(data[key]) && (data[key] as number) > 0)
+    .map((key) => t(`cron.teacher.endOfDay.${key}`, { count: data[key] }));
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function renderTeacherTomorrow(
+  value: unknown,
+  t: NotificationTranslate,
+): string | null {
+  const data = object(value);
+  if (!data) return null;
+  const events = array(data.events)
+    .map(object)
+    .filter((item): item is JsonObject => item !== null);
+  const birthdays = array(data.birthdays)
+    .map(object)
+    .filter((item): item is JsonObject => item !== null);
+  const parts: string[] = [];
+  if (events.length > 0) {
+    parts.push(
+      events
+        .map((event) =>
+          t("cron.teacher.tomorrow.event", {
+            title: event.title ?? "",
+            time:
+              string(event.startsAt) && !event.allDay
+                ? time(event.startsAt as string)
+                : t("cron.events.allDay"),
+          }),
+        )
+        .join(" · "),
+    );
+  }
+  const names = birthdays.map((item) => item.childFirstName).filter(string);
+  if (names.length > 0)
+    parts.push(
+      t("cron.teacher.tomorrow.birthdays", { names: names.join(", ") }),
+    );
+  return parts.length > 0
+    ? t("cron.teacher.tomorrow.summary", { items: parts.join(" · ") })
+    : null;
+}
+
+function renderTeacherNotices(
+  value: unknown,
+  t: NotificationTranslate,
+): string | null {
+  const notices = array(value)
+    .map(object)
+    .filter((item): item is JsonObject => item !== null);
+  const titles = notices.map((item) => item.title).filter(string);
+  return titles.length > 0
+    ? t("cron.teacher.notices.summary", {
+        count: titles.length,
+        titles: titles.join(" · "),
+      })
+    : null;
 }
 
 function renderDaily(value: unknown, t: NotificationTranslate): string | null {

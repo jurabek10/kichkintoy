@@ -93,6 +93,31 @@
     "notices": {
       "summary_one": "Important: {{titles}}",
       "summary_other": "{{count}} important notices: {{titles}}"
+    },
+    "teacher": {
+      "attendance": {
+        "class": "{{className}}: {{present}} of {{total}} present · {{absent}} absent{{reasons}} · {{notMarked}} not marked"
+      },
+      "medications": {
+        "item": "{{child}}: {{medicine}}, {{dosage}} ({{time}})"
+      },
+      "endOfDay": {
+        "missingCheckouts_one": "{{count}} child still checked in",
+        "missingCheckouts_other": "{{count}} children still checked in",
+        "missingMealStatuses": "{{count}} meal statuses missing",
+        "missingReports": "{{count}} daily reports missing",
+        "unansweredParents": "{{count}} parent messages unanswered",
+        "submissionsToReview": "{{count}} documents await review"
+      },
+      "tomorrow": {
+        "summary": "Tomorrow: {{items}}",
+        "event": "{{title}} ({{time}})",
+        "birthdays": "Birthday: {{names}} 🎂"
+      },
+      "notices": {
+        "summary_one": "Important: {{titles}}",
+        "summary_other": "{{count}} important notices: {{titles}}"
+      }
     }
   },
   "types": {
@@ -133,6 +158,11 @@
     "digest.weekly": "Weekly recap",
     "payment.reminder": "Tuition payment reminder",
     "document.deadline_reminder": "Document deadline reminder",
-    "notice.unread_nudge": "Unread important notice"
+    "notice.unread_nudge": "Unread important notice",
+    "teacher.attendance_summary": "Morning attendance summary",
+    "teacher.medications_today": "Today's medications",
+    "teacher.end_of_day": "End-of-day checklist",
+    "teacher.tomorrow_reminder": "Tomorrow's reminder",
+    "teacher.notice_reminder": "Important notice reminder"
   }
 }
