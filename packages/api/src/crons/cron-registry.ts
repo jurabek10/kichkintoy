@@ -35,6 +35,31 @@ export const CRON_JOBS = [
     cronExpression: "30 19 * * *",
     descriptionKey: "crons.jobs.parent.notice_nudge",
   },
+  {
+    name: "teacher.attendance_summary",
+    cronExpression: "30 9 * * 1-6",
+    descriptionKey: "crons.jobs.teacher.attendance_summary",
+  },
+  {
+    name: "teacher.medications_today",
+    cronExpression: "0 12 * * 1-6",
+    descriptionKey: "crons.jobs.teacher.medications_today",
+  },
+  {
+    name: "teacher.end_of_day",
+    cronExpression: "30 17 * * 1-6",
+    descriptionKey: "crons.jobs.teacher.end_of_day",
+  },
+  {
+    name: "teacher.tomorrow_reminder",
+    cronExpression: "35 20 * * *",
+    descriptionKey: "crons.jobs.teacher.tomorrow_reminder",
+  },
+  {
+    name: "teacher.notice_reminder",
+    cronExpression: "30 19 * * *",
+    descriptionKey: "crons.jobs.teacher.notice_reminder",
+  },
 ] as const satisfies readonly CronJobDefinition[];
 
 export type CronJobName = (typeof CRON_JOBS)[number]["name"];

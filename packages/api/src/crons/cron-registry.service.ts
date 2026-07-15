@@ -3,6 +3,7 @@ import { CRON_JOB_BY_NAME, CRON_JOBS, type CronJobName } from "./cron-registry";
 import { ParentDigestCron } from "./parent-digest.cron";
 import { ParentRemindersCron } from "./parent-reminders.cron";
 import { TuitionReminderCron } from "./tuition-reminder.cron";
+import { TeacherCrons } from "./teacher-crons";
 
 @Injectable()
 export class CronRegistryService {
@@ -12,6 +13,7 @@ export class CronRegistryService {
     private readonly digests: ParentDigestCron,
     private readonly reminders: ParentRemindersCron,
     private readonly tuition: TuitionReminderCron,
+    private readonly teachers: TeacherCrons,
   ) {}
 
   has(jobName: string): jobName is CronJobName {
@@ -34,6 +36,15 @@ export class CronRegistryService {
         this.reminders.runDocumentDeadlines(runDate, true),
       "parent.notice_nudge": () =>
         this.reminders.runNoticeNudges(runDate, true),
+      "teacher.attendance_summary": () =>
+        this.teachers.runAttendanceSummary(runDate, true),
+      "teacher.medications_today": () =>
+        this.teachers.runMedicationsToday(runDate, true),
+      "teacher.end_of_day": () => this.teachers.runEndOfDay(runDate, true),
+      "teacher.tomorrow_reminder": () =>
+        this.teachers.runTomorrowReminder(runDate, true),
+      "teacher.notice_reminder": () =>
+        this.teachers.runNoticeReminder(runDate, true),
     };
     return jobs[jobName]();
   }
