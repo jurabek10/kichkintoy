@@ -41,6 +41,15 @@ try {
   results.daily = await digests.runDailyDigest("2040-07-14", true);
   assert.equal(results.daily.sentCount, 1);
   assert.equal((await digests.runDailyDigest("2040-07-14", true)).sentCount, 0);
+  const dailyRow = await prisma.notification.findFirst({
+    where: {
+      userId: fixture.parent.id,
+      notificationType: "digest.daily",
+      channel: "in_app",
+    },
+  });
+  assert.equal(dailyRow.metadata.sleepMinutes, 90);
+  assert.equal(dailyRow.metadata.sleepRestless, true);
 
   results.events = await reminders.runTomorrowEvents("2040-07-14", true);
   assert.equal(results.events.sentCount, 1);
@@ -220,7 +229,9 @@ async function seedFixture() {
       classId: classroom.id,
       childId: child.id,
       attendanceDate: day("2040-07-14"),
-      status: "present",
+      // Check-out flips the status to picked_up in the real app; the digest
+      // must still treat the day as attended.
+      status: "picked_up",
       checkInAt: instant("2040-07-14T03:30:00.000Z"),
       checkOutAt: instant("2040-07-14T12:15:00.000Z"),
       pickedUpBy: "Otabek",
@@ -260,6 +271,7 @@ async function seedFixture() {
   await prisma.dailyReportItem.createMany({
     data: [
       { dailyReportId: report.id, itemType: "sleep", value: "well_1h30" },
+      { dailyReportId: report.id, itemType: "sleep", value: "restless" },
       { dailyReportId: report.id, itemType: "activity", title: "Drawing" },
     ],
   });

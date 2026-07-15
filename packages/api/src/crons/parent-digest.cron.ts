@@ -14,14 +14,24 @@ import { CronNotificationsService } from "./cron-notifications.service";
 import { CronRunnerService, type CronRunResult } from "./cron-runner.service";
 import { CRON_JOB_BY_NAME } from "./cron-registry";
 
-const PRESENT_STATUSES = ["present", "late", "checked_in", "checked_out"];
+// Check-out flips attendance to picked_up/left_early, so those still count as
+// an attended day; see markAttendanceStatusValues in @kichkintoy/shared.
+const PRESENT_STATUSES = ["present", "late", "left_early", "picked_up"];
 const SLEEP_MINUTES: Record<string, number> = {
   well_2h: 120,
   well_1h30: 90,
   well_1h: 60,
   briefly: 30,
   no_sleep: 0,
+  // Legacy free-text values recorded before sleep tokens existed.
+  "slept well (2 hours)": 120,
+  "slept well (1.5 hours)": 90,
+  "slept well (1 hour)": 60,
+  "slept briefly (30 min)": 30,
+  "didn't sleep": 0,
 };
+// Restless sleep has no recorded duration; the digest reports it qualitatively.
+const RESTLESS_SLEEP_VALUES = new Set(["restless", "restless sleep"]);
 
 @Injectable()
 export class ParentDigestCron {
@@ -118,9 +128,18 @@ export class ParentDigestCron {
           }),
         ]);
 
-        const sleepMinutes = (report?.items ?? [])
-          .filter((item) => item.itemType === "sleep")
-          .reduce((sum, item) => sum + sleepValueMinutes(item.value), 0);
+        const sleepItems = (report?.items ?? []).filter(
+          (item) => item.itemType === "sleep",
+        );
+        const sleepMinutes = sleepItems.reduce(
+          (sum, item) => sum + sleepValueMinutes(item.value),
+          0,
+        );
+        const sleepRestless = sleepItems.some(
+          (item) =>
+            item.value !== null &&
+            RESTLESS_SLEEP_VALUES.has(item.value.trim().toLowerCase()),
+        );
         const activities = unique([
           ...schedules.map((item) => item.title),
           ...(report?.items ?? [])
@@ -143,6 +162,7 @@ export class ParentDigestCron {
             eatingStatus: meal.childStatuses[0]?.status ?? null,
           })),
           sleepMinutes,
+          sleepRestless,
           activities,
         } satisfies Prisma.InputJsonObject;
 
@@ -293,7 +313,8 @@ export class ParentDigestCron {
 
 function sleepValueMinutes(value: string | null): number {
   if (!value) return 0;
-  if (value in SLEEP_MINUTES) return SLEEP_MINUTES[value]!;
+  const key = value.trim().toLowerCase();
+  if (key in SLEEP_MINUTES) return SLEEP_MINUTES[key]!;
   const numeric = Number(value);
   return Number.isFinite(numeric) && numeric >= 0 ? Math.round(numeric) : 0;
 }
