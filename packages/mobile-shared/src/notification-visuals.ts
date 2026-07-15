@@ -47,6 +47,16 @@ export function notificationVisual(input: {
   entityType: string | null;
   entityId: string | null;
 }): NotificationVisual {
+  if (input.notificationType === "teacher.attendance_summary")
+    return VISUALS.attendance!;
+  if (input.notificationType === "teacher.medications_today")
+    return VISUALS.medication!;
+  if (input.notificationType === "teacher.end_of_day")
+    return VISUALS.child_reports!;
+  if (input.notificationType === "teacher.tomorrow_reminder")
+    return VISUALS.calendar!;
+  if (input.notificationType === "teacher.notice_reminder")
+    return VISUALS.notice!;
   if (input.notificationType === "digest.tomorrow_events")
     return VISUALS.calendar!;
   if (input.notificationType === "document.deadline_reminder")

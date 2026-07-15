@@ -4,6 +4,8 @@ import {
   CreditCard,
   FileText,
   Home,
+  ClipboardCheck,
+  HeartPulse,
   Megaphone,
   type LucideIcon,
 } from "lucide-react";
@@ -17,6 +19,32 @@ export type WebNotificationVisual = {
 export function notificationVisual(
   notificationType: string,
 ): WebNotificationVisual {
+  if (notificationType === "teacher.attendance_summary")
+    return {
+      icon: ClipboardCheck,
+      tileClass: "bg-emerald-100",
+      iconClass: "text-emerald-600",
+    };
+  if (notificationType === "teacher.medications_today")
+    return {
+      icon: HeartPulse,
+      tileClass: "bg-rose-100",
+      iconClass: "text-rose-600",
+    };
+  if (notificationType === "teacher.end_of_day")
+    return { icon: Home, tileClass: "bg-sky-100", iconClass: "text-sky-600" };
+  if (notificationType === "teacher.tomorrow_reminder")
+    return {
+      icon: CalendarDays,
+      tileClass: "bg-blue-100",
+      iconClass: "text-blue-600",
+    };
+  if (notificationType === "teacher.notice_reminder")
+    return {
+      icon: Megaphone,
+      tileClass: "bg-sky-100",
+      iconClass: "text-sky-600",
+    };
   if (
     notificationType === "digest.daily" ||
     notificationType === "digest.weekly"
