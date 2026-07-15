@@ -6,7 +6,6 @@ import {
   NotificationsService,
   type EnqueueNotificationInput,
 } from "../notifications/notifications.service";
-import { tashkentDayBounds } from "./cron-date";
 
 @Injectable()
 export class CronNotificationsService {
@@ -20,28 +19,12 @@ export class CronNotificationsService {
     date: string,
     entityScoped = true,
   ): Promise<boolean> {
-    const { start, end } = tashkentDayBounds(date);
-    const existing = await this.prisma.notification.findFirst({
-      where: {
-        userId: input.userId,
-        notificationType: input.notificationType,
-        ...(entityScoped ? { entityId: input.entityId ?? null } : {}),
-        channel: "in_app",
-        createdAt: { gte: start, lt: end },
-      },
-      select: { id: true },
-    });
-    if (existing) return false;
-    const rows = await this.notifications.enqueue({
-      ...input,
-      dedupeKey: cronDedupeKey(
-        input.notificationType,
-        input.userId,
-        entityScoped ? (input.entityId ?? "none") : "all",
-        date,
-      ),
-    });
-    return rows.length > 0;
+    return this.enqueueWithKey(input, [
+      input.notificationType,
+      input.userId,
+      entityScoped ? (input.entityId ?? "none") : "all",
+      date,
+    ]);
   }
 
   async enqueueDocumentReminderOnce(
@@ -50,31 +33,13 @@ export class CronNotificationsService {
     childId: string,
     daysLeft: number,
   ): Promise<boolean> {
-    const candidates = await this.prisma.notification.findMany({
-      where: {
-        userId: input.userId,
-        notificationType: input.notificationType,
-        entityId: requestId,
-        channel: "in_app",
-      },
-      select: { metadata: true },
-    });
-    const duplicate = candidates.some((row) => {
-      const metadata = asObject(row.metadata);
-      return metadata?.childId === childId && metadata?.daysLeft === daysLeft;
-    });
-    if (duplicate) return false;
-    const rows = await this.notifications.enqueue({
-      ...input,
-      dedupeKey: cronDedupeKey(
-        input.notificationType,
-        input.userId,
-        requestId,
-        childId,
-        daysLeft,
-      ),
-    });
-    return rows.length > 0;
+    return this.enqueueWithKey(input, [
+      input.notificationType,
+      input.userId,
+      requestId,
+      childId,
+      daysLeft,
+    ]);
   }
 
   async enqueueWeeklyRecapOnce(
@@ -82,29 +47,12 @@ export class CronNotificationsService {
     childId: string,
     weekStart: string,
   ): Promise<boolean> {
-    const candidates = await this.prisma.notification.findMany({
-      where: {
-        userId: input.userId,
-        notificationType: input.notificationType,
-        entityId: childId,
-        channel: "in_app",
-      },
-      select: { metadata: true },
-    });
-    if (
-      candidates.some((row) => asObject(row.metadata)?.weekStart === weekStart)
-    )
-      return false;
-    const rows = await this.notifications.enqueue({
-      ...input,
-      dedupeKey: cronDedupeKey(
-        input.notificationType,
-        input.userId,
-        childId,
-        weekStart,
-      ),
-    });
-    return rows.length > 0;
+    return this.enqueueWithKey(input, [
+      input.notificationType,
+      input.userId,
+      childId,
+      weekStart,
+    ]);
   }
 
   async previouslyNudgedNoticeIds(userId: string): Promise<Set<string>> {
@@ -127,6 +75,20 @@ export class CronNotificationsService {
       }
     }
     return ids;
+  }
+
+  private async enqueueWithKey(
+    input: EnqueueNotificationInput,
+    keyParts: Array<string | number>,
+  ): Promise<boolean> {
+    const dedupeKey = cronDedupeKey(...keyParts);
+    const existing = await this.prisma.notification.findFirst({
+      where: { dedupeKey },
+      select: { id: true },
+    });
+    if (existing) return false;
+    const rows = await this.notifications.enqueue({ ...input, dedupeKey });
+    return rows.length > 0;
   }
 }
 
