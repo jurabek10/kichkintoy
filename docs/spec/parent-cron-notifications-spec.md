@@ -315,9 +315,9 @@ expression, description key) that both the scheduler and the admin monitoring AP
 
 ## 10. Future (not in this spec)
 
-Teacher crons: morning attendance nudge (~09:30), pre-digest completeness check (~17:30 —
-missing check-outs / meal statuses / unpublished reports, protects J1 quality), tomorrow's
-events for their classes, unanswered parent comments >24h.
+Teacher crons: specified in `teacher-cron-notifications-spec.md` (morning attendance
+summary, lunchtime medications, end-of-day checklist protecting J1 quality, tomorrow's
+events + birthdays, important-notice reminder).
 
 Director crons: daily center summary (~18:30), Monday payment-collection digest, inactive-class
 alert (no reports/meals/photos 2+ days), pending queue digest (join requests, expiring
