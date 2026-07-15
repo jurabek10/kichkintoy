@@ -251,6 +251,13 @@
         "weekly_recap": "Ota-onalar uchun haftalik xulosa",
         "document_deadline": "Hujjat muddati eslatmasi",
         "notice_nudge": "O'qilmagan e'lon eslatmasi"
+      },
+      "teacher": {
+        "attendance_summary": "Ertalabki davomat xulosasi",
+        "medications_today": "Bugungi dorilar",
+        "end_of_day": "Kun yakuni ro'yxati",
+        "tomorrow_reminder": "Ertangi kun eslatmasi",
+        "notice_reminder": "Muhim e'lon eslatmasi"
       }
     },
     "jobs": {
@@ -261,6 +268,13 @@
         "weekly_recap": "Har yakshanba bolaning davomati, rasmlari, hisobotlari va e'lonlarini jamlaydi.",
         "document_deadline": "Kerakli hujjat muddati tugashidan uch va bir kun oldin eslatadi.",
         "notice_nudge": "O'qilmagan muhim yoki tasdiqlash talab qiladigan e'lon uchun bir marta eslatadi."
+      },
+      "teacher": {
+        "attendance_summary": "O'qituvchining barcha sinflaridagi davomat va belgilanmagan bolalarni jamlaydi.",
+        "medications_today": "Bugun berilishi kutilayotgan dorilarni ko'rsatadi.",
+        "end_of_day": "Olib ketish, ovqat, hisobot, javob va hujjat tekshiruvlaridagi kamchiliklarni ko'rsatadi.",
+        "tomorrow_reminder": "Ertangi sinf tadbirlari va tug'ilgan kunlarni birlashtiradi.",
+        "notice_reminder": "O'qituvchi sinflariga yuborilgan har bir muhim e'lonni bir marta eslatadi."
       }
     },
     "schedules": {
@@ -271,6 +285,13 @@
         "weekly_recap": "Yakshanba 19:00",
         "document_deadline": "Har kuni 10:05",
         "notice_nudge": "Har kuni 19:30"
+      },
+      "teacher": {
+        "attendance_summary": "Dush–Shan 09:30",
+        "medications_today": "Dush–Shan 12:00",
+        "end_of_day": "Dush–Shan 17:30",
+        "tomorrow_reminder": "Har kuni 20:35",
+        "notice_reminder": "Har kuni 19:30"
       }
     },
     "card": {

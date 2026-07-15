@@ -12,6 +12,11 @@ const jobs = [
     cronExpression: "0 19 * * 0",
     descriptionKey: "crons.jobs.parent.weekly_recap",
   },
+  {
+    name: "teacher.attendance_summary",
+    cronExpression: "30 9 * * 1-6",
+    descriptionKey: "crons.jobs.teacher.attendance_summary",
+  },
 ] as const;
 
 function runRow(overrides: Partial<ReturnType<typeof baseRun>> = {}) {
@@ -76,6 +81,7 @@ describe("AdminCronService", () => {
     expect(result.map((job) => job.latestRun?.jobName)).toEqual([
       "parent.daily_digest",
       "parent.weekly_recap",
+      undefined,
     ]);
   });
 
@@ -145,6 +151,19 @@ describe("AdminCronService", () => {
       }),
     );
     expect(result.sentCount).toBe(0);
+  });
+
+  it("accepts a registered teacher job for a manual run", async () => {
+    const { service, registry } = setup();
+    await service.runNow({
+      actorUserId: "70992243-2851-42df-ad64-9a023e19cf3d",
+      jobName: "teacher.attendance_summary",
+      runDate: "2026-07-15",
+    });
+    expect(registry.runNow).toHaveBeenCalledWith(
+      "teacher.attendance_summary",
+      "2026-07-15",
+    );
   });
 
   it("rejects names outside the static registry", async () => {

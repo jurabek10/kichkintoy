@@ -251,6 +251,13 @@
         "weekly_recap": "Weekly parent recap",
         "document_deadline": "Document deadline reminder",
         "notice_nudge": "Unread notice reminder"
+      },
+      "teacher": {
+        "attendance_summary": "Morning attendance summary",
+        "medications_today": "Today's medications",
+        "end_of_day": "End-of-day checklist",
+        "tomorrow_reminder": "Tomorrow's reminder",
+        "notice_reminder": "Important notice reminder"
       }
     },
     "jobs": {
@@ -261,6 +268,13 @@
         "weekly_recap": "Summarizes the child's attendance, photos, reports, and notices each Sunday.",
         "document_deadline": "Reminds guardians three days and one day before required documents are due.",
         "notice_nudge": "Sends one follow-up for unread important or confirmation-required notices."
+      },
+      "teacher": {
+        "attendance_summary": "Summarizes attendance and missing roll-call marks across the teacher's classes.",
+        "medications_today": "Lists today's medication requests that are still pending.",
+        "end_of_day": "Flags incomplete check-outs, meals, reports, replies, and document reviews.",
+        "tomorrow_reminder": "Bundles tomorrow's class events and child birthdays.",
+        "notice_reminder": "Sends one reminder per important notice published for the teacher's classes."
       }
     },
     "schedules": {
@@ -271,6 +285,13 @@
         "weekly_recap": "Sunday 19:00",
         "document_deadline": "Daily 10:05",
         "notice_nudge": "Daily 19:30"
+      },
+      "teacher": {
+        "attendance_summary": "Mon–Sat 09:30",
+        "medications_today": "Mon–Sat 12:00",
+        "end_of_day": "Mon–Sat 17:30",
+        "tomorrow_reminder": "Daily 20:35",
+        "notice_reminder": "Daily 19:30"
       }
     },
     "card": {
