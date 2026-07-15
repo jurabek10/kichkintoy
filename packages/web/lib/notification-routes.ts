@@ -5,6 +5,7 @@ export function routeForNotification(input: {
   entityType: string | null;
   entityId: string | null;
 }): string {
+  if (input.notificationType === "teacher.end_of_day") return "/dashboard";
   const target = notificationRouteTarget(input);
 
   if (target.kind === "report") return `/dashboard/reports/${target.id}`;
@@ -20,7 +21,9 @@ export function routeForNotification(input: {
   if (target.kind === "meal" && target.id)
     return `/dashboard/meals/${target.id}`;
   if (target.kind === "medication")
-    return `/dashboard/medications/${target.id}`;
+    return target.id
+      ? `/dashboard/medications/${target.id}`
+      : "/dashboard/medications";
   if (target.kind === "pickup") return `/dashboard/pickups/${target.id}`;
   if (target.kind === "documents" && target.id)
     return `/dashboard/documents/${target.id}`;

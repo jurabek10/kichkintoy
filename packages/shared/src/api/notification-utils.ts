@@ -12,7 +12,7 @@ export type NotificationRouteTarget =
   | { kind: "album"; id: string }
   | { kind: "calendar"; id: string | null }
   | { kind: "meal"; id: string | null }
-  | { kind: "medication"; id: string }
+  | { kind: "medication"; id: string | null }
   | { kind: "pickup"; id: string }
   | { kind: "documents"; id: string | null }
   | { kind: "attendance"; id: string | null }
@@ -46,6 +46,16 @@ export function notificationRouteTarget(
   if (input.notificationType === "notice.unread_nudge") {
     return { kind: "notice", id };
   }
+  if (input.notificationType === "teacher.attendance_summary")
+    return { kind: "attendance", id };
+  if (input.notificationType === "teacher.medications_today")
+    return { kind: "medication", id };
+  if (input.notificationType === "teacher.end_of_day")
+    return { kind: "notifications" };
+  if (input.notificationType === "teacher.tomorrow_reminder")
+    return { kind: "calendar", id };
+  if (input.notificationType === "teacher.notice_reminder")
+    return { kind: "notice", id };
 
   if (id && source.includes("report")) return { kind: "report", id };
   if (id && source.includes("notice")) return { kind: "notice", id };
