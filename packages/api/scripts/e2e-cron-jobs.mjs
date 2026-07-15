@@ -6,6 +6,7 @@ import { CronRunnerService } from "../dist/crons/cron-runner.service.js";
 import { ParentDigestCron } from "../dist/crons/parent-digest.cron.js";
 import { ParentRemindersCron } from "../dist/crons/parent-reminders.cron.js";
 import { TuitionReminderCron } from "../dist/crons/tuition-reminder.cron.js";
+import { TeacherCrons } from "../dist/crons/teacher-crons.js";
 import { NotificationsService } from "../dist/notifications/notifications.service.js";
 import { InvoiceMaterializationService } from "../dist/payments/invoice-materialization.service.js";
 
@@ -30,6 +31,7 @@ const invoices = new InvoiceMaterializationService(prisma);
 const digests = new ParentDigestCron(prisma, runs, cronNotifications);
 const reminders = new ParentRemindersCron(prisma, runs, cronNotifications);
 const tuition = new TuitionReminderCron(invoices, runs, cronNotifications);
+const teacherCrons = new TeacherCrons(prisma, runs, cronNotifications);
 
 const day = (value) => new Date(`${value}T00:00:00.000Z`);
 const instant = (value) => new Date(value);
@@ -99,6 +101,144 @@ try {
     0,
   );
 
+  const teacherJobs = [
+    [
+      "teacher.attendance_summary",
+      () => teacherCrons.runAttendanceSummary("2040-07-14", true),
+    ],
+    [
+      "teacher.medications_today",
+      () => teacherCrons.runMedicationsToday("2040-07-14", true),
+    ],
+    ["teacher.end_of_day", () => teacherCrons.runEndOfDay("2040-07-14", true)],
+    [
+      "teacher.tomorrow_reminder",
+      () => teacherCrons.runTomorrowReminder("2040-07-14", true),
+    ],
+    [
+      "teacher.notice_reminder",
+      () => teacherCrons.runNoticeReminder("2040-07-14", true),
+    ],
+  ];
+  for (const [name, run] of teacherJobs) {
+    const expectedFirstCount = name === "teacher.attendance_summary" ? 2 : 1;
+    assert.equal(
+      (await run()).sentCount,
+      expectedFirstCount,
+      `${name} first run`,
+    );
+    assert.deepEqual(
+      await prisma.cronJobRun.findUnique({
+        where: {
+          jobName_runDate: { jobName: name, runDate: day("2040-07-14") },
+        },
+        select: { status: true, sentCount: true },
+      }),
+      { status: "succeeded", sentCount: expectedFirstCount },
+      `${name} records the first sent count`,
+    );
+    assert.equal((await run()).sentCount, 0, `${name} deduped rerun`);
+    assert.deepEqual(
+      await prisma.cronJobRun.findUnique({
+        where: {
+          jobName_runDate: { jobName: name, runDate: day("2040-07-14") },
+        },
+        select: { status: true, sentCount: true },
+      }),
+      { status: "succeeded", sentCount: 0 },
+      `${name} updates the same-date run row`,
+    );
+  }
+  assert.equal(
+    (await teacherCrons.runNoticeReminder("2040-07-15", true)).sentCount,
+    0,
+  );
+
+  const teacherRows = await prisma.notification.findMany({
+    where: {
+      userId: fixture.teacher.id,
+      channel: "in_app",
+      notificationType: { startsWith: "teacher." },
+    },
+  });
+  assert.equal(teacherRows.length, 5);
+  assert.equal(
+    await prisma.notification.count({
+      where: {
+        userId: fixture.clearTeacher.id,
+        notificationType: { startsWith: "teacher." },
+        channel: "in_app",
+      },
+    }),
+    1,
+  );
+  const teacherByType = Object.fromEntries(
+    teacherRows.map((row) => [row.notificationType, row]),
+  );
+  assert.equal(teacherByType["teacher.attendance_summary"].metadata.length, 2);
+  const secondClassRow = teacherByType[
+    "teacher.attendance_summary"
+  ].metadata.find((row) => row.className === "Cron E2E Second Class");
+  assert.deepEqual(secondClassRow.absences.map((item) => item.reason).sort(), [
+    "doctor visit",
+    "family reason",
+  ]);
+  assert.equal(secondClassRow.notMarkedCount, 0);
+  assert.equal(teacherByType["teacher.medications_today"].metadata.length, 1);
+  assert.deepEqual(
+    Object.fromEntries(
+      Object.entries(teacherByType["teacher.end_of_day"].metadata).filter(
+        ([key]) => key !== "classNames",
+      ),
+    ),
+    {
+      missingCheckouts: 1,
+      missingMealStatuses: 1,
+      missingReports: 1,
+      unansweredParents: 1,
+      submissionsToReview: 1,
+    },
+  );
+  assert.equal(
+    teacherByType["teacher.tomorrow_reminder"].metadata.events.length,
+    2,
+  );
+  assert.equal(
+    teacherByType["teacher.tomorrow_reminder"].metadata.birthdays.length,
+    1,
+  );
+  assert.equal(teacherByType["teacher.notice_reminder"].metadata.length, 1);
+  assert.equal(
+    teacherByType["teacher.notice_reminder"].metadata[0].title,
+    "Important meeting",
+  );
+  assert.ok(teacherRows.every((row) => row.dedupeKey?.startsWith("cron:")));
+  assert.equal(
+    await prisma.notification.count({
+      where: {
+        userId: fixture.teacher.id,
+        channel: "push",
+        notificationType: { startsWith: "teacher." },
+      },
+    }),
+    teacherRows.length,
+  );
+
+  const teacherRunRows = await prisma.cronJobRun.findMany({
+    where: { jobName: { startsWith: "teacher." } },
+    orderBy: { startedAt: "asc" },
+  });
+  for (const [name] of teacherJobs) {
+    const jobRuns = teacherRunRows.filter((row) => row.jobName === name);
+    assert.equal(
+      jobRuns.length,
+      name === "teacher.notice_reminder" ? 2 : 1,
+      `${name} keeps one row per processing date`,
+    );
+    assert.ok(jobRuns.every((row) => row.status === "succeeded"));
+    assert.ok(jobRuns.every((row) => row.sentCount === 0));
+  }
+
   const inApp = await prisma.notification.findMany({
     where: { userId: fixture.parent.id, channel: "in_app" },
     orderBy: { notificationType: "asc" },
@@ -145,7 +285,7 @@ try {
 
   console.log(
     JSON.stringify({
-      jobsVerified: 6,
+      jobsVerified: 11,
       logicalNotifications: inApp.length,
       deliveryRows: inApp.length * 2,
       historicalRerunsCreated: 0,
@@ -174,21 +314,67 @@ async function seedFixture() {
   const classroom = await prisma.class.create({
     data: { centerId: center.id, name: "Cron E2E Class" },
   });
-  const [parent, author] = await Promise.all([
+  const secondClassroom = await prisma.class.create({
+    data: { centerId: center.id, name: "Cron E2E Second Class" },
+  });
+  const clearCenter = await prisma.center.create({
+    data: {
+      organizationId: organization.id,
+      name: "Cron Clear Center",
+      centerCode: `CRON-CLEAR-${Date.now()}`,
+    },
+  });
+  const clearClassroom = await prisma.class.create({
+    data: { centerId: clearCenter.id, name: "All Clear" },
+  });
+  const [parent, author, teacher, clearTeacher] = await Promise.all([
     prisma.user.create({
       data: { username: `cron_parent_${Date.now()}`, fullName: "Cron Parent" },
     }),
     prisma.user.create({
       data: { username: `cron_author_${Date.now()}`, fullName: "Cron Author" },
     }),
+    prisma.user.create({
+      data: {
+        username: `cron_teacher_${Date.now()}`,
+        fullName: "Cron Teacher",
+      },
+    }),
+    prisma.user.create({
+      data: {
+        username: `cron_clear_teacher_${Date.now()}`,
+        fullName: "Clear Teacher",
+      },
+    }),
   ]);
   const child = await prisma.child.create({
-    data: { firstName: "Aziza", dob: day("2035-04-10") },
+    data: { firstName: "Aziza", dob: day("2035-07-15") },
   });
   const emptyChild = await prisma.child.create({
     data: { firstName: "Bek", dob: day("2035-05-11") },
   });
   await Promise.all([
+    prisma.teacherClassAssignment.create({
+      data: {
+        teacherUserId: teacher.id,
+        classId: classroom.id,
+        startedAt: day("2040-01-01"),
+      },
+    }),
+    prisma.teacherClassAssignment.create({
+      data: {
+        teacherUserId: teacher.id,
+        classId: secondClassroom.id,
+        startedAt: day("2040-01-01"),
+      },
+    }),
+    prisma.teacherClassAssignment.create({
+      data: {
+        teacherUserId: clearTeacher.id,
+        classId: clearClassroom.id,
+        startedAt: day("2040-01-01"),
+      },
+    }),
     prisma.childGuardian.create({
       data: {
         childId: child.id,
@@ -238,6 +424,93 @@ async function seedFixture() {
       pickedUpRelationship: "father",
     },
   });
+  const workingChild = await prisma.child.create({
+    data: { firstName: "Sardor", dob: day("2035-03-01") },
+  });
+  const absentChild = await prisma.child.create({
+    data: { firstName: "Bekzod", dob: day("2035-04-01") },
+  });
+  const excusedChild = await prisma.child.create({
+    data: { firstName: "Dilnoza", dob: day("2035-06-01") },
+  });
+  await prisma.childEnrollment.createMany({
+    data: [
+      {
+        childId: workingChild.id,
+        centerId: center.id,
+        classId: classroom.id,
+        startedAt: day("2040-01-01"),
+      },
+      {
+        childId: absentChild.id,
+        centerId: center.id,
+        classId: secondClassroom.id,
+        startedAt: day("2040-01-01"),
+      },
+      {
+        childId: excusedChild.id,
+        centerId: center.id,
+        classId: secondClassroom.id,
+        startedAt: day("2040-01-01"),
+      },
+    ],
+  });
+  await prisma.attendanceRecord.createMany({
+    data: [
+      {
+        centerId: center.id,
+        classId: classroom.id,
+        childId: workingChild.id,
+        attendanceDate: day("2040-07-14"),
+        status: "present",
+        checkInAt: instant("2040-07-14T03:45:00.000Z"),
+      },
+      {
+        centerId: center.id,
+        classId: secondClassroom.id,
+        childId: absentChild.id,
+        attendanceDate: day("2040-07-14"),
+        status: "absent",
+        absenceReason: "family reason",
+      },
+      {
+        centerId: center.id,
+        classId: secondClassroom.id,
+        childId: excusedChild.id,
+        attendanceDate: day("2040-07-14"),
+        status: "excused",
+        absenceReason: "doctor visit",
+      },
+    ],
+  });
+  await prisma.medicationRequest.createMany({
+    data: [
+      {
+        centerId: center.id,
+        classId: classroom.id,
+        childId: child.id,
+        parentUserId: parent.id,
+        medicineName: "Syrup",
+        dosage: "5 ml",
+        medicationTime: "after lunch",
+        parentSignature: "Parent",
+        requestedForDate: day("2040-07-14"),
+        status: "pending",
+      },
+      {
+        centerId: center.id,
+        classId: classroom.id,
+        childId: child.id,
+        parentUserId: parent.id,
+        medicineName: "Vitamin",
+        dosage: "1",
+        medicationTime: "morning",
+        parentSignature: "Parent",
+        requestedForDate: day("2040-07-14"),
+        status: "administered",
+      },
+    ],
+  });
   await prisma.mealPost.create({
     data: {
       centerId: center.id,
@@ -274,6 +547,14 @@ async function seedFixture() {
       { dailyReportId: report.id, itemType: "sleep", value: "restless" },
       { dailyReportId: report.id, itemType: "activity", title: "Drawing" },
     ],
+  });
+  await prisma.dailyReportComment.create({
+    data: {
+      dailyReportId: report.id,
+      authorUserId: parent.id,
+      body: "Please reply",
+      createdAt: instant("2040-07-12T10:00:00.000Z"),
+    },
   });
   await prisma.schedule.create({
     data: {
@@ -360,9 +641,32 @@ async function seedFixture() {
       recipients: {
         create: { userId: parent.id, childId: child.id },
       },
+      targets: { create: { targetKind: "class", targetId: classroom.id } },
+    },
+  });
+  await prisma.notice.create({
+    data: {
+      centerId: center.id,
+      classId: classroom.id,
+      authorUserId: teacher.id,
+      title: "Teacher's own notice",
+      body: "Do not remind the author",
+      targetType: "class",
+      status: "published",
+      isImportant: true,
+      publishedAt: instant("2040-07-12T10:00:00.000Z"),
+      targets: { create: { targetKind: "class", targetId: classroom.id } },
     },
   });
   assert.ok(notice.id);
 
-  return { parent, author, child, emptyChild, submittedRequest };
+  return {
+    parent,
+    author,
+    teacher,
+    clearTeacher,
+    child,
+    emptyChild,
+    submittedRequest,
+  };
 }
