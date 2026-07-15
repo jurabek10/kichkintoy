@@ -7,13 +7,13 @@ import {
   formatFallbackDate,
   parseDateOnly,
   tashkentDate,
-  tashkentDayBounds,
   tashkentInstant,
   TASHKENT_TIME_ZONE,
 } from "./cron-date";
 import { CronNotificationsService } from "./cron-notifications.service";
 import { CronRunnerService, type CronRunResult } from "./cron-runner.service";
 import { CRON_JOB_BY_NAME } from "./cron-registry";
+import { scheduledEventsForDate } from "./cron-events";
 
 type EventItem = {
   eventId: string;
@@ -75,15 +75,7 @@ export class ParentRemindersCron {
 
   private async sendTomorrowEvents(date: string): Promise<number> {
     const tomorrow = addDateDays(date, 1);
-    const bounds = tashkentDayBounds(tomorrow);
-    const events = await this.prisma.calendarEvent.findMany({
-      where: {
-        status: "scheduled",
-        startsAt: { gte: bounds.start, lt: bounds.end },
-      },
-      include: { classes: true, children: true },
-      orderBy: { startsAt: "asc" },
-    });
+    const events = await scheduledEventsForDate(this.prisma, tomorrow);
     if (events.length === 0) return 0;
 
     const centerIds = [...new Set(events.map((event) => event.centerId))];
