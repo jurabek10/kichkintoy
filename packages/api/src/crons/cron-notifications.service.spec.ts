@@ -22,6 +22,7 @@ function createService() {
       notifications as never,
     ),
     notifications,
+    prisma,
   };
 }
 
@@ -61,6 +62,31 @@ describe("CronNotificationsService logical idempotency", () => {
 
     expect(notifications.enqueue.mock.calls[0]![0].dedupeKey).not.toBe(
       notifications.enqueue.mock.calls[1]![0].dedupeKey,
+    );
+  });
+
+  it("finds teacher notice ids stored as an entity or inside bundle metadata", async () => {
+    const { service, prisma } = createService();
+    prisma.notification.findMany.mockResolvedValue([
+      { entityId: "notice-1", metadata: null },
+      {
+        entityId: null,
+        metadata: [{ noticeId: "notice-2" }, { noticeId: "notice-3" }],
+      },
+    ]);
+
+    await expect(
+      service.previouslyNudgedNoticeIds(
+        input.userId,
+        "teacher.notice_reminder",
+      ),
+    ).resolves.toEqual(new Set(["notice-1", "notice-2", "notice-3"]));
+    expect(prisma.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          notificationType: "teacher.notice_reminder",
+        }),
+      }),
     );
   });
 });

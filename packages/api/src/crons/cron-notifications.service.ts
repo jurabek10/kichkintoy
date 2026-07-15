@@ -55,11 +55,14 @@ export class CronNotificationsService {
     ]);
   }
 
-  async previouslyNudgedNoticeIds(userId: string): Promise<Set<string>> {
+  async previouslyNudgedNoticeIds(
+    userId: string,
+    notificationType = "notice.unread_nudge",
+  ): Promise<Set<string>> {
     const rows = await this.prisma.notification.findMany({
       where: {
         userId,
-        notificationType: "notice.unread_nudge",
+        notificationType,
         channel: "in_app",
       },
       select: { entityId: true, metadata: true },
