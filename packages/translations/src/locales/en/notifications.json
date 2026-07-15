@@ -30,6 +30,7 @@
       "pickedUp": "picked up by {{name}} ({{relationship}})",
       "meal": "{{meal}}: {{menu}} — {{status}}",
       "sleep": "Sleep: {{duration}}",
+      "sleepRestless": "Sleep: slept restlessly",
       "activities": "Activities: {{items}}"
     },
     "mealTypes": {

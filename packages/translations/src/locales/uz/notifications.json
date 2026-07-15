@@ -30,6 +30,7 @@
       "pickedUp": "{{name}} ({{relationship}}) olib ketdi",
       "meal": "{{meal}}: {{menu}} — {{status}}",
       "sleep": "Uyqu: {{duration}}",
+      "sleepRestless": "Uyqu: notinch uxladi",
       "activities": "Mashg‘ulotlar: {{items}}"
     },
     "mealTypes": {

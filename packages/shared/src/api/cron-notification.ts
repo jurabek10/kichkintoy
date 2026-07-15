@@ -71,6 +71,8 @@ function renderDaily(value: unknown, t: NotificationTranslate): string | null {
         duration: duration(data.sleepMinutes as number, t),
       }),
     );
+  } else if (data.sleepRestless === true) {
+    parts.push(t("cron.daily.sleepRestless"));
   }
   const activities = array(data.activities)
     .map((item) => object(item)?.title)

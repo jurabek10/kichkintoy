@@ -30,6 +30,7 @@
       "pickedUp": "забрал(а) {{name}} ({{relationship}})",
       "meal": "{{meal}}: {{menu}} — {{status}}",
       "sleep": "Сон: {{duration}}",
+      "sleepRestless": "Сон: спал(а) беспокойно",
       "activities": "Занятия: {{items}}"
     },
     "mealTypes": {
